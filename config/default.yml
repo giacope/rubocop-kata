@@ -98,6 +98,10 @@ Elegant/NoEmptyLinesInBlocks:
   Exclude:
     - "spec/**/*"
 
+Elegant/NoEmptyLinesInMethods:
+  Exclude:
+    - "spec/**/*"
+
 Elegant/NoComments:
   Enabled: false
 
