@@ -1,0 +1,106 @@
+plugins:
+  - rubocop-elegant
+  - rubocop-rspec
+  - rubocop-performance
+  - rubocop-packaging
+  - rubocop-thread_safety
+
+AllCops:
+  NewCops: enable
+  Exclude:
+    - "vendor/**/*"
+
+Kata/AgentNoun:
+  Description: "Name classes for the thing they are, not the work they do."
+  Enabled: true
+  VersionAdded: "0.1"
+  Include:
+    - "lib/**/*"
+  AllowedNames:
+    - Error
+
+Kata/NoComments:
+  Description: "Say it in the code; keep only comments the machine or the law reads."
+  Enabled: true
+  VersionAdded: "0.1"
+  Include:
+    - "lib/**/*"
+
+Kata/IoDiscipline:
+  Description: "Write through an injected io, not bare puts/warn/pp/p."
+  Enabled: false
+  VersionAdded: "0.1"
+
+Kata/ProsePlacement:
+  Description: "Keep sentence-length strings in the presentation layer."
+  Enabled: false
+  VersionAdded: "0.1"
+
+Style/Documentation:
+  Enabled: false
+
+Style/StringLiterals:
+  EnforcedStyle: double_quotes
+
+Style/StringLiteralsInInterpolation:
+  EnforcedStyle: double_quotes
+
+Style/ItBlockParameter:
+  EnforcedStyle: only_numbered_parameters
+
+Style/FormatStringToken:
+  EnforcedStyle: unannotated
+
+Style/EndlessMethod:
+  EnforcedStyle: allow_single_line
+
+Naming/RescuedExceptionsVariableName:
+  PreferredName: error
+
+Layout/LineLength:
+  Max: 120
+
+Layout/LineEndStringConcatenationIndentation:
+  EnforcedStyle: indented
+
+Metrics/BlockLength:
+  Exclude:
+    - "spec/**/*"
+    - "*.gemspec"
+
+Metrics/ClassLength:
+  Max: 100
+
+Metrics/ModuleLength:
+  Max: 100
+  Exclude:
+    - "spec/**/*"
+
+Metrics/MethodLength:
+  Max: 5
+  Exclude:
+    - "spec/**/*"
+
+Metrics/ParameterLists:
+  Max: 4
+  CountKeywordArgs: true
+  Exclude:
+    - "spec/**/*"
+
+RSpec/ExampleLength:
+  CountAsOne:
+    - heredoc
+
+RSpec/VerifiedDoubles:
+  Enabled: true
+
+Elegant/NoEmptyLinesInBlocks:
+  Exclude:
+    - "spec/**/*"
+
+Elegant/NoComments:
+  Enabled: false
+
+ThreadSafety/DirChdir:
+  Exclude:
+    - "spec/**/*"
