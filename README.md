@@ -45,7 +45,7 @@ That's it. The plugin loads the bundled extensions and the shared defaults, so y
 | --- | --- | --- |
 | `Kata/AgentNoun` | on | Classes named for what they are, not `-er`/`-or` doers. Allow exceptions via `AllowedNames`. |
 | `Kata/NoComments` | on | No prose comments; say it in the code. Magic comments, linter directives, and licence headers survive. Autocorrects. |
-| `Kata/IoDiscipline` | off | No bare `puts`/`warn`/`pp`/`p`; write through an injected `@io`. Enable with an `Include` on your output layer. |
+| `Kata/IoDiscipline` | on | No bare `puts`/`warn`/`pp`/`p` in `lib/`; write through an injected `@io` or an explicit receiver. |
 | `Kata/ProsePlacement` | off | Sentence-length strings belong in the presentation layer. Enable with an `Include`/`Exclude` matching your layering. |
 
 ## The defaults

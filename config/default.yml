@@ -28,8 +28,10 @@ Kata/NoComments:
 
 Kata/IoDiscipline:
   Description: "Write through an injected io, not bare puts/warn/pp/p."
-  Enabled: false
+  Enabled: true
   VersionAdded: "0.1"
+  Include:
+    - "lib/**/*"
 
 Kata/ProsePlacement:
   Description: "Keep sentence-length strings in the presentation layer."
