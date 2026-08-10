@@ -14,8 +14,6 @@ Kata/AgentNoun:
   Description: "Name classes for the thing they are, not the work they do."
   Enabled: true
   VersionAdded: "0.1"
-  Include:
-    - "lib/**/*"
   AllowedNames:
     - Error
 
@@ -23,15 +21,20 @@ Kata/NoComments:
   Description: "Say it in the code; keep only comments the machine or the law reads."
   Enabled: true
   VersionAdded: "0.1"
-  Include:
-    - "lib/**/*"
+  Exclude:
+    - "spec/**/*"
+    - "*.gemspec"
 
 Kata/IoDiscipline:
   Description: "Write through an injected io, not bare puts/warn/pp/p."
   Enabled: true
   VersionAdded: "0.1"
-  Include:
-    - "lib/**/*"
+  Exclude:
+    - "spec/**/*"
+    - "bin/**/*"
+    - "exe/**/*"
+    - "Rakefile"
+    - "*.gemspec"
 
 Kata/ProsePlacement:
   Description: "Keep sentence-length strings in the presentation layer."

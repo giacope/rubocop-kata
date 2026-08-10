@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.2.0] - 2026-08-10
+
+- Kata cops now run globally instead of only in `lib/**` — code in `app/`, `Rakefile`, etc. is now covered.
+- `Kata/NoComments` excludes specs and gemspecs by default.
+- `Kata/IoDiscipline` excludes specs, `bin/`, `exe/`, `Rakefile`, and gemspecs by default — bare `puts` in scripts and entrypoints stays legal.
+
 ## [0.1.2] - 2026-08-10
 
 - `Kata/IoDiscipline` is on by default for `lib/**` — library code never prints without a receiver.
