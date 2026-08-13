@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0] - 2026-08-14
+
+- Ten new house cops in the Elegant Objects spirit, all on by default:
+  `Kata/NoUtilName`, `Kata/NoAbbreviation`, `Kata/BuilderNoun`, `Kata/NoBooleanFlag`,
+  `Kata/ConstructorDiscipline`, `Kata/NoClassMethodLogic`, `Kata/NoHashAsObject`,
+  `Kata/NoNilReturn`, `Kata/ClockDiscipline`, `Kata/EnvDiscipline`.
+
 ## [0.2.1] - 2026-08-13
 
 - `Style/MethodCallWithArgsParentheses` disabled, overriding rubocop-elegant.

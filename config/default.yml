@@ -41,6 +41,114 @@ Kata/ProsePlacement:
   Enabled: false
   VersionAdded: "0.1"
 
+Kata/NoUtilName:
+  Description: "Junk-drawer names hide the concept the code is missing."
+  Enabled: true
+  VersionAdded: "0.3"
+  BannedNames:
+    - Util
+    - Utils
+    - Utility
+    - Utilities
+    - Helper
+    - Helpers
+    - Manager
+    - Service
+    - Common
+    - Misc
+    - Shared
+
+Kata/NoAbbreviation:
+  Description: "Spell words out; code reads aloud like prose."
+  Enabled: true
+  VersionAdded: "0.3"
+  BannedNames:
+    - usr
+    - cfg
+    - tmp
+    - res
+    - val
+    - obj
+    - arr
+    - num
+    - buf
+    - idx
+    - ctx
+    - err
+
+Kata/BuilderNoun:
+  Description: "Builders are named for what they return; verbs are for side effects."
+  Enabled: true
+  VersionAdded: "0.3"
+  BannedPrefixes:
+    - get
+    - calculate
+    - compute
+    - retrieve
+    - generate
+
+Kata/NoBooleanFlag:
+  Description: "A boolean flag is two methods trapped in one."
+  Enabled: true
+  VersionAdded: "0.3"
+  Exclude:
+    - "spec/**/*"
+
+Kata/ConstructorDiscipline:
+  Description: "Constructors assign; they do not compute."
+  Enabled: true
+  VersionAdded: "0.3"
+  Exclude:
+    - "spec/**/*"
+
+Kata/NoClassMethodLogic:
+  Description: "Classes construct; instances work."
+  Enabled: true
+  VersionAdded: "0.3"
+  Exclude:
+    - "spec/**/*"
+  AllowedNames:
+    - build
+    - parse
+    - of
+
+Kata/NoHashAsObject:
+  Description: "Keys that travel together are an object without a name."
+  Enabled: true
+  VersionAdded: "0.3"
+  MaxKeys: 4
+  Exclude:
+    - "spec/**/*"
+    - "config/**/*"
+
+Kata/NoNilReturn:
+  Description: "Raise or return a real object; never nil."
+  Enabled: true
+  VersionAdded: "0.3"
+  Exclude:
+    - "spec/**/*"
+
+Kata/ClockDiscipline:
+  Description: "Read time from an injected clock, not the ambient one."
+  Enabled: true
+  VersionAdded: "0.3"
+  Exclude:
+    - "spec/**/*"
+    - "bin/**/*"
+    - "exe/**/*"
+
+Kata/EnvDiscipline:
+  Description: "ENV belongs in the boot layer; pass configuration in."
+  Enabled: true
+  VersionAdded: "0.3"
+  Exclude:
+    - "spec/**/*"
+    - "config/**/*"
+    - "bin/**/*"
+    - "exe/**/*"
+    - "Rakefile"
+    - "*.gemspec"
+
 Style/Documentation:
   Enabled: false
 
