@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1] - 2026-08-13
+
+- `Style/MethodCallWithArgsParentheses` disabled, overriding rubocop-elegant.
+- Disabled nine core `Layout/*` cops that autocorrect-loop against `Elegant/PairedBrackets` and `Elegant/NoEmptyLines*`.
+- `AutoCorrect: false` on `Elegant/NoRedundantVariable`, `Style/StaticClass`, and `Lint/NumberConversion` — their correctors rewrite code incorrectly.
+- `Style/RequireOrder` disabled — alphabetizing requires breaks load-order-dependent boot.
+
 ## [0.2.0] - 2026-08-10
 
 - Kata cops now run globally instead of only in `lib/**` — code in `app/`, `Rakefile`, etc. is now covered.

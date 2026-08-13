@@ -110,6 +110,58 @@ Elegant/NoEmptyLinesInMethods:
 Elegant/NoComments:
   Enabled: false
 
+Style/MethodCallWithArgsParentheses:
+  Enabled: false
+
+# --- Core layout cops that autocorrect-loop against Elegant/PairedBrackets
+# and Elegant/NoEmptyLines*; the Elegant cops win.
+Layout/BlockAlignment:
+  Enabled: false
+
+Layout/MultilineBlockLayout:
+  Enabled: false
+
+Layout/ClosingParenthesisIndentation:
+  Enabled: false
+
+Layout/FirstArgumentIndentation:
+  Enabled: false
+
+Layout/MultilineMethodCallBraceLayout:
+  Enabled: false
+
+Layout/MultilineArrayBraceLayout:
+  Enabled: false
+
+Layout/MultilineHashBraceLayout:
+  Enabled: false
+
+Layout/EmptyLinesAroundAccessModifier:
+  Enabled: false
+
+Layout/EmptyLinesAfterModuleInclusion:
+  Enabled: false
+
+# --- Correctors known to rewrite code incorrectly; report only.
+# Inlines a variable past side effects (ivar resets, later statements) and
+# corrupts Ruby 3.1 keyword shorthand.
+Elegant/NoRedundantVariable:
+  AutoCorrect: false
+
+# Rewrites reopened classes into modules, clashing with the primary
+# class definition at boot.
+Style/StaticClass:
+  AutoCorrect: false
+
+# Turns lenient `.to_i` into strict Integer(x, 10), which raises on
+# nils/Integers call sites legitimately receive.
+Lint/NumberConversion:
+  AutoCorrect: false
+
+# Alphabetizing requires breaks load-order-dependent boot sequences.
+Style/RequireOrder:
+  Enabled: false
+
 ThreadSafety/DirChdir:
   Exclude:
     - "spec/**/*"
