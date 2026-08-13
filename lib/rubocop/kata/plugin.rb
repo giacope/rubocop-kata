@@ -6,7 +6,7 @@ class RuboCop::Kata::Plugin < LintRoller::Plugin
   def about
     LintRoller::About.new(
       name: "rubocop-kata", version: RuboCop::Kata::VERSION, homepage: "https://github.com/giacope/rubocop-kata",
-      description: "Practiced forms for Ruby: opinionated defaults and four house cops."
+      description: "Practiced forms for Ruby: opinionated defaults and fourteen house cops."
     )
   end
 

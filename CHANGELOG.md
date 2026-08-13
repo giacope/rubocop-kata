@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0] - 2026-08-13
+
+- Ten new house cops in the Elegant Objects spirit, all on by default except where noted:
+  `Kata/NoUtilName`, `Kata/NoAbbreviation`, `Kata/BuilderNoun`, `Kata/NoBooleanFlag`,
+  `Kata/ConstructorDiscipline`, `Kata/NoClassMethodLogic`, `Kata/NoHashAsObject`,
+  `Kata/NoNilReturn`, `Kata/ClockDiscipline`, `Kata/EnvDiscipline`.
+
 ## [0.2.0] - 2026-08-10
 
 - Kata cops now run globally instead of only in `lib/**` — code in `app/`, `Rakefile`, etc. is now covered.
