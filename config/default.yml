@@ -170,6 +170,15 @@ Style/EndlessMethod:
 Naming/RescuedExceptionsVariableName:
   PreferredName: error
 
+# Memoization caches are marked with a leading underscore (@_name), so lazy
+# state is visible at the read site; Elegant/GoodVariableName learns the
+# same @_word shape.
+Naming/MemoizedInstanceVariableName:
+  EnforcedStyleForLeadingUnderscores: required
+
+Elegant/GoodVariableName:
+  Pattern: '^(_.*|@_[a-z]{1,16}|(@{1,2}|\$)?(the_|test_|fake_)?[a-z]{1,16})$'
+
 Layout/LineLength:
   Max: 120
 

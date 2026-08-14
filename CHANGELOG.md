@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.4.0] - 2026-08-14
+
+- `Naming/MemoizedInstanceVariableName` enforced with
+  `EnforcedStyleForLeadingUnderscores: required`: memoization caches are
+  named `@_name`, marking lazy state at the read site.
+- `Elegant/GoodVariableName` pattern extended to accept the `@_word`
+  memo shape.
+
 ## [0.3.0] - 2026-08-14
 
 - Ten new house cops in the Elegant Objects spirit, all on by default:
