@@ -1,10 +1,20 @@
 # rubocop-kata
 
-A RuboCop plugin that replaces a pile of linter gems and config with one dependency. Install it and your `.rubocop.yml` shrinks to project-specific overrides. Everything else comes from the gem: a curated stack of RuboCop extensions, opinionated style defaults, and fourteen house cops.
+A RuboCop plugin that replaces a pile of linter gems and config with one dependency. Install it and your `.rubocop.yml` shrinks to project-specific overrides. Everything else comes from the gem: a curated stack of RuboCop extensions, opinionated style defaults, and fifteen house cops.
+
+`Kata/GoodMethodName` asks for one word per method name. A second word is
+allowed only when it is not hiding a missing object: a role prefix
+(`after_fork`), a role suffix (`file_of`), or a compound noun you have added to
+`Terms` on purpose. The wrong way to satisfy the cop is `matching_ids` →
+`matchingids`: if you need two words, that is a modelling smell — the concept is
+missing, or the method belongs on a different object. `Kata/RealWords` catches
+that dodge with a shipped dictionary instead of a word list you maintain:
+`matchingids` is not a word, so it fails with zero configuration — and so does
+`cfg`.
 
 - **One dependency.** Bundles rubocop-rspec, rubocop-performance, rubocop-elegant, rubocop-packaging, and rubocop-thread_safety behind a single gem.
 - **Opinionated defaults.** Methods under 5 lines, classes under 100, 4 parameters max, 120-column lines, double quotes, `NewCops: enable`. See [config/default.yml](config/default.yml).
-- **Fourteen house cops.** Naming, dependency discipline, and data honesty in the Elegant Objects spirit — from `Kata/AgentNoun` to `Kata/ClockDiscipline`.
+- **Fifteen house cops.** Naming, dependency discipline, and data honesty in the Elegant Objects spirit — from `Kata/AgentNoun` to `Kata/ClockDiscipline`.
 
 ```ruby
 class PaymentProcessor  # Kata/AgentNoun: `PaymentProcessor` names a doer;
@@ -48,13 +58,14 @@ That's it. The plugin loads the bundled extensions and the shared defaults, so y
 | `Kata/IoDiscipline` | on | No bare `puts`/`warn`/`pp`/`p` outside specs/scripts; write through an injected `@io` or an explicit receiver. |
 | `Kata/ProsePlacement` | off | Sentence-length strings belong in the presentation layer. Enable with an `Include`/`Exclude` matching your layering. |
 | `Kata/NoUtilName` | on | No junk-drawer names (`Util`, `Helper`, `Manager`, `Service`, …). Tune via `BannedNames`. |
-| `Kata/NoAbbreviation` | on | Spell words out; no `usr`, `cfg`, `res`. Tune via `BannedNames`. |
+| `Kata/RealWords` | on | Every name segment is a word the shipped dictionary knows — `errorcount` (smash) and `cfg` (abbreviation) both fail, with no word list to maintain. Tune via `Terms`/`BannedWords`/`AllowedNames`. |
+| `Kata/GoodMethodName` | on | One word per method name; a second word needs a role prefix (`after_fork`), a role suffix (`file_of`), or a reviewed `Terms` entry. Tune via `MaxWords`/`Prefixes`/`Suffixes`/`Terms`/`AllowedNames`. |
+| `Kata/GoodVariableName` | on | The same rule for locals, parameters, ivars, class variables, and globals; `_name` and `@_name` stay exempt. |
 | `Kata/BuilderNoun` | on | Builders named for what they return: `total`, not `calculate_total`. Tune via `BannedPrefixes`. |
 | `Kata/NoBooleanFlag` | on | No positional boolean arguments; split the method or use a keyword. |
 | `Kata/ConstructorDiscipline` | on | `initialize` assigns, raises, or freezes — never computes. |
 | `Kata/NoClassMethodLogic` | on | Class methods construct (`build`, `parse`, `of`, `from_*`); instances do the work. |
 | `Kata/NoHashAsObject` | on | A hash with `MaxKeys`+ keys (default 4) wants to be an object. Keyword-argument call sites exempt. |
-| `Kata/NoNilReturn` | on | No `return nil` or trailing `nil`; raise or return a real object. |
 | `Kata/ClockDiscipline` | on | No bare `Time.now`/`Date.today`/`.current`; inject a clock. |
 | `Kata/EnvDiscipline` | on | `ENV` reads only in the boot layer (`config/`, `bin/`, `exe/`). |
 

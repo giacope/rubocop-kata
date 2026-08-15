@@ -25,6 +25,117 @@ Kata/NoComments:
     - "spec/**/*"
     - "*.gemspec"
 
+Kata/GoodMethodName:
+  Description: >-
+    One word per method name. A second word is allowed only when it does not
+    hide a missing object: a role prefix (`after_fork`), a role suffix
+    (`file_of`), or a reviewed domain term. Do not delete the underscore —
+    Kata/RealWords catches the smash.
+  Enabled: true
+  VersionAdded: "0.5"
+  MaxWords: 2
+  Pattern: "^[a-z][a-z0-9]{0,15}$"
+  Prefixes:
+    - after
+    - all
+    - any
+    - around
+    - as
+    - at
+    - before
+    - by
+    - each
+    - every
+    - fake
+    - for
+    - from
+    - into
+    - "no"
+    - non
+    - "on"
+    - per
+    - test
+    - the
+    - to
+    - unless
+    - until
+    - when
+    - while
+    - with
+    - without
+  Suffixes:
+    - at
+    - by
+    - for
+    - from
+    - in
+    - into
+    - of
+    - on
+    - over
+    - per
+    - to
+    - under
+    - with
+    - without
+  Terms: []
+  AllowedNames: []
+
+Kata/GoodVariableName:
+  Description: >-
+    One word per variable name. A second word means a missing object, not a
+    name to smash together — Kata/RealWords catches the smash. Role prefixes, role
+    suffixes, and reviewed domain terms are the three exceptions.
+  Enabled: true
+  VersionAdded: "0.5"
+  MaxWords: 2
+  Pattern: "^[a-z][a-z0-9]{0,15}$"
+  Prefixes:
+    - after
+    - all
+    - any
+    - around
+    - as
+    - at
+    - before
+    - by
+    - each
+    - every
+    - fake
+    - for
+    - from
+    - into
+    - "no"
+    - non
+    - "on"
+    - per
+    - test
+    - the
+    - to
+    - unless
+    - until
+    - when
+    - while
+    - with
+    - without
+  Suffixes:
+    - at
+    - by
+    - for
+    - from
+    - in
+    - into
+    - of
+    - on
+    - over
+    - per
+    - to
+    - under
+    - with
+    - without
+  Terms: []
+  AllowedNames: []
+
 Kata/IoDiscipline:
   Description: "Write through an injected io, not bare puts/warn/pp/p."
   Enabled: true
@@ -58,11 +169,15 @@ Kata/NoUtilName:
     - Misc
     - Shared
 
-Kata/NoAbbreviation:
-  Description: "Spell words out; code reads aloud like prose."
+Kata/RealWords:
+  Description: >-
+    Every name segment is a dictionary word: `errorcount` is a smash, `cfg`
+    is an abbreviation, `mutant` is fine. The dictionary ships with the gem;
+    `Terms` holds reviewed domain jargon, `AllowedNames` exempts names an
+    external protocol dictates.
   Enabled: true
-  VersionAdded: "0.3"
-  BannedNames:
+  VersionAdded: "0.5"
+  BannedWords:
     - usr
     - cfg
     - tmp
@@ -75,6 +190,12 @@ Kata/NoAbbreviation:
     - idx
     - ctx
     - err
+    - len
+    - msg
+    - pos
+    - ptr
+  Terms: []
+  AllowedNames: []
 
 Kata/BuilderNoun:
   Description: "Builders are named for what they return; verbs are for side effects."
@@ -121,13 +242,6 @@ Kata/NoHashAsObject:
     - "spec/**/*"
     - "config/**/*"
 
-Kata/NoNilReturn:
-  Description: "Raise or return a real object; never nil."
-  Enabled: true
-  VersionAdded: "0.3"
-  Exclude:
-    - "spec/**/*"
-
 Kata/ClockDiscipline:
   Description: "Read time from an injected clock, not the ambient one."
   Enabled: true
@@ -171,13 +285,18 @@ Naming/RescuedExceptionsVariableName:
   PreferredName: error
 
 # Memoization caches are marked with a leading underscore (@_name), so lazy
-# state is visible at the read site; Elegant/GoodVariableName learns the
+# state is visible at the read site; Kata/GoodVariableName knows the
 # same @_word shape.
 Naming/MemoizedInstanceVariableName:
   EnforcedStyleForLeadingUnderscores: required
 
+# Kata owns naming now; the upstream cops force strictly one word, which is
+# what drives the underscore-smashing dodge.
+Elegant/GoodMethodName:
+  Enabled: false
+
 Elegant/GoodVariableName:
-  Pattern: '^(_.*|@_[a-z]{1,16}|(@{1,2}|\$)?(the_|test_|fake_)?[a-z]{1,16})$'
+  Enabled: false
 
 Layout/LineLength:
   Max: 120

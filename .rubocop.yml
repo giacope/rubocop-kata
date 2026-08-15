@@ -3,3 +3,26 @@ plugins:
 
 AllCops:
   TargetRubyVersion: 3.4
+
+# expect_offense reads `%{message}` as its own template, not as a format string.
+Style/FormatStringToken:
+  Exclude:
+    - "spec/**/*"
+
+# The parser's node vocabulary is this project's domain language.
+Kata/RealWords:
+  Terms:
+    - def
+    - defs
+    - arg
+    - kwargs
+    - const
+    - str
+    - dstr
+    - lvasgn
+    - ivasgn
+    - cvasgn
+    - gvasgn
+    - optarg
+    - kwarg
+    - kwoptarg
