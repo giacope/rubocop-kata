@@ -4,6 +4,10 @@
 
 ## [0.6.0] - 2026-08-15
 
+- The base dictionary is now SCOWL en-US size 60 (~83k words including
+  inflections — https://wordlist.aspell.net, see data/SCOWL-COPYRIGHT), so the
+  hand-rolled stemmer shrank to productive derivations only (-able, -er/-or
+  agent nouns, -less, plurals for supplement/software terms).
 - `Kata/RealWords` now also draws on a vendored dictionary of software
   vocabulary (`data/software.txt.gz`, ~4300 words) built from the MIT-licensed
   cspell `software-terms`, `ruby`, and `shell` dictionaries

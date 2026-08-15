@@ -59,17 +59,20 @@ class RuboCop::Cop::Kata::RealWords < RuboCop::Cop::Base
 
   def known?(segment) = forms(segment).any? { DICTIONARY.include?(it) }
 
-  def forms(segment) = roots(segment.sub(/\d+\z/, "")).flat_map { [it, *stems(it)] }
+  def forms(segment)
+    base = segment.sub(/\d+\z/, "")
+    roots = [base, base.delete_prefix("un"), base.delete_prefix("re"), base.delete_prefix("non"), base.delete_prefix("sub")]
+    # Productive derivations (groupable, approver, imageless) are formed by
+    # affix rule in spellcheckers, so SCOWL does not list them.
+    roots.flat_map { [it, *derivations(it)] }
+  end
 
-  def roots(base) = [base, base.delete_prefix("un"), base.delete_prefix("re"), base.delete_prefix("non")]
-
-  def stems(base)
+  def derivations(base)
     [
-      base.delete_suffix("s"), base.delete_suffix("es"), base.sub(/ies\z/, "y"), base.delete_suffix("ed"),
-      base.sub(/ed\z/, "e"), base.delete_suffix("ing"), base.sub(/ing\z/, "e"), base.delete_suffix("able"),
-      base.sub(/able\z/, "e"), base.delete_suffix("er"), base.delete_suffix("est"),
-      base.sub(/(er|est)\z/, "e"), base.sub(/i(ed|er|est)\z/, "y"),
-      base.sub(/([b-df-hj-np-tv-z])\1(ed|ing|er|est)\z/, '\1')
+      base.delete_suffix("s"), base.delete_suffix("es"), base.sub(/ies\z/, "y"),
+      base.delete_suffix("able"), base.sub(/able\z/, "e"), base.sub(/([b-df-hj-np-tv-z])\1able\z/, '\1'),
+      base.delete_suffix("er"), base.sub(/[eo]r\z/, "e"), base.sub(/ier\z/, "y"),
+      base.sub(/([b-df-hj-np-tv-z])\1er\z/, '\1'), base.delete_suffix("or"), base.delete_suffix("less")
     ]
   end
 
