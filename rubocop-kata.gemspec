@@ -7,10 +7,13 @@ Gem::Specification.new do |spec|
   spec.version = RuboCop::Kata::VERSION
   spec.authors = ["Giacomo GK"]
   spec.email = ["giaco@hey.com"]
-  spec.summary = "Practiced forms for Ruby: a RuboCop plugin with opinionated defaults and four house cops"
+  spec.summary = "Practiced forms for Ruby: a RuboCop plugin with opinionated defaults and fifteen house cops"
   spec.description = "Bundles a curated RuboCop stack (rspec, performance, elegant, packaging, " \
     "thread_safety) behind one dependency, layers opinionated style defaults on top, and adds " \
-    "four cops of its own: AgentNoun, NoComments, IoDiscipline, and ProsePlacement."
+    "fifteen cops of its own — naming (GoodMethodName, GoodVariableName, dictionary-backed " \
+    "RealWords, AgentNoun, BuilderNoun, NoUtilName), discipline (IoDiscipline, ClockDiscipline, " \
+    "EnvDiscipline, ConstructorDiscipline, NoClassMethodLogic), and shape (NoComments, " \
+    "NoBooleanFlag, NoHashAsObject, ProsePlacement)."
   spec.homepage = "https://github.com/giacope/rubocop-kata"
   spec.license = "MIT"
   spec.required_ruby_version = ">= 3.4"

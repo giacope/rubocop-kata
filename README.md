@@ -79,4 +79,20 @@ spec examples. See
 
 ## License
 
-MIT.
+The code is MIT — see [LICENSE.txt](LICENSE.txt). The shipped dictionaries are
+third-party data under their own terms:
+
+- **`data/words.txt.gz`** — a *modified* subset of [SCOWL](https://wordlist.aspell.net)
+  en-US size 60: filtered, deduplicated, and gzipped. SCOWL is the collective work of
+  Kevin Atkinson and the contributors named in
+  [data/SCOWL-COPYRIGHT](data/SCOWL-COPYRIGHT), which is distributed with this gem and
+  reproduced verbatim. It includes, among others, Copyright 2000–2018 Kevin Atkinson;
+  WordNet 1.6 Copyright 1997 by Princeton University, all rights reserved; and Copyright
+  1993 Geoff Kuenning, Granada Hills, CA, all rights reserved. Princeton University makes
+  no representations or warranties, express or implied, as to this database, and its name
+  may not be used in advertising or publicity pertaining to this distribution.
+- **`data/software.txt.gz`** — built from the `software-terms`, `ruby`, and `shell`
+  dictionaries of [cspell-dicts](https://github.com/streetsidesoftware/cspell-dicts),
+  each MIT-licensed. Copyright (c) 2017–2025 Street Side Software; the notice and
+  permission text are reproduced in [data/CSPELL-LICENSE](data/CSPELL-LICENSE).
+- **`data/supplement.txt`** — this project's own additions, MIT.

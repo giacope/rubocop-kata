@@ -14,6 +14,12 @@ class RuboCop::Cop::Kata::RealWords < RuboCop::Cop::Base
       File.readlines(EXTRA, chomp: true)
   ).freeze
   SIGIL = /\A(@@|@|\$)/
+  DERIVATIONS = [
+    [/s\z/, ""], [/es\z/, ""], [/ies\z/, "y"],
+    [/able\z/, ""], [/able\z/, "e"], [/([b-df-hj-np-tv-z])\1able\z/, '\1'],
+    [/er\z/, ""], [/[eo]r\z/, "e"], [/ier\z/, "y"],
+    [/([b-df-hj-np-tv-z])\1er\z/, '\1'], [/or\z/, ""], [/less\z/, ""]
+  ].freeze
 
   def on_def(node) = check(node, node.method_name)
 
@@ -61,20 +67,11 @@ class RuboCop::Cop::Kata::RealWords < RuboCop::Cop::Base
 
   def forms(segment)
     base = segment.sub(/\d+\z/, "")
-    roots = [base, base.delete_prefix("un"), base.delete_prefix("re"), base.delete_prefix("non"), base.delete_prefix("sub")]
-    # Productive derivations (groupable, approver, imageless) are formed by
-    # affix rule in spellcheckers, so SCOWL does not list them.
-    roots.flat_map { [it, *derivations(it)] }
+    [base, base.delete_prefix("un"), base.delete_prefix("re"), base.delete_prefix("non"), base.delete_prefix("sub")]
+      .flat_map { [it, *derivations(it)] }
   end
 
-  def derivations(base)
-    [
-      base.delete_suffix("s"), base.delete_suffix("es"), base.sub(/ies\z/, "y"),
-      base.delete_suffix("able"), base.sub(/able\z/, "e"), base.sub(/([b-df-hj-np-tv-z])\1able\z/, '\1'),
-      base.delete_suffix("er"), base.sub(/[eo]r\z/, "e"), base.sub(/ier\z/, "y"),
-      base.sub(/([b-df-hj-np-tv-z])\1er\z/, '\1'), base.delete_suffix("or"), base.delete_suffix("less")
-    ]
-  end
+  def derivations(base) = DERIVATIONS.map { |pattern, stem| base.sub(pattern, stem) }
 
   def term?(segment) = list("Terms").include?(segment)
 
