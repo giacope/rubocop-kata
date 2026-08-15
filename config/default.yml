@@ -134,7 +134,8 @@ Kata/GoodVariableName:
     - with
     - without
   Terms: []
-  AllowedNames: []
+  AllowedNames:
+    - _include_private
 
 Kata/IoDiscipline:
   Description: "Write through an injected io, not bare puts/warn/pp/p."

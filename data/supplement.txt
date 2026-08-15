@@ -4,6 +4,8 @@ app
 async
 autocorrect
 backend
+began
+blew
 boilerplate
 boolean
 callback
@@ -11,8 +13,10 @@ changelog
 classify
 cli
 config
+cron
 css
 csv
+cwd
 database
 dataset
 debugger
@@ -25,8 +29,11 @@ endpoint
 enqueue
 formatter
 frontend
+frontmatter
 gemspec
 gui
+heard
+held
 html
 http
 https
@@ -35,6 +42,7 @@ inline
 internet
 iterator
 json
+jwt
 keyword
 logout
 max
@@ -46,8 +54,10 @@ min
 mixin
 multiline
 namespace
+oauth
 offline
 online
+paid
 payload
 plugin
 proc

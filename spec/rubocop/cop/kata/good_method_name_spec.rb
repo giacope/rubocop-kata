@@ -10,6 +10,21 @@ RSpec.describe(RuboCop::Cop::Kata::GoodMethodName, :config) do
       "word — or, if `#{name}` is one domain concept here, add it to `Terms`."
   end
 
+  it "ignores operator methods — Ruby dictates their names" do
+    expect_no_offenses(<<~RUBY)
+      def [](key)
+      end
+      def []=(key, value)
+      end
+      def ==(other)
+      end
+      def <=>(other)
+      end
+      def <<(item)
+      end
+    RUBY
+  end
+
   it "allows single-word names" do
     expect_no_offenses(<<~RUBY)
       def coverage

@@ -26,6 +26,26 @@ RSpec.describe(RuboCop::Cop::Kata::RealWords, :config) do
     RUBY
   end
 
+  it "knows inflected forms: comparatives, superlatives, and -ied pasts" do
+    expect_no_offenses(<<~RUBY)
+      deeper = 1
+      newer = 2
+      longest = 3
+      earlier = 4
+      denied = 5
+      held = 6
+    RUBY
+  end
+
+  it "knows software vocabulary from the vendored cspell dictionaries" do
+    expect_no_offenses(<<~RUBY)
+      def parse(argv)
+        cwd = argv.first
+        [stderr, klass, mutex, regex, repl, cwd]
+      end
+    RUBY
+  end
+
   it "flags abbreviations, including ones that happen to be dictionary words" do
     expect_offense(<<~RUBY)
       def cfg

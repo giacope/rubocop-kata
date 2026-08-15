@@ -2,6 +2,21 @@
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-08-15
+
+- `Kata/RealWords` now also draws on a vendored dictionary of software
+  vocabulary (`data/software.txt.gz`, ~4300 words) built from the MIT-licensed
+  cspell `software-terms`, `ruby`, and `shell` dictionaries
+  (https://github.com/streetsidesoftware/cspell-dicts) — `argv`, `stderr`,
+  `klass`, `mutex`, `regex`, and friends no longer need per-project `Terms`.
+- The stemmer understands comparatives (`newer`, `deeper`), superlatives
+  (`longest`), and `-ied` pasts (`denied`); common irregular pasts (`held`,
+  `paid`, `heard`) joined the supplement.
+- `Kata/GoodMethodName` ignores operator methods (`[]`, `==`, `<=>`, `<<`) —
+  Ruby dictates their names.
+- `Kata/GoodVariableName` ships `_include_private` (the `respond_to_missing?`
+  protocol argument) in its default `AllowedNames`.
+
 ## [0.5.0] - 2026-08-15
 
 - New cops `Kata/GoodMethodName` and `Kata/GoodVariableName`. One word is the

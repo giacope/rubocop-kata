@@ -7,9 +7,11 @@ class RuboCop::Cop::Kata::RealWords < RuboCop::Cop::Base
     "abbreviation out, or add it to `Terms` if it is one domain term here."
   ABBREVIATION_MSG = "%s is an abbreviation; spell the word out."
   WORDS = File.expand_path("../../../../data/words.txt.gz", __dir__)
+  SOFTWARE = File.expand_path("../../../../data/software.txt.gz", __dir__)
   EXTRA = File.expand_path("../../../../data/supplement.txt", __dir__)
   DICTIONARY = Set.new(
-    Zlib.gunzip(File.binread(WORDS)).split("\n") + File.readlines(EXTRA, chomp: true)
+    [WORDS, SOFTWARE].flat_map { Zlib.gunzip(File.binread(it)).split("\n") } +
+      File.readlines(EXTRA, chomp: true)
   ).freeze
   SIGIL = /\A(@@|@|\$)/
 
@@ -65,7 +67,9 @@ class RuboCop::Cop::Kata::RealWords < RuboCop::Cop::Base
     [
       base.delete_suffix("s"), base.delete_suffix("es"), base.sub(/ies\z/, "y"), base.delete_suffix("ed"),
       base.sub(/ed\z/, "e"), base.delete_suffix("ing"), base.sub(/ing\z/, "e"), base.delete_suffix("able"),
-      base.sub(/able\z/, "e"), base.sub(/([b-df-hj-np-tv-z])\1(ed|ing)\z/, '\1')
+      base.sub(/able\z/, "e"), base.delete_suffix("er"), base.delete_suffix("est"),
+      base.sub(/(er|est)\z/, "e"), base.sub(/i(ed|er|est)\z/, "y"),
+      base.sub(/([b-df-hj-np-tv-z])\1(ed|ing|er|est)\z/, '\1')
     ]
   end
 

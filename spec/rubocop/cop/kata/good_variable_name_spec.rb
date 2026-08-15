@@ -10,6 +10,18 @@ RSpec.describe(RuboCop::Cop::Kata::GoodVariableName, :config) do
       "here, add it to `Terms`."
   end
 
+  context "with the shipped AllowedNames" do
+    let(:cop_config) { defaults }
+
+    it "allows the respond_to_missing? protocol argument" do
+      expect_no_offenses(<<~RUBY)
+        def respond_to_missing?(name, _include_private = false)
+          true
+        end
+      RUBY
+    end
+  end
+
   it "allows single-word locals, parameters, and keyword arguments" do
     expect_no_offenses(<<~RUBY)
       def run(source, verdict = nil, timeout: nil)

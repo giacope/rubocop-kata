@@ -12,6 +12,7 @@ class RuboCop::Cop::Kata::GoodMethodName < RuboCop::Cop::Base
   private
 
   def check(node, name)
+    return unless name.match?(/\A[a-z_]/)
     stem = name.to_s.sub(/[?!=]\z/, "")
     return if allowed?(name.to_s) || allowed?(stem)
     return if good?(stem)
