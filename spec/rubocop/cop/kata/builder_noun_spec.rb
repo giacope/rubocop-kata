@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 RSpec.describe(RuboCop::Cop::Kata::BuilderNoun, :config) do
-  let(:cop_config) { { "BannedPrefixes" => %w[get calculate] } }
+  let(:cop_config) { { "BannedPrefixes" => %w[get calculate], "AllowedNames" => %w[get_callbacks] } }
 
   it "flags verb-prefixed builders" do
     expect_offense(<<~RUBY)
@@ -10,6 +10,13 @@ RSpec.describe(RuboCop::Cop::Kata::BuilderNoun, :config) do
       end
       def self.get_name
                ^^^^^^^^ A builder is named for what it returns: `name`, not `get_name`.
+      end
+    RUBY
+  end
+
+  it "allows a name an external API dictates" do
+    expect_no_offenses(<<~RUBY)
+      def get_callbacks
       end
     RUBY
   end

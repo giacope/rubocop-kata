@@ -11,9 +11,13 @@ AllCops:
     - "vendor/**/*"
 
 Kata/AgentNoun:
-  Description: "Name classes for the thing they are, not the work they do."
+  Description: >-
+    Name classes for the thing they are, not the work they do. `AllowedNames`
+    entries match a whole name or a trailing segment of one, so `Error` also
+    exempts `UsageError`.
   Enabled: true
   VersionAdded: "0.1"
+  VersionChanged: "0.7"
   AllowedNames:
     - Error
 
@@ -202,12 +206,14 @@ Kata/BuilderNoun:
   Description: "Builders are named for what they return; verbs are for side effects."
   Enabled: true
   VersionAdded: "0.3"
+  VersionChanged: "0.7"
   BannedPrefixes:
     - get
     - calculate
     - compute
     - retrieve
     - generate
+  AllowedNames: []
 
 Kata/NoBooleanFlag:
   Description: "A boolean flag is two methods trapped in one."
@@ -378,6 +384,11 @@ Layout/EmptyLinesAroundAccessModifier:
 
 Layout/EmptyLinesAfterModuleInclusion:
   Enabled: false
+
+# --- A disable comment is a note saying what the code should have said;
+# `rubocop-kata doctor` finds the ones core cannot see.
+Style/DisableCopsWithinSourceCodeDirective:
+  Enabled: true
 
 # --- Correctors known to rewrite code incorrectly; report only.
 # Inlines a variable past side effects (ivar resets, later statements) and

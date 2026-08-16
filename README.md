@@ -17,12 +17,16 @@ that dodge with a shipped dictionary instead of a word list you maintain:
 - **Fifteen house cops.** Naming, dependency discipline, and data honesty in the Elegant Objects spirit — from `Kata/AgentNoun` to `Kata/ClockDiscipline`.
 
 ```ruby
-class PaymentProcessor  # Kata/AgentNoun: `PaymentProcessor` names a doer;
-end                     #   name the class for the thing it is, not the work it does.
+class PaymentProcessor  # Kata/AgentNoun: `PaymentProcessor` names a doer; name the class
+end                     #   for the thing it is, not the work it does. Try `Payment`.
 
 class Payment           # OK
 end
 ```
+
+It suggests a name only when it can derive one: a compound minus its agent word,
+or a regular `-ator`/`-ector`/`-isor`/`-izer` noun the shipped dictionary
+confirms (`Selector` → `Selection`, `Synthesizer` → `Synthesis`).
 
 ## Getting started
 
@@ -53,7 +57,7 @@ That's it. The plugin loads the bundled extensions and the shared defaults, so y
 
 | Cop | Default | What it enforces |
 | --- | --- | --- |
-| `Kata/AgentNoun` | on | Classes named for what they are, not `-er`/`-or` doers. Allow exceptions via `AllowedNames`. |
+| `Kata/AgentNoun` | on | Classes named for what they are, not `-er`/`-or` doers. Suggests the better name when it can derive one. `AllowedNames` matches a whole name or a trailing segment, so `Error` covers `UsageError`. |
 | `Kata/NoComments` | on | No prose comments; say it in the code. Magic comments, linter directives, and licence headers survive. Autocorrects. |
 | `Kata/IoDiscipline` | on | No bare `puts`/`warn`/`pp`/`p` outside specs/scripts; write through an injected `@io` or an explicit receiver. |
 | `Kata/ProsePlacement` | off | Sentence-length strings belong in the presentation layer. Enable with an `Include`/`Exclude` matching your layering. |
@@ -61,7 +65,7 @@ That's it. The plugin loads the bundled extensions and the shared defaults, so y
 | `Kata/RealWords` | on | Every name segment is a word the shipped dictionary knows — `errorcount` (smash) and `cfg` (abbreviation) both fail, with no word list to maintain. Tune via `Terms`/`BannedWords`/`AllowedNames`. |
 | `Kata/GoodMethodName` | on | One word per method name; a second word needs a role prefix (`after_fork`), a role suffix (`file_of`), or a reviewed `Terms` entry. Tune via `MaxWords`/`Prefixes`/`Suffixes`/`Terms`/`AllowedNames`. |
 | `Kata/GoodVariableName` | on | The same rule for locals, parameters, ivars, class variables, and globals; `_name` and `@_name` stay exempt. |
-| `Kata/BuilderNoun` | on | Builders named for what they return: `total`, not `calculate_total`. Tune via `BannedPrefixes`. |
+| `Kata/BuilderNoun` | on | Builders named for what they return: `total`, not `calculate_total`. Tune via `BannedPrefixes`/`AllowedNames`. |
 | `Kata/NoBooleanFlag` | on | No positional boolean arguments; split the method or use a keyword. |
 | `Kata/ConstructorDiscipline` | on | `initialize` assigns, raises, or freezes — never computes. |
 | `Kata/NoClassMethodLogic` | on | Class methods construct (`build`, `parse`, `of`, `from_*`); instances do the work. |
@@ -69,12 +73,32 @@ That's it. The plugin loads the bundled extensions and the shared defaults, so y
 | `Kata/ClockDiscipline` | on | No bare `Time.now`/`Date.today`/`.current`; inject a clock. |
 | `Kata/EnvDiscipline` | on | `ENV` reads only in the boot layer (`config/`, `bin/`, `exe/`). |
 
+## Dead configuration
+
+`doctor` reports configuration that no longer does anything: a `.rubocop.yml`
+entry for a cop the inherited configuration disables, and a
+`rubocop:disable`/`enable` comment naming a cop that is not enabled where the
+comment sits. RuboCop reports neither.
+
+```sh
+bundle exec rubocop-kata doctor          # or: doctor path/to/project
+```
+
+```
+.rubocop.yml:20: `Elegant/GoodMethodName` is disabled by the configuration this project inherits; the entry does nothing.
+lib/registry.rb:44: the directive names `Elegant/GoodMethodName`, which is not enabled here; the comment does nothing.
+2 dead entries
+```
+
+It exits non-zero when it finds something, so it can gate CI.
+
 ## The defaults
 
 Double-quoted strings, `Metrics/MethodLength: 5`, `Metrics/ClassLength: 100`,
 `Metrics/ParameterLists: 4`, 120-column lines, endless methods on one line,
-`rescue => error`, `NewCops: enable`, and heredocs counted as one line in
-spec examples. See
+`rescue => error`, `NewCops: enable`, heredocs counted as one line in spec
+examples, and no inline `rubocop:disable` comments
+(`Style/DisableCopsWithinSourceCodeDirective`). See
 [config/default.yml](config/default.yml).
 
 ## License

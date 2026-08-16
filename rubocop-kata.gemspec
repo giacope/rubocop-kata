@@ -24,7 +24,9 @@ Gem::Specification.new do |spec|
     "default_lint_roller_plugin" => "RuboCop::Kata::Plugin",
     "rubygems_mfa_required" => "true"
   }
-  spec.files = Dir["lib/**/*.rb", "config/*.yml", "data/*", "README.md", "CHANGELOG.md", "LICENSE*"]
+  spec.files = Dir["lib/**/*.rb", "config/*.yml", "data/*", "exe/*", "README.md", "CHANGELOG.md", "LICENSE*"]
+  spec.bindir = "exe"
+  spec.executables = ["rubocop-kata"]
   spec.require_paths = ["lib"]
   spec.add_dependency("lint_roller", "~> 1.1")
   spec.add_dependency("rubocop", "~> 1.75")

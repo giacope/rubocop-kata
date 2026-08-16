@@ -1,0 +1,9 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require "rubocop-kata"
+require "rubocop/kata/checkup"
+
+abort("usage: rubocop-kata doctor [path]") unless ARGV.first == "doctor"
+
+exit(RuboCop::Kata::Checkup.new(ARGV.fetch(1, Dir.pwd)).run)

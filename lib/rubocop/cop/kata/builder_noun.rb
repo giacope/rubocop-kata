@@ -12,9 +12,11 @@ class RuboCop::Cop::Kata::BuilderNoun < RuboCop::Cop::Base
   def check(node)
     name = node.method_name.to_s
     verb = prefix(name)
-    return unless verb
+    return if verb.nil? || allowed?(name)
     add_offense(node.loc.name, message: format(MSG, name.delete_prefix("#{verb}_"), name))
   end
+
+  def allowed?(name) = Array(cop_config["AllowedNames"]).map(&:to_s).include?(name)
 
   def prefix(name)
     Array(cop_config["BannedPrefixes"]).map(&:to_s).find { name.start_with?("#{it}_") }

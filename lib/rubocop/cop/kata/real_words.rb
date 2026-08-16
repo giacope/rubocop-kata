@@ -1,18 +1,9 @@
 # frozen_string_literal: true
 
-require "zlib"
-
 class RuboCop::Cop::Kata::RealWords < RuboCop::Cop::Base
   MSG = "%s is not in the dictionary — restore the underscore between smashed words, spell the " \
     "abbreviation out, or add it to `Terms` if it is one domain term here."
   ABBREVIATION_MSG = "%s is an abbreviation; spell the word out."
-  WORDS = File.expand_path("../../../../data/words.txt.gz", __dir__)
-  SOFTWARE = File.expand_path("../../../../data/software.txt.gz", __dir__)
-  EXTRA = File.expand_path("../../../../data/supplement.txt", __dir__)
-  DICTIONARY = Set.new(
-    [WORDS, SOFTWARE].flat_map { Zlib.gunzip(File.binread(it)).split("\n") } +
-      File.readlines(EXTRA, chomp: true)
-  ).freeze
   SIGIL = /\A(@@|@|\$)/
   DERIVATIONS = [
     [/s\z/, ""], [/es\z/, ""], [/ies\z/, "y"],
@@ -63,7 +54,7 @@ class RuboCop::Cop::Kata::RealWords < RuboCop::Cop::Base
 
   def word?(segment) = segment.length < 2 || term?(segment) || (known?(segment) && !banned?(segment))
 
-  def known?(segment) = forms(segment).any? { DICTIONARY.include?(it) }
+  def known?(segment) = forms(segment).any? { RuboCop::Kata::Dictionary::ENTRIES.include?(it) }
 
   def forms(segment)
     base = segment.sub(/\d+\z/, "")

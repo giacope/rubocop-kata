@@ -1,6 +1,25 @@
 # Changelog
 
-## [Unreleased]
+## [0.7.0] - 2026-08-16
+
+- New `rubocop-kata doctor` command: reports `.rubocop.yml` entries that
+  configure a cop the inherited configuration already disables, and
+  `rubocop:disable`/`enable` comments naming a cop that is not enabled where
+  the comment sits. RuboCop reports neither. Exits non-zero when it finds
+  something.
+- `Style/DisableCopsWithinSourceCodeDirective` is now on.
+- `Kata/AgentNoun` suggests a name when it can derive one: a compound minus its
+  agent word (`PaymentProcessor` -> `Payment`), or a regular
+  -ator/-ector/-isor/-izer noun the shipped dictionary confirms (`Selector` ->
+  `Selection`, `Synthesizer` -> `Synthesis`). It never proposes a name it would
+  flag in turn.
+- `Kata/AgentNoun` `AllowedNames` entries now match a whole name or a trailing
+  segment of one, so the default `Error` also exempts `UsageError` and
+  `ParseError` without listing them.
+- `Kata/BuilderNoun` gained `AllowedNames`, for the method whose name an
+  external API dictates (`get_callbacks`).
+- The dictionary moved to `RuboCop::Kata::Dictionary`, shared by
+  `Kata/RealWords` and `Kata/AgentNoun`.
 
 ## [0.6.0] - 2026-08-15
 
