@@ -1,23 +1,6 @@
 # Changelog
 
-## [Unreleased]
-
-- `Elegant/ClassInModule` is off. Its offences cannot be cleared: it reports a
-  class nested in a class as global, and `Elegant/NoClassInModule` forbids the
-  module its message asks for, so the pair admits no shape. It also reads a
-  top-level constant as a defect, which is how Rails resolves one. Reported
-  upstream as yegor256/rubocop-elegant#75.
-- `Elegant/PairedBrackets` autocorrect is off. It inserts a newline beside a
-  bracket without taking the whitespace already there, so corrected lines drift
-  right and `Elegant/MonotonicIndents` then reports the line it just wrote. The
-  rule still reports; fix the brackets by hand. Reported upstream as
-  yegor256/rubocop-elegant#76.
-- `Kata/NoComments` now exempts `Gemfile` as it already exempts `*.gemspec`. A
-  dependency manifest cannot say why a dependency is pinned in code.
-- Development runs against giacope/rubocop-elegant#fixes, the released gem plus
-  the five open pull requests. A gemspec cannot name a git source, so consumers
-  who want the fixes rather than the workarounds add the same line to their own
-  Gemfile; the README says how.
+## [0.8.0] - 2026-08-20
 
 - New `rubocop-kata plan` command: buckets the backlog into `structure`,
   `naming`, `prose` and `rest`, and names the stage to take next. Kata's
@@ -37,7 +20,6 @@
 - `Kata/AgentNoun` `AllowedNames` gains `Controller`, `Mailer` and
   `Serializer`: suffixes a framework resolves a class by are contracts, not
   naming choices.
-
 - `Kata/EnvDiscipline` no longer flags `ENV` as a parameter default.
   `def enabled?(env = ENV)` is the injection the cop asks for: the parameter
   is the seam, and the default is what the boot layer would pass anyway.
@@ -48,21 +30,37 @@
   `Kata/ClockDiscipline` exempt now covers an application's, not only a gem's:
   `config/`, `db/seeds.rb`, `db/seeds/`, `lib/tasks/`, `Rakefile` and
   `*.rake`, alongside `bin/` and `exe/`.
+- `Kata/NoComments` now exempts `Gemfile` as it already exempts `*.gemspec`. A
+  dependency manifest cannot say why a dependency is pinned in code.
+- `Metrics/MethodLength` counts an array, hash, heredoc or method call that
+  spans lines as one line. `Max: 5` and `Layout/LineLength: 120` were
+  otherwise unsatisfiable together: wrapping a long line spent method budget.
 - `Layout/ArgumentAlignment` now uses `with_fixed_indentation`. Its default
   aligns continuation arguments under the first argument's column, a step
   `Elegant/MonotonicIndents` rejects.
 - `Layout/EmptyLinesAroundAttributeAccessor` is off. It requires a blank line
   after `attr_reader` where `Elegant/NoEmptyLinesInBlocks` forbids one; inside
   an `included do` block the two autocorrect in a loop.
+- `Lint/NumberConversion` is off. Its message names a replacement that
+  raises: `Integer(x, 10)` is only valid when `x` is a String, and a `.to_i`
+  receiver is usually a Time, a BigDecimal or an Integer.
 - The five bundled cops that exempt test files now also match Rails'
   `foo_test.rb`, `foo_spec.rb`, and suites addressed by directory. Upstream
   matched `**/*Test.rb` and `**/test_*.rb` only.
-- `Lint/NumberConversion` is off. Its message names a replacement that
-  raises — `Integer(x, 10)` is only valid when `x` is a String, and a `.to_i`
-  receiver is usually a Time, a BigDecimal or an Integer.
-- `Metrics/MethodLength` counts an array, hash, heredoc or method call that
-  spans lines as one line. `Max: 5` and `Layout/LineLength: 120` were
-  otherwise unsatisfiable together: wrapping a long line spent method budget.
+- `Elegant/ClassInModule` is off. Its offenses cannot be cleared: it reports a
+  class nested in a class as global, and `Elegant/NoClassInModule` forbids the
+  module its message asks for, so the pair admits no shape. It also reads a
+  top-level constant as a defect, which is how Rails resolves one. Reported
+  upstream as yegor256/rubocop-elegant#75.
+- `Elegant/PairedBrackets` autocorrect is off. It inserts a newline beside a
+  bracket without taking the whitespace already there, so corrected lines drift
+  right and `Elegant/MonotonicIndents` then reports the line it just wrote. The
+  rule still reports; fix the brackets by hand. Reported upstream as
+  yegor256/rubocop-elegant#76.
+- Development runs against giacope/rubocop-elegant#fixes, the released gem plus
+  five open pull requests. A gemspec cannot name a git source, so consumers who
+  want the fixes rather than the workarounds add the same line to their own
+  Gemfile; the README says how.
 
 ## [0.7.0] - 2026-08-16
 

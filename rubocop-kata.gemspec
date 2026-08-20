@@ -13,7 +13,9 @@ Gem::Specification.new do |spec|
     "fifteen cops of its own — naming (GoodMethodName, GoodVariableName, dictionary-backed " \
     "RealWords, AgentNoun, BuilderNoun, NoUtilName), discipline (IoDiscipline, ClockDiscipline, " \
     "EnvDiscipline, ConstructorDiscipline, NoClassMethodLogic), and shape (NoComments, " \
-    "NoBooleanFlag, NoHashAsObject, ProsePlacement)."
+    "NoBooleanFlag, NoHashAsObject, ProsePlacement). The rubocop-kata command reports dead " \
+    "configuration (doctor), buckets a backlog into the stages that cause each other (plan), " \
+    "and prints an agent skill for working it (skill)."
   spec.homepage = "https://github.com/giacope/rubocop-kata"
   spec.license = "MIT"
   spec.required_ruby_version = ">= 3.4"
