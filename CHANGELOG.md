@@ -1,5 +1,43 @@
 # Changelog
 
+## [Unreleased]
+
+- `Kata/AgentNoun` no longer truncates a compound to its prefix. Truncation is
+  not injective — `EvidencePoller`, `EvidenceValidator` and `EvidenceWaiter`
+  were each told to become `Evidence` — and it lands on names that already
+  exist elsewhere, which a per-file cop cannot see. It now derives the agent
+  word and keeps the rest, so `EvidenceValidator` suggests
+  `EvidenceValidation`, and stays quiet when no derivation applies.
+- `Kata/AgentNoun` `AllowedNames` gains `Controller`, `Mailer` and
+  `Serializer`: suffixes a framework resolves a class by are contracts, not
+  naming choices.
+
+- `Kata/EnvDiscipline` no longer flags `ENV` as a parameter default.
+  `def enabled?(env = ENV)` is the injection the cop asks for: the parameter
+  is the seam, and the default is what the boot layer would pass anyway.
+- Every cop that excluded `spec/**/*` now excludes `test/**/*` too. Fifteen
+  cops shipped an RSpec-only exclusion, so a Minitest suite got the
+  production rules.
+- The boot layer that `Kata/EnvDiscipline`, `Kata/IoDiscipline` and
+  `Kata/ClockDiscipline` exempt now covers an application's, not only a gem's:
+  `config/`, `db/seeds.rb`, `db/seeds/`, `lib/tasks/`, `Rakefile` and
+  `*.rake`, alongside `bin/` and `exe/`.
+- `Layout/ArgumentAlignment` now uses `with_fixed_indentation`. Its default
+  aligns continuation arguments under the first argument's column, a step
+  `Elegant/MonotonicIndents` rejects.
+- `Layout/EmptyLinesAroundAttributeAccessor` is off. It requires a blank line
+  after `attr_reader` where `Elegant/NoEmptyLinesInBlocks` forbids one; inside
+  an `included do` block the two autocorrect in a loop.
+- The five bundled cops that exempt test files now also match Rails'
+  `foo_test.rb`, `foo_spec.rb`, and suites addressed by directory. Upstream
+  matched `**/*Test.rb` and `**/test_*.rb` only.
+- `Lint/NumberConversion` is off. Its message names a replacement that
+  raises — `Integer(x, 10)` is only valid when `x` is a String, and a `.to_i`
+  receiver is usually a Time, a BigDecimal or an Integer.
+- `Metrics/MethodLength` counts an array, hash, heredoc or method call that
+  spans lines as one line. `Max: 5` and `Layout/LineLength: 120` were
+  otherwise unsatisfiable together: wrapping a long line spent method budget.
+
 ## [0.7.0] - 2026-08-16
 
 - New `rubocop-kata doctor` command: reports `.rubocop.yml` entries that

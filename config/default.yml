@@ -14,12 +14,16 @@ Kata/AgentNoun:
   Description: >-
     Name classes for the thing they are, not the work they do. `AllowedNames`
     entries match a whole name or a trailing segment of one, so `Error` also
-    exempts `UsageError`.
+    exempts `UsageError`. The default list holds the suffixes a framework
+    resolves a class by, which are contracts rather than naming choices.
   Enabled: true
   VersionAdded: "0.1"
-  VersionChanged: "0.7"
+  VersionChanged: "0.8"
   AllowedNames:
     - Error
+    - Controller
+    - Mailer
+    - Serializer
 
 Kata/NoComments:
   Description: "Say it in the code; keep only comments the machine or the law reads."
@@ -27,6 +31,7 @@ Kata/NoComments:
   VersionAdded: "0.1"
   Exclude:
     - "spec/**/*"
+    - "test/**/*"
     - "*.gemspec"
 
 Kata/GoodMethodName:
@@ -145,11 +150,18 @@ Kata/IoDiscipline:
   Description: "Write through an injected io, not bare puts/warn/pp/p."
   Enabled: true
   VersionAdded: "0.1"
+  VersionChanged: "0.8"
   Exclude:
     - "spec/**/*"
+    - "test/**/*"
     - "bin/**/*"
     - "exe/**/*"
+    - "config/**/*"
+    - "db/seeds.rb"
+    - "db/seeds/**/*"
+    - "lib/tasks/**/*"
     - "Rakefile"
+    - "**/*.rake"
     - "*.gemspec"
 
 Kata/ProsePlacement:
@@ -221,6 +233,7 @@ Kata/NoBooleanFlag:
   VersionAdded: "0.3"
   Exclude:
     - "spec/**/*"
+    - "test/**/*"
 
 Kata/ConstructorDiscipline:
   Description: "Constructors assign; they do not compute."
@@ -228,6 +241,7 @@ Kata/ConstructorDiscipline:
   VersionAdded: "0.3"
   Exclude:
     - "spec/**/*"
+    - "test/**/*"
 
 Kata/NoClassMethodLogic:
   Description: "Classes construct; instances work."
@@ -235,6 +249,7 @@ Kata/NoClassMethodLogic:
   VersionAdded: "0.3"
   Exclude:
     - "spec/**/*"
+    - "test/**/*"
   AllowedNames:
     - build
     - parse
@@ -247,27 +262,43 @@ Kata/NoHashAsObject:
   MaxKeys: 4
   Exclude:
     - "spec/**/*"
+    - "test/**/*"
     - "config/**/*"
 
 Kata/ClockDiscipline:
   Description: "Read time from an injected clock, not the ambient one."
   Enabled: true
   VersionAdded: "0.3"
+  VersionChanged: "0.8"
   Exclude:
     - "spec/**/*"
+    - "test/**/*"
     - "bin/**/*"
     - "exe/**/*"
+    - "config/**/*"
+    - "db/seeds.rb"
+    - "db/seeds/**/*"
+    - "lib/tasks/**/*"
+    - "Rakefile"
+    - "**/*.rake"
+    - "*.gemspec"
 
 Kata/EnvDiscipline:
   Description: "ENV belongs in the boot layer; pass configuration in."
   Enabled: true
   VersionAdded: "0.3"
+  VersionChanged: "0.8"
   Exclude:
     - "spec/**/*"
-    - "config/**/*"
+    - "test/**/*"
     - "bin/**/*"
     - "exe/**/*"
+    - "config/**/*"
+    - "db/seeds.rb"
+    - "db/seeds/**/*"
+    - "lib/tasks/**/*"
     - "Rakefile"
+    - "**/*.rake"
     - "*.gemspec"
 
 Style/Documentation:
@@ -314,26 +345,42 @@ Layout/LineEndStringConcatenationIndentation:
 Metrics/BlockLength:
   Exclude:
     - "spec/**/*"
+    - "test/**/*"
     - "*.gemspec"
 
 Metrics/ClassLength:
   Max: 100
+  Exclude:
+    - "spec/**/*"
+    - "test/**/*"
+    - "**/*_test.rb"
 
 Metrics/ModuleLength:
   Max: 100
   Exclude:
     - "spec/**/*"
+    - "test/**/*"
+    - "**/*_test.rb"
 
+# A wrapped call reads as one line, so it costs one; otherwise Max and
+# Layout/LineLength cannot both be satisfied.
 Metrics/MethodLength:
   Max: 5
+  CountAsOne:
+    - array
+    - hash
+    - heredoc
+    - method_call
   Exclude:
     - "spec/**/*"
+    - "test/**/*"
 
 Metrics/ParameterLists:
   Max: 4
   CountKeywordArgs: true
   Exclude:
     - "spec/**/*"
+    - "test/**/*"
 
 RSpec/ExampleLength:
   CountAsOne:
@@ -345,10 +392,12 @@ RSpec/VerifiedDoubles:
 Elegant/NoEmptyLinesInBlocks:
   Exclude:
     - "spec/**/*"
+    - "test/**/*"
 
 Elegant/NoEmptyLinesInMethods:
   Exclude:
     - "spec/**/*"
+    - "test/**/*"
 
 Elegant/NoComments:
   Enabled: false
@@ -368,6 +417,16 @@ Layout/ClosingParenthesisIndentation:
   Enabled: false
 
 Layout/FirstArgumentIndentation:
+  Enabled: false
+
+# Its default aligns continuation arguments under the first argument's column,
+# an arbitrary step Elegant/MonotonicIndents rejects; a fixed step is +2.
+Layout/ArgumentAlignment:
+  EnforcedStyle: with_fixed_indentation
+
+# Requires a blank line after `attr_reader` where Elegant/NoEmptyLinesInBlocks
+# forbids one; inside an `included do` block the two loop.
+Layout/EmptyLinesAroundAttributeAccessor:
   Enabled: false
 
 Layout/MultilineMethodCallBraceLayout:
@@ -401,10 +460,10 @@ Elegant/NoRedundantVariable:
 Style/StaticClass:
   AutoCorrect: false
 
-# Turns lenient `.to_i` into strict Integer(x, 10), which raises on
-# nils/Integers call sites legitimately receive.
+# Its message names a replacement that raises: Integer(x, 10) is only
+# valid when x is a String, and most `.to_i` receivers are not.
 Lint/NumberConversion:
-  AutoCorrect: false
+  Enabled: false
 
 # Alphabetizing requires breaks load-order-dependent boot sequences.
 Style/RequireOrder:
@@ -413,3 +472,34 @@ Style/RequireOrder:
 ThreadSafety/DirChdir:
   Exclude:
     - "spec/**/*"
+    - "test/**/*"
+
+# --- Elegant's test-file exclusions never match Rails' `foo_test.rb`, nor a
+# suite addressed by directory.
+Elegant/ClassInModule:
+  inherit_mode:
+    merge:
+      - Exclude
+  Exclude:
+    - "**/*_test.rb"
+    - "test/**/*"
+    - "spec/**/*"
+
+Elegant/NoClassInModule:
+  inherit_mode:
+    merge:
+      - Exclude
+  Exclude:
+    - "**/*_test.rb"
+    - "test/**/*"
+    - "spec/**/*"
+
+Elegant/OneClassPerFile:
+  inherit_mode:
+    merge:
+      - Exclude
+  Exclude:
+    - "**/*_test.rb"
+    - "test/**/*"
+    - "spec/**/*"
+

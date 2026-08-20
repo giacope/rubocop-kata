@@ -26,9 +26,13 @@ class RuboCop::Cop::Kata::AgentNoun < RuboCop::Cop::Base
   end
 
   def suggestion(name)
+    head, tail = split(name)
+    DERIVATIONS.filter_map { proposal(head + tail.sub(it.first, it.last)) }.first
+  end
+
+  def split(name)
     segments = name.scan(SEGMENT)
-    return proposal(segments[0..-2].join) if segments.length > 1
-    DERIVATIONS.filter_map { proposal(name.sub(it.first, it.last)) }.first
+    [segments[0..-2].join, segments.last.to_s]
   end
 
   def proposal(name)

@@ -59,7 +59,7 @@ That's it. The plugin loads the bundled extensions and the shared defaults, so y
 | --- | --- | --- |
 | `Kata/AgentNoun` | on | Classes named for what they are, not `-er`/`-or` doers. Suggests the better name when it can derive one. `AllowedNames` matches a whole name or a trailing segment, so `Error` covers `UsageError`. |
 | `Kata/NoComments` | on | No prose comments; say it in the code. Magic comments, linter directives, and licence headers survive. Autocorrects. |
-| `Kata/IoDiscipline` | on | No bare `puts`/`warn`/`pp`/`p` outside specs/scripts; write through an injected `@io` or an explicit receiver. |
+| `Kata/IoDiscipline` | on | No bare `puts`/`warn`/`pp`/`p` outside the test suite and the boot layer; write through an injected `@io` or an explicit receiver. |
 | `Kata/ProsePlacement` | off | Sentence-length strings belong in the presentation layer. Enable with an `Include`/`Exclude` matching your layering. |
 | `Kata/NoUtilName` | on | No junk-drawer names (`Util`, `Helper`, `Manager`, `Service`, …). Tune via `BannedNames`. |
 | `Kata/RealWords` | on | Every name segment is a word the shipped dictionary knows — `errorcount` (smash) and `cfg` (abbreviation) both fail, with no word list to maintain. Tune via `Terms`/`BannedWords`/`AllowedNames`. |
@@ -71,7 +71,7 @@ That's it. The plugin loads the bundled extensions and the shared defaults, so y
 | `Kata/NoClassMethodLogic` | on | Class methods construct (`build`, `parse`, `of`, `from_*`); instances do the work. |
 | `Kata/NoHashAsObject` | on | A hash with `MaxKeys`+ keys (default 4) wants to be an object. Keyword-argument call sites exempt. |
 | `Kata/ClockDiscipline` | on | No bare `Time.now`/`Date.today`/`.current`; inject a clock. |
-| `Kata/EnvDiscipline` | on | `ENV` reads only in the boot layer (`config/`, `bin/`, `exe/`). |
+| `Kata/EnvDiscipline` | on | `ENV` reads only in the boot layer (`config/`, `db/seeds*`, `lib/tasks/`, rake files, `bin/`, `exe/`) — or as a parameter default, which is the seam the cop asks for. |
 
 ## Dead configuration
 

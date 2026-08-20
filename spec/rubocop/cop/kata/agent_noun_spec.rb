@@ -32,21 +32,35 @@ RSpec.describe(RuboCop::Cop::Kata::AgentNoun, :config) do
     RUBY
   end
 
-  it "suggests the compound without its agent word" do
+  it "derives the agent word of a compound and keeps the rest" do
     expect_offense(<<~RUBY)
-      class PaymentProcessor
-            ^^^^^^^^^^^^^^^^ `PaymentProcessor` names a doer; name the class for the thing it is, not the work it does. Try `Payment`.
+      class EvidenceValidator
+            ^^^^^^^^^^^^^^^^^ `EvidenceValidator` names a doer; name the class for the thing it is, not the work it does. Try `EvidenceValidation`.
       end
-      class ReloadRunner
-            ^^^^^^^^^^^^ `ReloadRunner` names a doer; name the class for the thing it is, not the work it does. Try `Reload`.
+      class RouteSelector
+            ^^^^^^^^^^^^^ `RouteSelector` names a doer; name the class for the thing it is, not the work it does. Try `RouteSelection`.
       end
     RUBY
   end
 
   it "preserves acronym segments in a compound suggestion" do
     expect_offense(<<~RUBY)
-      class PaymentJSONProcessor
-            ^^^^^^^^^^^^^^^^^^^^ `PaymentJSONProcessor` names a doer; name the class for the thing it is, not the work it does. Try `PaymentJSON`.
+      class PaymentJSONValidator
+            ^^^^^^^^^^^^^^^^^^^^ `PaymentJSONValidator` names a doer; name the class for the thing it is, not the work it does. Try `PaymentJSONValidation`.
+      end
+    RUBY
+  end
+
+  it "never truncates a compound to a name its siblings would share" do
+    expect_offense(<<~RUBY)
+      class EvidencePoller
+            ^^^^^^^^^^^^^^ `EvidencePoller` names a doer; name the class for the thing it is, not the work it does.
+      end
+      class EvidenceWaiter
+            ^^^^^^^^^^^^^^ `EvidenceWaiter` names a doer; name the class for the thing it is, not the work it does.
+      end
+      class SandboxReaper
+            ^^^^^^^^^^^^^ `SandboxReaper` names a doer; name the class for the thing it is, not the work it does.
       end
     RUBY
   end
@@ -85,5 +99,20 @@ RSpec.describe(RuboCop::Cop::Kata::AgentNoun, :config) do
             ^^^^^^^^^^^^ `WorkerRunner` names a doer; name the class for the thing it is, not the work it does.
       end
     RUBY
+  end
+
+  context "with the shipped defaults" do
+    let(:cop_config) { RuboCop::ConfigLoader.default_configuration.for_cop("Kata/AgentNoun") }
+
+    it "exempts the suffixes a framework resolves a class by" do
+      expect_no_offenses(<<~RUBY)
+        class AccountsController
+        end
+        class InviteMailer
+        end
+        class AccountSerializer
+        end
+      RUBY
+    end
   end
 end
