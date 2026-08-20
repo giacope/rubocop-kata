@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+- New `rubocop-kata plan` command: buckets the backlog into `structure`,
+  `naming`, `prose` and `rest`, and names the stage to take next. Kata's
+  structural cops create names and its naming cops charge for them, so the net
+  offense count moves the wrong way mid-refactor and cannot be read as progress.
+- New `rubocop-kata skill` command: prints an agent skill to stdout, so
+  redirecting it installs the skill wherever an agent reads them from. It works
+  the stage `plan` names one file at a time, checks every name it introduces
+  against the dictionary `Kata/RealWords` reads, and reports removed and
+  created separately.
 - `Kata/AgentNoun` no longer truncates a compound to its prefix. Truncation is
   not injective — `EvidencePoller`, `EvidenceValidator` and `EvidenceWaiter`
   were each told to become `Evidence` — and it lands on names that already

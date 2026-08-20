@@ -3,7 +3,12 @@
 
 require "rubocop-kata"
 require "rubocop/kata/checkup"
+require "rubocop/kata/plan"
+require "rubocop/kata/kit"
 
-abort("usage: rubocop-kata doctor [path]") unless ARGV.first == "doctor"
+COMMANDS = { "doctor" => RuboCop::Kata::Checkup, "plan" => RuboCop::Kata::Plan, "skill" => RuboCop::Kata::Kit }.freeze
 
-exit(RuboCop::Kata::Checkup.new(ARGV.fetch(1, Dir.pwd)).run)
+command = COMMANDS[ARGV.first]
+abort("usage: rubocop-kata #{COMMANDS.keys.join("|")} [path]") if command.nil?
+
+exit(command.new(ARGV.fetch(1, Dir.pwd)).run)

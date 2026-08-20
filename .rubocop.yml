@@ -26,3 +26,9 @@ Kata/RealWords:
     - optarg
     - kwarg
     - kwoptarg
+
+# `plan` shells RuboCop at a directory the caller names, and RuboCop keys its
+# relative Exclude globs to the process working directory.
+ThreadSafety/DirChdir:
+  Exclude:
+    - "lib/rubocop/kata/plan.rb"

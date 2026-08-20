@@ -92,6 +92,42 @@ lib/registry.rb:44: the directive names `Elegant/GoodMethodName`, which is not e
 
 It exits non-zero when it finds something, so it can gate CI.
 
+## Adoption order
+
+Kata's structural cops create names and its naming cops charge for them, so a
+structural refactor removes offenses and adds more. A single total cannot tell
+progress from regression. `plan` buckets the backlog into the stages that cause
+each other and names the one to take next.
+
+```sh
+bundle exec rubocop-kata plan            # or: plan path/to/project
+```
+
+```
+structure     184  Kata/ConstructorDiscipline 92, Kata/NoHashAsObject 48, Kata/EnvDiscipline 44
+naming        263  Kata/RealWords 141, Kata/GoodVariableName 88, Kata/AgentNoun 34
+prose          57  Kata/NoComments 57
+rest          412  Elegant/PairedBrackets 300, Layout/LineLength 112
+next: structure — 184 offenses in 61 files; these mint the names `naming` then prices, so take them first
+densest: app/models/account.rb (14)
+```
+
+Structure before naming, because doing naming first means renaming things the
+structural pass is about to move.
+
+The gem also ships an agent skill that runs this loop: it works the stage `plan`
+names, checks every name it introduces against the same dictionary
+`Kata/RealWords` reads, and reports removed and created separately instead of a
+net total.
+
+```sh
+mkdir -p .claude/skills/rubocop-kata
+bundle exec rubocop-kata skill > .claude/skills/rubocop-kata/SKILL.md
+```
+
+It writes to stdout, so the same command installs it anywhere an agent reads
+skills from — a project, `~/.claude/skills/`, or a plugin.
+
 ## The defaults
 
 Double-quoted strings, `Metrics/MethodLength: 5`, `Metrics/ClassLength: 100`,
