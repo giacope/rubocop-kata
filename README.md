@@ -65,9 +65,11 @@ reports a class nested in a class as global
 test-file exclusions never match a Rails or RSpec suite
 ([#77](https://github.com/yegor256/rubocop-elegant/issues/77)).
 
-The defaults here neutralise all four: the two broken correctors are set to
-report only, and the exclusions are widened. Nothing corrupts your code out of
-the box.
+The defaults here neutralise all four. `Elegant/ClassInModule` is off, because
+its offences cannot be cleared: the cop it ships beside forbids the module it
+asks for. The two broken correctors are set to report only, because their
+offences can be cleared, by hand. The exclusions are widened. Nothing corrupts
+your code out of the box, and nothing reports a defect you cannot fix.
 
 A gemspec cannot name a git source, so to take the fixes themselves rather than
 the workarounds, add this to your own `Gemfile`:
@@ -86,9 +88,15 @@ Elegant/NoRedundantVariable:
 
 Elegant/PairedBrackets:
   AutoCorrect: true
+
+Elegant/ClassInModule:
+  Enabled: true
 ```
 
-Drop both once upstream releases the fixes.
+Drop all three once upstream releases the fixes. On a Rails codebase, consider
+leaving `Elegant/ClassInModule` off for good: it wants every class inside a
+module, and Zeitwerk resolves `class Account` from `app/models/account.rb` as a
+top-level constant by design.
 
 ## The cops
 

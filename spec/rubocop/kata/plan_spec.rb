@@ -45,7 +45,7 @@ RSpec.describe(RuboCop::Kata::Plan) do
   end
 
   it "falls back to the remaining cops when no kata stage has anything" do
-    project("# frozen_string_literal: true\n\nclass Sample0\nend\n") do |root|
+    project("total = 1\n") do |root|
       expect(report(root).first).to(include("next: rest"))
     end
   end

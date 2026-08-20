@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+- `Elegant/ClassInModule` is off. Its offences cannot be cleared: it reports a
+  class nested in a class as global, and `Elegant/NoClassInModule` forbids the
+  module its message asks for, so the pair admits no shape. It also reads a
+  top-level constant as a defect, which is how Rails resolves one. Reported
+  upstream as yegor256/rubocop-elegant#75.
 - `Elegant/PairedBrackets` autocorrect is off. It inserts a newline beside a
   bracket without taking the whitespace already there, so corrected lines drift
   right and `Elegant/MonotonicIndents` then reports the line it just wrote. The

@@ -485,7 +485,12 @@ ThreadSafety/DirChdir:
 
 # --- Elegant's test-file exclusions never match Rails' `foo_test.rb`, nor a
 # suite addressed by directory.
+# Off until upstream ships: it reports a class nested in a class as global, and
+# Elegant/NoClassInModule forbids the module the message asks for, so the pair
+# admits no shape. It also reads a top-level constant as a defect, which is how
+# Rails resolves one. https://github.com/yegor256/rubocop-elegant/issues/75
 Elegant/ClassInModule:
+  Enabled: false
   inherit_mode:
     merge:
       - Exclude
