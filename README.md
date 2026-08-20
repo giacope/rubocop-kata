@@ -53,6 +53,43 @@ bundle exec rubocop
 
 That's it. The plugin loads the bundled extensions and the shared defaults, so your `.rubocop.yml` keeps only what's specific to your project. Requires Ruby >= 3.4 and RuboCop ~> 1.75.
 
+### The bundled rubocop-elegant
+
+The released `rubocop-elegant` 0.7.1 has four defects this project reported
+upstream: `NoRedundantVariable` autocorrect corrupts Ruby 3.1 shorthand
+([#74](https://github.com/yegor256/rubocop-elegant/issues/74)), `ClassInModule`
+reports a class nested in a class as global
+([#75](https://github.com/yegor256/rubocop-elegant/issues/75)),
+`PairedBrackets` autocorrect drifts the indent
+([#76](https://github.com/yegor256/rubocop-elegant/issues/76)), and the
+test-file exclusions never match a Rails or RSpec suite
+([#77](https://github.com/yegor256/rubocop-elegant/issues/77)).
+
+The defaults here neutralise all four: the two broken correctors are set to
+report only, and the exclusions are widened. Nothing corrupts your code out of
+the box.
+
+A gemspec cannot name a git source, so to take the fixes themselves rather than
+the workarounds, add this to your own `Gemfile`:
+
+```ruby
+gem "rubocop-elegant", github: "giacope/rubocop-elegant", branch: "fixes"
+```
+
+That branch is the released gem plus the five pull requests, with the version
+pinned so Bundler resolves it. With it in place you can turn the two correctors
+back on:
+
+```yaml
+Elegant/NoRedundantVariable:
+  AutoCorrect: true
+
+Elegant/PairedBrackets:
+  AutoCorrect: true
+```
+
+Drop both once upstream releases the fixes.
+
 ## The cops
 
 | Cop | Default | What it enforces |

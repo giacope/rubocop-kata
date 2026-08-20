@@ -29,10 +29,13 @@ Kata/NoComments:
   Description: "Say it in the code; keep only comments the machine or the law reads."
   Enabled: true
   VersionAdded: "0.1"
+  VersionChanged: "0.8"
   Exclude:
     - "spec/**/*"
     - "test/**/*"
     - "*.gemspec"
+    - "Gemfile"
+    - "**/Gemfile"
 
 Kata/GoodMethodName:
   Description: >-
@@ -453,6 +456,12 @@ Style/DisableCopsWithinSourceCodeDirective:
 # Inlines a variable past side effects (ivar resets, later statements) and
 # corrupts Ruby 3.1 keyword shorthand.
 Elegant/NoRedundantVariable:
+  AutoCorrect: false
+
+# Inserts a newline beside a bracket without taking the whitespace already
+# there, so every corrected line drifts right and MonotonicIndents then
+# reports the line it just wrote.
+Elegant/PairedBrackets:
   AutoCorrect: false
 
 # Rewrites reopened classes into modules, clashing with the primary

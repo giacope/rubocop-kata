@@ -2,6 +2,18 @@
 
 ## [Unreleased]
 
+- `Elegant/PairedBrackets` autocorrect is off. It inserts a newline beside a
+  bracket without taking the whitespace already there, so corrected lines drift
+  right and `Elegant/MonotonicIndents` then reports the line it just wrote. The
+  rule still reports; fix the brackets by hand. Reported upstream as
+  yegor256/rubocop-elegant#76.
+- `Kata/NoComments` now exempts `Gemfile` as it already exempts `*.gemspec`. A
+  dependency manifest cannot say why a dependency is pinned in code.
+- Development runs against giacope/rubocop-elegant#fixes, the released gem plus
+  the five open pull requests. A gemspec cannot name a git source, so consumers
+  who want the fixes rather than the workarounds add the same line to their own
+  Gemfile; the README says how.
+
 - New `rubocop-kata plan` command: buckets the backlog into `structure`,
   `naming`, `prose` and `rest`, and names the stage to take next. Kata's
   structural cops create names and its naming cops charge for them, so the net
