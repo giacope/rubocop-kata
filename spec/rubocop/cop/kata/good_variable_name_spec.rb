@@ -20,6 +20,27 @@ RSpec.describe(RuboCop::Cop::Kata::GoodVariableName, :config) do
         end
       RUBY
     end
+
+    it "allows grammatical suffixes, role prefixes, and protocol vocabulary" do
+      expect_no_offenses(<<~RUBY)
+        user_id = 1
+        timeout_ms = 1
+        max_retries = 1
+        start_time = 1
+        end_date = 1
+        time_zone = 1
+        ip_address = 1
+        user_agent = 1
+        first_name = 1
+      RUBY
+    end
+
+    it "still prices owner-plus-property names" do
+      expect_offense(<<~RUBY)
+        error_message = 1
+        ^^^^^^^^^^^^^ #{offense("error_message")}
+      RUBY
+    end
   end
 
   it "allows single-word locals, parameters, and keyword arguments" do
@@ -62,8 +83,8 @@ RSpec.describe(RuboCop::Cop::Kata::GoodVariableName, :config) do
   end
 
   it "flags two-word parameters and keyword arguments" do
-    expect_offense(<<~RUBY, message: offense("covering_count"))
-      def run(covering_count)
+    expect_offense(<<~RUBY, message: offense("covering_lines"))
+      def run(covering_lines)
               ^^^^^^^^^^^^^^ %{message}
       end
     RUBY
@@ -79,8 +100,8 @@ RSpec.describe(RuboCop::Cop::Kata::GoodVariableName, :config) do
       @build_adapter = 1
       ^^^^^^^^^^^^^^ %{message}
     RUBY
-    expect_offense(<<~RUBY, message: offense("@_covering_count"))
-      @_covering_count = 1
+    expect_offense(<<~RUBY, message: offense("@_covering_lines"))
+      @_covering_lines = 1
       ^^^^^^^^^^^^^^^^ %{message}
     RUBY
     expect_offense(<<~RUBY, message: offense("$source_root"))

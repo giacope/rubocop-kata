@@ -1,5 +1,67 @@
 # Changelog
 
+## [0.9.0] - 2026-08-27
+
+- The shared rule behind the naming cops is now explicit: compound syntax is
+  not the smell — multiple semantic concepts are. A name should name one thing,
+  not describe where it came from, what it manipulates, or which layer it
+  lives in.
+- New `Kata/GoodClassName` replaces `Kata/AgentNoun` and the class half of
+  `Kata/NoUtilName`: a class names one object that exists in the model. It
+  keeps the doer check and its derived suggestions, adds junk-drawer names
+  matched whole or as a trailing segment (`Service` catches `InvoiceService`),
+  and flags names packing more than `MaxWords` concepts
+  (`CustomerOrderPayment`) unless `Terms` blesses them as one concept
+  (`CreditCard`). The default `Terms` ships the established technical
+  compounds: `AbstractSyntaxTree`, `RedBlackTree`, `UnitOfWork`,
+  `TimeWithZone`, `HashWithIndifferentAccess` and kin.
+- New `Kata/GoodModuleName` replaces the module half of `Kata/NoUtilName`: a
+  module names a domain vocabulary, not an implementation category. Layer
+  buckets (`Services`, `Helpers`, `Logic` — so `BusinessLogic` too), vague
+  shared namespaces (`Common`, `Shared`, `Core`), doer modules, and crowded
+  names are flagged; `AccessControl` and `Billing` pass.
+- `Kata/GoodMethodName` flags names chaining actions with a conjunction
+  (`validate_and_save`, `find_or_create`): each action wants its own method.
+  Traversal names (`customer_address`) were already priced by the word rule;
+  the message stays advisory — the cop cannot know your object model.
+- `Kata/GoodMethodName` and `Kata/GoodVariableName` bless grammatical
+  suffixes `id` and `ms` (`user_id`, `timeout_ms`) alongside `at`, the role
+  prefixes `max`/`min`/`start`/`end` (`max_retries`, `start_time`), and ship
+  established lexical compounds and protocol vocabulary as default `Terms`:
+  `first_name`, `postal_code`, `time_zone`, `ip_address`, `user_agent`,
+  `mime_type`, `status_code`, `access_token` and kin — names that read as one
+  concept. Where names must mirror an external schema, `Exclude` the file:
+  the file is the boundary.
+- The defaults were then pressure-tested against corpora of real stdlib, gem,
+  Rails, and business-domain names, and grew to absorb what any codebase hits:
+  role suffixes (`number`, `code`, `price`, `rate`, `date`, `path`, `url`,
+  `count`, `size`, `key`, `token`, `params`, `secret`, `level`, `file`, `dir`,
+  `period`, `seconds`, `cents`), role prefixes (`current`, `default`, `total`,
+  `new`, `other`, `raw`, `set`, `sort`, `expected`, `actual`, `assert`),
+  domain terms (`line_item`, `credit_card`, `payment_method`,
+  `billing_address`, `date_of_birth`, `dry_run`, `stack_trace` and kin), and
+  the contract names of Ruby, Rails, Sidekiq, Devise, Pundit and RSpec
+  (`perform_async`, `deconstruct_keys`, `authenticate_user!`, `policy_scope`,
+  `failure_message` and kin). Name suffixes that would bless owner+property
+  (`name`, `message`, `amount`) stayed out on purpose: `user_name` and
+  `error_message` are still priced.
+- `Kata/GoodClassName` `AllowedNames` also covers the class families a
+  framework resolves or subclasses by name (`Validator`, `Decorator`,
+  `Presenter`, `Helper`, `Job`, `Logger`, `Delegator`, `Enumerator`,
+  `Driver`) and more thing-words (`Center`, `Transfer`);
+  `Kata/GoodModuleName` mirrors the class cop's allowed list, and its
+  `BannedNames` grows the layer plurals (`Jobs`, `Workers`, `Queries`,
+  `Policies`, `Forms`, `Decorators`, `Presenters`, `Serializers`,
+  `Validators`, `Mixins`, `Extensions`).
+- The doer check no longer flags thing-words that merely end in `-er`/`-or`:
+  `User`, `Order`, `Customer`, `Monitor`, `Buffer` and kin ship in
+  `Kata/GoodClassName` `AllowedNames`. `Kata/GoodModuleName` ships the
+  framework suffixes (`Controller`, `Mailer`, `Serializer`) so reopening
+  `ActionController` is not an offense. `Kata/GoodMethodName` exempts the
+  names Ruby and Rails resolve by contract: `method_missing`,
+  `respond_to_missing?`, `marshal_dump`, `deep_dup`, `table_name`,
+  `primary_key` and kin.
+
 ## [0.8.0] - 2026-08-20
 
 - New `rubocop-kata plan` command: buckets the backlog into `structure`,

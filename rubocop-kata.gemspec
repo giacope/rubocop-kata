@@ -11,7 +11,7 @@ Gem::Specification.new do |spec|
   spec.description = "Bundles a curated RuboCop stack (rspec, performance, elegant, packaging, " \
     "thread_safety) behind one dependency, layers opinionated style defaults on top, and adds " \
     "fifteen cops of its own — naming (GoodMethodName, GoodVariableName, dictionary-backed " \
-    "RealWords, AgentNoun, BuilderNoun, NoUtilName), discipline (IoDiscipline, ClockDiscipline, " \
+    "RealWords, GoodClassName, GoodModuleName, BuilderNoun), discipline (IoDiscipline, ClockDiscipline, " \
     "EnvDiscipline, ConstructorDiscipline, NoClassMethodLogic), and shape (NoComments, " \
     "NoBooleanFlag, NoHashAsObject, ProsePlacement). The rubocop-kata command reports dead " \
     "configuration (doctor), buckets a backlog into the stages that cause each other (plan), " \

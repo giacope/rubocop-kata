@@ -9,6 +9,12 @@ Style/FormatStringToken:
   Exclude:
     - "spec/**/*"
 
+# A cop's class name is the config key RuboCop resolves it by — a contract,
+# not a naming choice; the file is the boundary.
+Kata/GoodClassName:
+  Exclude:
+    - "lib/rubocop/cop/**/*"
+
 # The parser's node vocabulary is this project's domain language.
 Kata/RealWords:
   Terms:

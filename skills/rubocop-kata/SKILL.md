@@ -4,7 +4,7 @@ description: >-
   Adopt rubocop-kata's rules on an existing codebase without the offense count going
   the wrong way. Kata's structural cops (ConstructorDiscipline, NoHashAsObject,
   Io/Clock/EnvDiscipline, NoClassMethodLogic, NoBooleanFlag) create names, and its naming
-  cops (RealWords, GoodMethodName, GoodVariableName, AgentNoun, BuilderNoun, NoUtilName)
+  cops (RealWords, GoodMethodName, GoodVariableName, GoodClassName, GoodModuleName, BuilderNoun)
   charge for every name created — so a structural refactor removes offenses and adds more,
   and a single total cannot tell progress from regression. This skill sequences the work by
   stage, picks names that are already clean by checking them against the dictionary the cops
@@ -79,8 +79,9 @@ This is the step that keeps the count honest. Kata's naming rules, condensed:
 | a second word only via a role prefix (`after_fork`), a role suffix (`file_of`), or a reviewed `Terms` entry | same |
 | never smash the underscore out — `errorcount` fails too | `RealWords` |
 | every segment is a real word; no `cfg`, `ctx`, `msg`, `tmp`, … | `RealWords` |
-| classes are not `-er`/`-or` doers | `AgentNoun` |
-| no `Util`, `Helper`, `Manager`, `Service`, `Common`, `Shared` | `NoUtilName` |
+| a class is one object, not a `-er`/`-or` doer, a junk drawer (`Service`, `Util`, `Data`), or three concepts packed together | `GoodClassName` |
+| a module is a domain vocabulary, not a layer (`Services`, `Helpers`, `Common`, `Shared`, `Core`) | `GoodModuleName` |
+| a method is one action — no `_and_`/`_or_` chains | `GoodMethodName` |
 | a method that returns something is named for what it returns, not `get_`/`calculate_`/`compute_` | `BuilderNoun` |
 | memoization ivars are `@_name` | `Naming/MemoizedInstanceVariableName` |
 

@@ -4,6 +4,8 @@ class RuboCop::Cop::Kata::GoodMethodName < RuboCop::Cop::Base
   MSG = "`%s` needs two words: either a concept is missing, or the method belongs on the object " \
     "the second word names. Say it in one word, move it, give the role a `Prefixes`/`Suffixes` " \
     "word — or, if `%s` is one domain concept here, add it to `Terms`."
+  CHAIN_MSG = "`%s` chains actions with `%s`; each action wants its own method."
+  JOINTS = %w[and or then].freeze
 
   def on_def(node) = check(node, node.method_name)
 
@@ -15,8 +17,13 @@ class RuboCop::Cop::Kata::GoodMethodName < RuboCop::Cop::Base
     return unless name.match?(/\A[a-z_]/)
     stem = name.to_s.sub(/[?!=]\z/, "")
     return if allowed?(name.to_s) || allowed?(stem)
-    return if good?(stem)
-    add_offense(node.loc.name, message: format(MSG, name, name))
+    complaint = chain(name, stem) || (format(MSG, name, name) unless good?(stem))
+    add_offense(node.loc.name, message: complaint) if complaint
+  end
+
+  def chain(name, stem)
+    joint = (stem.split("_") & JOINTS).first
+    format(CHAIN_MSG, name, joint) if joint
   end
 
   def good?(stem)

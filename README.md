@@ -14,10 +14,10 @@ that dodge with a shipped dictionary instead of a word list you maintain:
 
 - **One dependency.** Bundles rubocop-rspec, rubocop-performance, rubocop-elegant, rubocop-packaging, and rubocop-thread_safety behind a single gem.
 - **Opinionated defaults.** Methods under 5 lines, classes under 100, 4 parameters max, 120-column lines, double quotes, `NewCops: enable`. See [config/default.yml](config/default.yml).
-- **Fifteen house cops.** Naming, dependency discipline, and data honesty in the Elegant Objects spirit — from `Kata/AgentNoun` to `Kata/ClockDiscipline`.
+- **Fifteen house cops.** Naming, dependency discipline, and data honesty in the Elegant Objects spirit — from `Kata/GoodClassName` to `Kata/ClockDiscipline`.
 
 ```ruby
-class PaymentProcessor  # Kata/AgentNoun: `PaymentProcessor` names a doer; name the class
+class PaymentProcessor  # Kata/GoodClassName: `PaymentProcessor` names a doer; name the class
 end                     #   for the thing it is, not the work it does. Try `Payment`.
 
 class Payment           # OK
@@ -102,13 +102,13 @@ top-level constant by design.
 
 | Cop | Default | What it enforces |
 | --- | --- | --- |
-| `Kata/AgentNoun` | on | Classes named for what they are, not `-er`/`-or` doers. Suggests the better name when it can derive one. `AllowedNames` matches a whole name or a trailing segment, so `Error` covers `UsageError`. |
+| `Kata/GoodClassName` | on | A class names one object that exists in the model: no `-er`/`-or` doers (suggests the better name when it can derive one), no junk drawers (`Service`, `Util`, `Data`), no packing several concepts into one name (`CustomerOrderPayment`). Compound syntax is not the smell — `CreditCard` is one concept, and `Terms` holds those. `AllowedNames` and `BannedNames` match a whole name or a trailing segment, so `Error` covers `UsageError` and `Service` catches `InvoiceService`. |
+| `Kata/GoodModuleName` | on | A module names a domain vocabulary (`Billing`, `AccessControl`), not an implementation category: no layer buckets (`Services`, `Helpers`, `Logic`), no vague shared namespaces (`Common`, `Shared`, `Core`), no doers. Tune via `BannedNames`/`Terms`/`AllowedNames`. |
 | `Kata/NoComments` | on | No prose comments; say it in the code. Magic comments, linter directives, and licence headers survive. Autocorrects. |
 | `Kata/IoDiscipline` | on | No bare `puts`/`warn`/`pp`/`p` outside the test suite and the boot layer; write through an injected `@io` or an explicit receiver. |
 | `Kata/ProsePlacement` | off | Sentence-length strings belong in the presentation layer. Enable with an `Include`/`Exclude` matching your layering. |
-| `Kata/NoUtilName` | on | No junk-drawer names (`Util`, `Helper`, `Manager`, `Service`, …). Tune via `BannedNames`. |
 | `Kata/RealWords` | on | Every name segment is a word the shipped dictionary knows — `errorcount` (smash) and `cfg` (abbreviation) both fail, with no word list to maintain. Tune via `Terms`/`BannedWords`/`AllowedNames`. |
-| `Kata/GoodMethodName` | on | One word per method name; a second word needs a role prefix (`after_fork`), a role suffix (`file_of`), or a reviewed `Terms` entry. Tune via `MaxWords`/`Prefixes`/`Suffixes`/`Terms`/`AllowedNames`. |
+| `Kata/GoodMethodName` | on | One word per method name; a second word needs a role prefix (`after_fork`), a role suffix (`file_of`), or a reviewed `Terms` entry. A name chaining actions (`validate_and_save`, `find_or_create`) is flagged as two methods in one. Tune via `MaxWords`/`Prefixes`/`Suffixes`/`Terms`/`AllowedNames`. |
 | `Kata/GoodVariableName` | on | The same rule for locals, parameters, ivars, class variables, and globals; `_name` and `@_name` stay exempt. |
 | `Kata/BuilderNoun` | on | Builders named for what they return: `total`, not `calculate_total`. Tune via `BannedPrefixes`/`AllowedNames`. |
 | `Kata/NoBooleanFlag` | on | No positional boolean arguments; split the method or use a keyword. |
@@ -150,7 +150,7 @@ bundle exec rubocop-kata plan            # or: plan path/to/project
 
 ```
 structure     184  Kata/ConstructorDiscipline 92, Kata/NoHashAsObject 48, Kata/EnvDiscipline 44
-naming        263  Kata/RealWords 141, Kata/GoodVariableName 88, Kata/AgentNoun 34
+naming        263  Kata/RealWords 141, Kata/GoodVariableName 88, Kata/GoodClassName 34
 prose          57  Kata/NoComments 57
 rest          412  Elegant/PairedBrackets 300, Layout/LineLength 112
 next: structure — 184 offenses in 61 files; these mint the names `naming` then prices, so take them first

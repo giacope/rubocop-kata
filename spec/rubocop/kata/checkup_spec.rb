@@ -32,7 +32,7 @@ RSpec.describe(RuboCop::Kata::Checkup) do
   end
 
   it "keeps quiet about an entry that configures a running cop" do
-    project("Kata/AgentNoun:\n  AllowedNames:\n    - Adapter\n") do |root|
+    project("Kata/GoodClassName:\n  AllowedNames:\n    - Adapter\n") do |root|
       expect(report(root).first).to(eq("clean\n"))
     end
   end
@@ -46,18 +46,18 @@ RSpec.describe(RuboCop::Kata::Checkup) do
   end
 
   it "reports directives for enabled cops excluded from the file" do
-    config = "Kata/AgentNoun:\n  Exclude:\n    - sample.rb\n"
-    source = "# frozen_string_literal: true\n\n# rubocop:disable Kata/AgentNoun\n"
+    config = "Kata/GoodClassName:\n  Exclude:\n    - sample.rb\n"
+    source = "# frozen_string_literal: true\n\n# rubocop:disable Kata/GoodClassName\n"
     project(config, source) do |root|
-      expect(report(root).first).to(include("the directive names `Kata/AgentNoun`, which is not enabled here"))
+      expect(report(root).first).to(include("the directive names `Kata/GoodClassName`, which is not enabled here"))
     end
   end
 
   it "reports directives for enabled cops whose include does not match the file" do
-    config = "Kata/AgentNoun:\n  Include:\n    - other.rb\n"
-    source = "# frozen_string_literal: true\n\n# rubocop:disable Kata/AgentNoun\n"
+    config = "Kata/GoodClassName:\n  Include:\n    - other.rb\n"
+    source = "# frozen_string_literal: true\n\n# rubocop:disable Kata/GoodClassName\n"
     project(config, source) do |root|
-      expect(report(root).first).to(include("the directive names `Kata/AgentNoun`, which is not enabled here"))
+      expect(report(root).first).to(include("the directive names `Kata/GoodClassName`, which is not enabled here"))
     end
   end
 

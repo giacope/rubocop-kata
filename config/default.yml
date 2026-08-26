@@ -10,20 +10,159 @@ AllCops:
   Exclude:
     - "vendor/**/*"
 
-Kata/AgentNoun:
+Kata/GoodClassName:
   Description: >-
-    Name classes for the thing they are, not the work they do. `AllowedNames`
-    entries match a whole name or a trailing segment of one, so `Error` also
-    exempts `UsageError`. The default list holds the suffixes a framework
-    resolves a class by, which are contracts rather than naming choices.
+    A class names one object that exists in the model. Three shapes hide that
+    object: a doer name (`-er`/`-or`), a junk-drawer name (`Service`, `Util`,
+    `Data`), and a name packing several concepts (`CustomerOrderPayment`).
+    Compound syntax is not the smell — `CreditCard` is one concept, and belongs
+    in `Terms`. `AllowedNames` and `BannedNames` match a whole name or a
+    trailing segment, so `Error` also exempts `UsageError` and `Service` also
+    catches `InvoiceService`. The default `AllowedNames` holds the suffixes a
+    framework resolves a class by, which are contracts rather than naming
+    choices, plus thing-words that merely end in `-er`/`-or` — `User` and
+    `Order` are objects, not doers. Absorbs Kata/AgentNoun and the class half
+    of Kata/NoUtilName.
   Enabled: true
-  VersionAdded: "0.1"
-  VersionChanged: "0.8"
+  VersionAdded: "0.9"
+  MaxWords: 2
   AllowedNames:
-    - Error
+    - Actor
+    - Author
+    - Buffer
+    - Center
+    - Chapter
+    - Character
+    - Color
+    - Container
     - Controller
+    - Cursor
+    - Customer
+    - Decorator
+    - Delegator
+    - Driver
+    - Enumerator
+    - Error
+    - Fiber
+    - Folder
+    - Helper
+    - Job
+    - Ledger
+    - Logger
     - Mailer
+    - Member
+    - Monitor
+    - Order
+    - Owner
+    - Presenter
     - Serializer
+    - Server
+    - Supplier
+    - Timer
+    - Transfer
+    - User
+    - Validator
+    - Vector
+  BannedNames:
+    - Util
+    - Utils
+    - Utility
+    - Utilities
+    - Service
+    - Data
+    - Info
+    - Misc
+  Terms:
+    - AbstractSyntaxTree
+    - BillOfLading
+    - BinarySearchTree
+    - HashWithIndifferentAccess
+    - JsonWebToken
+    - OneTimePassword
+    - RedBlackTree
+    - StockKeepingUnit
+    - TimeWithZone
+    - UnitOfWork
+
+Kata/GoodModuleName:
+  Description: >-
+    A module names a domain vocabulary or boundary, not an implementation
+    category. Layer buckets (`Services`, `Helpers`, `Logic`), vague shared
+    namespaces (`Common`, `Shared`, `Core`), doer names, and names packing
+    several concepts are flagged; a genuine compound domain like
+    `AccessControl` passes. `BannedNames` matches a whole name or a trailing
+    segment, so `Services` also catches `ApplicationServices`. The default
+    `AllowedNames` holds the framework suffixes, so reopening
+    `ActionController` or `ActionMailer` is not an offense; reopening another
+    library's junk drawer (`FileUtils`) is a file-boundary `Exclude`, not a
+    naming choice. Absorbs the module half of Kata/NoUtilName.
+  Enabled: true
+  VersionAdded: "0.9"
+  MaxWords: 2
+  AllowedNames:
+    - Actor
+    - Author
+    - Buffer
+    - Center
+    - Chapter
+    - Character
+    - Color
+    - Container
+    - Controller
+    - Cursor
+    - Customer
+    - Decorator
+    - Delegator
+    - Driver
+    - Enumerator
+    - Error
+    - Fiber
+    - Folder
+    - Helper
+    - Job
+    - Ledger
+    - Logger
+    - Mailer
+    - Member
+    - Monitor
+    - Order
+    - Owner
+    - Presenter
+    - Serializer
+    - Server
+    - Supplier
+    - Timer
+    - Transfer
+    - User
+    - Validator
+    - Vector
+  BannedNames:
+    - Common
+    - Core
+    - Decorators
+    - Extensions
+    - Forms
+    - Helpers
+    - Jobs
+    - Logic
+    - Managers
+    - Misc
+    - Mixins
+    - Models
+    - Policies
+    - Presenters
+    - Queries
+    - Serializers
+    - Service
+    - Services
+    - Shared
+    - Util
+    - Utilities
+    - Utility
+    - Utils
+    - Validators
+    - Workers
+  Terms: []
 
 Kata/NoComments:
   Description: "Say it in the code; keep only comments the machine or the law reads."
@@ -41,34 +180,52 @@ Kata/GoodMethodName:
   Description: >-
     One word per method name. A second word is allowed only when it does not
     hide a missing object: a role prefix (`after_fork`), a role suffix
-    (`file_of`), or a reviewed domain term. Do not delete the underscore —
-    Kata/RealWords catches the smash.
+    (`file_of`), or a reviewed domain term. A name that chains actions
+    (`validate_and_save`) or spells out another object's property
+    (`customer_address`) is a missing method home, not a naming problem.
+    Do not delete the underscore — Kata/RealWords catches the smash.
   Enabled: true
   VersionAdded: "0.5"
+  VersionChanged: "0.9"
   MaxWords: 2
   Pattern: "^[a-z][a-z0-9]{0,15}$"
   Prefixes:
     - after
     - all
     - any
+    - actual
     - around
     - as
+    - assert
     - at
     - before
     - by
+    - current
+    - default
     - each
+    - end
     - every
+    - expected
     - fake
     - for
     - from
     - into
+    - max
+    - min
+    - new
     - "no"
     - non
     - "on"
+    - other
     - per
+    - raw
+    - set
+    - sort
+    - start
     - test
     - the
     - to
+    - total
     - unless
     - until
     - when
@@ -76,54 +233,178 @@ Kata/GoodMethodName:
     - with
     - without
   Suffixes:
+    - after
     - at
     - by
+    - cents
+    - code
+    - count
+    - date
+    - dir
+    - directory
+    - file
     - for
     - from
+    - id
     - in
     - into
+    - key
+    - level
+    - ms
+    - number
     - of
     - on
     - over
+    - params
+    - path
     - per
+    - period
+    - price
+    - rate
+    - seconds
+    - secret
+    - size
     - to
+    - token
     - under
+    - url
     - with
     - without
-  Terms: []
-  AllowedNames: []
+  Terms:
+    - access_token
+    - bank_account
+    - billing_address
+    - checkout_session
+    - content_type
+    - credit_card
+    - date_of_birth
+    - display_name
+    - dry_run
+    - event_type
+    - exit_status
+    - first_name
+    - full_name
+    - gift_card
+    - grand_total
+    - in_stock
+    - ip_address
+    - last_name
+    - line_item
+    - line_items
+    - mark_as_read
+    - method_name
+    - middle_name
+    - mime_type
+    - out_of_stock
+    - page_title
+    - password_confirmation
+    - payment_intent
+    - payment_method
+    - query_string
+    - rate_limit
+    - search_term
+    - shipping_address
+    - soft_delete
+    - stack_trace
+    - time_zone
+    - user_agent
+  AllowedNames:
+    - active_for_authentication
+    - after_sign_in_path_for
+    - after_sign_out_path_for
+    - assign_attributes
+    - authenticate_user
+    - const_missing
+    - deconstruct_keys
+    - deep_dup
+    - default_scope
+    - define_method
+    - delete_if
+    - email_required
+    - failure_message
+    - failure_message_when_negated
+    - find_each
+    - force_encoding
+    - foreign_key
+    - inactive_message
+    - initialize_clone
+    - initialize_copy
+    - initialize_dup
+    - instance_method
+    - marshal_dump
+    - marshal_load
+    - method_added
+    - method_missing
+    - method_removed
+    - not_found
+    - password_required
+    - perform_async
+    - perform_later
+    - perform_now
+    - permitted_attributes
+    - policy_scope
+    - primary_key
+    - pundit_user
+    - read_nonblock
+    - record_not_found
+    - respond_to_missing
+    - send_devise_notification
+    - serializable_hash
+    - singleton_method_added
+    - supports_block_expectations
+    - table_name
+    - write_nonblock
 
 Kata/GoodVariableName:
   Description: >-
     One word per variable name. A second word means a missing object, not a
     name to smash together — Kata/RealWords catches the smash. Role prefixes, role
-    suffixes, and reviewed domain terms are the three exceptions.
+    suffixes, and reviewed domain terms are the three exceptions. Grammatical
+    suffixes (`created_at`, `user_id`, `timeout_ms`) are representation, not a
+    second concept. Where names must mirror an external schema, `Exclude` the
+    file: the file is the boundary.
   Enabled: true
   VersionAdded: "0.5"
+  VersionChanged: "0.9"
   MaxWords: 2
   Pattern: "^[a-z][a-z0-9]{0,15}$"
   Prefixes:
     - after
     - all
     - any
+    - actual
     - around
     - as
+    - assert
     - at
     - before
     - by
+    - current
+    - default
     - each
+    - end
     - every
+    - expected
     - fake
     - for
     - from
     - into
+    - max
+    - min
+    - new
     - "no"
     - non
     - "on"
+    - other
     - per
+    - raw
+    - set
+    - sort
+    - start
     - test
     - the
     - to
+    - total
     - unless
     - until
     - when
@@ -131,23 +412,85 @@ Kata/GoodVariableName:
     - with
     - without
   Suffixes:
+    - after
     - at
     - by
+    - cents
+    - code
+    - count
+    - date
+    - dir
+    - directory
+    - file
     - for
     - from
+    - id
     - in
     - into
+    - key
+    - level
+    - ms
+    - number
     - of
     - on
     - over
+    - params
+    - path
     - per
+    - period
+    - price
+    - rate
+    - seconds
+    - secret
+    - size
     - to
+    - token
     - under
+    - url
     - with
     - without
-  Terms: []
+  Terms:
+    - access_token
+    - bank_account
+    - billing_address
+    - checkout_session
+    - content_type
+    - credit_card
+    - date_of_birth
+    - display_name
+    - dry_run
+    - event_type
+    - exit_status
+    - first_name
+    - full_name
+    - gift_card
+    - grand_total
+    - in_stock
+    - ip_address
+    - last_name
+    - line_item
+    - line_items
+    - mark_as_read
+    - method_name
+    - middle_name
+    - mime_type
+    - out_of_stock
+    - page_title
+    - password_confirmation
+    - payment_intent
+    - payment_method
+    - query_string
+    - rate_limit
+    - search_term
+    - shipping_address
+    - soft_delete
+    - stack_trace
+    - time_zone
+    - user_agent
   AllowedNames:
     - _include_private
+    - include_private
+    - resource_or_scope
 
 Kata/IoDiscipline:
   Description: "Write through an injected io, not bare puts/warn/pp/p."
@@ -171,23 +514,6 @@ Kata/ProsePlacement:
   Description: "Keep sentence-length strings in the presentation layer."
   Enabled: false
   VersionAdded: "0.1"
-
-Kata/NoUtilName:
-  Description: "Junk-drawer names hide the concept the code is missing."
-  Enabled: true
-  VersionAdded: "0.3"
-  BannedNames:
-    - Util
-    - Utils
-    - Utility
-    - Utilities
-    - Helper
-    - Helpers
-    - Manager
-    - Service
-    - Common
-    - Misc
-    - Shared
 
 Kata/RealWords:
   Description: >-

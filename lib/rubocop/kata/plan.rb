@@ -10,8 +10,8 @@ class RuboCop::Kata::Plan
       Kata/NoBooleanFlag Kata/IoDiscipline Kata/ClockDiscipline Kata/EnvDiscipline
     ],
     "naming" => %w[
-      Kata/RealWords Kata/GoodMethodName Kata/GoodVariableName Kata/AgentNoun
-      Kata/BuilderNoun Kata/NoUtilName
+      Kata/RealWords Kata/GoodMethodName Kata/GoodVariableName Kata/GoodClassName
+      Kata/GoodModuleName Kata/BuilderNoun
     ],
     "prose" => %w[Kata/NoComments Kata/ProsePlacement]
   }.freeze

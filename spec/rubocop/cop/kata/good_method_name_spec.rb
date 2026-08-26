@@ -87,7 +87,7 @@ RSpec.describe(RuboCop::Cop::Kata::GoodMethodName, :config) do
   end
 
   it "flags the rest of the two-word smells" do
-    %w[assemble_report drive_pool cmd_run apply_excludes matching_ids covering_count].each do |name|
+    %w[assemble_report drive_pool cmd_run apply_excludes matching_ids covering_lines].each do |name|
       expect_offense(<<~RUBY, name: name, message: offense(name))
         def %{name}
             ^{name} %{message}
@@ -154,6 +154,36 @@ RSpec.describe(RuboCop::Cop::Kata::GoodMethodName, :config) do
         end
       RUBY
     end
+  end
+
+  context "with the shipped defaults" do
+    let(:cop_config) { defaults }
+
+    it "exempts the names Ruby and Rails resolve by contract" do
+      expect_no_offenses(<<~RUBY)
+        def method_missing(name, *args)
+        end
+        def respond_to_missing?(name, all)
+        end
+        def marshal_dump
+        end
+        def deep_dup
+        end
+        def table_name
+        end
+      RUBY
+    end
+  end
+
+  it "flags a name chaining actions with a conjunction" do
+    expect_offense(<<~RUBY)
+      def validate_and_save
+          ^^^^^^^^^^^^^^^^^ `validate_and_save` chains actions with `and`; each action wants its own method.
+      end
+      def find_or_create
+          ^^^^^^^^^^^^^^ `find_or_create` chains actions with `or`; each action wants its own method.
+      end
+    RUBY
   end
 
   context "with the raw escape hatch" do

@@ -27,7 +27,7 @@ RSpec.describe(RuboCop::Kata::Plan) do
 
   it "buckets an offense under the stage its cop belongs to" do
     project("# frozen_string_literal: true\n\nclass Fetcher\nend\n") do |root|
-      expect(report(root).first).to(match(%r{^naming\s+\d+\s+Kata/AgentNoun}))
+      expect(report(root).first).to(match(%r{^naming\s+\d+\s+Kata/GoodClassName}))
     end
   end
 
