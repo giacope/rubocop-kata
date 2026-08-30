@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.10.0] - 2026-08-30
+
+- `Elegant/NoRedundantVariable`, `Elegant/PairedBrackets`, and
+  `Elegant/ClassInModule` now ship here, fixed, as `Kata/*` cops derived from
+  rubocop-elegant under MIT (`LICENSE.txt`); the originals are
+  off. The git-source Gemfile line is no longer needed: the correctors run
+  out of the box, and `ClassInModule` clears.
+
 ## [0.9.0] - 2026-08-27
 
 - The shared rule behind the naming cops is now explicit: compound syntax is

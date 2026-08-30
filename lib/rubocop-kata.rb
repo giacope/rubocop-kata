@@ -4,6 +4,8 @@ require "rubocop"
 
 module RuboCop
   module Kata
+    module Variable
+    end
   end
 
   module Cop
@@ -13,6 +15,7 @@ module RuboCop
 end
 
 require_relative "rubocop/cop/kata/builder_noun"
+require_relative "rubocop/cop/kata/class_in_module"
 require_relative "rubocop/cop/kata/clock_discipline"
 require_relative "rubocop/cop/kata/constructor_discipline"
 require_relative "rubocop/cop/kata/env_discipline"
@@ -24,10 +27,16 @@ require_relative "rubocop/cop/kata/good_variable_name"
 require_relative "rubocop/cop/kata/io_discipline"
 require_relative "rubocop/cop/kata/no_boolean_flag"
 require_relative "rubocop/cop/kata/no_class_method_logic"
+require_relative "rubocop/cop/kata/no_redundant_variable"
 require_relative "rubocop/cop/kata/no_comments"
 require_relative "rubocop/cop/kata/no_hash_as_object"
+require_relative "rubocop/cop/kata/paired_brackets"
 require_relative "rubocop/cop/kata/prose_placement"
 require_relative "rubocop/cop/kata/real_words"
 require_relative "rubocop/kata/dictionary"
+require_relative "rubocop/kata/variable/boundary"
+require_relative "rubocop/kata/variable/gap"
+require_relative "rubocop/kata/variable/inlining"
+require_relative "rubocop/kata/variable/ledger"
 require_relative "rubocop/kata/plugin"
 require_relative "rubocop/kata/version"

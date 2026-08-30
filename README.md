@@ -1,6 +1,6 @@
 # rubocop-kata
 
-A RuboCop plugin that replaces a pile of linter gems and config with one dependency. Install it and your `.rubocop.yml` shrinks to project-specific overrides. Everything else comes from the gem: a curated stack of RuboCop extensions, opinionated style defaults, and fifteen house cops.
+A RuboCop plugin that replaces a pile of linter gems and config with one dependency. Install it and your `.rubocop.yml` shrinks to project-specific overrides. Everything else comes from the gem: a curated stack of RuboCop extensions, opinionated style defaults, and eighteen house cops.
 
 `Kata/GoodMethodName` asks for one word per method name. A second word is
 allowed only when it is not hiding a missing object: a role prefix
@@ -14,7 +14,7 @@ that dodge with a shipped dictionary instead of a word list you maintain:
 
 - **One dependency.** Bundles rubocop-rspec, rubocop-performance, rubocop-elegant, rubocop-packaging, and rubocop-thread_safety behind a single gem.
 - **Opinionated defaults.** Methods under 5 lines, classes under 100, 4 parameters max, 120-column lines, double quotes, `NewCops: enable`. See [config/default.yml](config/default.yml).
-- **Fifteen house cops.** Naming, dependency discipline, and data honesty in the Elegant Objects spirit — from `Kata/GoodClassName` to `Kata/ClockDiscipline`.
+- **Eighteen house cops.** Naming, dependency discipline, and data honesty in the Elegant Objects spirit — from `Kata/GoodClassName` to `Kata/ClockDiscipline`.
 
 ```ruby
 class PaymentProcessor  # Kata/GoodClassName: `PaymentProcessor` names a doer; name the class
@@ -65,38 +65,16 @@ reports a class nested in a class as global
 test-file exclusions never match a Rails or RSpec suite
 ([#77](https://github.com/yegor256/rubocop-elegant/issues/77)).
 
-The defaults here neutralise all four. `Elegant/ClassInModule` is off, because
-its offences cannot be cleared: the cop it ships beside forbids the module it
-asks for. The two broken correctors are set to report only, because their
-offences can be cleared, by hand. The exclusions are widened. Nothing corrupts
-your code out of the box, and nothing reports a defect you cannot fix.
+Until upstream releases the fixes, the three cops ship here, fixed, as
+`Kata/NoRedundantVariable`, `Kata/PairedBrackets`, and `Kata/ClassInModule`;
+the `Elegant/*` originals are off so each offence is reported once. They are
+derived from rubocop-elegant under its MIT licence, and the notice travels
+with the gem as `LICENSE.txt`. The exclusions are widened.
+Once upstream ships, the copies go and the originals come back on.
 
-A gemspec cannot name a git source, so to take the fixes themselves rather than
-the workarounds, add this to your own `Gemfile`:
-
-```ruby
-gem "rubocop-elegant", github: "giacope/rubocop-elegant", branch: "fixes"
-```
-
-That branch is the released gem plus the five pull requests, with the version
-pinned so Bundler resolves it. With it in place you can turn the two correctors
-back on:
-
-```yaml
-Elegant/NoRedundantVariable:
-  AutoCorrect: true
-
-Elegant/PairedBrackets:
-  AutoCorrect: true
-
-Elegant/ClassInModule:
-  Enabled: true
-```
-
-Drop all three once upstream releases the fixes. On a Rails codebase, consider
-leaving `Elegant/ClassInModule` off for good: it wants every class inside a
-module, and Zeitwerk resolves `class Account` from `app/models/account.rb` as a
-top-level constant by design.
+On a Rails codebase, consider turning `Kata/ClassInModule` off: it wants
+every class inside a module, and Zeitwerk resolves `class Account` from
+`app/models/account.rb` as a top-level constant by design.
 
 ## The cops
 
@@ -104,6 +82,9 @@ top-level constant by design.
 | --- | --- | --- |
 | `Kata/GoodClassName` | on | A class names one object that exists in the model: no `-er`/`-or` doers (suggests the better name when it can derive one), no junk drawers (`Service`, `Util`, `Data`), no packing several concepts into one name (`CustomerOrderPayment`). Compound syntax is not the smell — `CreditCard` is one concept, and `Terms` holds those. `AllowedNames` and `BannedNames` match a whole name or a trailing segment, so `Error` covers `UsageError` and `Service` catches `InvoiceService`. |
 | `Kata/GoodModuleName` | on | A module names a domain vocabulary (`Billing`, `AccessControl`), not an implementation category: no layer buckets (`Services`, `Helpers`, `Logic`), no vague shared namespaces (`Common`, `Shared`, `Core`), no doers. Tune via `BannedNames`/`Terms`/`AllowedNames`. |
+| `Kata/NoRedundantVariable` | on | A local assigned once and read once is inlined at its read, unless the move would cross a loop, a branch, or a side effect. Autocorrects, and keeps Ruby 3.1 shorthand intact. Fixed copy of `Elegant/NoRedundantVariable`. |
+| `Kata/PairedBrackets` | on | Every bracket pairs on its line, or opens at line end and closes at line start. Autocorrects without drifting the indent. Fixed copy of `Elegant/PairedBrackets`. |
+| `Kata/ClassInModule` | on | A class lives in a module, a class, or a compact namespace, never at the top level. Fixed copy of `Elegant/ClassInModule`. |
 | `Kata/NoComments` | on | No prose comments; say it in the code. Magic comments, linter directives, and licence headers survive. Autocorrects. |
 | `Kata/IoDiscipline` | on | No bare `puts`/`warn`/`pp`/`p` outside the test suite and the boot layer; write through an injected `@io` or an explicit receiver. |
 | `Kata/ProsePlacement` | off | Sentence-length strings belong in the presentation layer. Enable with an `Include`/`Exclude` matching your layering. |

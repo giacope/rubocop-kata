@@ -778,17 +778,35 @@ Layout/EmptyLinesAfterModuleInclusion:
 Style/DisableCopsWithinSourceCodeDirective:
   Enabled: true
 
-# --- Correctors known to rewrite code incorrectly; report only.
-# Inlines a variable past side effects (ivar resets, later statements) and
-# corrupts Ruby 3.1 keyword shorthand.
+# --- Three Elegant cops ship here as Kata/*, fixed (see README); the
+# originals are off so an offence is reported once.
 Elegant/NoRedundantVariable:
-  AutoCorrect: false
+  Enabled: false
 
-# Inserts a newline beside a bracket without taking the whitespace already
-# there, so every corrected line drifts right and MonotonicIndents then
-# reports the line it just wrote.
 Elegant/PairedBrackets:
-  AutoCorrect: false
+  Enabled: false
+
+Elegant/ClassInModule:
+  Enabled: false
+
+Kata/NoRedundantVariable:
+  Description: "A local assigned once and read once is inlined at its read."
+  Enabled: true
+  VersionAdded: "0.10"
+
+Kata/PairedBrackets:
+  Description: "A bracket pairs on its line, or opens at the end of one and closes at the start of another."
+  Enabled: true
+  VersionAdded: "0.10"
+
+Kata/ClassInModule:
+  Description: "A class lives in a module, a class, or a compact namespace, never at the top level."
+  Enabled: true
+  VersionAdded: "0.10"
+  Exclude:
+    - "**/*_test.rb"
+    - "test/**/*"
+    - "spec/**/*"
 
 # Rewrites reopened classes into modules, clashing with the primary
 # class definition at boot.
@@ -811,20 +829,6 @@ ThreadSafety/DirChdir:
 
 # --- Elegant's test-file exclusions never match Rails' `foo_test.rb`, nor a
 # suite addressed by directory.
-# Off until upstream ships: it reports a class nested in a class as global, and
-# Elegant/NoClassInModule forbids the module the message asks for, so the pair
-# admits no shape. It also reads a top-level constant as a defect, which is how
-# Rails resolves one. https://github.com/yegor256/rubocop-elegant/issues/75
-Elegant/ClassInModule:
-  Enabled: false
-  inherit_mode:
-    merge:
-      - Exclude
-  Exclude:
-    - "**/*_test.rb"
-    - "test/**/*"
-    - "spec/**/*"
-
 Elegant/NoClassInModule:
   inherit_mode:
     merge:

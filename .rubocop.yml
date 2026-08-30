@@ -38,3 +38,4 @@ Kata/RealWords:
 ThreadSafety/DirChdir:
   Exclude:
     - "lib/rubocop/kata/plan.rb"
+
