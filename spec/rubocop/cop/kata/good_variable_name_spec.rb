@@ -143,4 +143,33 @@ RSpec.describe(RuboCop::Cop::Kata::GoodVariableName, :config) do
       RUBY
     end
   end
+
+  it "flags two-word names in class variables and every argument kind" do
+    expect_offense(<<~RUBY)
+      def run(customer_address = nil, billing_address:, shipping_address: nil)
+              ^^^^^^^^^^^^^^^^ #{offense("customer_address")}
+                                      ^^^^^^^^^^^^^^^ #{offense("billing_address")}
+                                                        ^^^^^^^^^^^^^^^^ #{offense("shipping_address")}
+        @@customer_address = customer_address
+        ^^^^^^^^^^^^^^^^^^ #{offense("@@customer_address")}
+      end
+    RUBY
+  end
+
+  it "flags a name that breaks the word pattern, even as one word" do
+    expect_offense(<<~RUBY)
+      customerAddress = 1
+      ^^^^^^^^^^^^^^^ #{offense("customerAddress")}
+    RUBY
+  end
+
+  context "with a sigiled name whose bare form is in the escape hatch" do
+    let(:cop_config) { defaults.merge("Terms" => [], "AllowedNames" => %w[matching_ids]) }
+
+    it "allows the listed name behind its sigil" do
+      expect_no_offenses(<<~RUBY)
+        @matching_ids = 1
+      RUBY
+    end
+  end
 end

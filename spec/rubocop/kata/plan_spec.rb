@@ -61,4 +61,30 @@ RSpec.describe(RuboCop::Kata::Plan) do
       expect(report(root).last).to(eq(1))
     end
   end
+
+  it "keeps the structure note off a stage that mints nothing" do
+    project("# frozen_string_literal: true\n\nclass Fetcher\nend\n") do |root|
+      expect(report(root).first).to(include("next: naming — 1 offense in 1 file\n"))
+    end
+  end
+
+  it "counts offenses and files in the plural" do
+    thin = "# frozen_string_literal: true\n\nENV.fetch(\"A\", nil)\n"
+    thick = "# frozen_string_literal: true\n\nENV.fetch(\"A\", nil)\nENV.fetch(\"B\", nil)\n"
+    project(thin, thick) { |root| expect(report(root).first).to(include("next: structure — 3 offenses in 2 files;")) }
+  end
+
+  it "prints only the stages that have offenses" do
+    project("total = 1\n") do |root|
+      expect(report(root).first).not_to(match(/^(structure|naming|prose) /))
+    end
+  end
+
+  it "lists a stage's cops busiest first" do
+    source = "# frozen_string_literal: true\n\nENV.fetch(\"A\", nil)\nENV.fetch(\"B\", nil)\n" \
+      "def initialize\n  @at = Time.now\nend\n"
+    project(source) do |root|
+      expect(report(root).first).to(match(%r{^structure\s+\d+\s+Kata/EnvDiscipline 2, }))
+    end
+  end
 end

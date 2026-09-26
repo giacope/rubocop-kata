@@ -76,4 +76,35 @@ RSpec.describe(RuboCop::Kata::Checkup) do
   it "returns zero for a project with nothing to report" do
     project("") { |root| expect(report(root).last).to(eq(0)) }
   end
+
+  it "counts a single finding in the singular" do
+    project("Elegant/GoodMethodName:\n  AllowedNames: []\n") do |root|
+      expect(report(root).first).to(end_with("\n1 dead entry\n"))
+    end
+  end
+
+  it "follows YAML aliases the way RuboCop does" do
+    project("Elegant/GoodMethodName: &off\n  Enabled: false\nElegant/GoodVariableName:\n  <<: *off\n") do |root|
+      expect(report(root).first).to(eq("clean\n"))
+    end
+  end
+
+  it "keeps quiet about a directive naming a cop that runs on the file" do
+    source = "# frozen_string_literal: true\n\n# rubocop:disable Kata/GoodClassName\nclass Fetcher\nend\n" \
+      "# rubocop:enable Kata/GoodClassName\n"
+    project("", source) { |root| expect(report(root).first).to(eq("clean\n")) }
+  end
+
+  it "keeps quiet about a directive that names every cop at once" do
+    project("", "# frozen_string_literal: true\n\n# rubocop:disable all\n") do |root|
+      expect(report(root).first).to(eq("clean\n"))
+    end
+  end
+
+  it "checks directives in a project that has no .rubocop.yml" do
+    Dir.mktmpdir("kata-checkup") do |root|
+      File.write(File.join(root, "sample.rb"), "# rubocop:enable Kata/Nothing\n")
+      expect(report(root).first).to(include("the directive names `Kata/Nothing`, which is not enabled here"))
+    end
+  end
 end

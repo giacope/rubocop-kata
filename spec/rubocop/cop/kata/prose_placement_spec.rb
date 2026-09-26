@@ -34,4 +34,17 @@ RSpec.describe(RuboCop::Cop::Kata::ProsePlacement, :config) do
       LOG = "git log --name-only --format= 2>/dev/null"
     RUBY
   end
+
+  it "flags a string at exactly five words" do
+    expect_offense(<<~RUBY)
+      text = "one two three four five"
+             ^^^^^^^^^^^^^^^^^^^^^^^^^ Prose belongs to the presentation layer — pass data and phrase it there.
+    RUBY
+  end
+
+  it "allows a string one word short of prose" do
+    expect_no_offenses(<<~RUBY)
+      text = "one two three four"
+    RUBY
+  end
 end

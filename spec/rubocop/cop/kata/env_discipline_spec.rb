@@ -27,4 +27,11 @@ RSpec.describe(RuboCop::Cop::Kata::EnvDiscipline, :config) do
       configuration.home
     RUBY
   end
+
+  it "leaves other constants alone, even ones with ENV-like shapes" do
+    expect_no_offenses(<<~RUBY)
+      SETTINGS.fetch("HOME")
+      Sandbox::ENV.fetch("HOME")
+    RUBY
+  end
 end

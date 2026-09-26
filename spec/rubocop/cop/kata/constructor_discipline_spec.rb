@@ -19,4 +19,12 @@ RSpec.describe(RuboCop::Cop::Kata::ConstructorDiscipline, :config) do
       end
     RUBY
   end
+
+  it "leaves computation in other methods alone" do
+    expect_no_offenses(<<~RUBY)
+      def build(io)
+        @io = io.dup
+      end
+    RUBY
+  end
 end

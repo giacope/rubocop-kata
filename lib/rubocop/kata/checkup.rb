@@ -40,7 +40,7 @@ class RuboCop::Kata::Checkup
 
   def off?(key) = project.dig(key, "Enabled") == false
 
-  def project = @_project ||= (YAML.safe_load_file(file, aliases: true) if File.file?(file)) || {}
+  def project = @_project ||= YAML.safe_load_file(file, aliases: true) || {}
 
   def dead = targets.flat_map { directives(it) }
 

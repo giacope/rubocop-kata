@@ -1,0 +1,31 @@
+---
+framework: rspec
+paths:
+- lib/**/*.rb
+tests:
+- spec/**/*_spec.rb
+jobs: 4
+max_survivors: 0
+max_errors: 0
+fail_on_no_coverage: false
+max_ignored: 3
+ignore:
+- file: lib/rubocop/kata/variable/boundary.rb
+  line: 18
+  label: condition => true
+  reason: >-
+    Ledger#pairs hands every pair on to Gap, whose walk from a read outside the
+    assignment's parent climbs to the def and meets its impure args node, so Gap
+    marks the pair crossed whether or not this guard returns first
+- file: lib/rubocop/kata/variable/boundary.rb
+  line: 18
+  label: true => false
+  reason: >-
+    same guard as the entry above; a false here falls through to Gap, which
+    rejects the pair at the def's args node
+- file: lib/rubocop/kata/variable/gap.rb
+  line: 45
+  label: ">= => >"
+  reason: >-
+    twin and read are distinct lvar nodes, and two nodes of one type cannot
+    begin at the same offset, so the begin positions are never equal
