@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.10.1] - 2026-09-26
+
 - `Kata/ClassInModule` names the class in its message again: it read
   `Class {name: "Foo"} must be…` because the name went in as a keyword.
 - `rubocop-kata plan` keeps its "these mint the names `naming` then prices"
