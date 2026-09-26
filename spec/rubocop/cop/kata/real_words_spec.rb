@@ -158,4 +158,37 @@ RSpec.describe(RuboCop::Cop::Kata::RealWords, :config) do
       RUBY
     end
   end
+
+  it "checks class and global variables and every argument kind" do
+    expect_offense(<<~RUBY)
+      def run(sourcecount = 1, classbody:, filelist: nil)
+              ^^^^^^^^^^^ `sourcecount` is not in the dictionary — restore the underscore between smashed words, spell the abbreviation out, or add it to `Terms` if it is one domain term here.
+                               ^^^^^^^^^ `classbody` is not in the dictionary — restore the underscore between smashed words, spell the abbreviation out, or add it to `Terms` if it is one domain term here.
+                                           ^^^^^^^^ `filelist` is not in the dictionary — restore the underscore between smashed words, spell the abbreviation out, or add it to `Terms` if it is one domain term here.
+        @@sourcecount = sourcecount
+        ^^^^^^^^^^^^^ `@@sourcecount` is not in the dictionary — restore the underscore between smashed words, spell the abbreviation out, or add it to `Terms` if it is one domain term here.
+        $classbody = classbody
+        ^^^^^^^^^^ `$classbody` is not in the dictionary — restore the underscore between smashed words, spell the abbreviation out, or add it to `Terms` if it is one domain term here.
+      end
+    RUBY
+  end
+
+  it "flags a two-letter segment the dictionary does not know" do
+    expect_offense(<<~RUBY)
+      zq_count = 1
+      ^^^^^^^^ `zq` (in `zq_count`) is not in the dictionary — restore the underscore between smashed words, spell the abbreviation out, or add it to `Terms` if it is one domain term here.
+    RUBY
+  end
+
+  context "with a sigiled name whose bare form is in the escape hatch" do
+    let(:cop_config) do
+      { "BannedWords" => %w[pos], "Terms" => %w[], "AllowedNames" => %w[pos] }
+    end
+
+    it "allows the listed name behind its sigil" do
+      expect_no_offenses(<<~RUBY)
+        @pos = 1
+      RUBY
+    end
+  end
 end

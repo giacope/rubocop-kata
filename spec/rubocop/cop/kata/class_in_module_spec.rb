@@ -5,6 +5,8 @@
 # Derived from rubocop-elegant (https://github.com/yegor256/rubocop-elegant), see LICENSE.txt
 
 RSpec.describe(RuboCop::Cop::Kata::ClassInModule) do
+  include TabledCop
+
   let(:cop) { described_class.new(RuboCop::Config.new) }
 
   it_behaves_like(
@@ -28,4 +30,9 @@ RSpec.describe(RuboCop::Cop::Kata::ClassInModule) do
       "root_scoped_class_inside_a_module" => ["module Foo\n  class ::Baz\n  end\nend", 1]
     }
   )
+
+  it "names the class in its message" do
+    expect(offenses("class ::Foo\nend").first.message)
+      .to(end_with(": Class ::Foo must be defined inside a module, not globally"))
+  end
 end

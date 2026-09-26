@@ -31,20 +31,19 @@ class RuboCop::Kata::Variable::Ledger
 
   def tainted
     nodes.select { it.op_asgn_type? || it.or_asgn_type? || it.and_asgn_type? }.map { it.children.first }
-      .select { it.is_a?(RuboCop::AST::Node) && it.lvasgn_type? }.map { it.children.first }
+      .select(&:lvasgn_type?).map { it.children.first }
   end
 
   def nodes(node = @body, found = [])
-    return found unless node.is_a?(RuboCop::AST::Node) && !node.def_type? && !node.defs_type?
+    return found if node.def_type? || node.defs_type?
     found << node
     node.each_child_node { nodes(it, found) }
     found
   end
 
   def statement?(node)
-    return false unless node.children.size == 2
     parent = node.parent
-    parent = parent.parent while !parent.nil? && parent.type == :begin && parent.children.size == 1
-    !parent.nil? && STATEMENT_PARENTS.include?(parent.type)
+    parent = parent.parent while parent.type == :begin && parent.children.size == 1
+    STATEMENT_PARENTS.include?(parent.type)
   end
 end

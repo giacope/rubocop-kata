@@ -3,6 +3,7 @@
 source "https://rubygems.org"
 gemspec
 
+gem "kimera", "~> 0.1", group: :test
 gem "rspec", "~> 3.13", group: :test
 
 # Until rubocop-elegant releases yegor256/rubocop-elegant#78..#81, the

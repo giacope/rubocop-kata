@@ -23,14 +23,10 @@ class RuboCop::Kata::Variable::Inlining
 
   def pair
     parent = @read.parent
-    return if parent.nil? || !parent.pair_type?
-    key, value = parent.children
-    parent if value.equal?(@read) && key.source_range == value.source_range
+    parent if parent.pair_type? && parent.value_omission?
   end
 
-  def value = wrap? ? "(#{braced})" : braced
-
-  def braced = @rhs.hash_type? && @rhs.loc.begin.nil? ? "{ #{@rhs.source} }" : @rhs.source
+  def value = wrap? ? "(#{@rhs.source})" : @rhs.source
 
   def wrap? = !primary? || (@rhs.hash_type? && bare?)
 

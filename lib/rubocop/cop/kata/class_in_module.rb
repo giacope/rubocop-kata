@@ -11,7 +11,7 @@ class RuboCop::Cop::Kata::ClassInModule < RuboCop::Cop::Base
   def on_class(node)
     return if namespaced?(node)
     return if scoped?(node)
-    add_offense(node, message: format(MSG, name: label(node)))
+    add_offense(node, message: format(MSG, label(node)))
   end
 
   private

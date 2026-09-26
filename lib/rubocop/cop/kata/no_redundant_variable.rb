@@ -38,15 +38,11 @@ class RuboCop::Cop::Kata::NoRedundantVariable < RuboCop::Cop::Base
   end
 
   def swallows?(assign, singles)
-    range = assign.source_range
-    singles.any? do |_, read|
-      read.source_range.begin_pos > range.begin_pos && read.source_range.end_pos <= range.end_pos
-    end
+    singles.any? { |_, read| assign.source_range.contains?(read.source_range) }
   end
 
   def solo?(assign)
     range = assign.source_range
-    return false unless range.first_line == range.last_line
     range.source_buffer.source_line(range.first_line).strip == range.source.strip
   end
 end

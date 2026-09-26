@@ -196,4 +196,13 @@ RSpec.describe(RuboCop::Cop::Kata::GoodMethodName, :config) do
       RUBY
     end
   end
+
+  it "allows a name that is a bare role word" do
+    expect_no_offenses(<<~RUBY)
+      def after
+      end
+      def count
+      end
+    RUBY
+  end
 end

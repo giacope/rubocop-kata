@@ -1,5 +1,17 @@
 # Changelog
 
+## [Unreleased]
+
+- `Kata/ClassInModule` names the class in its message again: it read
+  `Class {name: "Foo"} must be…` because the name went in as a keyword.
+- `rubocop-kata plan` keeps its "these mint the names `naming` then prices"
+  note for the `structure` stage; it was also printed when `naming` or `prose`
+  came next, where it does not hold.
+- Mutation testing with Kimera (`.kimera.yml`, `bundle exec kimera run`) now
+  kills every mutant in `lib/`; the specs that got there pin the argument and
+  class-variable hooks, the boundaries, and the correctors' edge cases. Dead
+  guards it surfaced in `NoRedundantVariable`'s helpers and `doctor` are gone.
+
 ## [0.10.0] - 2026-08-30
 
 - `Elegant/NoRedundantVariable`, `Elegant/PairedBrackets`, and

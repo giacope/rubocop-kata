@@ -36,7 +36,6 @@ class RuboCop::Kata::Variable::Gap
   def before(parent, child, assign)
     kids = parent.children
     stop = kids.index { it.equal?(child) }
-    return [] if stop.nil?
     kids[(parent.equal?(assign.parent) ? kids.index { it.equal?(assign) } + 1 : 0)...stop]
   end
 

@@ -69,7 +69,7 @@ class RuboCop::Kata::Plan
     format(NEXT, stage, picked.length, plural(picked), files.length, plural(files), note(stage))
   end
 
-  def note(stage) = stage == REST ? "" : MINTS
+  def note(stage) = stage == "structure" ? MINTS : ""
 
   def hottest(picked) = picked.map { it.fetch("path") }.tally.max_by(&:last)
 

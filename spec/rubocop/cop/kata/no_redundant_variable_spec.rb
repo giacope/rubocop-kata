@@ -60,7 +60,15 @@ RSpec.describe(RuboCop::Cop::Kata::NoRedundantVariable) do
       "back_reference_operand_before_read" => "def foo\n  x = (s =~ /a/)\n  bar($~, x)\nend",
       "instance_variable_inside_array_before_read" => "def foo\n  x = bump\n  bar([@n], x)\nend",
       "chained_assignments_read_in_separate_statements" =>
-      "def foo\n  a = one\n  b = two\n  bar(a)\n  baz(b)\nend"
+      "def foo\n  a = one\n  b = two\n  bar(a)\n  baz(b)\nend",
+      "compound_assignment_after_read" => "def foo\n  x = compute\n  bar(x, x += 1)\nend",
+      "or_assignment_after_read" => "def foo\n  x = compute\n  bar(x, x ||= 1)\nend",
+      "and_assignment_after_read" => "def foo\n  x = compute\n  bar(x, x &&= 1)\nend",
+      "read_inside_endless_while_loop" => "def foo\n  x = compute\n  while true\n    bar(x)\n  end\nend",
+      "read_inside_rescue_of_pure_begin" =>
+      "def foo\n  x = compute\n  begin\n    1\n  rescue\n    bar(x)\n  end\nend",
+      "assigned_inside_begin_block_read_after" =>
+      "def foo\n  begin\n    x = compute\n    1\n  end\n  bar(x)\nend"
     }, violations: {
       "simple_inlinable" => ["def foo\n  x = bar\n  baz(x)\nend", 1],
       "class_method_inlinable" => ["def self.foo\n  x = bar\n  baz(x)\nend", 1],
@@ -102,7 +110,14 @@ RSpec.describe(RuboCop::Cop::Kata::NoRedundantVariable) do
       "call_after_read_in_same_argument_list" =>
       ["def foo\n  x = bar\n  baz(x, qux)\nend", 1],
       "chained_assignments_read_out_of_order" =>
-      ["def foo\n  a = one\n  b = two\n  bar(b, a)\nend", 1]
+      ["def foo\n  a = one\n  b = two\n  bar(b, a)\nend", 1],
+      "assignments_ahead_of_an_inner_def" =>
+      ["def foo\n  x = 1\n  qux(x)\n  def bar\n    x = 2\n    baz(x)\n  end\nend", 2],
+      "assignments_ahead_of_an_inner_singleton_def" =>
+      ["def foo\n  x = 1\n  qux(x)\n  def self.bar\n    x = 2\n    baz(x)\n  end\nend", 2],
+      "assignment_after_a_parenthesised_condition_assignment" =>
+      ["def foo\n  if (x = bar)\n    1\n  end\n  x = 2\n  baz(x)\nend", 1],
+      "multi_line_assignment" => ["def foo\n  x = [\n    1\n  ]\n  baz(x)\nend", 1]
     }, corrections: {
       "send_call_inlines_unwrapped" =>
       ["def foo\n  x = bar\n  baz(x)\nend", "def foo\n  baz(bar)\nend"],
@@ -151,7 +166,23 @@ RSpec.describe(RuboCop::Cop::Kata::NoRedundantVariable) do
       "shorthand_pair_in_hash_literal_expands" =>
       ["def foo\n  ids = compute\n  bar({ ids: })\nend", "def foo\n  bar({ ids: compute })\nend"],
       "long_form_pair_still_inlines_the_value_only" =>
-      ["def foo\n  ids = compute\n  bar(list: ids)\nend", "def foo\n  bar(list: compute)\nend"]
+      ["def foo\n  ids = compute\n  bar(list: ids)\nend", "def foo\n  bar(list: compute)\nend"],
+      "hash_rocket_pair_keeps_its_key" =>
+      ["def foo\n  ids = compute\n  bar(\"ids\" => ids)\nend", "def foo\n  bar(\"ids\" => compute)\nend"],
+      "parenthesised_expression_is_not_wrapped_again" =>
+      ["def foo\n  x = (a + b)\n  baz(x)\nend", "def foo\n  baz((a + b))\nend"],
+      "defined_check_is_wrapped" =>
+      ["def foo\n  x = defined?(a)\n  baz(x)\nend", "def foo\n  baz((defined?(a)))\nend"],
+      "hash_returned_directly_inlines_unwrapped" =>
+      ["def foo\n  x = { a: 1 }\n  x\nend", "def foo\n  { a: 1 }\nend"],
+      "hash_into_pair_value_inlines_unwrapped" =>
+      ["def foo\n  x = { a: 1 }\n  bar(key: x)\nend", "def foo\n  bar(key: { a: 1 })\nend"],
+      "multi_line_assignment_is_left_alone" => [
+        "def foo\n  x = [\n    1\n  ]\n  baz(x)\nend",
+        "def foo\n  x = [\n    1\n  ]\n  baz(x)\nend"
+    ],
+      "bare_read_inside_another_redundant_assignment_inlines_the_inner_one" =>
+      ["def foo\n  a = one\n  b = a\n  bar(b)\nend", "def foo\n  b = one\n  bar(b)\nend"]
     }
   )
 

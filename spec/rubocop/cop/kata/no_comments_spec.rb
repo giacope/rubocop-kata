@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 RSpec.describe(RuboCop::Cop::Kata::NoComments, :config) do
+  include TabledCop
+
   let(:ruby_version) { 3.4 }
 
   it "flags a docblock above a class, and removes the line" do
@@ -109,5 +111,33 @@ RSpec.describe(RuboCop::Cop::Kata::NoComments, :config) do
     expect_correction(<<~RUBY)
       def total = lines.sum
     RUBY
+  end
+
+  it "flags a trailing comment on the first line of code under a notice header" do
+    expect_offense(<<~RUBY)
+      # Copyright (c) 2019 Someone Else
+      total = lines.sum # only the billable ones
+                        ^^^^^^^^^^^^^^^^^^^^^^^^ Say it in the code: rename it, extract it, or name the constant.
+    RUBY
+  end
+
+  it "flags a body comment in a file whose header carries a notice" do
+    expect_offense(<<~RUBY)
+      # Copyright (c) 2019 Someone Else
+      def total = lines.sum
+      # Why the total matters.
+      ^^^^^^^^^^^^^^^^^^^^^^^^ Say it in the code: rename it, extract it, or name the constant.
+    RUBY
+  end
+
+  it "flags a file that holds nothing but a comment" do
+    expect_offense(<<~RUBY)
+      # Nothing here yet.
+      ^^^^^^^^^^^^^^^^^^^ Say it in the code: rename it, extract it, or name the constant.
+    RUBY
+  end
+
+  it "removes a last-line comment that has no newline after it" do
+    expect(autocorrect("total = lines.sum\n# the end")).to(eq("total = lines.sum\n"))
   end
 end
