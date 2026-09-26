@@ -11,6 +11,8 @@
   kills every mutant in `lib/`; the specs that got there pin the argument and
   class-variable hooks, the boundaries, and the correctors' edge cases. Dead
   guards it surfaced in `NoRedundantVariable`'s helpers and `doctor` are gone.
+  CI keeps it there with `kimera ci`: pull requests gate on the lines they
+  change, pushes to `main` on the full run.
 
 ## [0.10.0] - 2026-08-30
 

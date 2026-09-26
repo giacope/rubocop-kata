@@ -16,3 +16,23 @@ jobs:
           bundler-cache: true
       - run: bundle exec rubocop
       - run: bundle exec rspec
+
+  mutation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.4"
+          bundler-cache: true
+      - if: github.event_name == 'pull_request'
+        run: bundle exec kimera ci --since origin/${{ github.base_ref }}
+      - if: github.event_name != 'pull_request'
+        run: bundle exec kimera ci
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kimera-report
+          path: tmp/kimera/report.json
