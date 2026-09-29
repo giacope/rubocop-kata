@@ -8,6 +8,7 @@ class RuboCop::Kata::Plan
     "structure" => %w[
       Kata/ConstructorDiscipline Kata/NoClassMethodLogic Kata/NoHashAsObject
       Kata/NoBooleanFlag Kata/IoDiscipline Kata/ClockDiscipline Kata/EnvDiscipline
+      Kata/ClassInModule Kata/NoRedundantVariable
     ],
     "naming" => %w[
       Kata/RealWords Kata/GoodMethodName Kata/GoodVariableName Kata/GoodClassName

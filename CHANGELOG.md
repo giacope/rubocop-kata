@@ -2,6 +2,61 @@
 
 ## [Unreleased]
 
+Found by running the gem over fifteen MIT-licensed Rails apps and gems
+(rubygems.org, Campfire, CodeTriage, CASA, Human Essentials, Homeward Tails,
+railsdevs, Devise, Pundit, Kaminari, Faraday, Kamal, Solid Queue,
+ViewComponent, GoodJob): their own suites, and `ruby -c`, after autocorrect.
+
+- `Kata/NoRedundantVariable` autocorrect no longer writes Ruby that does not
+  parse. It moved a heredoc's opener to the read and left the body behind
+  (`execute(<<~SQL)` with no SQL); a heredoc assignment is now reported and
+  left for a hand. It also inlined `{ … }.fetch(k)` as the first argument of
+  a call without parentheses, where `{` opens a block; a value that starts
+  with a brace is now wrapped there.
+- `Kata/PairedBrackets` knows a lambda's brace. `-> {` was not an opener, so
+  its `}` closed whichever bracket was open before it; offenses went missing
+  and autocorrect edited the wrong token, which with
+  `Layout/RedundantLineBreak` looped.
+- `Kata/ConstructorDiscipline` reads `initialize` the way its message does:
+  the guard and message of a `raise` are raising, and the body of a lambda or
+  proc runs later, so neither is flagged. A safe-navigation call
+  (`name&.strip`) was the one form it missed; it is flagged now.
+- `Kata/NoClassMethodLogic` checks methods opened with `class << self`, which
+  it skipped, and allows `from` and the hooks Ruby calls by name (`included`,
+  `extended`, `inherited`, `prepended`).
+- `Kata/NoHashAsObject` recognises keyword arguments on every call:
+  `super(…)`, `yield(…)`, `obj&.call(…)`, and a call that also passes `&block`
+  were read as hash literals.
+- `Kata/GoodVariableName` and `Kata/RealWords` check `*rest`, `**options`, and
+  `&block` parameters; a two-word name there slipped through.
+- `Kata/RealWords` reads `v2` and `x10` as the single letters they are, and
+  the supplement knows `admin`, `pdf`, `ssl`, `sms`, `i18n`, `ivar`,
+  `sqlite`, `webauthn` and kin.
+- `Kata/NoComments` keeps RDoc and YARD directives (`:nodoc:`, `:stopdoc:`,
+  `:call-seq:`, `@!method`, `@!attribute`): a documentation tool reads them.
+  YARD tags (`@param`, `@return`) are still prose.
+- `Metrics/ParameterLists` is on. The bundled rubocop-elegant switches it off
+  and the kata entry set `Max: 4` without `Enabled: true`, so the limit the
+  README advertises never ran. A spec now fails if any cop kata tunes is left
+  off by the plugins it bundles.
+- The boot layer that `Kata/EnvDiscipline`, `Kata/IoDiscipline` and
+  `Kata/ClockDiscipline` exempt now includes Gemfiles (`Gemfile`, `gems.rb`,
+  `gemfiles/*.gemfile`), `config.ru`, `script/`, and migrations.
+- Migrations are exempt from the cops whose shape Rails dictates there:
+  `Kata/GoodClassName` and `Kata/ClassInModule` (the class name comes from the
+  file name, at the top level), `Kata/NoClassMethodLogic` (`self.up`,
+  `self.down`), and `Kata/NoBooleanFlag` (`change_column_null :t, :c, false`).
+  `db/*schema.rb` is excluded outright: Rails regenerates it.
+- `Elegant/NoEmptyLinesInBlocks` and `Elegant/NoEmptyLinesInMethods` stand
+  down on every `*_spec.rb` and `*_test.rb`, not only under `spec/` and
+  `test/`. RSpec's blank-line cops reach `examples/client_spec.rb` and
+  `kaminari-core/test/`, and the two autocorrected in a loop.
+- `RSpec/Output` no longer autocorrects: it deletes `print x` from
+  `print x if cond` and leaves ` if cond`, which does not parse.
+- `rubocop-kata plan` puts `Kata/ClassInModule` (it mints a module name) and
+  `Kata/NoRedundantVariable` (it deletes names) under `structure`; both fell
+  through to `rest`, after the naming work they change.
+
 ## [0.10.1] - 2026-09-26
 
 - `Kata/ClassInModule` names the class in its message again: it read

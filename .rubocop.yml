@@ -32,6 +32,9 @@ Kata/RealWords:
     - optarg
     - kwarg
     - kwoptarg
+    - restarg
+    - kwrestarg
+    - blockarg
 
 # `plan` shells RuboCop at a directory the caller names, and RuboCop keys its
 # relative Exclude globs to the process working directory.

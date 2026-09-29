@@ -156,6 +156,22 @@ RSpec.describe(RuboCop::Cop::Kata::GoodVariableName, :config) do
     RUBY
   end
 
+  context "with anonymous parameters, which need Ruby 3.1" do
+    let(:ruby_version) { 3.4 }
+
+    it "flags two-word rest, keyword-rest, and block parameters, and skips anonymous ones" do
+      expect_offense(<<~RUBY)
+        def run(*extra_things, **more_options, &done_callback)
+                 ^^^^^^^^^^^^ #{offense("extra_things")}
+                                 ^^^^^^^^^^^^ #{offense("more_options")}
+                                                ^^^^^^^^^^^^^ #{offense("done_callback")}
+        end
+        def pass(*, **, &)
+        end
+      RUBY
+    end
+  end
+
   it "flags a name that breaks the word pattern, even as one word" do
     expect_offense(<<~RUBY)
       customerAddress = 1

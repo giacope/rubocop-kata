@@ -117,7 +117,8 @@ RSpec.describe(RuboCop::Cop::Kata::NoRedundantVariable) do
       ["def foo\n  x = 1\n  qux(x)\n  def self.bar\n    x = 2\n    baz(x)\n  end\nend", 2],
       "assignment_after_a_parenthesised_condition_assignment" =>
       ["def foo\n  if (x = bar)\n    1\n  end\n  x = 2\n  baz(x)\nend", 1],
-      "multi_line_assignment" => ["def foo\n  x = [\n    1\n  ]\n  baz(x)\nend", 1]
+      "multi_line_assignment" => ["def foo\n  x = [\n    1\n  ]\n  baz(x)\nend", 1],
+      "heredoc_assignment" => ["def foo\n  sql = <<~SQL\n    x\n  SQL\n  run(sql)\nend", 1]
     }, corrections: {
       "send_call_inlines_unwrapped" =>
       ["def foo\n  x = bar\n  baz(x)\nend", "def foo\n  baz(bar)\nend"],
@@ -182,7 +183,27 @@ RSpec.describe(RuboCop::Cop::Kata::NoRedundantVariable) do
         "def foo\n  x = [\n    1\n  ]\n  baz(x)\nend"
     ],
       "bare_read_inside_another_redundant_assignment_inlines_the_inner_one" =>
-      ["def foo\n  a = one\n  b = a\n  bar(b)\nend", "def foo\n  b = one\n  bar(b)\nend"]
+      ["def foo\n  a = one\n  b = a\n  bar(b)\nend", "def foo\n  b = one\n  bar(b)\nend"],
+      "call_into_bare_send_arg_inlines_unwrapped" =>
+      ["def foo\n  x = a.b\n  baz x\nend", "def foo\n  baz a.b\nend"],
+      "brace_led_call_into_bare_send_arg_is_wrapped" =>
+      ["def foo\n  x = { a: 1 }.fetch(k)\n  baz x, y\nend", "def foo\n  baz ({ a: 1 }.fetch(k)), y\nend"],
+      "heredoc_is_left_alone" => [
+        "def foo\n  sql = <<~SQL\n    x\n  SQL\n  run(sql)\nend",
+        "def foo\n  sql = <<~SQL\n    x\n  SQL\n  run(sql)\nend"
+    ],
+      "interpolated_heredoc_receiver_is_left_alone" => [
+        "def foo\n  sql = <<~SQL.squish\n    \#{x}\n  SQL\n  run(sql)\nend",
+        "def foo\n  sql = <<~SQL.squish\n    \#{x}\n  SQL\n  run(sql)\nend"
+    ],
+      "command_heredoc_is_left_alone" => [
+        "def foo\n  out = <<~`SH`\n    ls\n  SH\n  run(out)\nend",
+        "def foo\n  out = <<~`SH`\n    ls\n  SH\n  run(out)\nend"
+    ],
+      "string_beside_heredoc_argument_is_left_alone" => [
+        "def foo\n  sql = format(<<~SQL, 'x')\n    %s\n  SQL\n  run(sql)\nend",
+        "def foo\n  sql = format(<<~SQL, 'x')\n    %s\n  SQL\n  run(sql)\nend"
+    ]
     }
   )
 

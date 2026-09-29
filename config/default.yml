@@ -9,6 +9,7 @@ AllCops:
   NewCops: enable
   Exclude:
     - "vendor/**/*"
+    - "db/*schema.rb"
 
 Kata/GoodClassName:
   Description: >-
@@ -25,6 +26,8 @@ Kata/GoodClassName:
     of Kata/NoUtilName.
   Enabled: true
   VersionAdded: "0.9"
+  Exclude:
+    - "db/*migrate/**/*"
   MaxWords: 2
   AllowedNames:
     - Actor
@@ -500,15 +503,22 @@ Kata/IoDiscipline:
   Exclude:
     - "spec/**/*"
     - "test/**/*"
+    - "db/*migrate/**/*"
     - "bin/**/*"
     - "exe/**/*"
+    - "script/**/*"
     - "config/**/*"
+    - "config.ru"
     - "db/seeds.rb"
     - "db/seeds/**/*"
     - "lib/tasks/**/*"
     - "Rakefile"
     - "**/*.rake"
     - "*.gemspec"
+    - "Gemfile"
+    - "**/Gemfile"
+    - "gems.rb"
+    - "**/*.gemfile"
 
 Kata/ProsePlacement:
   Description: "Keep sentence-length strings in the presentation layer."
@@ -563,6 +573,7 @@ Kata/NoBooleanFlag:
   Exclude:
     - "spec/**/*"
     - "test/**/*"
+    - "db/*migrate/**/*"
 
 Kata/ConstructorDiscipline:
   Description: "Constructors assign; they do not compute."
@@ -579,10 +590,16 @@ Kata/NoClassMethodLogic:
   Exclude:
     - "spec/**/*"
     - "test/**/*"
+    - "db/*migrate/**/*"
   AllowedNames:
     - build
     - parse
     - of
+    - from
+    - included
+    - extended
+    - inherited
+    - prepended
 
 Kata/NoHashAsObject:
   Description: "Keys that travel together are an object without a name."
@@ -602,15 +619,22 @@ Kata/ClockDiscipline:
   Exclude:
     - "spec/**/*"
     - "test/**/*"
+    - "db/*migrate/**/*"
     - "bin/**/*"
     - "exe/**/*"
+    - "script/**/*"
     - "config/**/*"
+    - "config.ru"
     - "db/seeds.rb"
     - "db/seeds/**/*"
     - "lib/tasks/**/*"
     - "Rakefile"
     - "**/*.rake"
     - "*.gemspec"
+    - "Gemfile"
+    - "**/Gemfile"
+    - "gems.rb"
+    - "**/*.gemfile"
 
 Kata/EnvDiscipline:
   Description: "ENV belongs in the boot layer; pass configuration in."
@@ -620,15 +644,22 @@ Kata/EnvDiscipline:
   Exclude:
     - "spec/**/*"
     - "test/**/*"
+    - "db/*migrate/**/*"
     - "bin/**/*"
     - "exe/**/*"
+    - "script/**/*"
     - "config/**/*"
+    - "config.ru"
     - "db/seeds.rb"
     - "db/seeds/**/*"
     - "lib/tasks/**/*"
     - "Rakefile"
     - "**/*.rake"
     - "*.gemspec"
+    - "Gemfile"
+    - "**/Gemfile"
+    - "gems.rb"
+    - "**/*.gemfile"
 
 Style/Documentation:
   Enabled: false
@@ -705,6 +736,7 @@ Metrics/MethodLength:
     - "test/**/*"
 
 Metrics/ParameterLists:
+  Enabled: true
   Max: 4
   CountKeywordArgs: true
   Exclude:
@@ -718,15 +750,21 @@ RSpec/ExampleLength:
 RSpec/VerifiedDoubles:
   Enabled: true
 
+# RSpec's blank-line cops reach every `*_spec.rb`, so these stand down on
+# the same files, or the two autocorrect in a loop.
 Elegant/NoEmptyLinesInBlocks:
   Exclude:
     - "spec/**/*"
     - "test/**/*"
+    - "**/*_spec.rb"
+    - "**/*_test.rb"
 
 Elegant/NoEmptyLinesInMethods:
   Exclude:
     - "spec/**/*"
     - "test/**/*"
+    - "**/*_spec.rb"
+    - "**/*_test.rb"
 
 Elegant/NoComments:
   Enabled: false
@@ -807,10 +845,16 @@ Kata/ClassInModule:
     - "**/*_test.rb"
     - "test/**/*"
     - "spec/**/*"
+    - "db/*migrate/**/*"
 
 # Rewrites reopened classes into modules, clashing with the primary
 # class definition at boot.
 Style/StaticClass:
+  AutoCorrect: false
+
+# Deletes `print x` from `print x if cond` and leaves the modifier behind,
+# which does not parse.
+RSpec/Output:
   AutoCorrect: false
 
 # Its message names a replacement that raises: Integer(x, 10) is only

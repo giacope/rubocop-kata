@@ -7,6 +7,8 @@ class RuboCop::Cop::Kata::NoComments < RuboCop::Cop::Base
 
   MAGIC = /\A#\s*(frozen_string_literal|encoding|coding|warn_indent|shareable_constant_value):/
   DIRECTIVE = /\A#\s*(rubocop|simplecov|rbs|steep|sorbet|typed|:nocov:)/
+  RDOC = /\A#\s*:(nodoc|doc|stopdoc|startdoc|enddoc|call-seq|yields|markup|section|include|title|main|notnew):/
+  YARD = /\A#\s*@!\w/
   NOTICE = /^#\s*(copyright\b|\(c\)\s*\d|spdx-|licen[sc]ed under\b|licen[sc]e:|all rights reserved)/i
   SHEBANG = /\A#!/
 
@@ -19,7 +21,7 @@ class RuboCop::Cop::Kata::NoComments < RuboCop::Cop::Base
 
   def exempt?(comment)
     text = comment.text
-    MAGIC.match?(text) || DIRECTIVE.match?(text) || NOTICE.match?(text) || SHEBANG.match?(text)
+    [MAGIC, DIRECTIVE, RDOC, YARD, NOTICE, SHEBANG].any? { it.match?(text) }
   end
 
   def notice

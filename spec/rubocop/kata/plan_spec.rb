@@ -25,6 +25,13 @@ RSpec.describe(RuboCop::Kata::Plan) do
     end
   end
 
+  it "buckets a global class and a redundant local under structure, ahead of the names they settle" do
+    source = "# frozen_string_literal: true\n\nclass Ledger\n  def total\n    sum = 1\n    sum\n  end\nend\n"
+    project(source) do |root|
+      expect(report(root).first).to(match(%r{^structure\s+2\s+Kata/(ClassInModule|NoRedundantVariable) 1, Kata/}))
+    end
+  end
+
   it "buckets an offense under the stage its cop belongs to" do
     project("# frozen_string_literal: true\n\nclass Fetcher\nend\n") do |root|
       expect(report(root).first).to(match(%r{^naming\s+\d+\s+Kata/GoodClassName}))
@@ -63,7 +70,7 @@ RSpec.describe(RuboCop::Kata::Plan) do
   end
 
   it "keeps the structure note off a stage that mints nothing" do
-    project("# frozen_string_literal: true\n\nclass Fetcher\nend\n") do |root|
+    project("# frozen_string_literal: true\n\nmodule Billing\n  class Fetcher\n  end\nend\n") do |root|
       expect(report(root).first).to(include("next: naming — 1 offense in 1 file\n"))
     end
   end

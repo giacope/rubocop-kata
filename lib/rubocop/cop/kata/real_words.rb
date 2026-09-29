@@ -32,6 +32,12 @@ class RuboCop::Cop::Kata::RealWords < RuboCop::Cop::Base
 
   def on_kwoptarg(node) = check(node, node.name)
 
+  def on_restarg(node) = check(node, node.name)
+
+  def on_kwrestarg(node) = check(node, node.name)
+
+  def on_blockarg(node) = check(node, node.name)
+
   private
 
   def check(node, name)
@@ -52,7 +58,7 @@ class RuboCop::Cop::Kata::RealWords < RuboCop::Cop::Base
 
   def label(name, stem, segment) = stem == segment ? "`#{name}`" : "`#{segment}` (in `#{name}`)"
 
-  def word?(segment) = segment.length < 2 || term?(segment) || (known?(segment) && !banned?(segment))
+  def word?(segment) = segment.sub(/\d+\z/, "").length < 2 || term?(segment) || (known?(segment) && !banned?(segment))
 
   def known?(segment) = forms(segment).any? { RuboCop::Kata::Dictionary::ENTRIES.include?(it) }
 

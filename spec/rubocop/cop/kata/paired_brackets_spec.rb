@@ -33,7 +33,8 @@ RSpec.describe(RuboCop::Cop::Kata::PairedBrackets) do
       "opener_not_at_end_of_line" => ["foo(1,\n  2\n)", 1],
       "split_square_brackets_in_middle" => ["[1,\n 2]", 2],
       "block_brace_with_argument_split" => ["[1].each { |x|\n  x\n}", 1],
-      "closer_in_middle_when_chained" => ["foo(\n  1).bar", 1]
+      "closer_in_middle_when_chained" => ["foo(\n  1).bar", 1],
+      "lambda_brace_keeps_its_own_closer" => ["[-> { 1 }, baz(\n  2\n)]", 2]
     }, corrections: {
       "closer_not_at_start_of_line" => ["foo(\n  1)", "foo(\n  1\n)"],
       "opener_not_at_end_of_line" => ["foo(1,\n  2\n)", "foo(\n  1,\n  2\n)"],

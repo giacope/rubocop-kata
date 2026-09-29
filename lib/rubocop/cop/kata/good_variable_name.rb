@@ -23,6 +23,12 @@ class RuboCop::Cop::Kata::GoodVariableName < RuboCop::Cop::Base
 
   def on_kwoptarg(node) = check(node, node.name)
 
+  def on_restarg(node) = check(node, node.name)
+
+  def on_kwrestarg(node) = check(node, node.name)
+
+  def on_blockarg(node) = check(node, node.name)
+
   private
 
   def check(node, name)
