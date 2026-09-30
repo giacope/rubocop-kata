@@ -85,7 +85,7 @@ every class inside a module, and Zeitwerk resolves `class Account` from
 | `Kata/NoRedundantVariable` | on | A local assigned once and read once is inlined at its read, unless the move would cross a loop, a branch, or a side effect. Autocorrects, and keeps Ruby 3.1 shorthand intact. Fixed copy of `Elegant/NoRedundantVariable`. |
 | `Kata/PairedBrackets` | on | Every bracket pairs on its line, or opens at line end and closes at line start. Autocorrects without drifting the indent. Fixed copy of `Elegant/PairedBrackets`. |
 | `Kata/ClassInModule` | on | A class lives in a module, a class, or a compact namespace, never at the top level. Fixed copy of `Elegant/ClassInModule`. |
-| `Kata/NoComments` | on | No prose comments; say it in the code. Magic comments, linter directives, and licence headers survive. Autocorrects. |
+| `Kata/NoComments` | on | No prose comments; say it in the code. Magic comments, linter directives, RDoc and YARD directives (`:nodoc:`, `@!method`), and licence headers survive. Autocorrects. |
 | `Kata/IoDiscipline` | on | No bare `puts`/`warn`/`pp`/`p` outside the test suite and the boot layer; write through an injected `@io` or an explicit receiver. |
 | `Kata/ProsePlacement` | off | Sentence-length strings belong in the presentation layer. Enable with an `Include`/`Exclude` matching your layering. |
 | `Kata/RealWords` | on | Every name segment is a word the shipped dictionary knows — `errorcount` (smash) and `cfg` (abbreviation) both fail, with no word list to maintain. Tune via `Terms`/`BannedWords`/`AllowedNames`. |
@@ -94,10 +94,10 @@ every class inside a module, and Zeitwerk resolves `class Account` from
 | `Kata/BuilderNoun` | on | Builders named for what they return: `total`, not `calculate_total`. Tune via `BannedPrefixes`/`AllowedNames`. |
 | `Kata/NoBooleanFlag` | on | No positional boolean arguments; split the method or use a keyword. |
 | `Kata/ConstructorDiscipline` | on | `initialize` assigns, raises, or freezes — never computes. |
-| `Kata/NoClassMethodLogic` | on | Class methods construct (`build`, `parse`, `of`, `from_*`); instances do the work. |
+| `Kata/NoClassMethodLogic` | on | Class methods construct (`build`, `parse`, `of`, `from`, `from_*`) or answer a Ruby hook (`included`, `inherited`); instances do the work. Methods opened with `class << self` count. |
 | `Kata/NoHashAsObject` | on | A hash with `MaxKeys`+ keys (default 4) wants to be an object. Keyword-argument call sites exempt. |
 | `Kata/ClockDiscipline` | on | No bare `Time.now`/`Date.today`/`.current`; inject a clock. |
-| `Kata/EnvDiscipline` | on | `ENV` reads only in the boot layer (`config/`, `db/seeds*`, `lib/tasks/`, rake files, `bin/`, `exe/`) — or as a parameter default, which is the seam the cop asks for. |
+| `Kata/EnvDiscipline` | on | `ENV` reads only in the boot layer (`config/`, `config.ru`, `db/seeds*`, `db/migrate/`, `lib/tasks/`, rake files, Gemfiles, `bin/`, `exe/`, `script/`) — or as a parameter default, which is the seam the cop asks for. |
 
 ## Dead configuration
 

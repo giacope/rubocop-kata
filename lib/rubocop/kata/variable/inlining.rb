@@ -28,7 +28,7 @@ class RuboCop::Kata::Variable::Inlining
 
   def value = wrap? ? "(#{@rhs.source})" : @rhs.source
 
-  def wrap? = !primary? || (@rhs.hash_type? && bare?)
+  def wrap? = !primary? || (@rhs.source.start_with?("{") && bare?)
 
   def primary?
     return true if PRIMARY.include?(@rhs.type)

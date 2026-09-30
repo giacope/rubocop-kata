@@ -9,7 +9,7 @@ class RuboCop::Cop::Kata::PairedBrackets < RuboCop::Cop::Base
 
   MSG = "Bracket %s must be paired on the same line, or start/end its line"
 
-  OPENERS = %i[tLPAREN tLPAREN2 tLPAREN_ARG tLBRACK tLBRACK2 tLCURLY tLBRACE tLBRACE_ARG].freeze
+  OPENERS = %i[tLPAREN tLPAREN2 tLPAREN_ARG tLBRACK tLBRACK2 tLCURLY tLBRACE tLBRACE_ARG tLAMBEG].freeze
   CLOSERS = %i[tRPAREN tRBRACK tRCURLY].freeze
   BLANKS = [" ", "\t"].freeze
 

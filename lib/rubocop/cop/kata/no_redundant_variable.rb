@@ -19,7 +19,7 @@ class RuboCop::Cop::Kata::NoRedundantVariable < RuboCop::Cop::Base
   def check(body)
     return if body.nil?
     singles = RuboCop::Kata::Variable::Ledger.new(body).pairs
-    movable = singles.select { |assign, _| solo?(assign) && !swallows?(assign, singles) }
+    movable = singles.select { |assign, _| solo?(assign) && !heredoc?(assign) && !swallows?(assign, singles) }
     gap = RuboCop::Kata::Variable::Gap.new(movable)
     singles.each { |assign, read| register(assign, read, movable) unless gap.crossed?(assign, read) }
   end
@@ -40,6 +40,8 @@ class RuboCop::Cop::Kata::NoRedundantVariable < RuboCop::Cop::Base
   def swallows?(assign, singles)
     singles.any? { |_, read| assign.source_range.contains?(read.source_range) }
   end
+
+  def heredoc?(assign) = assign.each_descendant(:str, :dstr, :xstr).any?(&:heredoc?)
 
   def solo?(assign)
     range = assign.source_range

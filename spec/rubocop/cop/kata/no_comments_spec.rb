@@ -77,6 +77,26 @@ RSpec.describe(RuboCop::Cop::Kata::NoComments, :config) do
     RUBY
   end
 
+  it "keeps the directives RDoc and YARD read" do
+    expect_no_offenses(<<~RUBY)
+      # :stopdoc:
+      def total = lines.sum #:nodoc:
+      # :startdoc:
+      # :call-seq:
+      # @!method count
+      # @!attribute [r] name
+      def name = "x" # :nodoc:
+    RUBY
+  end
+
+  it "flags YARD tags, which are prose for a reader" do
+    expect_offense(<<~RUBY)
+      # @return [Integer]
+      ^^^^^^^^^^^^^^^^^^^ Say it in the code: rename it, extract it, or name the constant.
+      def total = lines.sum
+    RUBY
+  end
+
   it "keeps a licence header whole, prose lines and all — deleting one breaches the licence" do
     expect_no_offenses(<<~RUBY)
       # frozen_string_literal: true

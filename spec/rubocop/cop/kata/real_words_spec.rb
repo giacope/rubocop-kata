@@ -177,7 +177,32 @@ RSpec.describe(RuboCop::Cop::Kata::RealWords, :config) do
     expect_offense(<<~RUBY)
       zq_count = 1
       ^^^^^^^^ `zq` (in `zq_count`) is not in the dictionary — restore the underscore between smashed words, spell the abbreviation out, or add it to `Terms` if it is one domain term here.
+      zq2 = 1
+      ^^^ `zq2` is not in the dictionary — restore the underscore between smashed words, spell the abbreviation out, or add it to `Terms` if it is one domain term here.
     RUBY
+  end
+
+  it "reads a single letter with a trailing number as a single letter" do
+    expect_no_offenses(<<~RUBY)
+      v2 = 1
+      x10_count = 2
+    RUBY
+  end
+
+  context "with anonymous parameters, which need Ruby 3.1" do
+    let(:ruby_version) { 3.4 }
+
+    it "checks rest, keyword-rest, and block parameters, and skips anonymous ones" do
+      expect_offense(<<~RUBY)
+        def run(*filelist, **classbody, &sourcecount)
+                 ^^^^^^^^ `filelist` is not in the dictionary — restore the underscore between smashed words, spell the abbreviation out, or add it to `Terms` if it is one domain term here.
+                             ^^^^^^^^^ `classbody` is not in the dictionary — restore the underscore between smashed words, spell the abbreviation out, or add it to `Terms` if it is one domain term here.
+                                         ^^^^^^^^^^^ `sourcecount` is not in the dictionary — restore the underscore between smashed words, spell the abbreviation out, or add it to `Terms` if it is one domain term here.
+        end
+        def pass(*, **, &)
+        end
+      RUBY
+    end
   end
 
   context "with a sigiled name whose bare form is in the escape hatch" do
