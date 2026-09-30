@@ -9,12 +9,13 @@ class RuboCop::Cop::Kata::NoComments < RuboCop::Cop::Base
   DIRECTIVE = /\A#\s*(rubocop|simplecov|rbs|steep|sorbet|typed|:nocov:)/
   RDOC = /\A#\s*:(nodoc|doc|stopdoc|startdoc|enddoc|call-seq|yields|markup|section|include|title|main|notnew):/
   YARD = /\A#\s*@!\w/
+  TAG = /\A#\s*@!?[a-z]/
   NOTICE = /^#\s*(copyright\b|\(c\)\s*\d|spdx-|licen[sc]ed under\b|licen[sc]e:|all rights reserved)/i
   SHEBANG = /\A#!/
 
   def on_new_investigation
-    header = notice
-    processed_source.comments.each { register(it) unless exempt?(it) || header.include?(it) }
+    kept = notice + documented
+    processed_source.comments.each { register(it) unless exempt?(it) || kept.include?(it) }
   end
 
   private
@@ -22,6 +23,12 @@ class RuboCop::Cop::Kata::NoComments < RuboCop::Cop::Base
   def exempt?(comment)
     text = comment.text
     [MAGIC, DIRECTIVE, RDOC, YARD, NOTICE, SHEBANG].any? { it.match?(text) }
+  end
+
+  def documented
+    return [] unless cop_config["AllowDocumentation"]
+    processed_source.comments.slice_when { |above, below| below.loc.line != above.loc.line + 1 }
+      .select { |block| block.any? { TAG.match?(it.text) } }.flatten
   end
 
   def notice

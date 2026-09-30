@@ -2,6 +2,41 @@
 
 ## [Unreleased]
 
+Precision, measured on the same fifteen codebases: Kata offenses fall from
+46,417 to 40,502, and what is left is what the rules are for.
+
+- `Kata/NoBooleanFlag` looks where the flag is defined, not only where it is
+  passed: a positional parameter that defaults to `true` or `false` is
+  flagged, and a keyword one is the fix. Its new `AllowedMethods` holds the
+  calls whose boolean is a protocol or a value rather than a flag —
+  `respond_to?(name, true)`, `const_defined?(name, false)`,
+  `fetch(:ssl, false)`, `instance_variable_set(:@done, false)` — and the defs
+  whose signature Ruby dictates (`respond_to_missing?`). Call-site offenses
+  in the corpus fall from 71 to 30; the 14 defaults it now finds are all real
+  flags (`def self.ready(unset_env = false)`). Test files are exempt wherever
+  they live.
+- `Kata/GoodClassName` judges a test or a preview by its subject:
+  `UsersControllerTest` is `UsersController`, and a `Suffixes` word (`Test`,
+  `TestCase`, `Spec`, `Preview`) names what the class is for. `AllowedNames`
+  gains the suffixes a framework resolves a class by: `Policy` (Pundit),
+  `Component` (ViewComponent), `Generator`, `Channel`, `Mailbox`,
+  `Subscriber`, `Adapter`, `Notifier`, and `Vendor`.
+- `Kata/GoodClassName` and `Kata/GoodModuleName` read a doer as a verb plus
+  `-er`/`-or`: a dictionary word whose stem is no verb (`Volunteer`,
+  `Filter`, `Partner`, `Doctor`) is a thing, not a doer. An unknown coinage
+  still counts.
+- `Kata/GoodMethodName` leaves a Minitest `test_` method in a test class
+  alone: it is a sentence, like the RSpec description it would be there. It
+  also allows the names Rails, Pundit, Ransack, Devise and Phlex call by
+  contract (`validate_each`, `table_name_prefix`, `policy_class`,
+  `ransackable_attributes`, `cast_value`, `view_template`).
+- `Kata/NoComments` excludes `config/` and `config.ru`, whose comments are
+  the framework's generated guidance, and gains `AllowDocumentation` (off by
+  default): a gem that publishes API docs keeps every comment block carrying
+  a YARD tag, whole.
+- `Kata/NoHashAsObject` allows a hash a constant names, frozen or not
+  (`STATUS_ICONS = { … }`): a lookup table is a named object already.
+
 Found by running the gem over fifteen MIT-licensed Rails apps and gems
 (rubygems.org, Campfire, CodeTriage, CASA, Human Essentials, Homeward Tails,
 railsdevs, Devise, Pundit, Kaminari, Faraday, Kamal, Solid Queue,

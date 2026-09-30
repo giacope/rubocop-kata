@@ -6,8 +6,9 @@ class RuboCop::Cop::Kata::GoodMethodName < RuboCop::Cop::Base
     "word — or, if `%s` is one domain concept here, add it to `Terms`."
   CHAIN_MSG = "`%s` chains actions with `%s`; each action wants its own method."
   JOINTS = %w[and or then].freeze
+  SUITE = /Test(Case)?\z/
 
-  def on_def(node) = check(node, node.method_name)
+  def on_def(node) = test?(node) || check(node, node.method_name)
 
   def on_defs(node) = check(node, node.method_name)
 
@@ -20,6 +21,10 @@ class RuboCop::Cop::Kata::GoodMethodName < RuboCop::Cop::Base
     complaint = chain(name, stem) || (format(MSG, name, name) unless good?(stem))
     add_offense(node.loc.name, message: complaint) if complaint
   end
+
+  def test?(node) = node.method_name.start_with?("test_") && suite?(node.each_ancestor(:class).first)
+
+  def suite?(klass) = !klass.nil? && [klass.identifier, klass.parent_class].compact.any? { SUITE.match?(it.source) }
 
   def chain(name, stem)
     joint = (stem.split("_") & JOINTS).first

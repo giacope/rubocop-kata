@@ -12,7 +12,7 @@ class RuboCop::Cop::Kata::GoodClassName < RuboCop::Cop::Base
   private
 
   def check(node)
-    name = node.identifier.short_name.to_s
+    name = subject(node.identifier.short_name.to_s)
     return if allowed?(name)
     complaint = complaint(name)
     add_offense(node.identifier, message: complaint) if complaint
@@ -30,6 +30,11 @@ class RuboCop::Cop::Kata::GoodClassName < RuboCop::Cop::Base
   end
 
   def kind = "class"
+
+  def subject(name)
+    role = list("Suffixes").find { name.end_with?(it) }
+    role ? name.delete_suffix(role) : name
+  end
 
   def banned?(name) = list("BannedNames").any? { name.end_with?(it) }
 

@@ -97,6 +97,27 @@ RSpec.describe(RuboCop::Cop::Kata::NoComments, :config) do
     RUBY
   end
 
+  context "with documentation allowed, for a gem that publishes its API" do
+    let(:cop_config) { { "AllowDocumentation" => true } }
+
+    it "keeps a block that carries a YARD tag whole, and only that block" do
+      expect_offense(<<~RUBY)
+        # Totals the billable lines.
+        #
+        # @param lines [Array<Line>] the invoice lines
+        # @return [Integer]
+        def total(lines) = lines.sum
+        # Totals the refunds.
+        ^^^^^^^^^^^^^^^^^^^^^ Say it in the code: rename it, extract it, or name the constant.
+
+        # @api private
+        def refunds = []
+        # reversed below
+        ^^^^^^^^^^^^^^^^ Say it in the code: rename it, extract it, or name the constant.
+      RUBY
+    end
+  end
+
   it "keeps a licence header whole, prose lines and all — deleting one breaches the licence" do
     expect_no_offenses(<<~RUBY)
       # frozen_string_literal: true

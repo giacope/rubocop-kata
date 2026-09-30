@@ -6,7 +6,7 @@ class RuboCop::Cop::Kata::NoHashAsObject < RuboCop::Cop::Base
 
   def on_hash(node)
     return if node.pairs.size < limit
-    return if kwargs?(node)
+    return if kwargs?(node) || table?(node)
     add_offense(node, message: format(MSG, node.pairs.size))
   end
 
@@ -14,6 +14,12 @@ class RuboCop::Cop::Kata::NoHashAsObject < RuboCop::Cop::Base
 
   def kwargs?(node)
     CALLS.include?(node.parent&.type) && (!node.braces? || node.equal?(node.parent.last_argument))
+  end
+
+  def table?(node)
+    holder = node.parent
+    holder = holder.parent if holder&.send_type? && holder.method?(:freeze)
+    holder&.casgn_type?
   end
 
   def limit = Integer(cop_config.fetch("MaxKeys", 4))

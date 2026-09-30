@@ -22,21 +22,33 @@ Kata/GoodClassName:
     catches `InvoiceService`. The default `AllowedNames` holds the suffixes a
     framework resolves a class by, which are contracts rather than naming
     choices, plus thing-words that merely end in `-er`/`-or` — `User` and
-    `Order` are objects, not doers. Absorbs Kata/AgentNoun and the class half
+    `Order` are objects, not doers. A known word whose stem is no verb
+    (`Volunteer`, `Filter`) is not a doer either. A trailing `Suffixes` word
+    names what the class is for, not what it is, so `UsersControllerTest` is
+    judged as `UsersController`. Absorbs Kata/AgentNoun and the class half
     of Kata/NoUtilName.
   Enabled: true
   VersionAdded: "0.9"
+  VersionChanged: "0.11"
   Exclude:
     - "db/*migrate/**/*"
   MaxWords: 2
+  Suffixes:
+    - Test
+    - TestCase
+    - Spec
+    - Preview
   AllowedNames:
     - Actor
+    - Adapter
     - Author
     - Buffer
     - Center
+    - Channel
     - Chapter
     - Character
     - Color
+    - Component
     - Container
     - Controller
     - Cursor
@@ -48,24 +60,30 @@ Kata/GoodClassName:
     - Error
     - Fiber
     - Folder
+    - Generator
     - Helper
     - Job
     - Ledger
     - Logger
+    - Mailbox
     - Mailer
     - Member
     - Monitor
+    - Notifier
     - Order
     - Owner
+    - Policy
     - Presenter
     - Serializer
     - Server
+    - Subscriber
     - Supplier
     - Timer
     - Transfer
     - User
     - Validator
     - Vector
+    - Vendor
   BannedNames:
     - Util
     - Utils
@@ -101,15 +119,19 @@ Kata/GoodModuleName:
     naming choice. Absorbs the module half of Kata/NoUtilName.
   Enabled: true
   VersionAdded: "0.9"
+  VersionChanged: "0.11"
   MaxWords: 2
   AllowedNames:
     - Actor
+    - Adapter
     - Author
     - Buffer
     - Center
+    - Channel
     - Chapter
     - Character
     - Color
+    - Component
     - Container
     - Controller
     - Cursor
@@ -121,24 +143,30 @@ Kata/GoodModuleName:
     - Error
     - Fiber
     - Folder
+    - Generator
     - Helper
     - Job
     - Ledger
     - Logger
+    - Mailbox
     - Mailer
     - Member
     - Monitor
+    - Notifier
     - Order
     - Owner
+    - Policy
     - Presenter
     - Serializer
     - Server
+    - Subscriber
     - Supplier
     - Timer
     - Transfer
     - User
     - Validator
     - Vector
+    - Vendor
   BannedNames:
     - Common
     - Core
@@ -168,13 +196,20 @@ Kata/GoodModuleName:
   Terms: []
 
 Kata/NoComments:
-  Description: "Say it in the code; keep only comments the machine or the law reads."
+  Description: >-
+    Say it in the code; keep only comments the machine or the law reads. A gem
+    that publishes API documentation sets `AllowDocumentation`, and a comment
+    block carrying a YARD tag (`@param`, `@return`) is kept whole. `config/`
+    is excluded: its comments are the framework's generated guidance.
   Enabled: true
   VersionAdded: "0.1"
-  VersionChanged: "0.8"
+  VersionChanged: "0.11"
+  AllowDocumentation: false
   Exclude:
     - "spec/**/*"
     - "test/**/*"
+    - "config/**/*"
+    - "config.ru"
     - "*.gemspec"
     - "Gemfile"
     - "**/Gemfile"
@@ -186,10 +221,12 @@ Kata/GoodMethodName:
     (`file_of`), or a reviewed domain term. A name that chains actions
     (`validate_and_save`) or spells out another object's property
     (`customer_address`) is a missing method home, not a naming problem.
-    Do not delete the underscore — Kata/RealWords catches the smash.
+    Do not delete the underscore — Kata/RealWords catches the smash. A
+    Minitest `test_` method in a test class is a sentence, like an RSpec
+    description, and goes unpriced.
   Enabled: true
   VersionAdded: "0.5"
-  VersionChanged: "0.9"
+  VersionChanged: "0.11"
   MaxWords: 2
   Pattern: "^[a-z][a-z0-9]{0,15}$"
   Prefixes:
@@ -316,7 +353,9 @@ Kata/GoodMethodName:
     - after_sign_in_path_for
     - after_sign_out_path_for
     - assign_attributes
+    - authenticatable_salt
     - authenticate_user
+    - cast_value
     - const_missing
     - deconstruct_keys
     - deep_dup
@@ -345,9 +384,13 @@ Kata/GoodMethodName:
     - perform_later
     - perform_now
     - permitted_attributes
+    - policy_class
     - policy_scope
     - primary_key
     - pundit_user
+    - ransackable_associations
+    - ransackable_attributes
+    - ransackable_scopes
     - read_nonblock
     - record_not_found
     - respond_to_missing
@@ -356,6 +399,9 @@ Kata/GoodMethodName:
     - singleton_method_added
     - supports_block_expectations
     - table_name
+    - table_name_prefix
+    - validate_each
+    - view_template
     - write_nonblock
 
 Kata/GoodVariableName:
@@ -567,13 +613,50 @@ Kata/BuilderNoun:
   AllowedNames: []
 
 Kata/NoBooleanFlag:
-  Description: "A boolean flag is two methods trapped in one."
+  Description: >-
+    A boolean flag is two methods trapped in one: at a call, and as a
+    positional parameter's default. `AllowedMethods` holds the calls whose
+    boolean is a protocol or a value rather than a flag — Ruby's reflection
+    (`respond_to?(name, true)`), a default (`fetch(:ssl, false)`), a stored
+    value (`instance_variable_set(:@done, false)`) — and the defs whose
+    signature Ruby dictates (`respond_to_missing?`).
   Enabled: true
   VersionAdded: "0.3"
+  VersionChanged: "0.11"
   Exclude:
     - "spec/**/*"
     - "test/**/*"
+    - "**/*_spec.rb"
+    - "**/*_test.rb"
     - "db/*migrate/**/*"
+  AllowedMethods:
+    - all?
+    - any?
+    - const_defined?
+    - const_get
+    - const_source_location
+    - content_security_policy
+    - fetch
+    - include?
+    - instance_methods
+    - instance_variable_set
+    - layout
+    - method_defined?
+    - methods
+    - none?
+    - private_instance_methods
+    - private_method_defined?
+    - private_methods
+    - protected_instance_methods
+    - protected_method_defined?
+    - public_instance_methods
+    - public_method_defined?
+    - public_methods
+    - push
+    - respond_to?
+    - respond_to_missing?
+    - singleton_methods
+    - store
 
 Kata/ConstructorDiscipline:
   Description: "Constructors assign; they do not compute."
