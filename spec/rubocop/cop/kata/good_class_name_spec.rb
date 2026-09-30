@@ -202,7 +202,59 @@ RSpec.describe(RuboCop::Cop::Kata::GoodClassName, :config) do
         end
         class AccountSerializer
         end
+        class WebHookPolicy
+        end
+        class OpenGraphTagsComponent
+        end
+        class InstallGenerator
+        end
+        class RoomChannel
+        end
       RUBY
     end
+
+    it "judges a test or a preview by the name of its subject" do
+      expect_offense(<<~RUBY)
+        class UsersControllerTest < ActionDispatch::IntegrationTest
+        end
+        class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
+        end
+        class InvoiceSpec
+        end
+        class ButtonComponentPreview < ViewComponent::Preview
+        end
+        class Test
+        end
+        class RateLimiterTest
+              ^^^^^^^^^^^^^^^ `RateLimiter` names a doer; name the class for the thing it is, not the work it does.
+        end
+      RUBY
+    end
+  end
+
+  it "does not read a known word as a doer unless its stem is a verb" do
+    expect_offense(<<~RUBY)
+      class Volunteer
+      end
+      class Filter
+      end
+      class Partner
+      end
+      class Parser
+            ^^^^^^ `Parser` names a doer; name the class for the thing it is, not the work it does.
+      end
+      class Supervisor
+            ^^^^^^^^^^ `Supervisor` names a doer; name the class for the thing it is, not the work it does. Try `Supervision`.
+      end
+      class Notifier
+            ^^^^^^^^ `Notifier` names a doer; name the class for the thing it is, not the work it does.
+      end
+      class Mapper
+            ^^^^^^ `Mapper` names a doer; name the class for the thing it is, not the work it does.
+      end
+      class Processor
+            ^^^^^^^^^ `Processor` names a doer; name the class for the thing it is, not the work it does.
+      end
+    RUBY
   end
 end

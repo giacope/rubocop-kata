@@ -98,4 +98,14 @@ RSpec.describe(RuboCop::Cop::Kata::GoodModuleName, :config) do
       RUBY
     end
   end
+
+  it "does not read a known word as a doer unless its stem is a verb" do
+    expect_offense(<<~RUBY)
+      module Partner
+      end
+      module Handler
+             ^^^^^^^ `Handler` names a doer; name the module for the thing it is, not the work it does.
+      end
+    RUBY
+  end
 end

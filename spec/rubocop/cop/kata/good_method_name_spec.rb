@@ -173,6 +173,50 @@ RSpec.describe(RuboCop::Cop::Kata::GoodMethodName, :config) do
         end
       RUBY
     end
+
+    it "exempts the names Rails, Pundit, Ransack, Devise and Phlex call by contract" do
+      expect_no_offenses(<<~RUBY)
+        def validate_each(record, attribute, value)
+        end
+        def self.ransackable_attributes(auth = nil)
+        end
+        def policy_class
+        end
+        def view_template
+        end
+      RUBY
+    end
+  end
+
+  it "leaves a Minitest name to read as the sentence it is" do
+    expect_no_offenses(<<~RUBY)
+      class InvoiceTest < Minitest::Test
+        def test_totals_the_billable_lines
+        end
+      end
+      class Billing < ActiveSupport::TestCase
+        def test_refunds_a_voided_invoice
+        end
+      end
+    RUBY
+  end
+
+  it "prices a test_ name outside a test class" do
+    expect_offense(<<~RUBY)
+      class Adapter < Base
+        def test_reopen_stale_connection
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ #{offense("test_reopen_stale_connection")}
+        end
+      end
+      def test_reopen_stale_connection
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ #{offense("test_reopen_stale_connection")}
+      end
+      class Probe
+        def test_reopen_stale_connection
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ #{offense("test_reopen_stale_connection")}
+        end
+      end
+    RUBY
   end
 
   it "flags a name chaining actions with a conjunction" do
