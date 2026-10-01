@@ -11,7 +11,6 @@ class RuboCop::Cop::Kata::PairedBrackets < RuboCop::Cop::Base
 
   OPENERS = %i[tLPAREN tLPAREN2 tLPAREN_ARG tLBRACK tLBRACK2 tLCURLY tLBRACE tLBRACE_ARG tLAMBEG].freeze
   CLOSERS = %i[tRPAREN tRBRACK tRCURLY].freeze
-  BLANKS = [" ", "\t"].freeze
 
   def on_new_investigation
     super
@@ -22,10 +21,13 @@ class RuboCop::Cop::Kata::PairedBrackets < RuboCop::Cop::Base
 
   def pairs
     stack = []
-    processed_source.tokens.each_with_object([]) do |token, found|
-      stack << token if OPENERS.include?(token.type)
-      found << [stack.pop, token] if CLOSERS.include?(token.type) && !stack.empty?
-    end
+    processed_source.tokens.filter_map { pair(it, stack) }
+  end
+
+  def pair(token, stack)
+    type = token.type
+    stack << token if OPENERS.include?(type)
+    [stack.pop, token] if CLOSERS.include?(type) && !stack.empty?
   end
 
   def check(opener, closer)
@@ -44,17 +46,13 @@ class RuboCop::Cop::Kata::PairedBrackets < RuboCop::Cop::Base
   end
 
   def trailing(token)
-    text = processed_source.buffer.source
-    stop = token.pos.end_pos
-    stop += 1 while BLANKS.include?(text[stop])
-    token.pos.end.resize(stop - token.pos.end_pos)
+    edge = token.pos.end
+    edge.resize(edge.source_line[edge.column..][/\A[ \t]*/].length)
   end
 
   def preceding(token)
-    text = processed_source.buffer.source
-    from = token.pos.begin_pos
-    from -= 1 while from.positive? && BLANKS.include?(text[from - 1])
-    token.pos.begin.adjust(begin_pos: from - token.pos.begin_pos)
+    edge = token.pos.begin
+    edge.adjust(begin_pos: -edge.source_line[0, edge.column][/[ \t]*\z/].length)
   end
 
   def starts?(token) = processed_source.lines[token.line - 1][0...token.column].strip.empty?

@@ -24,7 +24,7 @@ ignore:
     same guard as the entry above; a false here falls through to Gap, which
     rejects the pair at the def's args node
 - file: lib/rubocop/kata/variable/gap.rb
-  line: 45
+  line: 46
   label: ">= => >"
   reason: >-
     twin and read are distinct lvar nodes, and two nodes of one type cannot

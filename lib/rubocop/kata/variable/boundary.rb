@@ -27,7 +27,8 @@ class RuboCop::Kata::Variable::Boundary
   end
 
   def blocks?(child, parent)
-    return true if LOOPS.include?(parent.type) || HOISTS.include?(parent.type)
-    FIRSTS.include?(parent.type) && !parent.children.first.equal?(child)
+    type = parent.type
+    return true if LOOPS.include?(type) || HOISTS.include?(type)
+    FIRSTS.include?(type) && !parent.children.first.equal?(child)
   end
 end

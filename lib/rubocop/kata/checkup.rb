@@ -15,9 +15,10 @@ class RuboCop::Kata::Checkup
 
   def run
     found = inert + dead
+    clean = found.empty?
     found.each { @io.puts(it) }
-    @io.puts(found.empty? ? "clean" : tally(found))
-    found.empty? ? 0 : 1
+    @io.puts(clean ? "clean" : tally(found))
+    clean ? 0 : 1
   end
 
   private

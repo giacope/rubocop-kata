@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class RuboCop::Cop::Kata::RealWords < RuboCop::Cop::Base
+  include RuboCop::Cop::Kata::Roster
+
   MSG = "%s is not in the dictionary — restore the underscore between smashed words, spell the " \
     "abbreviation out, or add it to `Terms` if it is one domain term here."
   ABBREVIATION_MSG = "%s is an abbreviation; spell the word out."
@@ -41,24 +43,25 @@ class RuboCop::Cop::Kata::RealWords < RuboCop::Cop::Base
   private
 
   def check(node, name)
-    stem = name.to_s.sub(SIGIL, "").delete_prefix("_").sub(/[?!=]\z/, "")
-    segment = flaw(name.to_s, stem)
-    return unless segment
-    add_offense(node.loc.name, message: message(name, stem, segment))
+    segment = flaw(name)
+    add_offense(node.loc.name, message: format(template(segment), label(name, segment))) if segment
   end
 
-  def flaw(name, stem)
-    return if allowed?(name) || allowed?(stem) || !stem.match?(/\A[a-z]/)
+  def flaw(name)
+    stem = stem(name)
+    return if allowed?(name.to_s) || allowed?(stem) || !stem.match?(/\A[a-z]/)
     stem.split("_").find { !word?(it) }
   end
 
-  def message(name, stem, segment)
-    format(banned?(segment) ? ABBREVIATION_MSG : MSG, label(name, stem, segment))
+  def stem(name) = name.to_s.sub(SIGIL, "").delete_prefix("_").sub(/[?!=]\z/, "")
+
+  def template(segment) = banned?(segment) ? ABBREVIATION_MSG : MSG
+
+  def label(name, segment) = stem(name) == segment ? "`#{name}`" : "`#{segment}` (in `#{name}`)"
+
+  def word?(segment)
+    segment.sub(/\d+\z/, "").length < 2 || listed?("Terms", segment) || (known?(segment) && !banned?(segment))
   end
-
-  def label(name, stem, segment) = stem == segment ? "`#{name}`" : "`#{segment}` (in `#{name}`)"
-
-  def word?(segment) = segment.sub(/\d+\z/, "").length < 2 || term?(segment) || (known?(segment) && !banned?(segment))
 
   def known?(segment) = forms(segment).any? { RuboCop::Kata::Dictionary::ENTRIES.include?(it) }
 
@@ -70,11 +73,5 @@ class RuboCop::Cop::Kata::RealWords < RuboCop::Cop::Base
 
   def derivations(base) = DERIVATIONS.map { |pattern, stem| base.sub(pattern, stem) }
 
-  def term?(segment) = list("Terms").include?(segment)
-
-  def banned?(segment) = list("BannedWords").include?(segment)
-
-  def allowed?(name) = list("AllowedNames").include?(name)
-
-  def list(key) = Array(cop_config[key]).map(&:to_s)
+  def banned?(segment) = listed?("BannedWords", segment)
 end

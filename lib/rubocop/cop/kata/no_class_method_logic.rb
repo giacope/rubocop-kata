@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class RuboCop::Cop::Kata::NoClassMethodLogic < RuboCop::Cop::Base
+  include RuboCop::Cop::Kata::Roster
+
   MSG = "`%s` puts logic on the class; classes construct, instances work."
 
   def on_defs(node) = check(node)
@@ -18,6 +20,4 @@ class RuboCop::Cop::Kata::NoClassMethodLogic < RuboCop::Cop::Base
   end
 
   def constructor?(name) = name.start_with?("from_") || allowed?(name)
-
-  def allowed?(name) = Array(cop_config["AllowedNames"]).map(&:to_s).include?(name)
 end

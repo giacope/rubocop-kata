@@ -10,28 +10,30 @@ class RuboCop::Cop::Kata::NoRedundantVariable < RuboCop::Cop::Base
 
   MSG = 'Variable "%s" is redundant and must be inlined: it is read only once'
 
-  def on_def(node) = check(node.body)
+  def on_def(node)
+    body = node.body
+    audit(body) if body
+  end
 
-  def on_defs(node) = check(node.body)
+  alias on_defs on_def
 
   private
 
-  def check(body)
-    return if body.nil?
+  def audit(body)
     singles = RuboCop::Kata::Variable::Ledger.new(body).pairs
     movable = singles.select { |assign, _| solo?(assign) && !heredoc?(assign) && !swallows?(assign, singles) }
-    gap = RuboCop::Kata::Variable::Gap.new(movable)
-    singles.each { |assign, read| register(assign, read, movable) unless gap.crossed?(assign, read) }
+    gap = RuboCop::Kata::Variable::Gap.new(singles, movable)
+    singles.each { |assign, read| register(assign, read, movable) unless gap.crossed?(assign) }
   end
 
   def register(assign, read, movable)
     return inline(assign, read) if movable.key?(assign)
-    add_offense(assign, message: format(MSG, assign.children.first))
+    add_offense(assign, message: format(MSG, assign.name))
   end
 
   def inline(assign, read)
-    inlining = RuboCop::Kata::Variable::Inlining.new(assign.children.last, read)
-    add_offense(assign, message: format(MSG, assign.children.first)) do |corrector|
+    inlining = RuboCop::Kata::Variable::Inlining.new(assign.expression, read)
+    add_offense(assign, message: format(MSG, assign.name)) do |corrector|
       corrector.replace(inlining.range, inlining.text)
       corrector.remove(range_by_whole_lines(assign.source_range, include_final_newline: true))
     end

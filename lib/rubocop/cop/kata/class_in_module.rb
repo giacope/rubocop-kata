@@ -9,28 +9,15 @@ class RuboCop::Cop::Kata::ClassInModule < RuboCop::Cop::Base
   public_constant :MSG
 
   def on_class(node)
-    return if namespaced?(node)
-    return if scoped?(node)
-    add_offense(node, message: format(MSG, label(node)))
+    return if namespaced?(node) || scoped?(node)
+    add_offense(node, message: format(MSG, node.identifier.source))
   end
 
   private
 
-  def namespaced?(node)
-    scope = outer(node)
-    !scope.nil? && scope.type != :cbase
-  end
+  def namespaced?(node) = path(node).any? { !it.cbase_type? }
 
-  def scoped?(node)
-    return false unless outer(node).nil?
-    node.each_ancestor(:module, :class).any?
-  end
+  def scoped?(node) = path(node).none? && node.each_ancestor(:module, :class).any?
 
-  def outer(node)
-    node.children[0].children[0]
-  end
-
-  def label(node)
-    node.children[0].source
-  end
+  def path(node) = node.identifier.each_path
 end

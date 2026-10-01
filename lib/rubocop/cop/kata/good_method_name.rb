@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class RuboCop::Cop::Kata::GoodMethodName < RuboCop::Cop::Base
+  include RuboCop::Cop::Kata::Wording
+
   MSG = "`%s` needs two words: either a concept is missing, or the method belongs on the object " \
     "the second word names. Say it in one word, move it, give the role a `Prefixes`/`Suffixes` " \
     "word — or, if `%s` is one domain concept here, add it to `Terms`."
@@ -15,44 +17,19 @@ class RuboCop::Cop::Kata::GoodMethodName < RuboCop::Cop::Base
   private
 
   def check(node, name)
-    return unless name.match?(/\A[a-z_]/)
-    stem = name.to_s.sub(/[?!=]\z/, "")
-    return if allowed?(name.to_s) || allowed?(stem)
+    text = name.to_s
+    stem = text.sub(/[?!=]\z/, "")
+    return if !text.match?(/\A[a-z_]/) || allowed?(text) || allowed?(stem)
     complaint = chain(name, stem) || (format(MSG, name, name) unless good?(stem))
     add_offense(node.loc.name, message: complaint) if complaint
   end
 
-  def test?(node) = node.method_name.start_with?("test_") && suite?(node.each_ancestor(:class).first)
+  def test?(node) = node.method_name.start_with?("test_") && node.each_ancestor(:class).take(1).any? { suite?(it) }
 
-  def suite?(klass) = !klass.nil? && [klass.identifier, klass.parent_class].compact.any? { SUITE.match?(it.source) }
+  def suite?(klass) = [klass.identifier, klass.parent_class].compact.any? { SUITE.match?(it.source) }
 
   def chain(name, stem)
     joint = (stem.split("_") & JOINTS).first
     format(CHAIN_MSG, name, joint) if joint
   end
-
-  def good?(stem)
-    words = stem.split("_")
-    return false unless words.all? { pattern.match?(it) }
-    core = core(words)
-    return words.size == 1 if core.size == words.size
-    core.size.between?(1, max)
-  end
-
-  def core(words)
-    rest = prefix?(words.first) && words.size > 1 ? words.drop(1) : words
-    suffix?(rest.last) && rest.size > 1 ? rest[0..-2] : rest
-  end
-
-  def prefix?(word) = list("Prefixes").include?(word)
-
-  def suffix?(word) = list("Suffixes").include?(word)
-
-  def allowed?(name) = list("AllowedNames").include?(name) || list("Terms").include?(name)
-
-  def list(key) = Array(cop_config[key]).map(&:to_s)
-
-  def max = Integer(cop_config.fetch("MaxWords", 2))
-
-  def pattern = Regexp.new(cop_config.fetch("Pattern", "^[a-z][a-z0-9]{0,15}$"))
 end

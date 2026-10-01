@@ -29,10 +29,7 @@ class RuboCop::Kata::Variable::Ledger
 
   def reads = nodes.select(&:lvar_type?).group_by { it.children.first }
 
-  def tainted
-    nodes.select { it.op_asgn_type? || it.or_asgn_type? || it.and_asgn_type? }.map { it.children.first }
-      .select(&:lvasgn_type?).map { it.children.first }
-  end
+  def tainted = nodes.select(&:shorthand_asgn?).map(&:assignment_node).select(&:lvasgn_type?).map(&:name)
 
   def nodes(node = @body, found = [])
     return found if node.def_type? || node.defs_type?
@@ -42,8 +39,6 @@ class RuboCop::Kata::Variable::Ledger
   end
 
   def statement?(node)
-    parent = node.parent
-    parent = parent.parent while parent.type == :begin && parent.children.size == 1
-    STATEMENT_PARENTS.include?(parent.type)
+    STATEMENT_PARENTS.include?(node.each_ancestor.find { !it.begin_type? || it.children.size != 1 }.type)
   end
 end

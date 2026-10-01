@@ -15,9 +15,9 @@ class RuboCop::Kata::Variable::Inlining
     @read = read
   end
 
-  def range = pair.nil? ? @read.source_range : pair.source_range
+  def range = (pair || @read).source_range
 
-  def text = pair.nil? ? value : "#{pair.children.first.source}: #{value}"
+  def text = pair ? "#{pair.key.source}: #{value}" : value
 
   private
 
@@ -32,13 +32,12 @@ class RuboCop::Kata::Variable::Inlining
 
   def primary?
     return true if PRIMARY.include?(@rhs.type)
-    return !@rhs.loc.begin.nil? || @rhs.arguments.empty? if @rhs.send_type? || @rhs.csend_type?
+    return @rhs.parenthesized? || @rhs.arguments.empty? if @rhs.call_type?
     @rhs.begin_type? && @rhs.children.size == 1
   end
 
   def bare?
     parent = @read.parent
-    return false if parent.nil? || !(parent.send_type? || parent.csend_type?)
-    parent.loc.begin.nil? && parent.arguments.include?(@read)
+    parent.call_type? && !parent.parenthesized? && parent.arguments.include?(@read)
   end
 end

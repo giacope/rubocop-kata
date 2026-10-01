@@ -1,0 +1,34 @@
+{
+  "version": 6,
+  "packaging": "folder",
+  "analyzers": [
+    "complexity",
+    "coupling",
+    "duplication",
+    "smells"
+  ],
+  "targets": [
+    "lib"
+  ],
+  "edges": [
+    "rubocop -> (root)"
+  ],
+  "findings": {},
+  "accepted": [
+    {
+      "kind": "utility_function",
+      "package": "RuboCop::Kata::Plugin#about",
+      "reason": "LintRoller::Plugin calls #about on the plugin instance; the override cannot be private or moved"
+    },
+    {
+      "kind": "utility_function",
+      "package": "RuboCop::Kata::Plugin#supported?",
+      "reason": "LintRoller::Plugin calls #supported? on the plugin instance; the override cannot be private or moved"
+    },
+    {
+      "kind": "duplication",
+      "digest": "63a7c9ee8556",
+      "reason": "each cop declares its own messages and its RuboCop hook (on_class, on_module); the hook name is the callback RuboCop dispatches on, not a value to pass"
+    }
+  ]
+}

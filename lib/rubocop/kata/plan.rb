@@ -20,6 +20,7 @@ class RuboCop::Kata::Plan
   ROW = "%-10s %6d  %s"
   NEXT = "next: %s — %d offense%s in %d file%s%s"
   MINTS = "; these mint the names `naming` then prices, so take them first"
+  NOTES = { "structure" => MINTS }.freeze
   DENSE = "densest: %s (%d)"
   CLEAN = "clean"
 
@@ -50,16 +51,17 @@ class RuboCop::Kata::Plan
   end
 
   def breakdown(picked)
-    picked.group_by { it.fetch("cop") }
-      .sort_by { |_, list| -list.length }
+    picked.map { it.fetch("cop") }.tally
+      .sort_by { |_, count| -count }
       .first(3)
-      .map { |cop, list| "#{cop} #{list.length}" }
+      .map { |cop, count| "#{cop} #{count}" }
       .join(", ")
   end
 
   def advise(found)
-    picked = within(found, upcoming(found))
-    @io.puts(headline(upcoming(found), picked))
+    stage = upcoming(found)
+    picked = within(found, stage)
+    @io.puts(headline(stage, picked))
     @io.puts(format(DENSE, *hottest(picked)))
   end
 
@@ -70,7 +72,7 @@ class RuboCop::Kata::Plan
     format(NEXT, stage, picked.length, plural(picked), files.length, plural(files), note(stage))
   end
 
-  def note(stage) = stage == "structure" ? MINTS : ""
+  def note(stage) = NOTES.fetch(stage, "")
 
   def hottest(picked) = picked.map { it.fetch("path") }.tally.max_by(&:last)
 
@@ -82,7 +84,8 @@ class RuboCop::Kata::Plan
 
   def rows(file)
     file.fetch("offenses", []).map do
-      { "path" => file.fetch("path"), "cop" => it.fetch("cop_name"), "stage" => stage(it.fetch("cop_name")) }
+      cop = it.fetch("cop_name")
+      { "path" => file.fetch("path"), "cop" => cop, "stage" => stage(cop) }
     end
   end
 
@@ -94,8 +97,9 @@ class RuboCop::Kata::Plan
 
   def sweep
     Tempfile.create("rubocop-kata-plan") do |sink|
-      RuboCop::CLI.new.run(["--format", "json", "--out", sink.path, "."])
-      File.read(sink.path)
+      path = sink.path
+      RuboCop::CLI.new.run(["--format", "json", "--out", path, "."])
+      File.read(path)
     end
   end
 end
