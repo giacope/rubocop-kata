@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class RuboCop::Cop::Kata::BuilderNoun < RuboCop::Cop::Base
+  include RuboCop::Cop::Kata::Roster
+
   MSG = "A builder is named for what it returns: `%s`, not `%s`."
 
   def on_def(node) = check(node)
@@ -11,14 +13,10 @@ class RuboCop::Cop::Kata::BuilderNoun < RuboCop::Cop::Base
 
   def check(node)
     name = node.method_name.to_s
+    return if allowed?(name)
     verb = prefix(name)
-    return if verb.nil? || allowed?(name)
-    add_offense(node.loc.name, message: format(MSG, name.delete_prefix("#{verb}_"), name))
+    add_offense(node.loc.name, message: format(MSG, name.delete_prefix("#{verb}_"), name)) if verb
   end
 
-  def allowed?(name) = Array(cop_config["AllowedNames"]).map(&:to_s).include?(name)
-
-  def prefix(name)
-    Array(cop_config["BannedPrefixes"]).map(&:to_s).find { name.start_with?("#{it}_") }
-  end
+  def prefix(name) = list("BannedPrefixes").find { name.start_with?("#{it}_") }
 end

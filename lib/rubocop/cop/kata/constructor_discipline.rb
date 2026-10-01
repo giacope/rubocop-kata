@@ -7,13 +7,15 @@ class RuboCop::Cop::Kata::ConstructorDiscipline < RuboCop::Cop::Base
 
   def on_def(node)
     return unless node.method?(:initialize)
-    node.each_descendant(:send, :csend) do |send|
-      next if ALLOWED.include?(send.method_name) || exempt?(send, node)
-      add_offense(send, message: format(MSG, send.method_name))
-    end
+    node.each_descendant(:send, :csend) { judge(it, node) }
   end
 
   private
+
+  def judge(send, root)
+    name = send.method_name
+    add_offense(send, message: format(MSG, name)) unless ALLOWED.include?(name) || exempt?(send, root)
+  end
 
   def exempt?(send, root)
     send.each_ancestor.take_while { !it.equal?(root) }.any? { deferred?(it) || raised?(it) || guard?(it) }

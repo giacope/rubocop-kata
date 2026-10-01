@@ -21,7 +21,7 @@ module RuboCop::Cop::Kata::AgentNoun
 
   def word?(stem) = RuboCop::Kata::Dictionary::ENTRIES.include?(stem)
 
-  def doer(name)
+  def doer(name, kind)
     hint = suggestion(name)
     hint ? format(DOER_HINT, name, kind, hint) : format(DOER_MSG, name, kind)
   end

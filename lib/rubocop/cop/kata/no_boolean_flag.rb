@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class RuboCop::Cop::Kata::NoBooleanFlag < RuboCop::Cop::Base
+  include RuboCop::Cop::Kata::Roster
+
   MSG = "A boolean flag is two methods trapped in one; split them or name the argument."
   DEFAULT_MSG = "`%s` defaults to a boolean flag, two methods trapped in one; split them or make it a keyword."
 
@@ -23,5 +25,5 @@ class RuboCop::Cop::Kata::NoBooleanFlag < RuboCop::Cop::Base
     add_offense(argument, message: format(DEFAULT_MSG, argument.name))
   end
 
-  def allowed?(name) = Array(cop_config["AllowedMethods"]).map(&:to_s).include?(name.to_s)
+  def allowed?(name) = listed?("AllowedMethods", name.to_s)
 end

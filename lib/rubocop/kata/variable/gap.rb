@@ -10,19 +10,21 @@ class RuboCop::Kata::Variable::Gap
     irange erange lvar self pair begin
   ].freeze
 
-  def initialize(movable)
+  def initialize(pairs, movable)
+    @pairs = pairs
     @movable = movable
     @memo = {}
   end
 
-  def crossed?(assign, read)
-    @memo[assign] = scan?(assign, read) unless @memo.key?(assign)
+  def crossed?(assign)
+    @memo[assign] = scan?(assign) unless @memo.key?(assign)
     @memo[assign]
   end
 
   private
 
-  def scan?(assign, read)
+  def scan?(assign)
+    read = @pairs.fetch(assign)
     steps(assign, read).any? do |child, parent|
       before(parent, child, assign).any? { !deferred?(it, read) }
     end
@@ -34,15 +36,14 @@ class RuboCop::Kata::Variable::Gap
   end
 
   def before(parent, child, assign)
-    kids = parent.children
-    stop = kids.index { it.equal?(child) }
-    kids[(parent.equal?(assign.parent) ? kids.index { it.equal?(assign) } + 1 : 0)...stop]
+    start = parent.equal?(assign.parent) ? assign.sibling_index + 1 : 0
+    parent.children[start...child.sibling_index]
   end
 
-  def deferred?(node, read)
-    return true if pure?(node)
-    twin = @movable[node]
-    !twin.nil? && twin.source_range.begin_pos >= read.source_range.begin_pos && !crossed?(node, twin)
+  def deferred?(node, read) = pure?(node) || (@movable.key?(node) && later?(node, read))
+
+  def later?(node, read)
+    @pairs.fetch(node).source_range.begin_pos >= read.source_range.begin_pos && !crossed?(node)
   end
 
   def pure?(node)

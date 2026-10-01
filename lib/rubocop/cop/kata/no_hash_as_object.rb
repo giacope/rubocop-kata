@@ -5,15 +5,16 @@ class RuboCop::Cop::Kata::NoHashAsObject < RuboCop::Cop::Base
   CALLS = %i[send csend super yield].freeze
 
   def on_hash(node)
-    return if node.pairs.size < limit
-    return if kwargs?(node) || table?(node)
-    add_offense(node, message: format(MSG, node.pairs.size))
+    count = node.pairs.size
+    return if count < limit || kwargs?(node) || table?(node)
+    add_offense(node, message: format(MSG, count))
   end
 
   private
 
   def kwargs?(node)
-    CALLS.include?(node.parent&.type) && (!node.braces? || node.equal?(node.parent.last_argument))
+    holder = node.parent
+    CALLS.include?(holder&.type) && (!node.braces? || node.equal?(holder.last_argument))
   end
 
   def table?(node)

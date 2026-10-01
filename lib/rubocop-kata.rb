@@ -14,12 +14,15 @@ module RuboCop
   end
 end
 
+require_relative "rubocop/cop/kata/roster"
 require_relative "rubocop/cop/kata/builder_noun"
 require_relative "rubocop/cop/kata/class_in_module"
 require_relative "rubocop/cop/kata/clock_discipline"
 require_relative "rubocop/cop/kata/constructor_discipline"
 require_relative "rubocop/cop/kata/env_discipline"
 require_relative "rubocop/cop/kata/agent_noun"
+require_relative "rubocop/cop/kata/type_name"
+require_relative "rubocop/cop/kata/wording"
 require_relative "rubocop/cop/kata/good_class_name"
 require_relative "rubocop/cop/kata/good_method_name"
 require_relative "rubocop/cop/kata/good_module_name"
