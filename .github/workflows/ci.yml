@@ -28,10 +28,7 @@ jobs:
         with:
           ruby-version: "3.4"
           bundler-cache: true
-      - if: github.event_name == 'pull_request'
-        run: bundle exec kimera ci --since origin/${{ github.base_ref }}
-      - if: github.event_name != 'pull_request'
-        run: bundle exec kimera ci
+      - run: bundle exec kimera ci
       - if: failure()
         uses: actions/upload-artifact@v4
         with:
