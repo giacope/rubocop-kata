@@ -11,18 +11,20 @@ class RuboCop::Kata::Variable::Ledger
     @body = body
   end
 
-  # hashira:disable-next-line fragmentation -- assigns, reads and tainted name the node sets a pair is drawn from
+  # hashira:disable-next-line fragmentation -- blind raters preferred single, the one-read rule, to the merge
   def pairs
-    reads = self.reads
-    tainted = self.tainted
-    assigns.filter_map do |name, found|
-      pair = [*found, *reads[name]]
-      next unless pair.size == 2 && found.size == 1 && !tainted.include?(name)
-      pair unless RuboCop::Kata::Variable::Boundary.new(*pair).crossed?
-    end.to_h
+    singles.reject { |assign, read| RuboCop::Kata::Variable::Boundary.new(assign, read).crossed? }.to_h
   end
 
   private
+
+  def singles
+    reads = self.reads
+    tainted = self.tainted
+    assigns.filter_map { |name, found| single(found, reads.fetch(name, [])) unless tainted.include?(name) }
+  end
+
+  def single(found, once) = ([found.first, once.first] if found.size == 1 && once.size == 1)
 
   def assigns = nodes.select { it.lvasgn_type? && statement?(it) }.group_by { it.children.first }
 

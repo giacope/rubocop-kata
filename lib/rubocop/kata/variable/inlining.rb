@@ -17,10 +17,7 @@ class RuboCop::Kata::Variable::Inlining
 
   def range = (pair || @read).source_range
 
-  def text
-    value = wrap? ? "(#{@rhs.source})" : @rhs.source
-    pair ? "#{pair.key.source}: #{value}" : value
-  end
+  def text = pair ? "#{pair.key.source}: #{value}" : value
 
   private
 
@@ -29,15 +26,18 @@ class RuboCop::Kata::Variable::Inlining
     parent if parent.pair_type? && parent.value_omission?
   end
 
-  def wrap?
-    parent = @read.parent
-    return true unless primary?
-    @rhs.source.start_with?("{") && parent.call_type? && !parent.parenthesized? && parent.arguments.include?(@read)
-  end
+  def value = wrap? ? "(#{@rhs.source})" : @rhs.source
+
+  def wrap? = !primary? || (@rhs.source.start_with?("{") && bare?)
 
   def primary?
     return true if PRIMARY.include?(@rhs.type)
     return @rhs.parenthesized? || @rhs.arguments.empty? if @rhs.call_type?
     @rhs.begin_type? && @rhs.children.size == 1
+  end
+
+  def bare?
+    parent = @read.parent
+    parent.call_type? && !parent.parenthesized? && parent.arguments.include?(@read)
   end
 end
