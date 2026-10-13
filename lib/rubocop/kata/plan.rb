@@ -14,8 +14,10 @@ class RuboCop::Kata::Plan
       Kata/RealWords Kata/GoodMethodName Kata/GoodVariableName Kata/GoodClassName
       Kata/GoodModuleName Kata/BuilderNoun
     ],
-    "prose" => %w[Kata/NoComments Kata/ProsePlacement]
+    "prose" => %w[Kata/NoComments Kata/ProsePlacement],
+    "layout" => %w[Kata/PairedBrackets]
   }.freeze
+  DEPARTMENTS = { "Layout/" => "layout" }.freeze
   REST = "rest"
   ROW = "%-10s %6d  %s"
   NEXT = "next: %s — %d offense%s in %d file%s%s"
@@ -89,7 +91,9 @@ class RuboCop::Kata::Plan
     end
   end
 
-  def stage(cop) = STAGES.find { |_, cops| cops.include?(cop) }&.first || REST
+  def stage(cop)
+    STAGES.find { |_, cops| cops.include?(cop) }&.first || DEPARTMENTS.find { |prefix, _| cop.start_with?(prefix) }&.last || REST
+  end
 
   def report = @_report ||= JSON.parse(inspection)
 
@@ -99,7 +103,7 @@ class RuboCop::Kata::Plan
     Tempfile.create("rubocop-kata-plan") do |sink|
       path = sink.path
       RuboCop::CLI.new.run(["--format", "json", "--out", path, "."])
-      File.read(path)
+      File.read(path, encoding: Encoding::UTF_8)
     end
   end
 end
