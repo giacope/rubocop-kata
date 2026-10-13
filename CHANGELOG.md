@@ -4,11 +4,16 @@
 
 - kata's own `lib` now reads under those limits. hashira's fragmentation
   check found 21 public methods spread over chains of one-line helpers;
-  folding the single-use helpers into their callers clears 20, from 255
-  methods averaging 2.65 lines to 190 averaging 3.37. The last,
-  `Variable::Ledger#pairs`, keeps the three node sets it pairs as named
-  helpers, with a reasoned directive. Cases, corpora and the mutation score
-  (100%) are unchanged.
+  folding single-use helpers into their callers took `lib` from 255 methods
+  averaging 2.65 lines to 206 averaging 3.17. In a blind pairwise review of
+  the 9 refactors, both raters preferred the merge for Checkup, Plan,
+  PairedBrackets and GoodMethodName, both preferred the original for
+  NoComments, ConstructorDiscipline, Ledger and Inlining, and split on
+  RealWords, which keeps its merge; the four losses went back to their
+  named predicates. Under
+  hashira's revised check, which no longer counts named predicates, findings
+  go from 18 to 0, with NoComments and Ledger kept by a directive citing the
+  review. Cases, corpora and the mutation score (100%) are unchanged.
 
 - Methods may run to 10 lines and names may take two words. A blind
   readability study compared kimera and hashira, written to kata's rules,
