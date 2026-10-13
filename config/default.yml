@@ -1030,8 +1030,11 @@ Elegant/NoClassInModule:
   Enabled: false
 
 # --- Elegant's test-file exclusions never match Rails' `foo_test.rb`, nor a
-# suite addressed by directory.
+# suite addressed by directory. Before RuboCop grew its own
+# Style/OneClassPerFile, it read rubocop-elegant's `Style/OneClassPerFile:
+# Enabled: false` as this cop's and switched it off; it is on either way.
 Elegant/OneClassPerFile:
+  Enabled: true
   inherit_mode:
     merge:
       - Exclude
