@@ -871,43 +871,63 @@ Elegant/NoComments:
 Style/MethodCallWithArgsParentheses:
   Enabled: false
 
-# --- Core layout cops that autocorrect-loop against Elegant/PairedBrackets
-# and Elegant/NoEmptyLines*; the Elegant cops win.
+# --- Core layout cops. Kata/PairedBrackets now corrects to the indent these
+# expect, so the cops that only fought its drift are on, each in the style
+# that agrees with Elegant/MonotonicIndents (a fixed two-space step). Run one
+# at a time with `rubocop -A` over faraday and rubygems.org, none loops or
+# leaves an offense behind. The four below stay off: each wants a blank line
+# where Elegant/NoEmptyLinesInBlocks or NoEmptyLinesInMethods forbids one,
+# and `rubocop -A` reports infinite loops on them (382 on rubygems.org for
+# the guard clause alone).
 Layout/BlockAlignment:
-  Enabled: false
+  Enabled: true
+  EnforcedStyleAlignWith: start_of_line
 
 Layout/MultilineBlockLayout:
-  Enabled: false
+  Enabled: true
 
 Layout/ClosingParenthesisIndentation:
-  Enabled: false
+  Enabled: true
 
 Layout/FirstArgumentIndentation:
-  Enabled: false
+  Enabled: true
+  EnforcedStyle: consistent
+
+Layout/MultilineMethodCallBraceLayout:
+  Enabled: true
+
+Layout/MultilineArrayBraceLayout:
+  Enabled: true
+
+Layout/MultilineHashBraceLayout:
+  Enabled: true
+
+Layout/MultilineMethodCallIndentation:
+  Enabled: true
+  EnforcedStyle: indented
+
+Layout/ParameterAlignment:
+  Enabled: true
+  EnforcedStyle: with_fixed_indentation
+
+Layout/RescueEnsureAlignment:
+  Enabled: true
 
 # Its default aligns continuation arguments under the first argument's column,
 # an arbitrary step Elegant/MonotonicIndents rejects; a fixed step is +2.
 Layout/ArgumentAlignment:
   EnforcedStyle: with_fixed_indentation
 
-# Requires a blank line after `attr_reader` where Elegant/NoEmptyLinesInBlocks
-# forbids one; inside an `included do` block the two loop.
 Layout/EmptyLinesAroundAttributeAccessor:
-  Enabled: false
-
-Layout/MultilineMethodCallBraceLayout:
-  Enabled: false
-
-Layout/MultilineArrayBraceLayout:
-  Enabled: false
-
-Layout/MultilineHashBraceLayout:
   Enabled: false
 
 Layout/EmptyLinesAroundAccessModifier:
   Enabled: false
 
 Layout/EmptyLinesAfterModuleInclusion:
+  Enabled: false
+
+Layout/EmptyLineAfterGuardClause:
   Enabled: false
 
 # --- An inline disable is the only escape short of excluding a whole file,
