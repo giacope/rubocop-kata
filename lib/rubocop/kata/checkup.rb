@@ -21,33 +21,29 @@ class RuboCop::Kata::Checkup
 
   def run
     found = inert + dead
-    [*waivers, *notes, *found].each { @io.puts(it) }
-    @io.puts(summary(found))
-    clean?(found) ? 0 : 1
+    clean = found.empty? && notes.empty?
+    [*waivers, *notes, *found, clean ? "clean" : tally(found), *count].each { @io.puts(it) }
+    clean ? 0 : 1
   end
 
   private
-
-  def clean?(found) = found.empty? && notes.empty?
-
-  def summary(found) = [clean?(found) ? "clean" : tally(found), *count].join("\n")
-
-  def count = waived.empty? ? [] : [format(WAIVERS, waived.size, plural(waived), waived.count { it.last.empty? })]
 
   def tally(found)
     text = format(TALLY, found.size, found.one? ? "y" : "ies")
     notes.empty? ? text : text + format(SKIPPED, notes.size, plural(notes))
   end
 
+  def count = waived.empty? ? [] : [format(WAIVERS, waived.size, plural(waived), waived.count { it.last.empty? })]
+
   def plural(list) = list.one? ? "" : "s"
 
-  def inert = files.flat_map { |file| entries(file) }
-
-  def entries(file)
-    own = settings(file)
-    File.readlines(file, encoding: Encoding::UTF_8).each_with_index.filter_map do |text, index|
-      key = text[KEY, 1]
-      format(INERT, relative(file), index + 1, key) if key && !live?(key, own)
+  def inert
+    files.flat_map do |file|
+      own = settings(file)
+      File.readlines(file, encoding: Encoding::UTF_8).each_with_index.filter_map do |text, index|
+        key = text[KEY, 1]
+        format(INERT, file.delete_prefix("#{@root}/"), index + 1, key) if key && !live?(key, own)
+      end
     end
   end
 
@@ -56,60 +52,58 @@ class RuboCop::Kata::Checkup
   def files(file = File.join(@root, ".rubocop.yml"), seen = [])
     return seen if seen.include?(file) || !File.file?(file)
     seen << file
-    parents(file).each { files(it, seen) }
+    Array(settings(file)["inherit_from"]).each { files(File.expand_path(it, File.dirname(file)), seen) }
     seen
   end
 
-  def parents(file) = Array(settings(file)["inherit_from"]).map { File.expand_path(it, File.dirname(file)) }
-
   def live?(key, own) = config.cop_enabled?(key) || own.dig(key, "Enabled") == false
 
-  def relative(path) = path.delete_prefix("#{@root}/")
-
-  def dead = parsed.flat_map { |path, source| source.comments.filter_map { finding(path, it) } }
-
-  def notes = @_notes ||= sources.filter_map { |path, source| note(path, source) }
-
-  def note(path, source)
-    return format(UNREAD, path, source) if source.is_a?(String)
-    format(BROKEN, path) unless source.valid_syntax?
-  end
-
-  def parsed = sources.reject { |_, source| source.is_a?(String) }
-
-  def sources = @_sources ||= targets.map { [it, parse(it)] }
-
-  def parse(path)
-    RuboCop::ProcessedSource.from_file(path, config.target_ruby_version)
-  rescue StandardError => error
-    "#{error.class}: #{error.message.lines.first.to_s.strip}"
-  end
-
-  def targets = RuboCop::TargetFinder.new(store).find([@root], :only_recognized_file_types)
-
-  def finding(path, comment)
-    directive = RuboCop::DirectiveComment.new(comment)
-    return unless directive.start_with_marker? && !directive.all_cops?
-    stale = directive.cop_names.reject { active?(it, path) }
-    return if stale.empty?
-    format(DEAD, path, directive.line_number, stale.join("`, `"))
-  end
-
-  def waivers = waived.map { |path, line, cops, reason| format(WAIVER, path, line, cops, explained(reason)) }
-
-  def explained(reason) = reason.empty? ? BARE : reason
-
-  def waived = @_waived ||= parsed.flat_map { |path, source| waivers_in(path, source) }
-
-  def waivers_in(path, source)
-    source.comments.map { RuboCop::Kata::Waiver.new(it) }.select(&:disabling?)
-      .map { [path, it.line, it.cops.join("`, `"), it.reason] }
+  def dead
+    parsed.flat_map do |path, source|
+      source.comments.filter_map do |comment|
+        directive = RuboCop::DirectiveComment.new(comment)
+        next unless directive.start_with_marker? && !directive.all_cops?
+        stale = directive.cop_names.reject { active?(it, path) }
+        format(DEAD, path, directive.line_number, stale.join("`, `")) unless stale.empty?
+      end
+    end
   end
 
   def active?(name, path)
     configuration = store.for_file(path)
     cop = RuboCop::Cop::Registry.global.find_by_cop_name(name)
     configuration.cop_enabled?(name) && cop&.new(configuration)&.relevant_file?(path)
+  end
+
+  def notes
+    @_notes ||=
+      sources.filter_map do |path, source|
+        next format(UNREAD, path, source) if source.is_a?(String)
+        format(BROKEN, path) unless source.valid_syntax?
+      end
+  end
+
+  def waivers
+    waived.map { |path, line, cops, reason| format(WAIVER, path, line, cops, reason.empty? ? BARE : reason) }
+  end
+
+  def waived
+    @_waived ||=
+      parsed.flat_map do |path, source|
+        source.comments.map { RuboCop::Kata::Waiver.new(it) }.select(&:disabling?)
+          .map { [path, it.line, it.cops.join("`, `"), it.reason] }
+      end
+  end
+
+  def parsed = sources.reject { |_, source| source.is_a?(String) }
+
+  def sources
+    @_sources ||=
+      RuboCop::TargetFinder.new(store).find([@root], :only_recognized_file_types).map do |path|
+        [path, RuboCop::ProcessedSource.from_file(path, config.target_ruby_version)]
+      rescue StandardError => error
+        [path, "#{error.class}: #{error.message.lines.first.to_s.strip}"]
+      end
   end
 
   def config = @_config ||= store.for_dir(@root)
