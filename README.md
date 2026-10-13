@@ -18,7 +18,7 @@ that dodge with a shipped dictionary instead of a word list you maintain:
 
 ```ruby
 class PaymentProcessor  # Kata/GoodClassName: `PaymentProcessor` names a doer; name the class
-end                     #   for the thing it is, not the work it does. Try `Payment`.
+end                     #   for the thing it is, not the work it does.
 
 class Payment           # OK
 end
@@ -26,7 +26,7 @@ end
 
 A doer is an agent noun, not a word that ends in `-er`: data derived from
 WordNet says whether a word's dominant sense is "one that parses" (`Parser`,
-`Timer`) or a thing (`Number`, `Header`, `Order`, `Folder`). On 400 labelled
+`Timer`) or a thing (`Number`, `Layer`, `Order`, `Folder`). On 400 labelled
 names its precision is 0.99 where the old "is the stem a word" test scored
 0.75 (see [eval/results](eval/results/README.md)). It suggests a name only when
 it can derive one (`Selector` → `Selection`).
