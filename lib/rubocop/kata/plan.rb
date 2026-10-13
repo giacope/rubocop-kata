@@ -14,7 +14,7 @@ class RuboCop::Kata::Plan
       Kata/RealWords Kata/GoodMethodName Kata/GoodVariableName Kata/GoodClassName
       Kata/GoodModuleName Kata/BuilderNoun
     ],
-    "prose" => %w[Kata/NoComments Kata/ProsePlacement],
+    "prose" => %w[Kata/NoComments Kata/ProsePlacement Kata/JustifiedDirective],
     "layout" => %w[Kata/PairedBrackets]
   }.freeze
   DEPARTMENTS = { "Layout/" => "layout" }.freeze
@@ -91,9 +91,9 @@ class RuboCop::Kata::Plan
     end
   end
 
-  def stage(cop)
-    STAGES.find { |_, cops| cops.include?(cop) }&.first || DEPARTMENTS.find { |prefix, _| cop.start_with?(prefix) }&.last || REST
-  end
+  def stage(cop) = STAGES.find { |_, cops| cops.include?(cop) }&.first || department(cop)
+
+  def department(cop) = DEPARTMENTS.find { |prefix, _| cop.start_with?(prefix) }&.last || REST
 
   def report = @_report ||= JSON.parse(inspection)
 

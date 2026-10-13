@@ -2,30 +2,25 @@
 
 class RuboCop::Kata::Waiver
   MARKER = "--"
-  HEADER = /\A#\s*rubocop\s*:\s*[\w-]+\s*/
+  HEADER = /\A#\s*rubocop\s*:\s*([\w-]+)/
+  MODES = %w[disable disable-next-line todo].freeze
 
   def initialize(comment)
     @comment = comment
   end
 
-  def disabling? = directive.start_with_marker? && directive.disabled?
+  def disabling? = MODES.include?(@comment.text[HEADER, 1])
 
-  def all? = directive.all_cops?
+  def cops = body.split(MARKER, 2).first.split(/[\s,]+/).reject(&:empty?)
 
-  def cops = match.to_s.sub(HEADER, "").split(/[\s,]+/)
-
-  def line = directive.line_number
+  def line = @comment.loc.line
 
   def reason
-    tail = match&.post_match.to_s.lstrip
-    return unless tail.start_with?(MARKER)
-    text = tail.delete_prefix(MARKER).strip
-    text unless text.empty?
+    _, text = body.split(MARKER, 2)
+    text&.strip&.then { it unless it.empty? }
   end
 
   private
 
-  def match = @comment.text.match(RuboCop::DirectiveComment::DIRECTIVE_COMMENT_REGEXP)
-
-  def directive = @_directive ||= RuboCop::DirectiveComment.new(@comment)
+  def body = @comment.text.sub(HEADER, "")
 end

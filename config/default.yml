@@ -910,10 +910,22 @@ Layout/EmptyLinesAroundAccessModifier:
 Layout/EmptyLinesAfterModuleInclusion:
   Enabled: false
 
-# --- A disable comment is a note saying what the code should have said;
-# `rubocop-kata doctor` finds the ones core cannot see.
+# --- An inline disable is the only escape short of excluding a whole file,
+# so it stays, priced: Kata/JustifiedDirective wants the reason after `--`,
+# and `rubocop-kata doctor` lists every one with its reason.
 Style/DisableCopsWithinSourceCodeDirective:
+  Enabled: false
+
+Kata/JustifiedDirective:
+  Description: >-
+    An inline `rubocop:disable` says why, after `--`, in at least `MinWords`
+    words. A false positive then costs one reviewed line instead of a
+    per-file `Exclude` that hides every later offense in the file. A
+    `disable all` silences this cop too, on its own line; `rubocop-kata
+    doctor` lists it with the rest.
   Enabled: true
+  VersionAdded: "0.11"
+  MinWords: 3
 
 # --- Three Elegant cops ship here as Kata/*, fixed (see README); the
 # originals are off so an offence is reported once.
