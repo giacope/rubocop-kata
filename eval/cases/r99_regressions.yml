@@ -1,0 +1,73 @@
+# What the rules are for, so a fix elsewhere cannot hollow them.
+- id: bare-puts-flagged
+  cop: Kata/IoDiscipline
+  expect: offense
+  source: |
+    def report = puts("done")
+- id: bare-p-flagged
+  cop: Kata/IoDiscipline
+  expect: offense
+  source: |
+    def report(value) = p(value)
+- id: explicit-stream-allowed
+  cop: Kata/IoDiscipline
+  expect: clean
+  source: |
+    def report(io) = io.puts("done")
+- id: io-in-exe-allowed
+  cop: Kata/IoDiscipline
+  expect: clean
+  path: exe/tool
+  source: |
+    puts "done"
+- id: env-in-config-allowed
+  cop: Kata/EnvDiscipline
+  expect: clean
+  path: config/initializers/token.rb
+  source: |
+    TOKEN = ENV.fetch("TOKEN")
+- id: two-word-method-flagged
+  cop: Kata/GoodMethodName
+  expect: offense
+  source: |
+    def customer_address = "x"
+- id: chained-method-flagged
+  cop: Kata/GoodMethodName
+  expect: offense
+  source: |
+    def validate_and_save = "x"
+- id: smashed-name-flagged
+  cop: Kata/RealWords
+  expect: offense
+  source: |
+    def matchingids = []
+- id: memo-ivar-allowed
+  cop: Kata/GoodVariableName
+  expect: clean
+  source: |
+    def total = @_total ||= 1
+- id: builder-prefix-flagged
+  cop: Kata/BuilderNoun
+  expect: offense
+  source: |
+    def calculate_total = 1
+- id: junk-drawer-flagged
+  cop: Kata/GoodClassName
+  expect: offense
+  source: |
+    class Billing::InvoiceService
+    end
+- id: crowded-name-flagged
+  cop: Kata/GoodClassName
+  expect: offense
+  source: |
+    class Billing::CustomerOrderPayment
+    end
+- id: redundant-variable-flagged
+  cop: Kata/NoRedundantVariable
+  expect: offense
+  source: |
+    def total
+      sum = lines.sum
+      sum
+    end

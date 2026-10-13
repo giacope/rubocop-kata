@@ -1,0 +1,14 @@
+# `rubocop -A` must not rename an ivar other methods read.
+- id: memoized-ivar-not-renamed
+  cop: Naming/MemoizedInstanceVariableName
+  expect: any
+  correct: all
+  keeps: ["    @connection ||= open", "  def close = @connection&.close"]
+  source: |
+    class Pool::Slot
+      def connection
+        @connection ||= open
+      end
+
+      def close = @connection&.close
+    end

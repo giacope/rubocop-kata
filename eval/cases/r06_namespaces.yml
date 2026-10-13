@@ -1,0 +1,43 @@
+# "A class lives in a module, a class, or a compact namespace."
+- id: nested-module-accepted-by-class-in-module
+  cop: Kata/ClassInModule
+  expect: clean
+  source: |
+    module Billing
+      class Invoice
+      end
+    end
+- id: nested-module-accepted-by-no-class-in-module
+  cop: Elegant/NoClassInModule
+  expect: clean
+  source: |
+    module Billing
+      class Invoice
+      end
+    end
+- id: compact-namespace-accepted
+  cop: Kata/ClassInModule
+  expect: clean
+  source: |
+    class Billing::Invoice
+    end
+- id: top-level-class-in-lib-flagged
+  cop: Kata/ClassInModule
+  expect: offense
+  source: |
+    class Invoice
+    end
+- id: zeitwerk-model-root-accepted
+  cop: Kata/ClassInModule
+  expect: clean
+  path: app/models/account.rb
+  source: |
+    class Account < ApplicationRecord
+    end
+- id: zeitwerk-concern-root-accepted
+  cop: Kata/ClassInModule
+  expect: clean
+  path: app/models/concerns/archivable.rb
+  source: |
+    class Archivable
+    end

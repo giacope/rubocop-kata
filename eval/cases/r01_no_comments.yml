@@ -1,0 +1,187 @@
+# Kata/NoComments under the shipped defaults. `correct` runs `rubocop -a`
+# (safe) or `-A` (all); `keeps` lists lines that must survive it.
+- id: emacs-coding-kept
+  cop: Kata/NoComments
+  expect: clean
+  correct: all
+  keeps: ["# -*- coding: binary -*-"]
+  source: |
+    # -*- coding: binary -*-
+    # frozen_string_literal: true
+
+    BOM = "\xEF\xBB\xBF"
+- id: emacs-mode-line-kept
+  cop: Kata/NoComments
+  expect: clean
+  source: |
+    # -*- mode: ruby; indent-tabs-mode: nil -*-
+    VALUE = 1
+- id: vim-modeline-kept
+  cop: Kata/NoComments
+  expect: clean
+  correct: all
+  keeps: ["# vim: set fileencoding=ascii-8bit :"]
+  source: |
+    # vim: set fileencoding=ascii-8bit :
+    VALUE = "\xFF"
+- id: steep-type-kept
+  cop: Kata/NoComments
+  expect: clean
+  source: |
+    def total(lines)
+      # @type var sum: Integer
+      sum = 0
+      lines.each { sum += it }
+      sum
+    end
+- id: steep-ignore-kept
+  cop: Kata/NoComments
+  expect: clean
+  source: |
+    VALUE = load # steep:ignore
+- id: rbs-inline-kept
+  cop: Kata/NoComments
+  expect: clean
+  source: |
+    # rbs_inline: enabled
+
+    class Invoice
+      # @rbs lines: Array[Integer]
+      def initialize(lines)
+        @lines = lines
+      end
+
+      #: () -> Integer
+      def total = @lines.sum
+    end
+- id: standard-directive-kept
+  cop: Kata/NoComments
+  expect: clean
+  source: |
+    # standard:disable Style/GlobalVars
+    $probe = 1
+    # standard:enable Style/GlobalVars
+- id: language-injection-kept
+  cop: Kata/NoComments
+  expect: clean
+  source: |
+    # language=SQL
+    QUERY = "SELECT id FROM invoices"
+- id: noinspection-kept
+  cop: Kata/NoComments
+  expect: clean
+  source: |
+    # noinspection RubyResolve
+    VALUE = Missing.new
+- id: kimera-directive-kept
+  cop: Kata/NoComments
+  expect: clean
+  correct: all
+  keeps: ["  # kimera:disable-next-line: IO.pipe write ends are sync; the flush is redundant"]
+  source: |
+    def drain(io)
+      # kimera:disable-next-line: IO.pipe write ends are sync; the flush is redundant
+      io.flush
+    end
+- id: hashira-directive-kept
+  cop: Kata/NoComments
+  expect: clean
+  source: |
+    # hashira:disable-next-line feature_envy -- the report formats another object's numbers by design
+    def row(stats) = [stats.name, stats.count]
+- id: reek-directive-kept
+  cop: Kata/NoComments
+  expect: clean
+  source: |
+    # :reek:FeatureEnvy
+    def row(stats) = [stats.name, stats.count]
+- id: url-citation-kept
+  cop: Kata/NoComments
+  expect: clean
+  correct: all
+  keeps: ["  # Net::HTTP reuses a socket the server already closed.", "  # See https://github.com/ruby/net-http/issues/42"]
+  source: |
+    def request(http)
+      # Net::HTTP reuses a socket the server already closed.
+      # See https://github.com/ruby/net-http/issues/42
+      http.finish if http.started?
+    end
+- id: repo-issue-citation-kept
+  cop: Kata/NoComments
+  expect: clean
+  source: |
+    # Rack 3 drops the header when the value is nil (rack/rack#2049).
+    HEADER = "x-request-id"
+- id: bare-issue-citation-kept
+  cop: Kata/NoComments
+  expect: clean
+  source: |
+    # Kept for clients older than 2.0, see #1342.
+    LEGACY = true
+- id: rfc-citation-kept
+  cop: Kata/NoComments
+  expect: clean
+  source: |
+    # RFC 7231 section 6.5.1: a 400 carries no Retry-After.
+    STATUS = 400
+- id: cve-citation-kept
+  cop: Kata/NoComments
+  expect: clean
+  source: |
+    # Escape before matching: CVE-2023-27530.
+    LIMIT = 4096
+- id: yard-block-kept-by-default
+  cop: Kata/NoComments
+  expect: clean
+  correct: all
+  keeps: ["# Sums the billable lines.", "# @return [Integer]"]
+  source: |
+    # Sums the billable lines.
+    #
+    # @return [Integer]
+    def total = lines.sum
+- id: yard-tag-lines-kept-by-default
+  cop: Kata/NoComments
+  expect: clean
+  source: |
+    # @param lines [Array<Integer>]
+    # @return [Integer]
+    def total(lines) = lines.sum
+- id: prose-flagged
+  cop: Kata/NoComments
+  expect: offense
+  source: |
+    def total
+      # add up the lines
+      lines.sum
+    end
+- id: todo-flagged
+  cop: Kata/NoComments
+  expect: offense
+  source: |
+    # TODO: settle credits against the original invoice
+    def total = lines.sum
+- id: prose-survives-safe-autocorrect
+  cop: Kata/NoComments
+  expect: offense
+  correct: safe
+  keeps: ["  # add up the lines"]
+  source: |
+    def total
+      # add up the lines
+      lines.sum
+    end
+- id: magic-and-shebang-kept
+  cop: Kata/NoComments
+  expect: clean
+  source: |
+    #!/usr/bin/env ruby
+    # frozen_string_literal: true
+    # shareable_constant_value: literal
+    VALUE = 1
+- id: number-sign-in-prose-still-flagged
+  cop: Kata/NoComments
+  expect: offense
+  source: |
+    # the second item is the total
+    VALUE = 1

@@ -1,0 +1,124 @@
+# Names minted without `def`, and the clock seam.
+- id: attr-reader-two-words-flagged
+  cop: Kata/GoodMethodName
+  expect: offense
+  source: |
+    class Account::Holder
+      attr_reader :user_name
+    end
+- id: attr-accessor-two-words-flagged
+  cop: Kata/GoodMethodName
+  expect: offense
+  source: |
+    class Account::Holder
+      attr_accessor :billing_cycle_day
+    end
+- id: attr-writer-two-words-flagged
+  cop: Kata/GoodMethodName
+  expect: offense
+  source: |
+    class Account::Holder
+      attr_writer :user_name
+    end
+- id: define-method-two-words-flagged
+  cop: Kata/GoodMethodName
+  expect: offense
+  source: |
+    class Account::Holder
+      define_method(:user_name) { "x" }
+    end
+- id: alias-method-two-words-flagged
+  cop: Kata/GoodMethodName
+  expect: offense
+  source: |
+    class Account::Holder
+      def name = "x"
+      alias_method :user_name, :name
+    end
+- id: alias-keyword-two-words-flagged
+  cop: Kata/GoodMethodName
+  expect: offense
+  source: |
+    class Account::Holder
+      def name = "x"
+      alias user_name name
+    end
+- id: attr-reader-one-word-allowed
+  cop: Kata/GoodMethodName
+  expect: clean
+  source: |
+    class Account::Holder
+      attr_reader :name, :created_at
+    end
+- id: attr-reader-abbreviation-flagged
+  cop: Kata/RealWords
+  expect: offense
+  source: |
+    class Account::Holder
+      attr_reader :usr
+    end
+- id: clock-keyword-seam-allowed
+  cop: Kata/ClockDiscipline
+  expect: clean
+  source: |
+    def stamp(now: Time.now) = now.iso8601
+- id: clock-positional-seam-allowed
+  cop: Kata/ClockDiscipline
+  expect: clean
+  source: |
+    def stamp(now = Time.now) = now.iso8601
+- id: clock-zone-now-flagged
+  cop: Kata/ClockDiscipline
+  expect: offense
+  source: |
+    def stamp = Time.zone.now.iso8601
+- id: clock-zone-today-flagged
+  cop: Kata/ClockDiscipline
+  expect: offense
+  source: |
+    def stamp = Time.zone.today
+- id: clock-datetime-now-flagged
+  cop: Kata/ClockDiscipline
+  expect: offense
+  source: |
+    def stamp = DateTime.now
+- id: clock-time-current-flagged
+  cop: Kata/ClockDiscipline
+  expect: offense
+  source: |
+    def stamp = Time.current
+- id: clock-date-current-flagged
+  cop: Kata/ClockDiscipline
+  expect: offense
+  source: |
+    def stamp = Date.current
+- id: clock-time-new-flagged
+  cop: Kata/ClockDiscipline
+  expect: offense
+  source: |
+    def stamp = Time.new
+- id: clock-time-new-with-parts-allowed
+  cop: Kata/ClockDiscipline
+  expect: clean
+  source: |
+    def epoch = Time.new(1970, 1, 1)
+- id: clock-monotonic-flagged
+  cop: Kata/ClockDiscipline
+  expect: offense
+  source: |
+    def started = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+- id: clock-injected-allowed
+  cop: Kata/ClockDiscipline
+  expect: clean
+  source: |
+    def stamp = @clock.now
+- id: env-seam-allowed
+  cop: Kata/EnvDiscipline
+  expect: clean
+  source: |
+    def token(env: ENV) = env.fetch("TOKEN")
+- id: env-read-flagged
+  cop: Kata/EnvDiscipline
+  expect: offense
+  source: |
+    def token = ENV.fetch("TOKEN")

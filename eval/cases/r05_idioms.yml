@@ -1,0 +1,230 @@
+# Idiomatic Ruby that a rule should leave alone, next to what it is for.
+- id: constructor-mutex-allowed
+  cop: Kata/ConstructorDiscipline
+  expect: clean
+  source: |
+    class Cache::Store
+      def initialize(items)
+        @items = items
+        @lock = Mutex.new
+      end
+    end
+- id: constructor-kernel-conversion-allowed
+  cop: Kata/ConstructorDiscipline
+  expect: clean
+  source: |
+    class Cache::Store
+      def initialize(items, name)
+        @items = Array(items)
+        @name = String(name)
+      end
+    end
+- id: constructor-to-conversion-allowed
+  cop: Kata/ConstructorDiscipline
+  expect: clean
+  source: |
+    class Cache::Store
+      def initialize(name, items)
+        @name = name.to_s
+        @items = items.to_a
+      end
+    end
+- id: constructor-defensive-copy-allowed
+  cop: Kata/ConstructorDiscipline
+  expect: clean
+  source: |
+    class Cache::Store
+      def initialize(items)
+        @items = items.dup.freeze
+      end
+    end
+- id: constructor-empty-collection-allowed
+  cop: Kata/ConstructorDiscipline
+  expect: clean
+  source: |
+    class Cache::Store
+      def initialize
+        @seen = Set.new
+        @queue = Queue.new
+      end
+    end
+- id: constructor-random-flagged
+  cop: Kata/ConstructorDiscipline
+  expect: offense
+  source: |
+    class Cache::Store
+      def initialize
+        @id = SecureRandom.uuid
+      end
+    end
+- id: constructor-dependency-flagged
+  cop: Kata/ConstructorDiscipline
+  expect: offense
+  source: |
+    class Cache::Store
+      def initialize(url)
+        @client = Http::Client.new(url)
+      end
+    end
+- id: constructor-computation-flagged
+  cop: Kata/ConstructorDiscipline
+  expect: offense
+  source: |
+    class Cache::Store
+      def initialize(items)
+        @total = items.sum
+      end
+    end
+- id: class-load-dump-coder-allowed
+  cop: Kata/NoClassMethodLogic
+  expect: clean
+  source: |
+    class Money::Coder
+      def self.load(text) = new(text)
+      def self.dump(money) = money.to_s
+    end
+- id: class-json-create-allowed
+  cop: Kata/NoClassMethodLogic
+  expect: clean
+  source: |
+    class Money::Amount
+      def self.json_create(object) = new(object["cents"])
+    end
+- id: class-query-flagged
+  cop: Kata/NoClassMethodLogic
+  expect: offense
+  source: |
+    class Money::Amount
+      def self.active = all.select(&:active?)
+    end
+- id: hash-to-h-allowed
+  cop: Kata/NoHashAsObject
+  expect: clean
+  source: |
+    class Money::Amount
+      def to_h = { cents: @cents, currency: @currency, scale: @scale, rounding: @rounding }
+    end
+- id: hash-as-json-allowed
+  cop: Kata/NoHashAsObject
+  expect: clean
+  source: |
+    class Money::Amount
+      def as_json(*) = { cents: @cents, currency: @currency, scale: @scale, rounding: @rounding }
+    end
+- id: hash-deconstruct-keys-allowed
+  cop: Kata/NoHashAsObject
+  expect: clean
+  source: |
+    class Money::Amount
+      def deconstruct_keys(_keys) = { cents: @cents, currency: @currency, scale: @scale, rounding: @rounding }
+    end
+- id: hash-payload-flagged
+  cop: Kata/NoHashAsObject
+  expect: offense
+  source: |
+    class Money::Amount
+      def payload = { cents: @cents, currency: @currency, scale: @scale, rounding: @rounding }
+    end
+- id: boolean-exit-status-allowed
+  cop: Kata/NoBooleanFlag
+  expect: clean
+  source: |
+    def stop = exit(false)
+- id: boolean-exit-bang-allowed
+  cop: Kata/NoBooleanFlag
+  expect: clean
+  source: |
+    def stop = exit!(true)
+- id: boolean-flag-call-flagged
+  cop: Kata/NoBooleanFlag
+  expect: offense
+  source: |
+    def show = render(true)
+- id: boolean-flag-default-flagged
+  cop: Kata/NoBooleanFlag
+  expect: offense
+  source: |
+    def save(force = false) = force
+- id: controller-contract-allowed
+  cop: Kata/GoodClassName
+  expect: clean
+  path: app/controllers/accounts_controller.rb
+  source: |
+    class AccountsController < ApplicationController
+    end
+- id: crowded-controller-subject-flagged
+  cop: Kata/GoodClassName
+  expect: offense
+  path: app/controllers/rubygem_trusted_publishers_controller.rb
+  source: |
+    class RubygemTrustedPublishersController < ApplicationController
+    end
+- id: mailer-contract-allowed
+  cop: Kata/GoodClassName
+  expect: clean
+  path: app/mailers/invite_mailer.rb
+  source: |
+    class InviteMailer < ApplicationMailer
+    end
+- id: validator-contract-allowed
+  cop: Kata/GoodClassName
+  expect: clean
+  path: app/validators/email_validator.rb
+  source: |
+    class EmailValidator < ActiveModel::EachValidator
+    end
+- id: job-subject-allowed
+  cop: Kata/GoodClassName
+  expect: clean
+  path: app/jobs/invoice_reminder_job.rb
+  source: |
+    class InvoiceReminderJob < ApplicationJob
+    end
+- id: job-doer-subject-flagged
+  cop: Kata/GoodClassName
+  expect: offense
+  path: app/jobs/report_generator_job.rb
+  source: |
+    class ReportGeneratorJob < ApplicationJob
+    end
+- id: task-contract-allowed
+  cop: Kata/GoodClassName
+  expect: clean
+  path: app/tasks/maintenance/spam_cleanup_task.rb
+  source: |
+    class Maintenance::SpamCleanupTask < MaintenanceTasks::Task
+    end
+- id: inherited-framework-name-allowed
+  cop: Kata/GoodClassName
+  expect: clean
+  path: app/avo/actions/yank_user.rb
+  source: |
+    class Avo::Actions::YankUser < Avo::BaseAction
+      class ActionHandler < Avo::Actions::ActionHandler
+      end
+    end
+- id: stdlib-subclass-allowed
+  cop: Kata/GoodClassName
+  expect: clean
+  source: |
+    class Audit::JsonFormatter < Logger::Formatter
+    end
+- id: error-suffix-allowed
+  cop: Kata/GoodClassName
+  expect: clean
+  source: |
+    class Billing::InvalidConfigurationError < StandardError
+    end
+- id: presenter-without-contract-flagged
+  cop: Kata/GoodClassName
+  expect: offense
+  source: |
+    class Billing::InvoicePresenter
+    end
+- id: helper-module-contract-allowed
+  cop: Kata/GoodModuleName
+  expect: clean
+  path: app/helpers/invoices_helper.rb
+  source: |
+    module InvoicesHelper
+    end

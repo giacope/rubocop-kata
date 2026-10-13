@@ -1,0 +1,78 @@
+# `rubocop-kata` commands run as a user runs them: the gem's executable, in a
+# project directory, under the given environment. `hex` holds raw bytes.
+- id: plan-under-lang-c
+  gap: R8
+  command: plan
+  env: { LANG: C, LC_ALL: C }
+  files:
+    .rubocop.yml: "plugins:\n  - rubocop-kata\n\nAllCops:\n  TargetRubyVersion: 3.4\n"
+    lib/sample.rb: "# frozen_string_literal: true\n\ndef customer_address = 1\n"
+  expect:
+    status: [1]
+    stdout: ["next: "]
+    stderr_absent: ["Error", "\\.rb:\\d+:in "]
+- id: plan-stages-every-kata-cop
+  gap: R8
+  command: plan
+  files:
+    .rubocop.yml: "plugins:\n  - rubocop-kata\n\nAllCops:\n  TargetRubyVersion: 3.4\n"
+    lib/sample.rb: "# frozen_string_literal: true\n\nVALUE = total(lines(\n  1\n))\n"
+  expect:
+    status: [1]
+    stdout: ["Kata/PairedBrackets"]
+    stdout_absent: ["^rest .*Kata/"]
+- id: doctor-reads-inherit-from
+  gap: R8
+  command: doctor
+  files:
+    .rubocop.yml: "inherit_from: .rubocop_todo.yml\n\nplugins:\n  - rubocop-kata\n\nAllCops:\n  TargetRubyVersion: 3.4\n"
+    .rubocop_todo.yml: "Elegant/GoodMethodName:\n  Exclude:\n    - lib/sample.rb\n"
+    lib/sample.rb: "# frozen_string_literal: true\n"
+  expect:
+    status: [1]
+    stdout: ["\\.rubocop_todo\\.yml:1: `Elegant/GoodMethodName`"]
+- id: doctor-reports-unparsable-file
+  gap: R8
+  command: doctor
+  files:
+    .rubocop.yml: "plugins:\n  - rubocop-kata\n\nAllCops:\n  TargetRubyVersion: 3.4\n"
+    lib/broken.rb: "# rubocop:disable Kata/GoodClassName -- generated\ndef total(\n"
+  expect:
+    status: [1]
+    stdout: ["broken\\.rb"]
+- id: doctor-reports-undecodable-file
+  gap: R8
+  command: doctor
+  files:
+    .rubocop.yml: "plugins:\n  - rubocop-kata\n\nAllCops:\n  TargetRubyVersion: 3.4\n"
+  hex:
+    lib/binary.rb: "2320727562 6f636f703a656e61626c6520456c6567616e742f476f6f644d6574686f644e616d650a5641 4c5545203d2022ff220a"
+  expect:
+    status: [1]
+    stdout: ["binary\\.rb"]
+- id: doctor-lists-reasoned-disables
+  gap: R9
+  command: doctor
+  files:
+    .rubocop.yml: "plugins:\n  - rubocop-kata\n\nAllCops:\n  TargetRubyVersion: 3.4\n"
+    lib/sample.rb: "# frozen_string_literal: true\n\n# rubocop:disable Kata/GoodClassName -- Avo resolves the handler by this name\nclass Avo::Handler\nend\n# rubocop:enable Kata/GoodClassName\n"
+  expect:
+    stdout: ["Avo resolves the handler by this name"]
+- id: doctor-clean-project
+  gap: R8
+  command: doctor
+  files:
+    .rubocop.yml: "plugins:\n  - rubocop-kata\n\nAllCops:\n  TargetRubyVersion: 3.4\n"
+    lib/sample.rb: "# frozen_string_literal: true\n"
+  expect:
+    status: [0]
+    stdout: ["clean"]
+- id: plan-clean-project
+  gap: R8
+  command: plan
+  files:
+    .rubocop.yml: "plugins:\n  - rubocop-kata\n\nAllCops:\n  TargetRubyVersion: 3.4\n"
+    lib/billing.rb: "# frozen_string_literal: true\n\nmodule Billing\nend\n"
+  expect:
+    status: [0]
+    stdout: ["clean"]

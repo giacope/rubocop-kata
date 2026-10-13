@@ -3,6 +3,11 @@ plugins:
 
 AllCops:
   TargetRubyVersion: 3.4
+  inherit_mode:
+    merge:
+      - Exclude
+  Exclude:
+    - "eval/support/**/*"
 
 # expect_offense reads `%{message}` as its own template, not as a format string.
 Style/FormatStringToken:

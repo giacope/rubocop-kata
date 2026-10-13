@@ -1,0 +1,30 @@
+# Kata/RealWords: one rule for clippings, whichever dictionary lists them.
+# `each` expands a case once per word, substituting {word}.
+- id: clipping-flagged
+  cop: Kata/RealWords
+  expect: offense
+  each: [str, req, resp, conn, args, opts, src, cmd, impl, util, calc, func, ctx, msg, msgs, attrs, cfg, tmp, num, idx, init, cb, fn]
+  source: |
+    def call({word}) = {word}
+- id: placeholder-flagged
+  cop: Kata/RealWords
+  expect: offense
+  each: [foo, baz, qux]
+  source: |
+    def call({word}) = {word}
+- id: platform-or-word-allowed
+  cop: Kata/RealWords
+  expect: clean
+  each: [env, params, io, id, json, url, uri, html, sql, dir, app, config, stdout, regexp, spec, proc, lambda, eval, exec, attr, db, api, http]
+  source: |
+    def call({word}) = {word}
+- id: conversion-protocol-allowed
+  cop: Kata/RealWords
+  expect: clean
+  source: |
+    class Invoice::Number
+      def to_str = "1"
+      def to_sym = :one
+      def to_ary = [1]
+      def to_int = 1
+    end
