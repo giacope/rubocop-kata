@@ -1,5 +1,5 @@
 {
-  "version": 6,
+  "version": 7,
   "packaging": "folder",
   "analyzers": [
     "complexity",
@@ -9,6 +9,29 @@
   ],
   "targets": [
     "lib"
+  ],
+  "kinds": [
+    "assumed_state",
+    "boundary_sprawl",
+    "complexity",
+    "control_parameter",
+    "cycle",
+    "data_clump",
+    "duplication",
+    "feature_envy",
+    "fragmentation",
+    "indirection",
+    "manual_dispatch",
+    "mixed_audience",
+    "module_initialize",
+    "nil_check",
+    "repeated_call",
+    "repeated_conditional",
+    "roll_call",
+    "sdp_violation",
+    "state_sprawl",
+    "utility_function",
+    "wide_edge"
   ],
   "edges": [
     "rubocop -> (root)"

@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+- kata's own `lib` now reads under those limits. hashira's fragmentation
+  check found 21 public methods spread over chains of one-line helpers;
+  folding the single-use helpers into their callers clears 20, from 255
+  methods averaging 2.65 lines to 190 averaging 3.37. The last,
+  `Variable::Ledger#pairs`, keeps the three node sets it pairs as named
+  helpers, with a reasoned directive. Cases, corpora and the mutation score
+  (100%) are unchanged.
+
 - Methods may run to 10 lines and names may take two words. A blind
   readability study compared kimera and hashira, written to kata's rules,
   with rubocop, faraday and rubygems.org: two samples of 60 entry methods,
