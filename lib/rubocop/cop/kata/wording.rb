@@ -7,6 +7,12 @@ module RuboCop::Cop::Kata::Wording
 
   private
 
+  def judge(range, name, stem)
+    return if allowed?(name.to_s) || allowed?(stem)
+    complaint = (yield if block_given?) || complaint(name, stem)
+    add_offense(range, message: complaint) if complaint
+  end
+
   def complaint(name, stem)
     words = stem.split("_")
     odd = words.find { !pattern.match?(it) }

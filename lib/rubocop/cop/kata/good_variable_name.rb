@@ -34,10 +34,7 @@ class RuboCop::Cop::Kata::GoodVariableName < RuboCop::Cop::Base
   private
 
   def check(node, name)
-    text = name.to_s
-    stem = text.sub(SIGIL, "").delete_prefix("_")
-    return if allowed?(text) || allowed?(stem) || stem.empty?
-    complaint = complaint(name, stem)
-    add_offense(node.loc.name, message: complaint) if complaint
+    stem = name.to_s.sub(SIGIL, "").delete_prefix("_")
+    judge(node.loc.name, name, stem)
   end
 end

@@ -23,9 +23,7 @@ class RuboCop::Cop::Kata::GoodMethodName < RuboCop::Cop::Base
   def check(range, name)
     text = name.to_s
     stem = text.sub(/[?!=]\z/, "")
-    return if !text.match?(/\A[a-z_]/) || allowed?(text) || allowed?(stem)
-    complaint = chain(name, stem) || complaint(name, stem)
-    add_offense(range, message: complaint) if complaint
+    judge(range, name, stem) { chain(name, stem) } if text.match?(/\A[a-z_]/)
   end
 
   def test?(node) = node.method_name.start_with?("test_") && node.each_ancestor(:class).take(1).any? { suite?(it) }
