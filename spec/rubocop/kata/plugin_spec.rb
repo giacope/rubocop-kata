@@ -36,4 +36,21 @@ RSpec.describe(RuboCop::Kata::Plugin) do
       expect(config.for_cop("Metrics/ParameterLists").slice("Enabled", "Max")).to(eq("Enabled" => true, "Max" => 4))
     end
   end
+
+  it "accepts a module, a class, or a compact namespace, as the README says" do
+    effective do |config|
+      expect(config.for_cop("Elegant/NoClassInModule")["Enabled"]).to(be(false))
+      expect(config.for_cop("Kata/ClassInModule")["Enabled"]).to(be(true))
+    end
+  end
+
+  it "leaves a top-level class in a Zeitwerk root to Rails, and nowhere else" do
+    Dir.mktmpdir("kata-config") do |root|
+      shipped = YAML.load_file("config/default.yml", aliases: true).slice("Kata/ClassInModule")
+      cop = RuboCop::Cop::Kata::ClassInModule.new(RuboCop::Config.new(shipped, File.join(root, ".rubocop.yml")))
+      excluded = %w[app/models/account.rb app/models/concerns/archivable.rb app/jobs/sweep_job.rb]
+      expect(excluded.map { cop.relevant_file?(File.join(root, it)) }).to(all(be(false)))
+      expect(%w[app/models/billing/invoice.rb lib/invoice.rb].map { cop.relevant_file?(File.join(root, it)) }).to(all(be(true)))
+    end
+  end
 end

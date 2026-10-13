@@ -937,10 +937,18 @@ Kata/PairedBrackets:
   VersionAdded: "0.10"
 
 Kata/ClassInModule:
-  Description: "A class lives in a module, a class, or a compact namespace, never at the top level."
+  Description: >-
+    A class lives in a module, a class, or a compact namespace, never at the
+    top level. A file directly in a Zeitwerk root (`app/models/account.rb`,
+    `app/models/concerns/archivable.rb`) defines a top-level constant by
+    design, so those are excluded; a subdirectory of a root is a namespace,
+    and Zeitwerk already demands the matching module.
   Enabled: true
   VersionAdded: "0.10"
+  VersionChanged: "0.11"
   Exclude:
+    - "app/*/*.rb"
+    - "app/*/concerns/*.rb"
     - "**/*_test.rb"
     - "test/**/*"
     - "spec/**/*"
@@ -970,17 +978,13 @@ ThreadSafety/DirChdir:
     - "spec/**/*"
     - "test/**/*"
 
+# --- With Kata/ClassInModule it left only `class A::B`, whose lexical scope
+# skips `A`; a module, a class and a compact namespace all name a namespace.
+Elegant/NoClassInModule:
+  Enabled: false
+
 # --- Elegant's test-file exclusions never match Rails' `foo_test.rb`, nor a
 # suite addressed by directory.
-Elegant/NoClassInModule:
-  inherit_mode:
-    merge:
-      - Exclude
-  Exclude:
-    - "**/*_test.rb"
-    - "test/**/*"
-    - "spec/**/*"
-
 Elegant/OneClassPerFile:
   inherit_mode:
     merge:
