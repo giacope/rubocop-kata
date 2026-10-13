@@ -5,16 +5,26 @@ class RuboCop::Cop::Kata::NoComments < RuboCop::Cop::Base
 
   MSG = "Say it in the code: rename it, extract it, or name the constant."
 
-  MAGIC = /\A#\s*(frozen_string_literal|encoding|coding|warn_indent|shareable_constant_value):/
-  DIRECTIVE = /\A#\s*(rubocop|simplecov|rbs|steep|sorbet|typed|:nocov:)/
+  MAGIC = /\A#\s*(frozen_string_literal|encoding|coding|warn_indent|warn_past_scope|shareable_constant_value|rbs_inline):/
+  MODELINE = /\A#.*-\*-.*-\*-|\A#\s*(vim?|ex):\s*(set?\s+)?\w+[=:]/
+  DIRECTIVE = %r{
+    \A\#\s*(
+      rubocop|standard|simplecov|:nocov:|rbs\b|steep|sorbet|typed|typeprof|kimera|hashira|:reek:|
+      @type\s|@rbs\b|noinspection\s|language\s*=|erblint|yard:|packwerk
+    )|\A\#:\s
+  }x
   RDOC = /\A#\s*:(nodoc|doc|stopdoc|startdoc|enddoc|call-seq|yields|markup|section|include|title|main|notnew):/
   YARD = /\A#\s*@!\w/
   TAG = /\A#\s*@!?[a-z]/
+  CITATION = %r{
+    https?://\S|\b[\w.-]+/[\w.-]+\#\d+\b|[\s(]\#\d+\b|\bGH-\d+\b|\bRFC\s?\d{3,5}\b|
+    \bCVE-\d{4}-\d{4,}\b|\bGHSA(-[a-z0-9]{4}){3}\b
+  }xi
   NOTICE = /^#\s*(copyright\b|\(c\)\s*\d|spdx-|licen[sc]ed under\b|licen[sc]e:|all rights reserved)/i
   SHEBANG = /\A#!/
 
   def on_new_investigation
-    kept = notice + documented
+    kept = notice + documented + cited
     processed_source.comments.each { register(it) unless exempt?(it) || kept.include?(it) }
   end
 
@@ -22,13 +32,19 @@ class RuboCop::Cop::Kata::NoComments < RuboCop::Cop::Base
 
   def exempt?(comment)
     text = comment.text
-    [MAGIC, DIRECTIVE, RDOC, YARD, NOTICE, SHEBANG].any? { it.match?(text) }
+    [MAGIC, MODELINE, DIRECTIVE, RDOC, YARD, NOTICE, SHEBANG, *patterns].any? { it.match?(text) }
   end
 
-  def documented
-    return [] unless cop_config["AllowDocumentation"]
+  def patterns = Array(cop_config["AllowedPatterns"]).map { Regexp.new(it) }
+
+  def documented = cop_config["AllowDocumentation"] ? kept(TAG) : []
+
+  def cited = cop_config.fetch("AllowCitations", true) ? kept(CITATION) : []
+
+  def kept(pattern) = blocks.select { |block| block.any? { pattern.match?(it.text) } }.flatten
+
+  def blocks
     processed_source.comments.slice_when { |above, below| below.loc.line != above.loc.line + 1 }
-      .select { |block| block.any? { TAG.match?(it.text) } }.flatten
   end
 
   def notice

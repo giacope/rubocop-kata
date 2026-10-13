@@ -141,14 +141,27 @@ Kata/GoodModuleName:
 
 Kata/NoComments:
   Description: >-
-    Say it in the code; keep only comments the machine or the law reads. A gem
-    that publishes API documentation sets `AllowDocumentation`, and a comment
-    block carrying a YARD tag (`@param`, `@return`) is kept whole. `config/`
-    is excluded: its comments are the framework's generated guidance.
+    Say it in the code; keep only what the code cannot say. Code can say what
+    and how; it cannot cite an external constraint, and a tool cannot read
+    prose. So the cop keeps magic comments and editor modelines (deleting
+    `# -*- coding: binary -*-` changes every string literal), tool directives
+    (RuboCop, Standard, SimpleCov, Steep `@type`, RBS `#:` and `@rbs`, Sorbet,
+    reek `:reek:`, kimera, hashira, RubyMine `language=`), RDoc and YARD
+    directives, licence headers, every comment block that cites a URL, an
+    issue or pull request (`rails/rails#123`, `#123`), an RFC or a CVE, and
+    every block carrying a YARD tag: a gem's API documentation is product, not
+    prose (`AllowDocumentation: false` to price it too). `AllowedPatterns`
+    adds the directives of tools it does not know. Removing a comment loses
+    what it said, so the correction is unsafe: `rubocop -A` applies it,
+    `rubocop -a` does not. `config/` is excluded: its comments are the
+    framework's generated guidance.
   Enabled: true
   VersionAdded: "0.1"
   VersionChanged: "0.11"
-  AllowDocumentation: false
+  SafeAutoCorrect: false
+  AllowDocumentation: true
+  AllowCitations: true
+  AllowedPatterns: []
   Exclude:
     - "spec/**/*"
     - "test/**/*"
