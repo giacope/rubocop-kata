@@ -16,7 +16,7 @@ jobs:
             rubocop: ">= 0"
             elegant: ">= 0"
           - name: oldest the gemspec allows
-            rubocop: "1.75.0"
+            rubocop: "1.75.1"
             elegant: "0.7.1"
     name: test (${{ matrix.name }})
     env:

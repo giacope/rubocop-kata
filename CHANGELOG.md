@@ -99,7 +99,9 @@ under the shipped defaults pass 164 of 167, up from 83.
   files it cannot read or parse instead of passing them, and lists every
   inline disable with its reason.
 - The Gemfile tests released gems, and CI runs on both the newest releases and
-  the oldest the gemspec allows (rubocop 1.75.0, rubocop-elegant 0.7.1).
+  the oldest the gemspec allows (rubocop 1.75.1, rubocop-elegant 0.7.1). The
+  floor moves from 1.75.0 to 1.75.1: 1.75.0's new `Style/ItBlockParameter`
+  crashes on every `it` block.
 
 Precision, measured on the same fifteen codebases: Kata offenses fall from
 46,417 to 40,502, and what is left is what the rules are for.

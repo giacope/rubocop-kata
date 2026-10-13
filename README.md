@@ -71,7 +71,7 @@ bundle install
 bundle exec rubocop
 ```
 
-That's it. The plugin loads the bundled extensions and the shared defaults, so your `.rubocop.yml` keeps only what's specific to your project. Requires Ruby >= 3.4 and RuboCop ~> 1.75.
+That's it. The plugin loads the bundled extensions and the shared defaults, so your `.rubocop.yml` keeps only what's specific to your project. Requires Ruby >= 3.4 and RuboCop ~> 1.75 (1.75.1 or later).
 
 ### The bundled rubocop-elegant
 

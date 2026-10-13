@@ -1,9 +1,10 @@
 # frozen_string_literal: true
 
-require "timeout"
 # SPDX-FileCopyrightText: Copyright (c) 2019-2026 Yegor Bugayenko
 # SPDX-License-Identifier: MIT
 # Derived from rubocop-elegant (https://github.com/yegor256/rubocop-elegant), see LICENSE.txt
+
+require "timeout"
 
 RSpec.describe(RuboCop::Cop::Kata::NoRedundantVariable) do
   include TabledCop

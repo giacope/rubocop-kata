@@ -34,7 +34,7 @@ Gem::Specification.new do |spec|
   spec.executables = ["rubocop-kata"]
   spec.require_paths = ["lib"]
   spec.add_dependency("lint_roller", "~> 1.1")
-  spec.add_dependency("rubocop", "~> 1.75")
+  spec.add_dependency("rubocop", "~> 1.75", ">= 1.75.1")
   spec.add_dependency("rubocop-elegant", "~> 0.7")
   spec.add_dependency("rubocop-packaging", "~> 0.6")
   spec.add_dependency("rubocop-performance", "~> 1.25")
