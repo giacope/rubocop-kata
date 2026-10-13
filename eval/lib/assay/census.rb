@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
 class Assay::Census
+  ENCODING = /\A#.*\bcoding[:=]/i
   KINDS = {
-    "encoding" => /\A#.*\bcoding[:=]/i,
-    "magic" => /\A#(!|\s*(frozen_string_literal|shareable_constant_value|warn_indent|warn_past_scope|typed)\s*:|.*-\*-|\s*vim?:)/,
+    "magic" => /\A#(!|\s*(frozen_string_literal|shareable_constant_value|warn_indent|typed)\s*:|.*-\*-|\s*vim?:)/,
     "yard" => /\A#\s*@!?[a-z]/,
     "directive" => /\A#\s*(rubocop|standard|simplecov|:nocov:|:nodoc:|steep|rbs|@rbs|:|kimera|hashira|:reek:)/
   }.freeze
@@ -13,10 +13,9 @@ class Assay::Census
     @paths = paths
   end
 
-  def tally
-    kinds = Hash.new(0)
-    files.each { |path| comments(path).each { kinds[kind(it)] += 1 } }
-    { "files" => files.size, "comments" => kinds.values.sum, "kinds" => kinds.sort.to_h }
+  def to_h
+    kinds = files.flat_map { comments(it) }.map { kind(*it) }.tally.sort.to_h
+    { "files" => files.size, "comments" => kinds.values.sum, "kinds" => kinds }
   end
 
   def broken = files.reject { Prism.parse_file(it).success? }.map { it.delete_prefix("#{@root}/") }
@@ -27,9 +26,8 @@ class Assay::Census
 
   def comments(path) = Prism.parse_file_comments(path).map { [it.location.start_line, it.slice] }
 
-  def kind(comment)
-    line, text = comment
-    return "encoding" if line <= 2 && KINDS.fetch("encoding").match?(text)
-    KINDS.except("encoding").find { |_, pattern| pattern.match?(text) }&.first || "prose"
+  def kind(line, text)
+    return "encoding" if line <= 2 && ENCODING.match?(text)
+    KINDS.find { |_, pattern| pattern.match?(text) }&.first || "prose"
   end
 end

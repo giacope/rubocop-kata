@@ -8,11 +8,11 @@ class Assay::Settings
     @work = work
   end
 
-  def result
+  def to_h
     FileUtils.mkdir_p(@work)
     File.write(File.join(@work, ".rubocop.yml"), Assay::Snippets::CONFIG)
     outcome = @bundle.ruby(PROBE, @work, dir: @work)
-    raise "settings probe failed: #{outcome.stderr}" unless outcome.status.zero?
+    raise(Assay::Failure, "settings probe failed: #{outcome.stderr}") unless outcome.status.zero?
     JSON.parse(outcome.stdout)
   end
 end

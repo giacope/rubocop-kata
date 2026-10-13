@@ -6,6 +6,18 @@ class Assay::Session
   SECTIONS = %w[settings cases names cli corpora].freeze
   KEPT = %w[PATH HOME GEM_HOME GEM_PATH LANG LC_ALL TMPDIR SSL_CERT_FILE HTTPS_PROXY HTTP_PROXY NO_PROXY].freeze
   USAGE = "usage: eval/run --kata PATH [--out FILE] [--only LIST] | eval/run --compare BEFORE AFTER [--out FILE]"
+  DEFAULTS = { only: SECTIONS, jobs: 4, elegant: "0.8.0" }.freeze
+  FLAGS = [
+    ["--only LIST", Array], ["--jobs N", Integer], ["--elegant VERSION", String], ["--reveal"], ["--compare"]
+  ].freeze
+  BUILDERS = {
+    "settings" => ->(bundle, home, _) { Assay::Settings.new(bundle, home) },
+    "cases" => ->(bundle, home, _) { Assay::Snippets.new(bundle, home, Dir[File.join(Assay::ROOT, "cases", "*.yml")]) },
+    "names" => lambda do |bundle, home, options|
+      Assay::Lexicon.new(bundle, home, File.join(Assay::ROOT, "names.yml"), reveal: options[:reveal])
+    end,
+    "cli" => ->(bundle, home, _) { Assay::Console.new(bundle, home, File.join(Assay::ROOT, "cli.yml")) }
+  }.freeze
 
   def initialize(arguments, io:, env:)
     @arguments = arguments
@@ -14,10 +26,9 @@ class Assay::Session
   end
 
   def run
-    options = parse
-    return compare(options) if options[:compare]
+    return compare if options[:compare]
     return usage unless options[:kata]
-    write(options, score(options))
+    write(score)
     0
   end
 
@@ -28,74 +39,75 @@ class Assay::Session
     1
   end
 
-  def parse
-    options = { only: SECTIONS, jobs: 4, elegant: "0.8.0" }
-    OptionParser.new do |parser|
-      parser.on("--kata PATH") { options[:kata] = File.expand_path(it) }
-      parser.on("--out FILE") { options[:out] = File.expand_path(it) }
-      parser.on("--work DIR") { options[:work] = File.expand_path(it) }
-      parser.on("--corpora DIR") { options[:cache] = File.expand_path(it) }
-      parser.on("--only LIST", Array) { options[:only] = it }
-      parser.on("--jobs N", Integer) { options[:jobs] = it }
-      parser.on("--elegant VERSION") { options[:elegant] = it }
-      parser.on("--reveal") { options[:reveal] = true }
-      parser.on("--compare") { options[:compare] = true }
-    end.parse!(@arguments)
-    options
+  def options = @_options ||= DEFAULTS.merge(parsed)
+
+  def parsed
+    found = {}
+    parser.parse!(@arguments, into: found)
+    found
   end
 
-  def compare(options)
+  def parser
+    OptionParser.new do |parser|
+      %w[kata out work corpora].each { |key| parser.on("--#{key} PATH", String) { |value| File.expand_path(value) } }
+      FLAGS.each { parser.on(*it) }
+    end
+  end
+
+  def compare
     before, after = @arguments.map { JSON.parse(File.read(it)) }
     text = Assay::Comparison.new(before, after).markdown
     options[:out] ? File.write(options[:out], text) : @io.puts(text)
     0
   end
 
-  def score(options)
-    work = options[:work] || File.join(Assay::ROOT, "..", "tmp", "eval", File.basename(options[:kata]))
+  def score
     bundle = Assay::Bundle.new(options[:kata], File.join(work, "bundle"), shell, elegant: options[:elegant]).prepare
-    data = { "kata" => bundle.identity }
-    options[:only].each { |section| data[section] = section(section, bundle, work, options) }
-    data
+    options[:only].each_with_object({ "kata" => bundle.to_h }) { |name, data| data[name] = section(name, bundle) }
   end
 
-  def section(name, bundle, work, options)
+  def work = options[:work] || File.join(Assay::ROOT, "..", "tmp", "eval", File.basename(options[:kata]))
+
+  def section(name, bundle)
     @io.puts("assay: #{name}")
-    case name
-    when "settings" then Assay::Settings.new(bundle, File.join(work, "settings")).result
-    when "cases" then Assay::Snippets.new(bundle, File.join(work, "cases"), Dir[File.join(Assay::ROOT, "cases", "*.yml")].sort).result
-    when "names" then Assay::Lexicon.new(bundle, File.join(work, "names"), File.join(Assay::ROOT, "names.yml"), reveal: options[:reveal]).result
-    when "cli" then Assay::Console.new(bundle, File.join(work, "cli"), File.join(Assay::ROOT, "cli.yml")).result
-    when "corpora" then corpora(bundle, work, options)
+    return corpora(bundle) if name == "corpora"
+    BUILDERS.fetch(name).call(bundle, File.join(work, name), options).to_h
+  end
+
+  def corpora(bundle)
+    queue = Queue.new.tap { |pending| specs.each { pending << it } }.tap(&:close)
+    results = {}
+    Array.new(options[:jobs]) { start(queue, results, bundle) }.each(&:join)
+    specs.to_h { [it["name"], results.fetch(it["name"])] }
+  end
+
+  def start(queue, results, bundle)
+    Thread.new do # rubocop:disable ThreadSafety/NewThread -- each thread only waits on a child rubocop process
+      while (spec = queue.pop)
+        results[spec["name"]] = measure(spec, bundle)
+      end
     end
   end
 
-  def corpora(bundle, work, options)
-    cache = options[:cache] || File.join(Assay::ROOT, "..", "tmp", "eval", "corpora")
-    specs = YAML.safe_load_file(File.join(Assay::ROOT, "corpora.yml"))
-    queue = Queue.new
-    specs.each { queue << it }
-    queue.close
-    results = {}
-    Array.new(options[:jobs]) do
-      Thread.new do
-        while (spec = queue.pop)
-          corpus = Assay::Corpus.new(spec, bundle, cache: cache, work: File.join(work, "corpora", spec["name"]), shell: shell)
-          results[spec["name"]] = corpus.result
-          @io.puts("assay: corpus #{spec["name"]} done")
-        end
-      end
-    end.each(&:join)
-    specs.to_h { [it["name"], results.fetch(it["name"])] }
+  def measure(spec, bundle)
+    name = spec["name"]
+    result = Assay::Corpus.new(spec, bundle, File.join(work, "corpora", name), shell).to_h
+    @io.puts("assay: corpus #{name} done")
+    result
+  end
+
+  def specs
+    cache = options[:corpora] || File.join(Assay::ROOT, "..", "tmp", "eval", "corpora")
+    @_specs ||= YAML.safe_load_file(File.join(Assay::ROOT, "corpora.yml")).map { it.merge("cache" => cache) }
   end
 
   def shell = Assay::Shell.new(@env.slice(*KEPT))
 
-  def write(options, data)
+  def write(data)
     out = options[:out] || File.join(Assay::ROOT, "results", "latest.json")
     FileUtils.mkdir_p(File.dirname(out))
     File.write(out, "#{JSON.pretty_generate(data)}\n")
-    File.write(out.sub(/\.json\z/, ".md"), Assay::Board.new(data).markdown)
+    File.write(out.sub(/\.json\z/, ".md"), Assay::Comparison.new(nil, data).markdown)
     @io.puts("assay: wrote #{out}")
   end
 end
