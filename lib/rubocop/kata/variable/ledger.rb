@@ -17,7 +17,8 @@ class RuboCop::Kata::Variable::Ledger
     tainted = self.tainted
     assigns.filter_map do |name, found|
       pair = [*found, *reads[name]]
-      pair if pair.size == 2 && found.size == 1 && !tainted.include?(name) && !RuboCop::Kata::Variable::Boundary.new(*pair).crossed?
+      next unless pair.size == 2 && found.size == 1 && !tainted.include?(name)
+      pair unless RuboCop::Kata::Variable::Boundary.new(*pair).crossed?
     end.to_h
   end
 
