@@ -5,7 +5,7 @@
 - Methods may run to 10 lines and names may take two words. A blind
   readability study compared kimera and hashira, written to kata's rules,
   with rubocop, faraday and rubygems.org: two samples of 60 entry methods,
-  two raters each, agreeing on 54 and 55 of 60 calls. Readers judged 14–16
+  two independent AI reviewers each, agreeing on 54 and 55 of 60 calls. Readers judged 14–16
   of 30 house-style items over-fragmented against 0–2 of 30 in the control,
   and scored readability about 3.0 against 4.0 and name clarity about 2.5
   against 4.1. House-style methods averaged 3.0 lines, the control 6.3.

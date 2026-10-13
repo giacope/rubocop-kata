@@ -6,8 +6,10 @@ Kata's naming and size rules began as Elegant Objects' one-word names and
 five-line methods. We measured them and they moved. In a blind readability
 study, two samples each held 30 entry methods (with their same-class helpers)
 from kimera and hashira, two codebases written to kata's rules, and 30 from
-rubocop, faraday and rubygems.org, with two raters per sample who agreed on
-54 and 55 of 60 calls. Readers judged 14–16 of the 30 house-style items
+rubocop, faraday and rubygems.org. Each sample was rated by two independent
+AI reviewers (separate model instances that saw only the code, shuffled, with
+no source names), who agreed on 54 and 55 of 60 calls; no human has rated it
+yet. Readers judged 14–16 of the 30 house-style items
 over-fragmented, against 0–2 of 30 in the control. They scored readability
 about 3.0 against 4.0 and name clarity about 2.5 against 4.1, calling the
 one-word names vague or metaphorical (`rolls`, `homes`, `sightings`,
