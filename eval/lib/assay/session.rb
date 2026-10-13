@@ -5,12 +5,15 @@ require "optparse"
 class Assay::Session
   SECTIONS = %w[settings cases names cli corpora].freeze
   KEPT = %w[PATH HOME GEM_HOME GEM_PATH LANG LC_ALL TMPDIR SSL_CERT_FILE HTTPS_PROXY HTTP_PROXY NO_PROXY].freeze
-  USAGE = "usage: eval/run --kata PATH [--out FILE] [--only LIST] | eval/run --compare BEFORE AFTER [--out FILE]"
+  USAGE = "usage: eval/run --kata PATH [--out FILE] [--only LIST] [--list CORPORA] | " \
+    "eval/run --compare BEFORE AFTER [--out FILE]"
   DEFAULTS = { only: SECTIONS, jobs: 4, elegant: "0.8.0" }.freeze
   FLAGS = [
     ["--only LIST", Array], ["--jobs N", Integer], ["--elegant VERSION", String], ["--reveal"], ["--compare"]
   ].freeze
   NAMES = File.join(Assay::ROOT, "names.yml")
+  CORPORA = File.join(Assay::ROOT, "corpora.yml")
+  PATHS = %w[kata out work corpora list].freeze
   BUILDERS = {
     "settings" => ->(bundle, home, _) { Assay::Settings.new(bundle, home) },
     "cases" => ->(bundle, home, _) { Assay::Snippets.new(bundle, home, Dir[File.join(Assay::ROOT, "cases", "*.yml")]) },
@@ -48,7 +51,7 @@ class Assay::Session
 
   def parser
     OptionParser.new do |parser|
-      %w[kata out work corpora].each { |key| parser.on("--#{key} PATH", String) { |value| File.expand_path(value) } }
+      PATHS.each { |key| parser.on("--#{key} PATH", String) { |value| File.expand_path(value) } }
       FLAGS.each { parser.on(*it) }
     end
   end
@@ -95,10 +98,9 @@ class Assay::Session
     result
   end
 
-  def specs
-    cache = options[:corpora] || File.join(Assay::ROOT, "..", "tmp", "eval", "corpora")
-    @_specs ||= YAML.safe_load_file(File.join(Assay::ROOT, "corpora.yml")).map { it.merge("cache" => cache) }
-  end
+  def specs = @_specs ||= YAML.safe_load_file(options[:list] || CORPORA).map { it.merge("cache" => cache) }
+
+  def cache = options[:corpora] || File.join(Assay::ROOT, "..", "tmp", "eval", "corpora")
 
   def shell = Assay::Shell.new(@env.slice(*KEPT))
 
