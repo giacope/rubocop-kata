@@ -124,4 +124,12 @@ RSpec.describe(RuboCop::Cop::Kata::ConstructorDiscipline, :config) do
       RUBY
     end
   end
+
+  it "reads only initialize" do
+    expect_no_offenses(<<~RUBY)
+      def build(items)
+        @total = items.sum
+      end
+    RUBY
+  end
 end
