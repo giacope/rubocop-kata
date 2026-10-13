@@ -1,4 +1,4 @@
-# Scoreboard: 8e6d39f9a132
+# Scoreboard: d6cf35c42c59
 
 rubocop 1.92.0, rubocop-elegant 0.8.0, rubocop-kata 0.10.1
 
@@ -15,8 +15,10 @@ rubocop 1.92.0, rubocop-elegant 0.8.0, rubocop-kata 0.10.1
 | R7 | 3 of 3 |
 | R9 | 4 of 5 |
 | R11 | 1 of 1 |
+| R13 | 17 of 17 |
+| R14 | 3 of 3 |
 | extra | 13 of 13 |
-| all | 164 of 167 |
+| all | 184 of 187 |
 
 ## Still failing
 
@@ -75,10 +77,10 @@ Raw rule on the dev split. False positives: Creditor. False negatives: Accumulat
 
 | Corpus | Offenses | PerKLOC |
 | --- | --- | --- |
-| faraday | 1173 | 300.3 |
-| rubygems.org | 7139 | 274.2 |
+| faraday | 990 | 253.5 |
+| rubygems.org | 5710 | 219.4 |
 | hashira | 9 | 1.1 |
-| kimera | 59 | 4.9 |
+| kimera | 58 | 4.8 |
 
 ## Autocorrect safety
 
@@ -86,17 +88,17 @@ Raw rule on the dev split. False positives: Creditor. False negatives: Accumulat
 | --- | --- | --- | --- | --- | --- | --- |
 | faraday | -a | 0 | 1067/1068 | 257/257 | 0/0 | 0 |
 | faraday | -A | 0 | 844/1068 | 257/257 | 0/0 | 0 |
-| rubygems.org | -a | 0 | 1366/1370 | 12/12 | 0/0 | n/a |
-| rubygems.org | -A | 0 | 755/1370 | 12/12 | 0/0 | n/a |
+| rubygems.org | -a | 0 | 1368/1370 | 12/12 | 0/0 | n/a |
+| rubygems.org | -A | 0 | 757/1370 | 12/12 | 0/0 | n/a |
 
 ## Metrics/MethodLength offenses by CountAsOne
 
 | Corpus | kata | without_method_call | none |
 | --- | --- | --- | --- |
-| faraday | 61 | 66 | 70 |
-| rubygems.org | 458 | 502 | 569 |
+| faraday | 20 | 20 | 22 |
+| rubygems.org | 143 | 159 | 203 |
 | hashira | 0 | 0 | 0 |
-| kimera | 0 | 6 | 13 |
+| kimera | 0 | 0 | 0 |
 
 ## faraday: offenses per kLOC by cop
 
@@ -109,9 +111,9 @@ Raw rule on the dev split. False positives: Creditor. False negatives: Accumulat
 | Kata/ConstructorDiscipline | 0.0 | 12.29 | 12.29 |
 | Kata/EnvDiscipline | 0.0 | 0.26 | 0.26 |
 | Kata/GoodClassName | 0.0 | 1.79 | 1.79 |
-| Kata/GoodMethodName | 0.0 | 27.91 | 27.91 |
+| Kata/GoodMethodName | 0.0 | 6.91 | 6.91 |
 | Kata/GoodModuleName | 0.0 | 1.28 | 1.28 |
-| Kata/GoodVariableName | 0.0 | 20.23 | 20.23 |
+| Kata/GoodVariableName | 0.0 | 1.02 | 1.02 |
 | Kata/IoDiscipline | 0.0 | 0.51 | 0.51 |
 | Kata/JustifiedDirective | 0.0 | 0.77 | 0.77 |
 | Kata/NoClassMethodLogic | 0.0 | 5.12 | 5.12 |
@@ -127,7 +129,9 @@ Raw rule on the dev split. False positives: Creditor. False negatives: Accumulat
 | Layout/RedundantLineBreak | 0.0 | 2.56 | 2.56 |
 | Metrics/AbcSize | 0.0 | 3.07 | 3.07 |
 | Metrics/ClassLength | 0.0 | 1.02 | 1.02 |
-| Metrics/MethodLength | 0.0 | 15.62 | 15.62 |
+| Metrics/CyclomaticComplexity | 0.0 | 2.05 | 2.05 |
+| Metrics/MethodLength | 0.0 | 5.12 | 5.12 |
+| Metrics/PerceivedComplexity | 0.0 | 1.79 | 1.79 |
 | Naming/BlockForwarding | 0.0 | 6.66 | 6.66 |
 | Naming/MemoizedInstanceVariableName | 0.0 | 3.84 | 3.84 |
 | Naming/PredicateMethod | 0.0 | 0.51 | 0.51 |
@@ -156,9 +160,9 @@ Raw rule on the dev split. False positives: Creditor. False negatives: Accumulat
 | Kata/ConstructorDiscipline | 0.0 | 4.03 | 4.03 |
 | Kata/EnvDiscipline | 0.0 | 0.81 | 0.81 |
 | Kata/GoodClassName | 0.0 | 6.91 | 6.91 |
-| Kata/GoodMethodName | 0.0 | 49.67 | 49.67 |
+| Kata/GoodMethodName | 0.0 | 23.55 | 23.55 |
 | Kata/GoodModuleName | 0.0 | 0.88 | 0.88 |
-| Kata/GoodVariableName | 0.0 | 23.05 | 23.05 |
+| Kata/GoodVariableName | 0.0 | 5.26 | 5.26 |
 | Kata/IoDiscipline | 0.0 | 1.27 | 1.27 |
 | Kata/JustifiedDirective | 0.0 | 1.31 | 1.31 |
 | Kata/NoBooleanFlag | 0.0 | 0.19 | 0.19 |
@@ -176,11 +180,11 @@ Raw rule on the dev split. False positives: Creditor. False negatives: Accumulat
 | Layout/LineLength | 0.0 | 7.64 | 7.64 |
 | Layout/MultilineAssignmentLayout | 0.0 | 5.49 | 5.49 |
 | Layout/RedundantLineBreak | 0.0 | 4.34 | 4.34 |
-| Lint/RedundantCopDisableDirective | 0.0 | 0.54 | 0.54 |
 | Lint/UselessConstantScoping | 0.0 | 1.19 | 1.19 |
 | Metrics/AbcSize | 0.0 | 6.34 | 6.34 |
 | Metrics/ClassLength | 0.0 | 1.04 | 1.04 |
-| Metrics/MethodLength | 0.0 | 17.59 | 17.59 |
+| Metrics/CyclomaticComplexity | 0.0 | 0.81 | 0.81 |
+| Metrics/MethodLength | 0.0 | 5.49 | 5.49 |
 | Naming/MemoizedInstanceVariableName | 0.0 | 1.04 | 1.04 |
 | Naming/RescuedExceptionsVariableName | 0.0 | 2.0 | 2.0 |
 | Style/EmptyMethod | 0.0 | 0.5 | 0.5 |
@@ -203,5 +207,4 @@ Raw rule on the dev split. False positives: Creditor. False negatives: Accumulat
 | Cop | Before | After | Delta |
 | --- | --- | --- | --- |
 | Kata/ClockDiscipline | 0.0 | 0.66 | 0.66 |
-| Kata/GoodMethodName | 0.0 | 0.08 | 0.08 |
 | Kata/RealWords | 0.0 | 3.72 | 3.72 |

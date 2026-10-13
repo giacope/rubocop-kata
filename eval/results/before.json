@@ -50,8 +50,8 @@
     "abc_size_max": 50
   },
   "cases": {
-    "total": 167,
-    "passed": 83,
+    "total": 187,
+    "passed": 95,
     "by_gap": {
       "R1": {
         "total": 24,
@@ -88,6 +88,14 @@
       "R11": {
         "total": 1,
         "passed": 0
+      },
+      "R13": {
+        "total": 17,
+        "passed": 11
+      },
+      "R14": {
+        "total": 3,
+        "passed": 1
       },
       "extra": {
         "total": 13,
@@ -1151,7 +1159,7 @@
         ]
       },
       {
-        "id": "attr-reader-two-words-flagged",
+        "id": "attr-reader-three-words-flagged",
         "gap": "R4",
         "cop": "Kata/GoodMethodName",
         "expect": "offense",
@@ -1163,7 +1171,7 @@
         "messages": []
       },
       {
-        "id": "attr-accessor-two-words-flagged",
+        "id": "attr-accessor-three-words-flagged",
         "gap": "R4",
         "cop": "Kata/GoodMethodName",
         "expect": "offense",
@@ -1175,7 +1183,7 @@
         "messages": []
       },
       {
-        "id": "attr-writer-two-words-flagged",
+        "id": "attr-writer-three-words-flagged",
         "gap": "R4",
         "cop": "Kata/GoodMethodName",
         "expect": "offense",
@@ -1187,7 +1195,7 @@
         "messages": []
       },
       {
-        "id": "define-method-two-words-flagged",
+        "id": "define-method-three-words-flagged",
         "gap": "R4",
         "cop": "Kata/GoodMethodName",
         "expect": "offense",
@@ -1199,7 +1207,7 @@
         "messages": []
       },
       {
-        "id": "alias-method-two-words-flagged",
+        "id": "alias-method-three-words-flagged",
         "gap": "R4",
         "cop": "Kata/GoodMethodName",
         "expect": "offense",
@@ -1211,7 +1219,7 @@
         "messages": []
       },
       {
-        "id": "alias-keyword-two-words-flagged",
+        "id": "alias-keyword-three-words-flagged",
         "gap": "R4",
         "cop": "Kata/GoodMethodName",
         "expect": "offense",
@@ -1984,6 +1992,254 @@
         ]
       },
       {
+        "id": "two-word-method-allowed-parse_header",
+        "gap": "R13",
+        "cop": "Kata/GoodMethodName",
+        "expect": "clean",
+        "passed": false,
+        "found": 1,
+        "faults": [
+          "expected no offense, found 1"
+        ],
+        "messages": [
+          "`parse_header` needs two words: either a concept is missing, or the method belongs on the object the second word names. Say it in one word, move it, give the role a `Prefixes`/`Suffixes` word — or, if `parse_header` is one domain concept here, add it to `Terms`."
+        ]
+      },
+      {
+        "id": "two-word-method-allowed-line_items",
+        "gap": "R13",
+        "cop": "Kata/GoodMethodName",
+        "expect": "clean",
+        "passed": true,
+        "found": 0,
+        "faults": [],
+        "messages": []
+      },
+      {
+        "id": "two-word-method-allowed-build_adapter",
+        "gap": "R13",
+        "cop": "Kata/GoodMethodName",
+        "expect": "clean",
+        "passed": false,
+        "found": 1,
+        "faults": [
+          "expected no offense, found 1"
+        ],
+        "messages": [
+          "`build_adapter` needs two words: either a concept is missing, or the method belongs on the object the second word names. Say it in one word, move it, give the role a `Prefixes`/`Suffixes` word — or, if `build_adapter` is one domain concept here, add it to `Terms`."
+        ]
+      },
+      {
+        "id": "two-word-method-allowed-matching_ids",
+        "gap": "R13",
+        "cop": "Kata/GoodMethodName",
+        "expect": "clean",
+        "passed": false,
+        "found": 1,
+        "faults": [
+          "expected no offense, found 1"
+        ],
+        "messages": [
+          "`matching_ids` needs two words: either a concept is missing, or the method belongs on the object the second word names. Say it in one word, move it, give the role a `Prefixes`/`Suffixes` word — or, if `matching_ids` is one domain concept here, add it to `Terms`."
+        ]
+      },
+      {
+        "id": "two-word-method-allowed-customer_address",
+        "gap": "R13",
+        "cop": "Kata/GoodMethodName",
+        "expect": "clean",
+        "passed": false,
+        "found": 1,
+        "faults": [
+          "expected no offense, found 1"
+        ],
+        "messages": [
+          "`customer_address` needs two words: either a concept is missing, or the method belongs on the object the second word names. Say it in one word, move it, give the role a `Prefixes`/`Suffixes` word — or, if `customer_address` is one domain concept here, add it to `Terms`."
+        ]
+      },
+      {
+        "id": "two-word-variable-allowed-error_message",
+        "gap": "R13",
+        "cop": "Kata/GoodVariableName",
+        "expect": "clean",
+        "passed": false,
+        "found": 1,
+        "faults": [
+          "expected no offense, found 1"
+        ],
+        "messages": [
+          "`error_message` needs two words: the second word names an object you have not introduced yet. Name that object, use a `Prefixes`/`Suffixes` role word — or, if `error_message` is one domain concept here, add it to `Terms`."
+        ]
+      },
+      {
+        "id": "two-word-variable-allowed-retry_count",
+        "gap": "R13",
+        "cop": "Kata/GoodVariableName",
+        "expect": "clean",
+        "passed": true,
+        "found": 0,
+        "faults": [],
+        "messages": []
+      },
+      {
+        "id": "two-word-variable-allowed-line_items",
+        "gap": "R13",
+        "cop": "Kata/GoodVariableName",
+        "expect": "clean",
+        "passed": true,
+        "found": 0,
+        "faults": [],
+        "messages": []
+      },
+      {
+        "id": "two-word-variable-allowed-source_root",
+        "gap": "R13",
+        "cop": "Kata/GoodVariableName",
+        "expect": "clean",
+        "passed": false,
+        "found": 1,
+        "faults": [
+          "expected no offense, found 1"
+        ],
+        "messages": [
+          "`source_root` needs two words: the second word names an object you have not introduced yet. Name that object, use a `Prefixes`/`Suffixes` role word — or, if `source_root` is one domain concept here, add it to `Terms`."
+        ]
+      },
+      {
+        "id": "three-word-method-flagged-customer_billing_address",
+        "gap": "R13",
+        "cop": "Kata/GoodMethodName",
+        "expect": "offense",
+        "passed": true,
+        "found": 1,
+        "faults": [],
+        "messages": [
+          "`customer_billing_address` needs two words: either a concept is missing, or the method belongs on the object the second word names. Say it in one word, move it, give the role a `Prefixes`/`Suffixes` word — or, if `customer_billing_address` is one domain concept here, add it to `Terms`."
+        ]
+      },
+      {
+        "id": "three-word-method-flagged-assemble_monthly_report",
+        "gap": "R13",
+        "cop": "Kata/GoodMethodName",
+        "expect": "offense",
+        "passed": true,
+        "found": 1,
+        "faults": [],
+        "messages": [
+          "`assemble_monthly_report` needs two words: either a concept is missing, or the method belongs on the object the second word names. Say it in one word, move it, give the role a `Prefixes`/`Suffixes` word — or, if `assemble_monthly_report` is one domain concept here, add it to `Terms`."
+        ]
+      },
+      {
+        "id": "three-word-method-flagged-fork_pool_worker",
+        "gap": "R13",
+        "cop": "Kata/GoodMethodName",
+        "expect": "offense",
+        "passed": true,
+        "found": 1,
+        "faults": [],
+        "messages": [
+          "`fork_pool_worker` needs two words: either a concept is missing, or the method belongs on the object the second word names. Say it in one word, move it, give the role a `Prefixes`/`Suffixes` word — or, if `fork_pool_worker` is one domain concept here, add it to `Terms`."
+        ]
+      },
+      {
+        "id": "three-word-variable-flagged-last_error_message",
+        "gap": "R13",
+        "cop": "Kata/GoodVariableName",
+        "expect": "offense",
+        "passed": true,
+        "found": 1,
+        "faults": [],
+        "messages": [
+          "`last_error_message` needs two words: the second word names an object you have not introduced yet. Name that object, use a `Prefixes`/`Suffixes` role word — or, if `last_error_message` is one domain concept here, add it to `Terms`."
+        ]
+      },
+      {
+        "id": "three-word-variable-flagged-covering_test_lines",
+        "gap": "R13",
+        "cop": "Kata/GoodVariableName",
+        "expect": "offense",
+        "passed": true,
+        "found": 1,
+        "faults": [],
+        "messages": [
+          "`covering_test_lines` needs two words: the second word names an object you have not introduced yet. Name that object, use a `Prefixes`/`Suffixes` role word — or, if `covering_test_lines` is one domain concept here, add it to `Terms`."
+        ]
+      },
+      {
+        "id": "chained-actions-flagged-validate_and_save",
+        "gap": "R13",
+        "cop": "Kata/GoodMethodName",
+        "expect": "offense",
+        "passed": true,
+        "found": 1,
+        "faults": [],
+        "messages": [
+          "`validate_and_save` chains actions with `and`; each action wants its own method."
+        ]
+      },
+      {
+        "id": "chained-actions-flagged-find_or_create",
+        "gap": "R13",
+        "cop": "Kata/GoodMethodName",
+        "expect": "offense",
+        "passed": true,
+        "found": 1,
+        "faults": [],
+        "messages": [
+          "`find_or_create` chains actions with `or`; each action wants its own method."
+        ]
+      },
+      {
+        "id": "smashed-pair-flagged",
+        "gap": "R13",
+        "cop": "Kata/RealWords",
+        "expect": "offense",
+        "passed": true,
+        "found": 1,
+        "faults": [],
+        "messages": [
+          "`errorcount` is not in the dictionary — restore the underscore between smashed words, spell the abbreviation out, or add it to `Terms` if it is one domain term here."
+        ]
+      },
+      {
+        "id": "plain-eight-line-method-allowed",
+        "gap": "R14",
+        "cop": "Metrics/MethodLength",
+        "expect": "clean",
+        "passed": false,
+        "found": 1,
+        "faults": [
+          "expected no offense, found 1"
+        ],
+        "messages": [
+          "Method has too many lines. [7/5]"
+        ]
+      },
+      {
+        "id": "long-method-flagged",
+        "gap": "R14",
+        "cop": "Metrics/MethodLength",
+        "expect": "offense",
+        "passed": true,
+        "found": 1,
+        "faults": [],
+        "messages": [
+          "Method has too many lines. [11/5]"
+        ]
+      },
+      {
+        "id": "branching-method-flagged",
+        "gap": "R14",
+        "cop": "Metrics/CyclomaticComplexity",
+        "expect": "offense",
+        "passed": false,
+        "found": 0,
+        "faults": [
+          "expected an offense, found none"
+        ],
+        "messages": []
+      },
+      {
         "id": "bare-puts-flagged",
         "gap": "extra",
         "cop": "Kata/IoDiscipline",
@@ -2038,7 +2294,7 @@
         "messages": []
       },
       {
-        "id": "two-word-method-flagged",
+        "id": "three-word-method-flagged",
         "gap": "extra",
         "cop": "Kata/GoodMethodName",
         "expect": "offense",
@@ -2046,7 +2302,7 @@
         "found": 1,
         "faults": [],
         "messages": [
-          "`customer_address` needs two words: either a concept is missing, or the method belongs on the object the second word names. Say it in one word, move it, give the role a `Prefixes`/`Suffixes` word — or, if `customer_address` is one domain concept here, add it to `Terms`."
+          "`customer_billing_address` needs two words: either a concept is missing, or the method belongs on the object the second word names. Say it in one word, move it, give the role a `Prefixes`/`Suffixes` word — or, if `customer_billing_address` is one domain concept here, add it to `Terms`."
         ]
       },
       {
@@ -2602,7 +2858,7 @@
         "test": {
           "status": 1,
           "examples": 652,
-          "failures": 25
+          "failures": 24
         }
       }
     },

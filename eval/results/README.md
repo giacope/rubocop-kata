@@ -1,6 +1,6 @@
 # Evaluation results
 
-`before.json` is `main` at `719080f`, `after.json` is this branch at `8e6d39f`,
+`before.json` is `main` at `719080f`, `after.json` is this branch at `d6cf35c`,
 both run by `eval/run` with rubocop 1.92.0 and the released rubocop-elegant
 0.8.0, the versions a fresh `bundle install` resolves. Regenerate with:
 
@@ -45,10 +45,50 @@ What the sections measure:
   counts files that no longer parse, comment lines kept (all, YARD tags,
   encoding magic), and faraday's 652 specs. rubygems.org's suite needs
   PostgreSQL and is not run.
-- **MethodLength by CountAsOne** answers whether folding wrapped calls hollows
-  the metric: without the fold, 5 more faraday methods and 44 more
-  rubygems.org methods fail, nearly all for layout alone; `Metrics/AbcSize` at
-  17 catches the 15 methods whose logic the fold hid.
+- **MethodLength by CountAsOne** reports the length cop under three counting
+  rules. With the limit at 10 the fold matters little (faraday 20 vs 22
+  without any folding, rubygems.org 143 vs 203).
+
+## Why methods may run to 10 lines and names to two words
+
+A blind readability study (the items and ratings are in hashira, under
+`eval/results/fragmentation/`) drew two samples. Each held 30 entry methods,
+with their same-class helpers, from kimera and hashira, two codebases written
+to kata's five-line, one-word rules, and 30 from rubocop, faraday and
+rubygems.org. Each sample had two raters, who agreed on the fragmentation
+call for 55 and 54 of 60 items.
+
+| Sample | Over-fragmented, house | Over-fragmented, control | Readability, house / control | Names, house / control | Lines per method, house / control |
+| --- | --- | --- | --- | --- | --- |
+| 1 | 15, 14 of 30 | 2, 0 of 30 | 3.00, 3.03 / 3.90, 3.83 | 2.57, 2.47 / 4.17, 4.00 | 3.30 / 6.35 |
+| 2 | 16, 14 of 30 | 1, 1 of 30 | 2.83, 3.07 / 3.97, 4.07 | 2.47, 2.97 / 3.97, 4.17 | 3.03 / 6.22 |
+
+(Two numbers are the two raters; scores are 1 to 5.) The study cannot separate
+the rules from the codebases that followed them, but it points one way. The
+length limit returns to RuboCop's 10, and the complexity cops guard logic
+density at RuboCop's defaults (AbcSize 17, CyclomaticComplexity 7,
+PerceivedComplexity 8). Two-word names are allowed. Measured on these
+corpora, MethodLength offenses fall from 61 to 20 on faraday and from 458 to
+143 on rubygems.org; CyclomaticComplexity and PerceivedComplexity add 15
+offenses on faraday and 31 on rubygems.org; hashira and kimera gain none.
+Two-word names take GoodMethodName from 109 to 27 on faraday and from 1,293
+to 613 on rubygems.org, and GoodVariableName from 79 to 4 and from 600 to 137
+(round two to this branch). The R13 and R14 cases pin what still fails:
+three-word and chained names, smashes, and long or branching methods.
+
+## Offenses this branch adds to hashira and kimera at their branch HEADs
+
+Read-only runs at hashira `e7b3c07` and kimera `5f0488f`, with their own
+configuration, comparing main's kata, round two (`6135b51`), and this branch:
+
+| Repo | main | round two | this branch | Added over main, by cop |
+| --- | --- | --- | --- | --- |
+| hashira | 2 | 7 | 7 | AbcSize 3, ClockDiscipline 2 |
+| kimera | 0 | 60 | 59 | RealWords 45, ClockDiscipline 8, Layout/BlockAlignment 4, AbcSize 2 |
+
+The round-three changes add nothing to either; they remove kimera's one
+GoodMethodName offense (`discard_pool!`).
+
 
 
 ## Snippet cases (shipped defaults)
@@ -64,8 +104,10 @@ What the sections measure:
 | R7 | 0 → 3 of 3 |
 | R9 | 1 → 4 of 5 |
 | R11 | 0 → 1 of 1 |
+| R13 | 11 → 17 of 17 |
+| R14 | 1 → 3 of 3 |
 | extra | 13 → 13 of 13 |
-| all | 83 → 164 of 167 |
+| all | 95 → 184 of 187 |
 
 ## Still failing
 
@@ -124,28 +166,28 @@ Raw rule on the dev split. False positives: Creditor. False negatives: Accumulat
 
 | Corpus | Offenses | PerKLOC |
 | --- | --- | --- |
-| faraday | 1958 → 1173 | 501.3 → 300.3 |
-| rubygems.org | 7159 → 7139 | 275.0 → 274.2 |
+| faraday | 1958 → 990 | 501.3 → 253.5 |
+| rubygems.org | 7159 → 5710 | 275.0 → 219.4 |
 | hashira | 2 → 9 | 0.3 → 1.1 |
-| kimera | 0 → 59 | 0.0 → 4.9 |
+| kimera | 0 → 58 | 0.0 → 4.8 |
 
 ## Autocorrect safety
 
 | Corpus | Mode | Unparsable | Comments kept | YARD kept | Encoding kept | Test failures |
 | --- | --- | --- | --- | --- | --- | --- |
 | faraday | -a | 0 → 0 | 61/1068 → 1067/1068 | 28/257 → 257/257 | 0/0 → 0/0 | 0 → 0 |
-| faraday | -A | 0 → 0 | 61/1068 → 844/1068 | 28/257 → 257/257 | 0/0 → 0/0 | 25 → 0 |
-| rubygems.org | -a | 0 → 0 | 557/1370 → 1366/1370 | 0/12 → 12/12 | 0/0 → 0/0 | n/a → n/a |
-| rubygems.org | -A | 0 → 0 | 558/1370 → 755/1370 | 0/12 → 12/12 | 0/0 → 0/0 | n/a → n/a |
+| faraday | -A | 0 → 0 | 61/1068 → 844/1068 | 28/257 → 257/257 | 0/0 → 0/0 | 24 → 0 |
+| rubygems.org | -a | 0 → 0 | 557/1370 → 1368/1370 | 0/12 → 12/12 | 0/0 → 0/0 | n/a → n/a |
+| rubygems.org | -A | 0 → 0 | 558/1370 → 757/1370 | 0/12 → 12/12 | 0/0 → 0/0 | n/a → n/a |
 
 ## Metrics/MethodLength offenses by CountAsOne
 
 | Corpus | kata | without_method_call | none |
 | --- | --- | --- | --- |
-| faraday | 61 | 66 | 70 |
-| rubygems.org | 458 | 502 | 569 |
+| faraday | 61 → 20 | 66 → 20 | 70 → 22 |
+| rubygems.org | 458 → 143 | 502 → 159 | 569 → 203 |
 | hashira | 0 | 0 | 0 |
-| kimera | 0 | 6 | 13 |
+| kimera | 0 | 6 → 0 | 13 → 0 |
 
 ## faraday: offenses per kLOC by cop
 
@@ -159,9 +201,9 @@ Raw rule on the dev split. False positives: Creditor. False negatives: Accumulat
 | Kata/ConstructorDiscipline | 13.57 | 12.29 | -1.28 |
 | Kata/EnvDiscipline | 0.26 | 0.26 | 0.0 |
 | Kata/GoodClassName | 1.02 | 1.79 | 0.77 |
-| Kata/GoodMethodName | 25.09 | 27.91 | 2.82 |
+| Kata/GoodMethodName | 25.09 | 6.91 | -18.18 |
 | Kata/GoodModuleName | 1.28 | 1.28 | 0.0 |
-| Kata/GoodVariableName | 20.23 | 20.23 | 0.0 |
+| Kata/GoodVariableName | 20.23 | 1.02 | -19.21 |
 | Kata/IoDiscipline | 0.51 | 0.51 | 0.0 |
 | Kata/JustifiedDirective | 0.0 | 0.77 | 0.77 |
 | Kata/NoClassMethodLogic | 5.38 | 5.12 | -0.26 |
@@ -177,7 +219,9 @@ Raw rule on the dev split. False positives: Creditor. False negatives: Accumulat
 | Layout/RedundantLineBreak | 2.56 | 2.56 | 0.0 |
 | Metrics/AbcSize | 0.0 | 3.07 | 3.07 |
 | Metrics/ClassLength | 1.02 | 1.02 | 0.0 |
-| Metrics/MethodLength | 15.62 | 15.62 | 0.0 |
+| Metrics/CyclomaticComplexity | 0.0 | 2.05 | 2.05 |
+| Metrics/MethodLength | 15.62 | 5.12 | -10.5 |
+| Metrics/PerceivedComplexity | 0.0 | 1.79 | 1.79 |
 | Naming/BlockForwarding | 6.66 | 6.66 | 0.0 |
 | Naming/MemoizedInstanceVariableName | 3.84 | 3.84 | 0.0 |
 | Style/ArgumentsForwarding | 7.17 | 7.17 | 0.0 |
@@ -203,9 +247,9 @@ Raw rule on the dev split. False positives: Creditor. False negatives: Accumulat
 | Kata/ConstructorDiscipline | 4.3 | 4.03 | -0.27 |
 | Kata/EnvDiscipline | 0.81 | 0.81 | 0.0 |
 | Kata/GoodClassName | 5.8 | 6.91 | 1.11 |
-| Kata/GoodMethodName | 48.98 | 49.67 | 0.69 |
+| Kata/GoodMethodName | 48.98 | 23.55 | -25.43 |
 | Kata/GoodModuleName | 0.81 | 0.88 | 0.07 |
-| Kata/GoodVariableName | 23.05 | 23.05 | 0.0 |
+| Kata/GoodVariableName | 23.05 | 5.26 | -17.79 |
 | Kata/IoDiscipline | 1.27 | 1.27 | 0.0 |
 | Kata/JustifiedDirective | 0.0 | 1.31 | 1.31 |
 | Kata/NoBooleanFlag | 0.19 | 0.19 | 0.0 |
@@ -226,7 +270,8 @@ Raw rule on the dev split. False positives: Creditor. False negatives: Accumulat
 | Lint/UselessConstantScoping | 1.19 | 1.19 | 0.0 |
 | Metrics/AbcSize | 0.04 | 6.34 | 6.3 |
 | Metrics/ClassLength | 1.04 | 1.04 | 0.0 |
-| Metrics/MethodLength | 17.59 | 17.59 | 0.0 |
+| Metrics/CyclomaticComplexity | 0.04 | 0.81 | 0.77 |
+| Metrics/MethodLength | 17.59 | 5.49 | -12.1 |
 | Naming/MemoizedInstanceVariableName | 1.04 | 1.04 | 0.0 |
 | Naming/RescuedExceptionsVariableName | 2.0 | 2.0 | 0.0 |
 | Style/DisableCopsWithinSourceCodeDirective | 1.46 | 0.0 | -1.46 |
@@ -244,7 +289,6 @@ Raw rule on the dev split. False positives: Creditor. False negatives: Accumulat
 | Cop | Before | After | Delta |
 | --- | --- | --- | --- |
 | Kata/ClockDiscipline | 0.0 | 0.66 | 0.66 |
-| Kata/GoodMethodName | 0.0 | 0.08 | 0.08 |
 | Kata/RealWords | 0.0 | 3.72 | 3.72 |
 
 ## hashira: offenses this change adds and removes
@@ -260,7 +304,6 @@ Raw rule on the dev split. False positives: Creditor. False negatives: Accumulat
 | Cop | Added | Removed |
 | --- | --- | --- |
 | Kata/ClockDiscipline | 8 | 0 |
-| Kata/GoodMethodName | 1 | 0 |
 | Kata/RealWords | 45 | 0 |
 | Layout/BlockAlignment | 4 | 0 |
 | Metrics/AbcSize | 1 | 0 |

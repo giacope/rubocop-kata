@@ -15,8 +15,10 @@ rubocop 1.92.0, rubocop-elegant 0.8.0, rubocop-kata 0.10.1
 | R7 | 0 of 3 |
 | R9 | 1 of 5 |
 | R11 | 0 of 1 |
+| R13 | 11 of 17 |
+| R14 | 1 of 3 |
 | extra | 13 of 13 |
-| all | 83 of 167 |
+| all | 95 of 187 |
 
 ## Still failing
 
@@ -62,12 +64,12 @@ rubocop 1.92.0, rubocop-elegant 0.8.0, rubocop-kata 0.10.1
 - `placeholder-flagged-baz`: expected an offense, found none
 - `placeholder-flagged-qux`: expected an offense, found none
 - `conversion-protocol-allowed`: expected no offense, found 1
-- `attr-reader-two-words-flagged`: expected an offense, found none
-- `attr-accessor-two-words-flagged`: expected an offense, found none
-- `attr-writer-two-words-flagged`: expected an offense, found none
-- `define-method-two-words-flagged`: expected an offense, found none
-- `alias-method-two-words-flagged`: expected an offense, found none
-- `alias-keyword-two-words-flagged`: expected an offense, found none
+- `attr-reader-three-words-flagged`: expected an offense, found none
+- `attr-accessor-three-words-flagged`: expected an offense, found none
+- `attr-writer-three-words-flagged`: expected an offense, found none
+- `define-method-three-words-flagged`: expected an offense, found none
+- `alias-method-three-words-flagged`: expected an offense, found none
+- `alias-keyword-three-words-flagged`: expected an offense, found none
 - `attr-reader-abbreviation-flagged`: expected an offense, found none
 - `clock-keyword-seam-allowed`: expected no offense, found 1
 - `clock-positional-seam-allowed`: expected no offense, found 1
@@ -104,6 +106,14 @@ rubocop 1.92.0, rubocop-elegant 0.8.0, rubocop-kata 0.10.1
 - `trailing-bare-disable-flagged`: expected an offense, found none
 - `disable-all-flagged`: expected an offense, found none
 - `memoized-ivar-not-renamed`: correction removed "    @connection ||= open"
+- `two-word-method-allowed-parse_header`: expected no offense, found 1
+- `two-word-method-allowed-build_adapter`: expected no offense, found 1
+- `two-word-method-allowed-matching_ids`: expected no offense, found 1
+- `two-word-method-allowed-customer_address`: expected no offense, found 1
+- `two-word-variable-allowed-error_message`: expected no offense, found 1
+- `two-word-variable-allowed-source_root`: expected no offense, found 1
+- `plain-eight-line-method-allowed`: expected no offense, found 1
+- `branching-method-flagged`: expected an offense, found none
 - `plan-under-lang-c`: stdout lacks /next: /; stderr has /Error/; stderr has /\.rb:\d+:in /
 - `plan-stages-every-kata-cop`: stdout has /^rest .*Kata//
 - `doctor-reads-inherit-from`: exit status 0, expected [1]; stdout lacks /\.rubocop_todo\.yml:1: `Elegant/GoodMethodName`/
@@ -172,7 +182,7 @@ Raw rule on the dev split. False positives: Author, Banner, Barrier, Brother, Bu
 | Corpus | Mode | Unparsable | Comments kept | YARD kept | Encoding kept | Test failures |
 | --- | --- | --- | --- | --- | --- | --- |
 | faraday | -a | 0 | 61/1068 | 28/257 | 0/0 | 0 |
-| faraday | -A | 0 | 61/1068 | 28/257 | 0/0 | 25 |
+| faraday | -A | 0 | 61/1068 | 28/257 | 0/0 | 24 |
 | rubygems.org | -a | 0 | 557/1370 | 0/12 | 0/0 | n/a |
 | rubygems.org | -A | 0 | 558/1370 | 0/12 | 0/0 | n/a |
 

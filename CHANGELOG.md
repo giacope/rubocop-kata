@@ -2,6 +2,22 @@
 
 ## [Unreleased]
 
+- Methods may run to 10 lines and names may take two words. A blind
+  readability study compared kimera and hashira, written to kata's rules,
+  with rubocop, faraday and rubygems.org: two samples of 60 entry methods,
+  two raters each, agreeing on 54 and 55 of 60 calls. Readers judged 14–16
+  of 30 house-style items over-fragmented against 0–2 of 30 in the control,
+  and scored readability about 3.0 against 4.0 and name clarity about 2.5
+  against 4.1. House-style methods averaged 3.0 lines, the control 6.3.
+  `Metrics/MethodLength` goes from 5 to RuboCop's 10, and logic density is
+  bounded by the complexity cops at RuboCop's defaults instead of Elegant's:
+  `AbcSize` 17, `CyclomaticComplexity` 7 and `PerceivedComplexity` 8.
+  `Kata/GoodMethodName` and `Kata/GoodVariableName` allow two words by
+  default, role words uncounted. Three or more words, chained actions,
+  smashes and clippings still fail, and `MaxWords: 1` restores one word. The
+  messages now say that three words, not two, mean a missing concept, and a
+  segment the `Pattern` rejects gets its own message.
+
 Measured with the new `eval/run`, which scores a checkout as users install it;
 [eval/results](eval/results/README.md) has the full before/after. Snippet cases
 under the shipped defaults pass 164 of 167, up from 83.

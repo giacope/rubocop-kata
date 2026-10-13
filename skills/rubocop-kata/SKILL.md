@@ -77,8 +77,8 @@ This is the step that keeps the count honest. Kata's naming rules, condensed:
 
 | rule | cop |
 | --- | --- |
-| one word, lowercase, ≤16 chars | `GoodMethodName`, `GoodVariableName` |
-| a second word only via a role prefix (`after_fork`), a role suffix (`file_of`), or a reviewed `Terms` entry | same |
+| at most two words, each lowercase and ≤16 chars | `GoodMethodName`, `GoodVariableName` |
+| role prefixes (`after_fork`), role suffixes (`file_of`) and reviewed `Terms` don't count; no chained actions (`validate_and_save`) | same |
 | never smash the underscore out — `errorcount` fails too | `RealWords` |
 | every segment is a real word; no `cfg`, `ctx`, `msg`, `tmp`, … | `RealWords` |
 | a class is one object, not a `-er`/`-or` doer, a junk drawer (`Service`, `Util`, `Data`), or three concepts packed together | `GoodClassName` |
@@ -97,10 +97,10 @@ If a word the domain genuinely needs is not in the dictionary, that is a `Terms`
 `.rubocop.yml`, not a reason to pick a worse name — but add it deliberately, one at a time,
 and say why in the commit.
 
-When a name is genuinely two words and neither the prefix nor the suffix list fits, that is
-usually the cop telling you an object is missing. `evidence_poller` wants to be
-`Evidence#poll` or an `EvidenceValidation`. Prefer extracting the object over adding a
-`Terms` entry.
+Two plain words are fine (`parse_header`, `line_items`); do not squeeze a two-word concept
+into one vague or metaphorical word to please a stricter config. Three or more words are
+usually the cop telling you an object is missing: `customer_billing_address` wants a
+`BillingAddress` the customer has. Prefer extracting the object over adding a `Terms` entry.
 
 ### 5. Re-run `plan` and report two numbers
 

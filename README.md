@@ -2,18 +2,33 @@
 
 A RuboCop plugin that replaces a pile of linter gems and config with one dependency. Install it and your `.rubocop.yml` shrinks to project-specific overrides. Everything else comes from the gem: a curated stack of RuboCop extensions, opinionated style defaults, and nineteen house cops.
 
-`Kata/GoodMethodName` asks for one word per method name. A second word is
-allowed only when it is not hiding a missing object: a role prefix
-(`after_fork`), a role suffix (`file_of`), or a compound noun you have added to
-`Terms` on purpose. The wrong way to satisfy the cop is `matching_ids` →
-`matchingids`: if you need two words, that is a modelling smell — the concept is
-missing, or the method belongs on a different object. `Kata/RealWords` catches
-that dodge with a shipped dictionary instead of a word list you maintain:
-`matchingids` is not a word, so it fails with zero configuration — and so does
-`cfg`.
+Kata's naming and size rules began as Elegant Objects' one-word names and
+five-line methods. We measured them and they moved. In a blind readability
+study, two samples each held 30 entry methods (with their same-class helpers)
+from kimera and hashira, two codebases written to kata's rules, and 30 from
+rubocop, faraday and rubygems.org, with two raters per sample who agreed on
+54 and 55 of 60 calls. Readers judged 14–16 of the 30 house-style items
+over-fragmented, against 0–2 of 30 in the control. They scored readability
+about 3.0 against 4.0 and name clarity about 2.5 against 4.1, calling the
+one-word names vague or metaphorical (`rolls`, `homes`, `sightings`,
+`pinpoint`). House-style methods averaged 3.0 lines, the control 6.3. The
+study cannot separate the rules from the people who followed them, but it
+points one way, and the defaults followed:
+
+- **Methods** may run to RuboCop's 10 lines. Logic density is what is
+  bounded, by `Metrics/AbcSize` 17, `CyclomaticComplexity` 7 and
+  `PerceivedComplexity` 8.
+- **Names** may take two words (`parse_header`, `line_items`), not counting
+  role words (`after_fork`, `file_of`). Three or more words still fail, and
+  so do chained actions (`validate_and_save`). `Kata/RealWords` still fails a
+  smash (`matchingids`) and a clipping (`cfg`). `MaxWords: 1` restores the
+  one-word discipline for a team that wants it.
+
+The study's items and ratings are in hashira, under
+`eval/results/fragmentation/`.
 
 - **One dependency.** Bundles rubocop-rspec, rubocop-performance, rubocop-elegant, rubocop-packaging, and rubocop-thread_safety behind a single gem.
-- **Opinionated defaults.** Methods under 5 lines, classes under 100, 4 parameters max, 120-column lines, double quotes, `NewCops: enable`. See [config/default.yml](config/default.yml).
+- **Opinionated defaults.** Methods up to 10 lines and bounded by complexity, classes under 100, 4 parameters max, 120-column lines, double quotes, `NewCops: enable`. See [config/default.yml](config/default.yml).
 - **Nineteen house cops.** Naming, dependency discipline, and data honesty in the Elegant Objects spirit — from `Kata/GoodClassName` to `Kata/ClockDiscipline`.
 
 ```ruby
@@ -80,7 +95,7 @@ both the oldest releases the gemspec allows and the newest.
 | `Kata/IoDiscipline` | on | No bare `puts`/`warn`/`pp`/`p` outside the test suite and the boot layer; write through an injected `@io` or an explicit receiver. |
 | `Kata/ProsePlacement` | off | Sentence-length strings belong in the presentation layer. Enable with an `Include`/`Exclude` matching your layering. |
 | `Kata/RealWords` | on | Every name segment is a word: English, an initialism, a technology's name, or the platform's own spelling (`env`, `params`, `attr`, `io`). `errorcount` (a smash) fails, and so does every clipping, whichever dictionary lists it: `args`, `opts`, `src`, `impl`, `str`, `req`, `conn`, with the word named in the message. `foo` is a placeholder. Tune via `Terms`/`BannedWords`/`AllowedNames`. |
-| `Kata/GoodMethodName` | on | One word per method name; a second word needs a role prefix (`after_fork`), a role suffix (`file_of`), or a reviewed `Terms` entry. A name chaining actions (`validate_and_save`) is two methods in one. Names minted by `attr_*`, `define_method`, `alias_method` and `alias` count. A Minitest `test_` method in a test class goes unpriced. |
+| `Kata/GoodMethodName` | on | At most two words per method name (`MaxWords`), not counting a role prefix (`after_fork`), a role suffix (`file_of`) or a reviewed `Terms` entry; three or more words describe a missing object. A name chaining actions (`validate_and_save`) is two methods in one. Names minted by `attr_*`, `define_method`, `alias_method` and `alias` count. A Minitest `test_` method in a test class goes unpriced. |
 | `Kata/GoodVariableName` | on | The same rule for locals, parameters, ivars, class variables, and globals; `_name` and `@_name` stay exempt. |
 | `Kata/BuilderNoun` | on | Builders named for what they return: `total`, not `calculate_total`. Tune via `BannedPrefixes`/`AllowedNames`. |
 | `Kata/NoBooleanFlag` | on | No positional boolean arguments, and no positional parameter defaulting to one; split the method or use a keyword. `AllowedMethods` holds the calls whose boolean is a protocol or a value (`respond_to?(name, true)`, `fetch(:ssl, false)`). |
@@ -151,9 +166,9 @@ skills from — a project, `~/.claude/skills/`, or a plugin.
 
 ## The defaults
 
-Double-quoted strings, `Metrics/MethodLength: 5` (a wrapped call counts as one
-line) with `Metrics/AbcSize: 17` to price what such a call carries,
-`Metrics/ClassLength: 100`, `Metrics/ParameterLists: 4`, 120-column lines,
+Double-quoted strings, `Metrics/MethodLength: 10` (a wrapped call counts as
+one line) guarded by `Metrics/AbcSize: 17`, `CyclomaticComplexity: 7` and
+`PerceivedComplexity: 8`, two-word names, `Metrics/ClassLength: 100`, `Metrics/ParameterLists: 4`, 120-column lines,
 endless methods on one line, `rescue => error`, `NewCops: enable`, and inline
 disables only with a reason. The core Layout cops stay on, except the four that
 loop against Elegant's no-blank-lines rule. `rubocop -a` deletes no comment and
