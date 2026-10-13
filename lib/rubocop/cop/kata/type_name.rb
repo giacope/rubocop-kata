@@ -10,13 +10,13 @@ module RuboCop::Cop::Kata::TypeName
     identifier = node.identifier
     name = subject(identifier.short_name.to_s)
     return if allowed?(name)
-    complaint = complaint(name, node.type)
+    complaint = complaint(name, node)
     add_offense(identifier, message: complaint) if complaint
   end
 
-  def complaint(name, kind)
+  def complaint(name, node)
     return format(self.class::BANNED_MSG, name) if banned?(name)
-    return doer(name, kind) if doer?(name)
+    return doer(name, node.type) if doer?(name) && !inherited?(name, node)
     crowd(name)
   end
 
@@ -25,7 +25,18 @@ module RuboCop::Cop::Kata::TypeName
     format(self.class::CROWD_MSG, name, count, name) if count > max
   end
 
-  def subject(name) = name
+  def subject(name) = %w[Suffixes ContractSuffixes].reduce(name) { |stem, key| strip(stem, key) }
+
+  def strip(name, key)
+    role = list(key).find { name.end_with?(it) && name != it }
+    role ? name.delete_suffix(role) : name
+  end
+
+  def inherited?(name, node)
+    parent = node.parent_class if node.class_type?
+    return false unless parent&.const_type?
+    parent.short_name.to_s.scan(SEGMENT).last == name.scan(SEGMENT).last
+  end
 
   def banned?(name) = list("BannedNames").any? { name.end_with?(it) }
 

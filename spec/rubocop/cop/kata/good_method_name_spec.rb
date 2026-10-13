@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 RSpec.describe(RuboCop::Cop::Kata::GoodMethodName, :config) do
-  let(:defaults) { YAML.load_file("config/default.yml").fetch("Kata/GoodMethodName") }
+  let(:defaults) { YAML.load_file("config/default.yml", aliases: true).fetch("Kata/GoodMethodName") }
   let(:cop_config) { defaults.merge("Terms" => [], "AllowedNames" => []) }
 
   def offense(name)

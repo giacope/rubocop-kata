@@ -26,7 +26,7 @@ RSpec.describe(RuboCop::Kata::Plugin) do
   end
 
   it "leaves every cop it tunes switched on, unless it switches one off itself" do
-    shipped = YAML.load_file("config/default.yml").select { |key, value| key.include?("/") && value.is_a?(Hash) }
+    shipped = YAML.load_file("config/default.yml", aliases: true).select { |key, value| key.include?("/") && value.is_a?(Hash) }
     tuned = shipped.reject { |_, settings| settings.key?("Enabled") }.keys
     effective { |config| expect(tuned.select { config.for_cop(it)["Enabled"] == false }).to(be_empty) }
   end

@@ -17,16 +17,21 @@ Kata/GoodClassName:
     object: a doer name (`-er`/`-or`), a junk-drawer name (`Service`, `Util`,
     `Data`), and a name packing several concepts (`CustomerOrderPayment`).
     Compound syntax is not the smell — `CreditCard` is one concept, and belongs
-    in `Terms`. `AllowedNames` and `BannedNames` match a whole name or a
-    trailing segment, so `Error` also exempts `UsageError` and `Service` also
-    catches `InvoiceService`. The default `AllowedNames` holds the suffixes a
-    framework resolves a class by, which are contracts rather than naming
-    choices, plus thing-words that merely end in `-er`/`-or` — `User` and
-    `Order` are objects, not doers. A known word whose stem is no verb
-    (`Volunteer`, `Filter`) is not a doer either. A trailing `Suffixes` word
-    names what the class is for, not what it is, so `UsersControllerTest` is
-    judged as `UsersController`. Absorbs Kata/AgentNoun and the class half
-    of Kata/NoUtilName.
+    in `Terms`. A doer is an agent noun: the shipped WordNet data says whether
+    a word's dominant sense is "one that <verb>s" (`Parser`, `Timer`) or a
+    thing (`Number`, `Header`, `Order`), and an unknown word is a doer when its
+    stem is a verb. A trailing `Suffixes` word names what the class is for
+    (`UsersControllerTest` is for `UsersController`). `ContractSuffixes` are
+    the words a framework resolves a class by (`UsersController`,
+    `EmailValidator`, `InviteMailer`); the framework dictates the suffix, not
+    the subject, so `UsersControllerTest` is judged as `Users`, and
+    `ReportGeneratorJob` as `ReportGenerator`. A class whose superclass ends in the same word inherits that word
+    (`ActionHandler < Avo::Actions::ActionHandler`, `AuditLogger < Logger`):
+    the doer, if any, is the parent. `AllowedNames` match a whole name or a
+    trailing segment: exception classes (`Error`), the domain roles a model
+    represents rather than performs (`User`, `Owner`), words whose thing and
+    doer readings are equally common in code (`Server`, `Container`), and
+    `Header`, which WordNet derives from the verb `head`.
   Enabled: true
   VersionAdded: "0.9"
   VersionChanged: "0.11"
@@ -38,51 +43,29 @@ Kata/GoodClassName:
     - TestCase
     - Spec
     - Preview
-  AllowedNames:
-    - Actor
+  ContractSuffixes:
     - Adapter
-    - Author
-    - Buffer
-    - Center
     - Channel
-    - Chapter
-    - Character
-    - Color
     - Component
-    - Container
     - Controller
-    - Cursor
-    - Customer
     - Decorator
-    - Delegator
-    - Driver
-    - Enumerator
-    - Error
-    - Fiber
-    - Folder
     - Generator
-    - Helper
     - Job
-    - Ledger
-    - Logger
     - Mailbox
     - Mailer
-    - Member
-    - Monitor
-    - Notifier
-    - Order
-    - Owner
     - Policy
-    - Presenter
     - Serializer
-    - Server
-    - Subscriber
-    - Supplier
-    - Timer
-    - Transfer
-    - User
+    - Task
     - Validator
-    - Vector
+  AllowedNames: &type_names
+    - Actor
+    - Container
+    - Error
+    - Header
+    - Owner
+    - Server
+    - Supplier
+    - User
     - Vendor
   BannedNames:
     - Util
@@ -112,61 +95,22 @@ Kata/GoodModuleName:
     namespaces (`Common`, `Shared`, `Core`), doer names, and names packing
     several concepts are flagged; a genuine compound domain like
     `AccessControl` passes. `BannedNames` matches a whole name or a trailing
-    segment, so `Services` also catches `ApplicationServices`. The default
-    `AllowedNames` holds the framework suffixes, so reopening
-    `ActionController` or `ActionMailer` is not an offense; reopening another
-    library's junk drawer (`FileUtils`) is a file-boundary `Exclude`, not a
-    naming choice. Absorbs the module half of Kata/NoUtilName.
+    segment, so `Services` also catches `ApplicationServices`. `ContractSuffixes`
+    hold the words a framework resolves a module by: Rails includes
+    `app/helpers/invoices_helper.rb` as `InvoicesHelper`, and a reopen of
+    `ActionController` must spell it exactly. Reopening another library's
+    junk drawer (`FileUtils`) is a file-boundary `Exclude`, not a naming
+    choice. `AllowedNames` is the class list. Absorbs the module half of
+    Kata/NoUtilName.
   Enabled: true
   VersionAdded: "0.9"
   VersionChanged: "0.11"
   MaxWords: 2
-  AllowedNames:
-    - Actor
-    - Adapter
-    - Author
-    - Buffer
-    - Center
-    - Channel
-    - Chapter
-    - Character
-    - Color
-    - Component
-    - Container
+  ContractSuffixes:
     - Controller
-    - Cursor
-    - Customer
-    - Decorator
-    - Delegator
-    - Driver
-    - Enumerator
-    - Error
-    - Fiber
-    - Folder
-    - Generator
     - Helper
-    - Job
-    - Ledger
-    - Logger
-    - Mailbox
     - Mailer
-    - Member
-    - Monitor
-    - Notifier
-    - Order
-    - Owner
-    - Policy
-    - Presenter
-    - Serializer
-    - Server
-    - Subscriber
-    - Supplier
-    - Timer
-    - Transfer
-    - User
-    - Validator
-    - Vector
-    - Vendor
+  AllowedNames: *type_names
   BannedNames:
     - Common
     - Core

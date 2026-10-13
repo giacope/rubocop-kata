@@ -38,8 +38,8 @@ RSpec.describe(RuboCop::Cop::Kata::GoodClassName, :config) do
 
   it "derives the agent word of a compound and keeps the rest" do
     expect_offense(<<~RUBY)
-      class EvidenceValidator
-            ^^^^^^^^^^^^^^^^^ `EvidenceValidator` names a doer; name the class for the thing it is, not the work it does. Try `EvidenceValidation`.
+      class EvidenceAggregator
+            ^^^^^^^^^^^^^^^^^^ `EvidenceAggregator` names a doer; name the class for the thing it is, not the work it does. Try `EvidenceAggregation`.
       end
       class RouteSelector
             ^^^^^^^^^^^^^ `RouteSelector` names a doer; name the class for the thing it is, not the work it does. Try `RouteSelection`.
@@ -49,8 +49,8 @@ RSpec.describe(RuboCop::Cop::Kata::GoodClassName, :config) do
 
   it "preserves acronym segments in a compound suggestion" do
     expect_offense(<<~RUBY)
-      class PaymentJSONValidator
-            ^^^^^^^^^^^^^^^^^^^^ `PaymentJSONValidator` names a doer; name the class for the thing it is, not the work it does. Try `PaymentJSONValidation`.
+      class PaymentJSONAggregator
+            ^^^^^^^^^^^^^^^^^^^^^ `PaymentJSONAggregator` names a doer; name the class for the thing it is, not the work it does. Try `PaymentJSONAggregation`.
       end
     RUBY
   end
@@ -204,11 +204,92 @@ RSpec.describe(RuboCop::Cop::Kata::GoodClassName, :config) do
         end
         class WebHookPolicy
         end
-        class OpenGraphTagsComponent
+        class OpenGraphComponent
         end
         class InstallGenerator
         end
         class RoomChannel
+        end
+        class EmailValidator < ActiveModel::EachValidator
+        end
+        class InvoiceDigestJob < ApplicationJob
+        end
+        class Maintenance::SpamCleanupTask < MaintenanceTasks::Task
+        end
+      RUBY
+    end
+
+    it "judges the subject a framework suffix leaves, not the suffix" do
+      expect_offense(<<~RUBY)
+        class RubygemTrustedPublishersController < ApplicationController
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `RubygemTrustedPublishers` packs 3 concepts into one name; a class names one object that exists in the model — or, if `RubygemTrustedPublishers` reads as one concept here, add it to `Terms`.
+        end
+        class ReportBuilderJob < ApplicationJob
+              ^^^^^^^^^^^^^^^^ `ReportBuilder` names a doer; name the class for the thing it is, not the work it does.
+        end
+        class UsersControllerTest < ActionDispatch::IntegrationTest
+        end
+      RUBY
+    end
+
+    it "keeps a bare suffix a doer, since no framework resolves it" do
+      expect_offense(<<~RUBY)
+        class Controller
+              ^^^^^^^^^^ `Controller` names a doer; name the class for the thing it is, not the work it does.
+        end
+      RUBY
+    end
+
+    it "lets a class inherit the agent word of the superclass that chose it" do
+      expect_no_offenses(<<~RUBY)
+        class ActionHandler < Avo::Actions::ActionHandler
+        end
+        class AuditLogger < ::Logger
+        end
+        class JsonFormatter < Logger::Formatter
+        end
+      RUBY
+    end
+
+    it "still flags a doer whose superclass names something else" do
+      expect_offense(<<~RUBY)
+        class AuditLogger < Base
+              ^^^^^^^^^^^ `AuditLogger` names a doer; name the class for the thing it is, not the work it does.
+        end
+        class Handler < Struct.new(:name)
+              ^^^^^^^ `Handler` names a doer; name the class for the thing it is, not the work it does.
+        end
+      RUBY
+    end
+
+    it "reads a thing-word as a thing whatever its letters, so no list holds it" do
+      expect_no_offenses(<<~RUBY)
+        class Header
+        end
+        class Number
+        end
+        class Layer
+        end
+        class Letter
+        end
+        class Corner
+        end
+        class Matter
+        end
+        class Folder
+        end
+        class Customer
+        end
+      RUBY
+    end
+
+    it "keeps the domain roles a model represents" do
+      expect_no_offenses(<<~RUBY)
+        class User
+        end
+        class Owner
+        end
+        class Billing::Vendor
         end
       RUBY
     end

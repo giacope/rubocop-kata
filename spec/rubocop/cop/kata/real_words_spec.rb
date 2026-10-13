@@ -3,7 +3,7 @@
 RSpec.describe(RuboCop::Cop::Kata::RealWords, :config) do
   let(:cop_config) do
     {
-      "BannedWords" => YAML.load_file("config/default.yml").fetch("Kata/RealWords").fetch("BannedWords"),
+      "BannedWords" => YAML.load_file("config/default.yml", aliases: true).fetch("Kata/RealWords").fetch("BannedWords"),
       "Terms" => %w[],
       "AllowedNames" => %w[]
     }

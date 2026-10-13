@@ -6,20 +6,10 @@ module RuboCop::Cop::Kata::AgentNoun
   DOER = /(?:er|or)\z/
   SEGMENT = /[A-Z]+(?=[A-Z][a-z]|\z)|[A-Z][a-z0-9]*/
   DERIVATIONS = [[/ator\z/, "ation"], [/ector\z/, "ection"], [/isor\z/, "ision"], [/i[zs]er\z/, "is"]].freeze
-  VERBS = [
-    [/er\z/, ""], [/r\z/, ""], [/or\z/, ""], [/or\z/, "e"], [/ier\z/, "y"], [/([b-df-hj-np-tv-z])\1er\z/, '\1']
-  ].freeze
 
   private
 
-  def doer?(name)
-    word = name.scan(SEGMENT).last.to_s.downcase
-    DOER.match?(word) && (!word?(word) || verbal?(word))
-  end
-
-  def verbal?(word) = VERBS.any? { |ending, stem| ending.match?(word) && word?(word.sub(ending, stem)) }
-
-  def word?(stem) = RuboCop::Kata::Dictionary::ENTRIES.include?(stem)
+  def doer?(name) = RuboCop::Kata::Agency.new(name.scan(SEGMENT).last.to_s.downcase).doer?
 
   def doer(name, kind)
     hint = suggestion(name)
