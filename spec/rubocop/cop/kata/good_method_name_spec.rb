@@ -249,4 +249,38 @@ RSpec.describe(RuboCop::Cop::Kata::GoodMethodName, :config) do
       end
     RUBY
   end
+  it "prices the names attr macros, define_method and alias mint, not only def" do
+    expect_offense(<<~RUBY)
+      attr_reader :user_name, :name
+                  ^^^^^^^^^^ #{offense("user_name")}
+      attr_accessor "billing_cycle"
+                    ^^^^^^^^^^^^^^^ #{offense("billing_cycle")}
+      attr_writer :user_name
+                  ^^^^^^^^^^ #{offense("user_name")}
+      define_method(:user_name) { "x" }
+                    ^^^^^^^^^^ #{offense("user_name")}
+      alias_method :user_name, :name
+                   ^^^^^^^^^^ #{offense("user_name")}
+      alias user_name name
+            ^^^^^^^^^ #{offense("user_name")}
+    RUBY
+  end
+
+  it "judges only the new name of an alias, and leaves other calls alone" do
+    expect_no_offenses(<<~RUBY)
+      alias_method :name, :user_name
+      alias name user_name
+      define_method(name) { "x" }
+      record.attr_reader(:user_name)
+      validates :user_name, presence: true
+      alias $new $old
+    RUBY
+  end
+
+  it "reads the macros on self too" do
+    expect_offense(<<~RUBY)
+      self.define_method(:user_name) { "x" }
+                         ^^^^^^^^^^ #{offense("user_name")}
+    RUBY
+  end
 end

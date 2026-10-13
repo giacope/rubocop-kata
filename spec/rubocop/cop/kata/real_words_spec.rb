@@ -271,4 +271,14 @@ RSpec.describe(RuboCop::Cop::Kata::RealWords, :config) do
       RUBY
     end
   end
+  it "reads names the attr macros, define_method and alias mint" do
+    expect_offense(<<~RUBY)
+      attr_reader :usr
+                  ^^^^ `usr` is an abbreviation of `user`; spell the word out.
+      define_method(:matchingids) { [] }
+                    ^^^^^^^^^^^^ `matchingids` is not in the dictionary — restore the underscore between smashed words, spell the abbreviation out, or add it to `Terms` if it is one domain term here.
+      alias cfg name
+            ^^^ `cfg` is an abbreviation of `configuration`; spell the word out.
+    RUBY
+  end
 end

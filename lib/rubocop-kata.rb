@@ -15,6 +15,7 @@ module RuboCop
 end
 
 require_relative "rubocop/cop/kata/roster"
+require_relative "rubocop/cop/kata/minting"
 require_relative "rubocop/cop/kata/builder_noun"
 require_relative "rubocop/cop/kata/class_in_module"
 require_relative "rubocop/cop/kata/clock_discipline"

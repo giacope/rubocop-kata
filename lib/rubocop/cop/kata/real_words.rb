@@ -2,6 +2,7 @@
 
 class RuboCop::Cop::Kata::RealWords < RuboCop::Cop::Base
   include RuboCop::Cop::Kata::Roster
+  include RuboCop::Cop::Kata::Minting
 
   MSG = "%s is not in the dictionary — restore the underscore between smashed words, spell the " \
     "abbreviation out, or add it to `Terms` if it is one domain term here."
@@ -9,6 +10,7 @@ class RuboCop::Cop::Kata::RealWords < RuboCop::Cop::Base
   CLIPPING_MSG = "%s is an abbreviation of `%s`; spell the word out."
   PLACEHOLDER_MSG = "%s is a placeholder; name what it holds."
   PLACEHOLDER = "placeholder"
+  RESTRICT_ON_SEND = RuboCop::Cop::Kata::Minting::MINTERS
   SIGIL = /\A(@@|@|\$)/
   DERIVATIONS = [
     [/s\z/, ""], [/es\z/, ""], [/ies\z/, "y"],
@@ -45,10 +47,12 @@ class RuboCop::Cop::Kata::RealWords < RuboCop::Cop::Base
 
   private
 
-  def check(node, name)
+  def mint(range, name)
     segment = flaw(name)
-    add_offense(node.loc.name, message: message(name, segment)) if segment
+    add_offense(range, message: message(name, segment)) if segment
   end
+
+  def check(node, name) = mint(node.loc.name, name)
 
   def flaw(name)
     stem = stem(name)
