@@ -107,13 +107,19 @@ RSpec.describe(RuboCop::Kata::Plan) do
     end
   end
 
-  it "reads RuboCop's report as UTF-8 whatever the locale says" do
-    previous = Encoding.default_external
-    Encoding.default_external = Encoding::US_ASCII
-    project("# frozen_string_literal: true\n\ndef customer_address\n  1\nend\n") do |root|
-      expect(report(root).first).to(include("next: naming"))
+  context "when the locale is plain ASCII" do
+    around do |example|
+      previous = Encoding.default_external
+      Encoding.default_external = Encoding::US_ASCII
+      example.run
+    ensure
+      Encoding.default_external = previous
     end
-  ensure
-    Encoding.default_external = previous
+
+    it "reads RuboCop's report as UTF-8, em-dashes and all" do
+      project("# frozen_string_literal: true\n\ndef customer_address\n  1\nend\n") do |root|
+        expect(report(root).first).to(include("next: naming"))
+      end
+    end
   end
 end

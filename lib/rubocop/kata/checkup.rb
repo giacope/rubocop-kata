@@ -28,11 +28,9 @@ class RuboCop::Kata::Checkup
 
   private
 
-  def summary(found)
-    lines = [found.empty? && notes.empty? ? "clean" : tally(found)]
-    lines << format(WAIVERS, waived.size, plural(waived), waived.count { it.last.nil? }) unless waived.empty?
-    lines.join("\n")
-  end
+  def summary(found) = [found.empty? && notes.empty? ? "clean" : tally(found), *count].join("\n")
+
+  def count = waived.empty? ? [] : [format(WAIVERS, waived.size, plural(waived), waived.count { it.last.nil? })]
 
   def tally(found)
     text = format(TALLY, found.size, found.one? ? "y" : "ies")
@@ -44,13 +42,14 @@ class RuboCop::Kata::Checkup
   def inert = files.flat_map { |file| entries(file) }
 
   def entries(file)
-    lines = File.readlines(file, encoding: "UTF-8")
-    own = YAML.safe_load_file(file, aliases: true) || {}
-    lines.each_with_index.filter_map do |text, index|
+    own = settings(file)
+    File.readlines(file, encoding: Encoding::UTF_8).each_with_index.filter_map do |text, index|
       key = text[KEY, 1]
       format(INERT, relative(file), index + 1, key) if key && !live?(key, own)
     end
   end
+
+  def settings(file) = YAML.safe_load_file(file, aliases: true) || {}
 
   def files(file = File.join(@root, ".rubocop.yml"), seen = [])
     return seen if seen.include?(file) || !File.file?(file)
@@ -59,10 +58,7 @@ class RuboCop::Kata::Checkup
     seen
   end
 
-  def parents(file)
-    inherited = Array((YAML.safe_load_file(file, aliases: true) || {})["inherit_from"])
-    inherited.map { File.expand_path(it, File.dirname(file)) }
-  end
+  def parents(file) = Array(settings(file)["inherit_from"]).map { File.expand_path(it, File.dirname(file)) }
 
   def live?(key, own) = config.cop_enabled?(key) || own.dig(key, "Enabled") == false
 
@@ -101,11 +97,11 @@ class RuboCop::Kata::Checkup
 
   def waivers = waived.map { |path, line, cops, reason| format(WAIVER, path, line, cops, reason || BARE) }
 
-  def waived
-    @_waived ||= parsed.flat_map do |path, source|
-      source.comments.map { RuboCop::Kata::Waiver.new(it) }.select(&:disabling?)
-        .map { [path, it.line, it.cops.join("`, `"), it.reason] }
-    end
+  def waived = @_waived ||= parsed.flat_map { |path, source| waivers_in(path, source) }
+
+  def waivers_in(path, source)
+    source.comments.map { RuboCop::Kata::Waiver.new(it) }.select(&:disabling?)
+      .map { [path, it.line, it.cops.join("`, `"), it.reason] }
   end
 
   def active?(name, path)

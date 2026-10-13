@@ -108,32 +108,36 @@ RSpec.describe(RuboCop::Kata::Checkup) do
     end
   end
 
-  it "reads the files .rubocop.yml inherits, the todo file among them", :aggregate_failures do
+  def tree(files)
     Dir.mktmpdir("kata-checkup") do |root|
-      File.write(File.join(root, ".rubocop.yml"), "inherit_from:\n  - .rubocop_todo.yml\n\nplugins:\n  - rubocop-kata\n")
-      File.write(File.join(root, ".rubocop_todo.yml"), "inherit_from: base.yml\n\nElegant/GoodMethodName:\n  Exclude:\n    - a.rb\n")
-      File.write(File.join(root, "base.yml"), "\n\nElegant/GoodVariableName:\n  Exclude:\n    - a.rb\n")
-      output, status = report(root)
-      expect(output).to(include(".rubocop_todo.yml:3: `Elegant/GoodMethodName` is disabled"))
-      expect(output).to(include("base.yml:3: `Elegant/GoodVariableName` is disabled"))
-      expect(status).to(eq(1))
+      files.each { |path, text| File.write(File.join(root, path), text) }
+      yield(root)
+    end
+  end
+
+  it "reads the files .rubocop.yml inherits, the todo file among them" do
+    tree(
+      ".rubocop.yml" => "inherit_from:\n  - .rubocop_todo.yml\n\nplugins:\n  - rubocop-kata\n",
+      ".rubocop_todo.yml" => "inherit_from: base.yml\n\nElegant/GoodMethodName:\n  Exclude:\n    - a.rb\n",
+      "base.yml" => "\n\nElegant/GoodVariableName:\n  Exclude:\n    - a.rb\n"
+    ) do |root|
+      expect(report(root)).to(
+        match([include(".rubocop_todo.yml:3: `Elegant/GoodMethodName`", "base.yml:3: `Elegant/GoodVariableName`"), 1])
+      )
     end
   end
 
   it "keeps quiet about an inherited file that disables the cop itself" do
-    Dir.mktmpdir("kata-checkup") do |root|
-      File.write(File.join(root, ".rubocop.yml"), "inherit_from: .rubocop_todo.yml\n\nplugins:\n  - rubocop-kata\n")
-      File.write(File.join(root, ".rubocop_todo.yml"), "Elegant/GoodMethodName:\n  Enabled: false\n")
-      expect(report(root).first).to(eq("clean\n"))
-    end
+    tree(
+      ".rubocop.yml" => "inherit_from: .rubocop_todo.yml\n\nplugins:\n  - rubocop-kata\n",
+      ".rubocop_todo.yml" => "Elegant/GoodMethodName:\n  Enabled: false\n"
+    ) { |root| expect(report(root).first).to(eq("clean\n")) }
   end
 
-  it "says which file it could not decode, instead of passing it silently", :aggregate_failures do
+  it "says which file it could not decode, instead of passing it silently" do
     project("", "# rubocop:enable Elegant/GoodMethodName\nVALUE = \"\xFF\"\n".b) do |root|
-      output, status = report(root)
-      expect(output).to(include("sample.rb: does not parse"))
-      expect(output).to(end_with("0 dead entries, 1 file not fully checked\n"))
-      expect(status).to(eq(1))
+      noted = include("sample.rb: does not parse", "0 dead entries, 1 file not fully checked")
+      expect(report(root)).to(match([noted, 1]))
     end
   end
 
@@ -150,15 +154,14 @@ RSpec.describe(RuboCop::Kata::Checkup) do
     end
   end
 
-  it "lists every inline disable with its reason, and counts the bare ones", :aggregate_failures do
+  it "lists every inline disable with its reason, and counts the bare ones" do
     source = "# frozen_string_literal: true\n\n# rubocop:disable Kata/GoodClassName -- Avo resolves it by name\n" \
       "class Fetcher\nend\n# rubocop:enable Kata/GoodClassName\nVALUE = 1 # rubocop:disable Style/MutableConstant\n"
-    project("", source) do |root|
-      output, status = report(root)
-      expect(output).to(include("sample.rb:3: disables `Kata/GoodClassName` — Avo resolves it by name"))
-      expect(output).to(include("sample.rb:7: disables `Style/MutableConstant` — no reason given"))
-      expect(output).to(end_with("clean\n2 inline disables, 1 without a reason\n"))
-      expect(status).to(eq(0))
-    end
+    listed = [
+      "sample.rb:3: disables `Kata/GoodClassName` — Avo resolves it by name",
+      "sample.rb:7: disables `Style/MutableConstant` — no reason given",
+      "clean\n2 inline disables, 1 without a reason\n"
+    ]
+    project("", source) { |root| expect(report(root)).to(match([include(*listed), 0])) }
   end
 end

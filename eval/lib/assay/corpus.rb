@@ -44,9 +44,10 @@ class Assay::Corpus
   def summary(report, dir)
     files = report.fetch("files")
     lines = files.sum { File.foreach(File.join(dir, it["path"])).count }
-    counts = files.flat_map { |file| file["offenses"].map { it["cop_name"] } }.tally.sort_by { -it.last }.to_h
-    Assay::Density.new(files.size, lines, counts).to_h
+    Assay::Density.new(files.size, lines, tally(files)).to_h
   end
+
+  def tally(files) = files.flat_map { |file| file["offenses"].map { it["cop_name"] } }.tally.sort_by { -it.last }.to_h
 
   def listing(report)
     return unless @spec.fetch("config") == "own"

@@ -5,14 +5,16 @@ class RuboCop::Cop::Kata::NoComments < RuboCop::Cop::Base
 
   MSG = "Say it in the code: rename it, extract it, or name the constant."
 
-  MAGIC = /\A#\s*(frozen_string_literal|encoding|coding|warn_indent|warn_past_scope|shareable_constant_value|rbs_inline):/
+  MAGIC = /
+    \A\#\s*(frozen_string_literal|encoding|coding|warn_indent|warn_past_scope|shareable_constant_value|rbs_inline):
+  /x
   MODELINE = /\A#.*-\*-.*-\*-|\A#\s*(vim?|ex):\s*(set?\s+)?\w+[=:]/
-  DIRECTIVE = %r{
+  DIRECTIVE = /
     \A\#\s*(
       rubocop|standard|simplecov|:nocov:|rbs\b|steep|sorbet|typed|typeprof|kimera|hashira|:reek:|
       @type\s|@rbs\b|noinspection\s|language\s*=|erblint|yard:|packwerk
     )|\A\#:\s
-  }x
+  /x
   RDOC = /\A#\s*:(nodoc|doc|stopdoc|startdoc|enddoc|call-seq|yields|markup|section|include|title|main|notnew):/
   YARD = /\A#\s*@!\w/
   TAG = /\A#\s*@!?[a-z]/

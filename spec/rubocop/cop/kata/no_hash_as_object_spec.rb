@@ -60,6 +60,7 @@ RSpec.describe(RuboCop::Cop::Kata::NoHashAsObject, :config) do
       create(name: "a", email: "b", age: 1, role: :admin)
     RUBY
   end
+
   context "with the shipped defaults" do
     let(:cop_config) { RuboCop::ConfigLoader.default_configuration.for_cop("Kata/NoHashAsObject") }
 

@@ -43,10 +43,10 @@ class RuboCop::Cop::Kata::PairedBrackets < RuboCop::Cop::Base
   end
 
   def deferred?(opener, closer, found)
-    found.any? do |outer, end_token|
-      outer.line == opener.line && outer.pos.begin_pos < opener.pos.begin_pos && end_token.pos.end_pos > closer.pos.begin_pos
-    end
+    found.any? { |outer, end_token| inside?(outer, opener) && end_token.pos.end_pos > closer.pos.begin_pos }
   end
+
+  def inside?(outer, inner) = outer.line == inner.line && outer.pos.begin_pos < inner.pos.begin_pos
 
   def after(token, found, later)
     register(token, later) do |corrector|
@@ -60,8 +60,7 @@ class RuboCop::Cop::Kata::PairedBrackets < RuboCop::Cop::Base
   end
 
   def nested(token, found)
-    last = found.select { |inner, close| inner.line == token.line && inner.pos.begin_pos > token.pos.begin_pos && close.line > inner.line }
-      .map { |_, close| close.line }.max
+    last = found.filter_map { |inner, close| close.line if inside?(token, inner) && close.line > inner.line }.max
     return [] unless last
     ((token.line + 1)..last).reject { blank?(it) || literal?(it) }
   end
@@ -74,9 +73,11 @@ class RuboCop::Cop::Kata::PairedBrackets < RuboCop::Cop::Base
   end
 
   def strings
-    @_strings ||= Array(processed_source.ast&.each_node(:str, :dstr, :xstr)).map do |node|
-      node.heredoc? ? node.loc.heredoc_body.join(node.loc.heredoc_end) : node.source_range.adjust(begin_pos: 1)
-    end
+    @_strings ||= Array(processed_source.ast&.each_node(:str, :dstr, :xstr)).map { span(it) }
+  end
+
+  def span(node)
+    node.heredoc? ? node.loc.heredoc_body.join(node.loc.heredoc_end) : node.source_range.adjust(begin_pos: 1)
   end
 
   def start(line) = processed_source.buffer.line_range(line).resize(0)
@@ -94,10 +95,12 @@ class RuboCop::Cop::Kata::PairedBrackets < RuboCop::Cop::Base
   def starts?(token) = processed_source.lines[token.line - 1][0...token.column].strip.empty?
 
   def ends?(token)
-    after = processed_source.lines[token.line - 1][(token.column + token.text.length)..].to_s.strip
+    after = rest(token)
     after = after.sub(PARAMETERS, "").strip if BLOCK.include?(token.type)
     after.empty? || after.start_with?("#")
   end
+
+  def rest(token) = processed_source.lines[token.line - 1][(token.column + token.text.length)..].to_s.strip
 
   def leading(token) = processed_source.lines[token.line - 1][/\A[ \t]*/]
 

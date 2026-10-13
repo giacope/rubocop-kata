@@ -249,6 +249,7 @@ RSpec.describe(RuboCop::Cop::Kata::GoodMethodName, :config) do
       end
     RUBY
   end
+
   it "prices the names attr macros, define_method and alias mint, not only def" do
     expect_offense(<<~RUBY)
       attr_reader :user_name, :name

@@ -4,6 +4,7 @@ require "tmpdir"
 
 RSpec.describe(RuboCop::Kata::Plugin) do
   let(:plugin) { described_class.new }
+  let(:shipped) { YAML.load_file("config/default.yml", aliases: true) }
 
   def effective
     Dir.mktmpdir("kata-config") do |root|
@@ -26,8 +27,7 @@ RSpec.describe(RuboCop::Kata::Plugin) do
   end
 
   it "leaves every cop it tunes switched on, unless it switches one off itself" do
-    shipped = YAML.load_file("config/default.yml", aliases: true).select { |key, value| key.include?("/") && value.is_a?(Hash) }
-    tuned = shipped.reject { |_, settings| settings.key?("Enabled") }.keys
+    tuned = shipped.select { |key, value| key.include?("/") && value.is_a?(Hash) && !value.key?("Enabled") }.keys
     effective { |config| expect(tuned.select { config.for_cop(it)["Enabled"] == false }).to(be_empty) }
   end
 
@@ -39,18 +39,17 @@ RSpec.describe(RuboCop::Kata::Plugin) do
 
   it "accepts a module, a class, or a compact namespace, as the README says" do
     effective do |config|
-      expect(config.for_cop("Elegant/NoClassInModule")["Enabled"]).to(be(false))
-      expect(config.for_cop("Kata/ClassInModule")["Enabled"]).to(be(true))
+      expect(%w[Elegant/NoClassInModule Kata/ClassInModule].map { config.for_cop(it)["Enabled"] }).to(eq([false, true]))
     end
   end
 
   it "leaves a top-level class in a Zeitwerk root to Rails, and nowhere else" do
-    Dir.mktmpdir("kata-config") do |root|
-      shipped = YAML.load_file("config/default.yml", aliases: true).slice("Kata/ClassInModule")
-      cop = RuboCop::Cop::Kata::ClassInModule.new(RuboCop::Config.new(shipped, File.join(root, ".rubocop.yml")))
-      excluded = %w[app/models/account.rb app/models/concerns/archivable.rb app/jobs/sweep_job.rb]
-      expect(excluded.map { cop.relevant_file?(File.join(root, it)) }).to(all(be(false)))
-      expect(%w[app/models/billing/invoice.rb lib/invoice.rb].map { cop.relevant_file?(File.join(root, it)) }).to(all(be(true)))
-    end
+    paths = %w[
+      app/models/account.rb app/models/concerns/archivable.rb app/jobs/sweep_job.rb
+      app/models/billing/invoice.rb lib/invoice.rb
+    ]
+    config = RuboCop::Config.new(shipped.slice("Kata/ClassInModule"), "/app/.rubocop.yml")
+    cop = RuboCop::Cop::Kata::ClassInModule.new(config)
+    expect(paths.map { cop.relevant_file?(File.join("/app", it)) }).to(eq([false, false, false, true, true]))
   end
 end

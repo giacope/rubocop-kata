@@ -6,9 +6,10 @@ module RuboCop::Cop::Kata::Minting
 
   def on_send(node)
     return unless node.receiver.nil? || node.receiver.self_type?
-    names = SINGLE.include?(node.method_name) ? node.arguments.first(1) : node.arguments
-    names.select { it.type?(:sym, :str) }.each { mint(it.source_range, it.value.to_sym) }
+    names(node).select { it.type?(:sym, :str) }.each { mint(it.source_range, it.value.to_sym) }
   end
+
+  def names(node) = SINGLE.include?(node.method_name) ? node.arguments.first(1) : node.arguments
 
   def on_alias(node)
     name = node.new_identifier

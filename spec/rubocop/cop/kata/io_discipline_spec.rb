@@ -44,10 +44,10 @@ RSpec.describe(RuboCop::Cop::Kata::IoDiscipline, :config) do
 
     it "exempts the boot layer and the test suite, and nothing else" do
       cop = described_class.new(config)
-      %w[exe/tool bin/setup script/seed config/boot.rb lib/tasks/a.rake Rakefile spec/a_spec.rb test/a_test.rb].each do
-        expect(cop.relevant_file?(File.join(root, it))).to(be(false), it)
-      end
-      expect(cop.relevant_file?(File.join(root, "lib/a.rb"))).to(be(true))
+      paths = %w[
+        exe/tool bin/setup script/seed config/boot.rb lib/tasks/a.rake Rakefile spec/a_spec.rb test/a_test.rb lib/a.rb
+      ]
+      expect(paths.select { cop.relevant_file?(File.join(root, it)) }).to(eq(%w[lib/a.rb]))
     end
   end
 end

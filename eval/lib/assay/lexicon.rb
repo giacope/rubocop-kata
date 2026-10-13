@@ -62,9 +62,11 @@ class Assay::Lexicon
   end
 
   def flags(report)
-    JSON.parse(File.read(report)).fetch("files").to_h do |file|
-      lines = file["offenses"].select { it["message"].include?(DOER) }.map { it.dig("location", "start_line") }
-      [file["path"].split("/").first, lines.map { names.fetch((it - 2) / 2) }]
-    end
+    JSON.parse(File.read(report)).fetch("files").to_h { [it["path"].split("/").first, flagged(it)] }
+  end
+
+  def flagged(file)
+    file["offenses"].select { it["message"].include?(DOER) }
+      .map { names.fetch((it.dig("location", "start_line") - 2) / 2) }
   end
 end

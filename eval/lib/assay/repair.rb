@@ -17,12 +17,13 @@ class Assay::Repair
     )
     {
       "corrected" => corrected, "comments_before" => before, "comments_after" => census.to_h,
-      "unparsable" => census.broken, "failures" => outcome.stderr.lines.grep(FAILURE).map(&:strip).uniq.first(20),
-      "test" => @corpus.test(@dir)
+      "unparsable" => census.broken, "failures" => failures(outcome), "test" => @corpus.test(@dir)
     }.compact
   end
 
   private
+
+  def failures(outcome) = outcome.stderr.lines.grep(FAILURE).map(&:strip).uniq.first(20)
 
   def census = Assay::Census.new(@dir, @corpus.paths)
 

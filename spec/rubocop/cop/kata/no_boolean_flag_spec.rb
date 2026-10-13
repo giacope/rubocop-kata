@@ -46,6 +46,7 @@ RSpec.describe(RuboCop::Cop::Kata::NoBooleanFlag, :config) do
       end
     RUBY
   end
+
   context "with the shipped defaults" do
     let(:cop_config) { RuboCop::ConfigLoader.default_configuration.for_cop("Kata/NoBooleanFlag") }
 

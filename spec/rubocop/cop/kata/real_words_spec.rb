@@ -271,6 +271,7 @@ RSpec.describe(RuboCop::Cop::Kata::RealWords, :config) do
       RUBY
     end
   end
+
   it "reads names the attr macros, define_method and alias mint" do
     expect_offense(<<~RUBY)
       attr_reader :usr
