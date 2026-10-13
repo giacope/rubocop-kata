@@ -17,36 +17,28 @@ class RuboCop::Cop::Kata::PairedBrackets < RuboCop::Cop::Base
   def on_new_investigation
     super
     @_strings = nil
-    found = pairs
+    stack = []
+    found =
+      processed_source.tokens.filter_map do |token|
+        stack << token if OPENERS.include?(token.type)
+        [stack.pop, token] if CLOSERS.include?(token.type) && !stack.empty?
+      end
     found.each { |opener, closer| check(opener, closer, found) }
   end
 
   private
 
-  def pairs
-    stack = []
-    processed_source.tokens.filter_map { pair(it, stack) }
-  end
-
-  def pair(token, stack)
-    type = token.type
-    stack << token if OPENERS.include?(type)
-    [stack.pop, token] if CLOSERS.include?(type) && !stack.empty?
-  end
-
   def check(opener, closer, found)
     return if opener.line == closer.line
-    return defer(opener, closer) if deferred?(opener, found)
+    return defer(opener, closer) if found.any? { |outer, close| enclosing?(outer, close, opener) }
     after(opener, closer, found) unless ends?(opener)
     before(closer, leading(opener)) unless starts?(closer)
   end
 
   def defer(opener, closer)
-    report(opener) unless ends?(opener)
-    report(closer) unless starts?(closer)
+    register(opener) unless ends?(opener)
+    register(closer) unless starts?(closer)
   end
-
-  def deferred?(opener, found) = found.any? { |outer, close| enclosing?(outer, close, opener) }
 
   def enclosing?(outer, close, inner)
     !outer.equal?(inner) && outer.line == inner.line && outer.pos.join(close.pos).contains?(inner.pos)
@@ -66,23 +58,22 @@ class RuboCop::Cop::Kata::PairedBrackets < RuboCop::Cop::Base
   def nested(token, closer, found)
     last = found.filter_map { |inner, close| close.line if enclosing?(token, closer, inner) }.max
     return [] unless last
-    ((token.line + 1)..last).reject { blank?(it) || literal?(it) }
+    ((token.line + 1)..last).reject { untouched?(it) }
   end
 
-  def blank?(line) = processed_source.lines[line - 1].strip.empty?
-
-  def literal?(line) = strings.any? { it.contains?(processed_source.buffer.line_range(line)) }
-
-  def strings
-    @_strings ||= Array(processed_source.ast&.each_node(:str, :dstr, :xstr)).map { span(it) }
-  end
-
-  def span(node)
-    location = node.loc
-    node.heredoc? ? location.heredoc_body.join(location.heredoc_end) : node.source_range.adjust(begin_pos: 1)
+  def untouched?(line)
+    processed_source.lines[line - 1].strip.empty? ||
+      strings.any? { it.contains?(processed_source.buffer.line_range(line)) }
   end
 
   def start(line) = processed_source.buffer.line_range(line).resize(0)
+
+  def strings
+    @_strings ||=
+      Array(processed_source.ast&.each_node(:str, :dstr, :xstr)).map do |node|
+        node.heredoc? ? node.loc.heredoc_body.join(node.loc.heredoc_end) : node.source_range.adjust(begin_pos: 1)
+      end
+  end
 
   def trailing(token)
     edge = token.pos.end
@@ -96,15 +87,12 @@ class RuboCop::Cop::Kata::PairedBrackets < RuboCop::Cop::Base
 
   def starts?(token) = processed_source.lines[token.line - 1][0...token.column].strip.empty?
 
-  def ends?(token) = idle?(remainder(token.line, token.pos.last_column).sub(PARAMETERS, "").strip)
-
-  def idle?(after) = after.empty? || after.start_with?("#")
-
-  def remainder(line, column) = processed_source.lines[line - 1][column..].to_s.strip
+  def ends?(token)
+    rest = processed_source.lines[token.line - 1][token.pos.last_column..].to_s.strip.sub(PARAMETERS, "").strip
+    rest.empty? || rest.start_with?("#")
+  end
 
   def leading(token) = processed_source.lines[token.line - 1][/\A[ \t]*/]
 
   def register(token, &) = add_offense(token.pos, message: format(MSG, token.text), &)
-
-  def report(token) = add_offense(token.pos, message: format(MSG, token.text))
 end
