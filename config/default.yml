@@ -783,9 +783,12 @@ Naming/RescuedExceptionsVariableName:
 
 # Memoization caches are marked with a leading underscore (@_name), so lazy
 # state is visible at the read site; Kata/GoodVariableName knows the
-# same @_word shape.
+# same @_word shape. The correction renames the ivar in the memoizing method
+# only, and every other reader keeps the old name: `rubocop -A` broke 25 of
+# faraday's specs that way. It reports; a person renames.
 Naming/MemoizedInstanceVariableName:
   EnforcedStyleForLeadingUnderscores: required
+  AutoCorrect: false
 
 # Kata owns naming now; the upstream cops force strictly one word, which is
 # what drives the underscore-smashing dodge.
@@ -822,7 +825,14 @@ Metrics/ModuleLength:
     - "**/*_test.rb"
 
 # A wrapped call reads as one line, so it costs one; otherwise Max and
-# Layout/LineLength cannot both be satisfied.
+# Layout/LineLength cannot both be satisfied under Kata/PairedBrackets. The
+# fold hides what a wrapped call carries (a lambda argument counts as one
+# line), so Metrics/AbcSize goes back to RuboCop's 17 from Elegant's 50:
+# measured on faraday and rubygems.org, it catches the 15 methods the fold
+# hides, while dropping `method_call` would flag 49 more for layout alone.
+Metrics/AbcSize:
+  Max: 17
+
 Metrics/MethodLength:
   Max: 5
   CountAsOne:
@@ -842,9 +852,13 @@ Metrics/ParameterLists:
     - "spec/**/*"
     - "test/**/*"
 
+# Counted the way Metrics/MethodLength counts a method.
 RSpec/ExampleLength:
   CountAsOne:
+    - array
+    - hash
     - heredoc
+    - method_call
 
 RSpec/VerifiedDoubles:
   Enabled: true
