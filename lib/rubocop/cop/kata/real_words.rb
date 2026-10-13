@@ -19,73 +19,41 @@ class RuboCop::Cop::Kata::RealWords < RuboCop::Cop::Base
     [/([b-df-hj-np-tv-z])\1er\z/, '\1'], [/or\z/, ""], [/less\z/, ""]
   ].freeze
 
-  def on_def(node) = check(node, node.method_name)
+  PREFIXES = %w[un re non sub].freeze
+  NAMED = %i[ivasgn cvasgn gvasgn arg optarg kwarg kwoptarg restarg kwrestarg blockarg].freeze
 
-  def on_defs(node) = check(node, node.method_name)
+  def on_def(node) = mint(node.loc.name, node.method_name)
 
-  def on_lvasgn(node) = check(node, node.name)
+  alias on_defs on_def
 
-  def on_ivasgn(node) = check(node, node.name)
+  def on_lvasgn(node) = mint(node.loc.name, node.name)
 
-  def on_cvasgn(node) = check(node, node.name)
-
-  def on_gvasgn(node) = check(node, node.name)
-
-  def on_arg(node) = check(node, node.name)
-
-  def on_optarg(node) = check(node, node.name)
-
-  def on_kwarg(node) = check(node, node.name)
-
-  def on_kwoptarg(node) = check(node, node.name)
-
-  def on_restarg(node) = check(node, node.name)
-
-  def on_kwrestarg(node) = check(node, node.name)
-
-  def on_blockarg(node) = check(node, node.name)
+  NAMED.each { alias_method(:"on_#{it}", :on_lvasgn) }
 
   private
 
   def mint(range, name)
-    segment = flaw(name)
-    add_offense(range, message: message(name, segment)) if segment
-  end
-
-  def check(node, name) = mint(node.loc.name, name)
-
-  def flaw(name)
-    stem = stem(name)
+    stem = name.to_s.sub(SIGIL, "").delete_prefix("_").sub(/[?!=]\z/, "")
     return if allowed?(name.to_s) || allowed?(stem) || !stem.match?(/\A[a-z]/)
-    stem.split("_").find { !word?(it) }
+    segment = stem.split("_").find { !word?(it) }
+    add_offense(range, message: message(name, stem, segment)) if segment
   end
 
-  def stem(name) = name.to_s.sub(SIGIL, "").delete_prefix("_").sub(/[?!=]\z/, "")
-
-  def message(name, segment)
-    expansion = expansion(segment)
-    return format(MSG, label(name, segment)) unless banned?(segment)
-    return format(PLACEHOLDER_MSG, label(name, segment)) if expansion == PLACEHOLDER
-    expansion ? format(CLIPPING_MSG, label(name, segment), expansion) : format(ABBREVIATION_MSG, label(name, segment))
+  def message(name, stem, segment)
+    label = stem == segment ? "`#{name}`" : "`#{segment}` (in `#{name}`)"
+    return format(MSG, label) unless banned?(segment)
+    expansion = bases(segment).filter_map { RuboCop::Kata::Dictionary::CLIPPINGS[it] }.first
+    return format(PLACEHOLDER_MSG, label) if expansion == PLACEHOLDER
+    expansion ? format(CLIPPING_MSG, label, expansion) : format(ABBREVIATION_MSG, label)
   end
-
-  def expansion(segment) = bases(segment).filter_map { RuboCop::Kata::Dictionary::CLIPPINGS[it] }.first
-
-  def label(name, segment) = stem(name) == segment ? "`#{name}`" : "`#{segment}` (in `#{name}`)"
 
   def word?(segment)
-    segment.sub(/\d+\z/, "").length < 2 || listed?("Terms", segment) || (known?(segment) && !banned?(segment))
-  end
-
-  def known?(segment) = forms(segment).any? { RuboCop::Kata::Dictionary::ENTRIES.include?(it) }
-
-  def forms(segment)
     base = segment.sub(/\d+\z/, "")
-    [base, base.delete_prefix("un"), base.delete_prefix("re"), base.delete_prefix("non"), base.delete_prefix("sub")]
-      .flat_map { [it, *derivations(it)] }
+    return true if base.length < 2 || listed?("Terms", segment)
+    [base, *PREFIXES.map { base.delete_prefix(it) }]
+      .flat_map { |form| [form, *DERIVATIONS.map { |pattern, stem| form.sub(pattern, stem) }] }
+      .any? { RuboCop::Kata::Dictionary::ENTRIES.include?(it) } && !banned?(segment)
   end
-
-  def derivations(base) = DERIVATIONS.map { |pattern, stem| base.sub(pattern, stem) }
 
   def banned?(segment) = bases(segment).any? { listed?("BannedWords", it) || clipping?(it) }
 

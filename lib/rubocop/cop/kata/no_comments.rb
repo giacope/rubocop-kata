@@ -24,59 +24,44 @@ class RuboCop::Cop::Kata::NoComments < RuboCop::Cop::Base
   }xi
   NOTICE = /^#\s*(copyright\b|\(c\)\s*\d|spdx-|licen[sc]ed under\b|licen[sc]e:|all rights reserved)/i
   SHEBANG = /\A#!/
+  BUILTIN = [MAGIC, MODELINE, DIRECTIVE, RDOC, YARD, NOTICE, SHEBANG].freeze
 
   def on_new_investigation
-    kept = notice + documented + cited
-    processed_source.comments.each { register(it) unless exempt?(it) || kept.include?(it) }
+    kept = preserved
+    allowed = patterns
+    processed_source.comments.each do |comment|
+      next if kept.include?(comment) || allowed.any? { it.match?(comment.text) }
+      add_offense(comment) { |corrector| corrector.remove(removal(comment)) }
+    end
   end
 
   private
 
-  def exempt?(comment)
-    text = comment.text
-    [MAGIC, MODELINE, DIRECTIVE, RDOC, YARD, NOTICE, SHEBANG, *patterns].any? { it.match?(text) }
-  end
+  def patterns = BUILTIN + Array(cop_config["AllowedPatterns"]).map { Regexp.new(it) }
 
-  def patterns = Array(cop_config["AllowedPatterns"]).map { Regexp.new(it) }
-
-  def documented = cop_config["AllowDocumentation"] ? kept(TAG) : []
-
-  def cited = cop_config["AllowCitations"] ? kept(CITATION) : []
-
-  def kept(pattern) = blocks.select { |block| block.any? { pattern.match?(it.text) } }.flatten
-
-  def blocks
-    processed_source.comments.slice_when { |above, below| below.loc.line != above.loc.line + 1 }
-  end
-
-  def notice
-    header = preamble
-    NOTICE.match?(header.map(&:text).join("\n")) ? header : []
-  end
-
-  def preamble
+  def preserved
     first = processed_source.ast&.first_line || Float::INFINITY
-    processed_source.comments.take_while { it.source_range.line < first }
+    header = processed_source.comments.take_while { it.source_range.line < first }
+    (NOTICE.match?(header.map(&:text).join("\n")) ? header : []) + kept(TAG, "AllowDocumentation") +
+      kept(CITATION, "AllowCitations")
   end
 
-  def register(comment)
-    add_offense(comment) { |corrector| corrector.remove(removal(comment)) }
+  def kept(pattern, key)
+    return [] unless cop_config[key]
+    processed_source.comments.slice_when { |above, below| below.loc.line != above.loc.line + 1 }
+      .select { |block| block.any? { pattern.match?(it.text) } }.flatten
   end
 
   def removal(comment)
     range = comment.source_range
-    alone?(range) ? line(range) : trailing(range)
+    indent = range.source_line[0, range.column]
+    return line(range) if indent.strip.empty?
+    range.with(begin_pos: range.begin_pos - indent[/\s*\z/].length)
   end
-
-  def alone?(range) = range.source_line[0, range.column].strip.empty?
 
   def line(range)
     finish = range.end_pos
     finish += 1 if processed_source.buffer.source[finish] == "\n"
     range.with(begin_pos: range.begin_pos - range.column, end_pos: finish)
-  end
-
-  def trailing(range)
-    range.with(begin_pos: range.begin_pos - range.source_line[0, range.column][/\s*\z/].length)
   end
 end

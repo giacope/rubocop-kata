@@ -12,7 +12,11 @@ class RuboCop::Cop::Kata::GoodMethodName < RuboCop::Cop::Base
   SUITE = /Test(Case)?\z/
   RESTRICT_ON_SEND = RuboCop::Cop::Kata::Minting::MINTERS
 
-  def on_def(node) = test?(node) || check(node.loc.name, node.method_name)
+  def on_def(node)
+    klass = node.each_ancestor(:class).first
+    suite = klass && [klass.identifier, klass.parent_class].compact.any? { SUITE.match?(it.source) }
+    check(node.loc.name, node.method_name) unless node.method_name.start_with?("test_") && suite
+  end
 
   def on_defs(node) = check(node.loc.name, node.method_name)
 
@@ -22,16 +26,9 @@ class RuboCop::Cop::Kata::GoodMethodName < RuboCop::Cop::Base
 
   def check(range, name)
     text = name.to_s
+    return unless text.match?(/\A[a-z_]/)
     stem = text.sub(/[?!=]\z/, "")
-    judge(range, name, stem) { chain(name, stem) } if text.match?(/\A[a-z_]/)
-  end
-
-  def test?(node) = node.method_name.start_with?("test_") && node.each_ancestor(:class).take(1).any? { suite?(it) }
-
-  def suite?(klass) = [klass.identifier, klass.parent_class].compact.any? { SUITE.match?(it.source) }
-
-  def chain(name, stem)
     joint = (stem.split("_") & JOINTS).first
-    format(CHAIN_MSG, name, joint) if joint
+    judge(range, name, stem) { format(CHAIN_MSG, name, joint) if joint }
   end
 end

@@ -8,20 +8,19 @@ class RuboCop::Cop::Kata::ConstructorDiscipline < RuboCop::Cop::Base
 
   def on_def(node)
     return unless node.method?(:initialize)
-    node.each_descendant(:send, :csend) { judge(it, node) }
+    node.each_descendant(:send, :csend) do |send|
+      name = send.method_name.to_s
+      next if listed?("AllowedMethods", name) || CONVERSION.match?(name) || state?(send)
+      next if send.each_ancestor.take_while { !it.equal?(node) }.any? { excused?(it) }
+      add_offense(send, message: format(MSG, name))
+    end
   end
 
   private
 
-  def judge(send, root)
-    name = send.method_name
-    return if allowed?(send) || exempt?(send, root)
-    add_offense(send, message: format(MSG, name))
-  end
-
-  def allowed?(send)
-    name = send.method_name.to_s
-    listed?("AllowedMethods", name) || CONVERSION.match?(name) || state?(send)
+  def excused?(node)
+    return node.lambda_or_proc? || state?(node.send_node) if node.any_block_type?
+    raised?(node) || (node.if_type? && node.branches.all? { raised?(it) })
   end
 
   def state?(send)
@@ -29,13 +28,5 @@ class RuboCop::Cop::Kata::ConstructorDiscipline < RuboCop::Cop::Base
     send.method?(:new) && receiver&.const_type? && listed?("AllowedConstructors", receiver.const_name)
   end
 
-  def exempt?(send, root)
-    send.each_ancestor.take_while { !it.equal?(root) }.any? { deferred?(it) || raised?(it) || guard?(it) }
-  end
-
-  def deferred?(node) = node.any_block_type? && (node.lambda_or_proc? || state?(node.send_node))
-
   def raised?(node) = node&.send_type? && node.method?(:raise)
-
-  def guard?(node) = node.if_type? && node.branches.all? { raised?(it) }
 end
