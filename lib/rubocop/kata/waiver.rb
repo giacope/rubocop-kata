@@ -15,10 +15,7 @@ class RuboCop::Kata::Waiver
 
   def line = @comment.loc.line
 
-  def reason
-    _, text = body.split(MARKER, 2)
-    text&.strip&.then { it unless it.empty? }
-  end
+  def reason = body.split(MARKER, 2)[1].to_s.strip
 
   private
 

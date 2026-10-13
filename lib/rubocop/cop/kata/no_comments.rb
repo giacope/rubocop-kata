@@ -41,7 +41,7 @@ class RuboCop::Cop::Kata::NoComments < RuboCop::Cop::Base
 
   def documented = cop_config["AllowDocumentation"] ? kept(TAG) : []
 
-  def cited = cop_config.fetch("AllowCitations", true) ? kept(CITATION) : []
+  def cited = cop_config["AllowCitations"] ? kept(CITATION) : []
 
   def kept(pattern) = blocks.select { |block| block.any? { pattern.match?(it.text) } }.flatten
 

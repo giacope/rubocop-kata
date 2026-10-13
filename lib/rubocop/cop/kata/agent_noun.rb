@@ -18,7 +18,7 @@ module RuboCop::Cop::Kata::AgentNoun
 
   def suggestion(name)
     head, tail = split(name)
-    DERIVATIONS.filter_map { proposal(head + tail.sub(it.first, it.last)) }.first
+    DERIVATIONS.filter_map { |pattern, noun| proposal(head + tail.sub(pattern, noun)) if pattern.match?(tail) }.first
   end
 
   def split(name)

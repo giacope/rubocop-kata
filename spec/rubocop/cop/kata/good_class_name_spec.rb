@@ -338,4 +338,35 @@ RSpec.describe(RuboCop::Cop::Kata::GoodClassName, :config) do
       end
     RUBY
   end
+
+  context "when reading the doer data" do
+    it "takes WordNet's word that an -ar noun is an agent" do
+      expect_offense(<<~RUBY)
+        class Liar
+              ^^^^ `Liar` names a doer; name the class for the thing it is, not the work it does.
+        end
+      RUBY
+    end
+
+    it "reads a verb-shaped stem, or a verb behind a prefix, as a doer WordNet does not list" do
+      expect_offense(<<~RUBY)
+        class Hypervisor
+              ^^^^^^^^^^ `Hypervisor` names a doer; name the class for the thing it is, not the work it does.
+        end
+        class Uninstaller
+              ^^^^^^^^^^^ `Uninstaller` names a doer; name the class for the thing it is, not the work it does.
+        end
+      RUBY
+    end
+
+    it "reads a coinage as a doer, and a known word whose stem is no verb as none" do
+      expect_offense(<<~RUBY)
+        class Differ
+        end
+        class Zorper
+              ^^^^^^ `Zorper` names a doer; name the class for the thing it is, not the work it does.
+        end
+      RUBY
+    end
+  end
 end

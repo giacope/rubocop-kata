@@ -15,7 +15,7 @@ class RuboCop::Cop::Kata::JustifiedDirective < RuboCop::Cop::Base
     add_offense(comment, message: format(MSG, waiver.cops.join(", "), minimum)) unless reasoned?(waiver)
   end
 
-  def reasoned?(waiver) = waiver.reason.to_s.split.size >= minimum
+  def reasoned?(waiver) = waiver.reason.split.size >= minimum
 
   def minimum = Integer(cop_config.fetch("MinWords", 3))
 end

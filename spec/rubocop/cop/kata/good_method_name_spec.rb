@@ -252,8 +252,8 @@ RSpec.describe(RuboCop::Cop::Kata::GoodMethodName, :config) do
 
   it "prices the names attr macros, define_method and alias mint, not only def" do
     expect_offense(<<~RUBY)
-      attr_reader :user_name, :name
-                  ^^^^^^^^^^ #{offense("user_name")}
+      attr_reader :name, :user_name
+                         ^^^^^^^^^^ #{offense("user_name")}
       attr_accessor "billing_cycle"
                     ^^^^^^^^^^^^^^^ #{offense("billing_cycle")}
       attr_writer :user_name

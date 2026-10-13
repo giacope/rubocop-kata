@@ -11,7 +11,6 @@ class RuboCop::Cop::Kata::PairedBrackets < RuboCop::Cop::Base
 
   OPENERS = %i[tLPAREN tLPAREN2 tLPAREN_ARG tLBRACK tLBRACK2 tLCURLY tLBRACE tLBRACE_ARG tLAMBEG].freeze
   CLOSERS = %i[tRPAREN tRBRACK tRCURLY].freeze
-  BLOCK = %i[tLCURLY tLAMBEG].freeze
   PARAMETERS = /\A\|[^|]*\|/
   STEP = "  "
 
@@ -37,8 +36,8 @@ class RuboCop::Cop::Kata::PairedBrackets < RuboCop::Cop::Base
 
   def check(opener, closer, found)
     return if opener.line == closer.line
-    return defer(opener, closer) if deferred?(opener, closer, found)
-    after(opener, found) unless ends?(opener)
+    return defer(opener, closer) if deferred?(opener, found)
+    after(opener, closer, found) unless ends?(opener)
     before(closer, leading(opener)) unless starts?(closer)
   end
 
@@ -47,16 +46,16 @@ class RuboCop::Cop::Kata::PairedBrackets < RuboCop::Cop::Base
     report(closer) unless starts?(closer)
   end
 
-  def deferred?(opener, closer, found)
-    found.any? { |outer, end_token| inside?(outer, opener) && end_token.pos.end_pos > closer.pos.begin_pos }
+  def deferred?(opener, found) = found.any? { |outer, close| enclosing?(outer, close, opener) }
+
+  def enclosing?(outer, close, inner)
+    !outer.equal?(inner) && outer.line == inner.line && outer.pos.join(close.pos).contains?(inner.pos)
   end
 
-  def inside?(outer, inner) = outer.line == inner.line && outer.pos.begin_pos < inner.pos.begin_pos
-
-  def after(token, found)
+  def after(token, closer, found)
     register(token) do |corrector|
       corrector.replace(trailing(token), "\n#{leading(token)}#{STEP}")
-      nested(token, found).each { corrector.insert_before(start(it), STEP) }
+      nested(token, closer, found).each { corrector.insert_before(start(it), STEP) }
     end
   end
 
@@ -64,20 +63,15 @@ class RuboCop::Cop::Kata::PairedBrackets < RuboCop::Cop::Base
     register(token) { it.replace(preceding(token), "\n#{indent}") }
   end
 
-  def nested(token, found)
-    last = found.filter_map { |inner, close| spanned(token, inner, close.line) }.max
+  def nested(token, closer, found)
+    last = found.filter_map { |inner, close| close.line if enclosing?(token, closer, inner) }.max
     return [] unless last
     ((token.line + 1)..last).reject { blank?(it) || literal?(it) }
   end
 
-  def spanned(token, inner, line) = (line if inside?(token, inner) && line > inner.line)
-
   def blank?(line) = processed_source.lines[line - 1].strip.empty?
 
-  def literal?(line)
-    position = processed_source.buffer.line_range(line).begin_pos
-    strings.any? { it.begin_pos <= position && position < it.end_pos }
-  end
+  def literal?(line) = strings.any? { it.contains?(processed_source.buffer.line_range(line)) }
 
   def strings
     @_strings ||= Array(processed_source.ast&.each_node(:str, :dstr, :xstr)).map { span(it) }
@@ -102,9 +96,7 @@ class RuboCop::Cop::Kata::PairedBrackets < RuboCop::Cop::Base
 
   def starts?(token) = processed_source.lines[token.line - 1][0...token.column].strip.empty?
 
-  def ends?(token) = idle?(trimmed(remainder(token.line, token.pos.last_column), token.type))
-
-  def trimmed(after, type) = BLOCK.include?(type) ? after.sub(PARAMETERS, "").strip : after
+  def ends?(token) = idle?(remainder(token.line, token.pos.last_column).sub(PARAMETERS, "").strip)
 
   def idle?(after) = after.empty? || after.start_with?("#")
 

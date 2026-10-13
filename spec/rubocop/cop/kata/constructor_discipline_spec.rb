@@ -118,6 +118,8 @@ RSpec.describe(RuboCop::Cop::Kata::ConstructorDiscipline, :config) do
                    ^^^^^^^^^ A constructor assigns; it does not compute. Move `sum` out of `initialize`.
           @ids = Set.new(items.map(&:id))
                          ^^^^^^^^^^^^^^^ A constructor assigns; it does not compute. Move `map` out of `initialize`.
+          @size = String.instance_method(:size)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ A constructor assigns; it does not compute. Move `instance_method` out of `initialize`.
         end
       RUBY
     end

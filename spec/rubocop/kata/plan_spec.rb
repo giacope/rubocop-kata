@@ -122,4 +122,10 @@ RSpec.describe(RuboCop::Kata::Plan) do
       end
     end
   end
+
+  it "stages a core Layout cop under layout" do
+    project("# frozen_string_literal: true\n\nVALUE = 1 \n") do |root|
+      expect(report(root).first).to(match(%r{^layout\s+1\s+Layout/TrailingWhitespace 1$}))
+    end
+  end
 end

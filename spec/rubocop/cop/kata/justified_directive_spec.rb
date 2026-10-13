@@ -39,6 +39,7 @@ RSpec.describe(RuboCop::Cop::Kata::JustifiedDirective, :config) do
       end
       # rubocop:enable Kata/GoodClassName
       VALUE = load # rubocop:disable Security/MarshalLoad -- reads back its own child
+      OTHER = load # rubocop:disable Security/MarshalLoad -- its own child
     RUBY
   end
 

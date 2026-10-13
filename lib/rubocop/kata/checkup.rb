@@ -80,9 +80,7 @@ class RuboCop::Kata::Checkup
   def sources = @_sources ||= targets.map { [it, parse(it)] }
 
   def parse(path)
-    source = RuboCop::ProcessedSource.from_file(path, config.target_ruby_version)
-    source.comments
-    source
+    RuboCop::ProcessedSource.from_file(path, config.target_ruby_version)
   rescue StandardError => error
     "#{error.class}: #{error.message.lines.first.to_s.strip}"
   end
@@ -105,7 +103,7 @@ class RuboCop::Kata::Checkup
 
   def waivers_in(path, source)
     source.comments.map { RuboCop::Kata::Waiver.new(it) }.select(&:disabling?)
-      .map { [path, it.line, it.cops.join("`, `"), it.reason.to_s] }
+      .map { [path, it.line, it.cops.join("`, `"), it.reason] }
   end
 
   def active?(name, path)

@@ -282,4 +282,22 @@ RSpec.describe(RuboCop::Cop::Kata::RealWords, :config) do
             ^^^ `cfg` is an abbreviation of `configuration`; spell the word out.
     RUBY
   end
+
+  it "follows a clipping into its plural, when the plural is no word itself" do
+    expect_offense(<<~RUBY)
+      ptrs = []
+      ^^^^ `ptrs` is an abbreviation of `pointer`; spell the word out.
+    RUBY
+  end
+
+  context "with a project's own banned word" do
+    let(:cop_config) { { "BannedWords" => %w[zap], "Terms" => [], "AllowedNames" => [] } }
+
+    it "calls it an abbreviation without guessing the word" do
+      expect_offense(<<~RUBY)
+        zap = 1
+        ^^^ `zap` is an abbreviation; spell the word out.
+      RUBY
+    end
+  end
 end

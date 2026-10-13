@@ -44,6 +44,7 @@ RSpec.describe(RuboCop::Cop::Kata::PairedBrackets) do
       "split_square_brackets_in_middle" => ["[1,\n 2]", "[\n  1,\n 2\n]"],
       "closer_in_middle_when_chained" => ["foo(\n  1).bar", "foo(\n  1\n).bar"],
       "opener_in_middle_of_line" => ["foo(bar(\n  1\n))", "foo(\n  bar(\n    1\n  )\n)"],
+      "blank_line_inside_stays_blank" => ["foo(bar(\n  1,\n\n  2\n))", "foo(\n  bar(\n    1,\n\n    2\n  )\n)"],
       "hash_argument_nests_one_step" => ["merge({\n  a: 1\n})", "merge(\n  {\n    a: 1\n  }\n)"],
       "heredoc_body_is_never_shifted" => [
         "foo(bar(<<-TEXT\n  body\nTEXT\n))",
