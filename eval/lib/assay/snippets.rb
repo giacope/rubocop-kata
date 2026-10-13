@@ -43,17 +43,25 @@ class Assay::Snippets
   end
 
   def sweep(label, group, extra)
+    root = grow(label, group)
+    rooted, plain = group.partition { it["path"] }
+    rooted.map { examine(File.join(root, it["id"]), [it.fetch("path")], extra, it["id"]) }
+      .reduce(examine(root, plain.map { File.join(it["id"], PATH) }, extra, nil), :merge)
+  end
+
+  def grow(label, group)
     root = File.join(@work, label)
     FileUtils.rm_rf(root)
     group.each { plant(root, it) }
-    @bundle.rubocop(
-      "--format", "json", "--out", report(label), "--cache", "false", "--force-exclusion", *extra,
-      *group.map { File.join(it["id"], it.fetch("path", PATH)) }, dir: root
-    )
-    offenses(report(label))
+    root
   end
 
-  def report(label) = File.join(@work, "#{label}.json")
+  def examine(dir, files, extra, owner)
+    return {} if files.empty?
+    out = File.join(dir, "report.json")
+    @bundle.rubocop("--format", "json", "--out", out, "--cache", "false", "--force-exclusion", *extra, *files, dir: dir)
+    owner ? { owner => offenses(out).values.flatten } : offenses(out)
+  end
 
   def plant(root, item)
     home = File.join(root, item["id"])
