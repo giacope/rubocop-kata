@@ -37,9 +37,14 @@ class RuboCop::Cop::Kata::PairedBrackets < RuboCop::Cop::Base
 
   def check(opener, closer, found)
     return if opener.line == closer.line
-    later = deferred?(opener, closer, found)
-    after(opener, found, later) unless ends?(opener)
-    before(closer, leading(opener), later) unless starts?(closer)
+    return defer(opener, closer) if deferred?(opener, closer, found)
+    after(opener, found) unless ends?(opener)
+    before(closer, leading(opener)) unless starts?(closer)
+  end
+
+  def defer(opener, closer)
+    report(opener) unless ends?(opener)
+    report(closer) unless starts?(closer)
   end
 
   def deferred?(opener, closer, found)
@@ -48,22 +53,24 @@ class RuboCop::Cop::Kata::PairedBrackets < RuboCop::Cop::Base
 
   def inside?(outer, inner) = outer.line == inner.line && outer.pos.begin_pos < inner.pos.begin_pos
 
-  def after(token, found, later)
-    register(token, later) do |corrector|
+  def after(token, found)
+    register(token) do |corrector|
       corrector.replace(trailing(token), "\n#{leading(token)}#{STEP}")
       nested(token, found).each { corrector.insert_before(start(it), STEP) }
     end
   end
 
-  def before(token, indent, later)
-    register(token, later) { it.replace(preceding(token), "\n#{indent}") }
+  def before(token, indent)
+    register(token) { it.replace(preceding(token), "\n#{indent}") }
   end
 
   def nested(token, found)
-    last = found.filter_map { |inner, close| close.line if inside?(token, inner) && close.line > inner.line }.max
+    last = found.filter_map { |inner, close| spanned(token, inner, close.line) }.max
     return [] unless last
     ((token.line + 1)..last).reject { blank?(it) || literal?(it) }
   end
+
+  def spanned(token, inner, line) = (line if inside?(token, inner) && line > inner.line)
 
   def blank?(line) = processed_source.lines[line - 1].strip.empty?
 
@@ -77,7 +84,8 @@ class RuboCop::Cop::Kata::PairedBrackets < RuboCop::Cop::Base
   end
 
   def span(node)
-    node.heredoc? ? node.loc.heredoc_body.join(node.loc.heredoc_end) : node.source_range.adjust(begin_pos: 1)
+    location = node.loc
+    node.heredoc? ? location.heredoc_body.join(location.heredoc_end) : node.source_range.adjust(begin_pos: 1)
   end
 
   def start(line) = processed_source.buffer.line_range(line).resize(0)
@@ -94,18 +102,17 @@ class RuboCop::Cop::Kata::PairedBrackets < RuboCop::Cop::Base
 
   def starts?(token) = processed_source.lines[token.line - 1][0...token.column].strip.empty?
 
-  def ends?(token)
-    after = rest(token)
-    after = after.sub(PARAMETERS, "").strip if BLOCK.include?(token.type)
-    after.empty? || after.start_with?("#")
-  end
+  def ends?(token) = idle?(trimmed(remainder(token.line, token.pos.last_column), token.type))
 
-  def rest(token) = processed_source.lines[token.line - 1][(token.column + token.text.length)..].to_s.strip
+  def trimmed(after, type) = BLOCK.include?(type) ? after.sub(PARAMETERS, "").strip : after
+
+  def idle?(after) = after.empty? || after.start_with?("#")
+
+  def remainder(line, column) = processed_source.lines[line - 1][column..].to_s.strip
 
   def leading(token) = processed_source.lines[token.line - 1][/\A[ \t]*/]
 
-  def register(token, later, &)
-    message = format(MSG, token.text)
-    later ? add_offense(token.pos, message: message) : add_offense(token.pos, message: message, &)
-  end
+  def register(token, &) = add_offense(token.pos, message: format(MSG, token.text), &)
+
+  def report(token) = add_offense(token.pos, message: format(MSG, token.text))
 end

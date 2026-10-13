@@ -55,7 +55,8 @@ class RuboCop::Cop::Kata::NoComments < RuboCop::Cop::Base
   end
 
   def preamble
-    processed_source.comments.take_while { it.source_range.line < (processed_source.ast&.first_line || Float::INFINITY) }
+    first = processed_source.ast&.first_line || Float::INFINITY
+    processed_source.comments.take_while { it.source_range.line < first }
   end
 
   def register(comment)

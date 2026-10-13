@@ -23,14 +23,16 @@ class RuboCop::Kata::Checkup
     found = inert + dead
     [*waivers, *notes, *found].each { @io.puts(it) }
     @io.puts(summary(found))
-    found.empty? && notes.empty? ? 0 : 1
+    clean?(found) ? 0 : 1
   end
 
   private
 
-  def summary(found) = [found.empty? && notes.empty? ? "clean" : tally(found), *count].join("\n")
+  def clean?(found) = found.empty? && notes.empty?
 
-  def count = waived.empty? ? [] : [format(WAIVERS, waived.size, plural(waived), waived.count { it.last.nil? })]
+  def summary(found) = [clean?(found) ? "clean" : tally(found), *count].join("\n")
+
+  def count = waived.empty? ? [] : [format(WAIVERS, waived.size, plural(waived), waived.count { it.last.empty? })]
 
   def tally(found)
     text = format(TALLY, found.size, found.one? ? "y" : "ies")
@@ -95,13 +97,15 @@ class RuboCop::Kata::Checkup
     format(DEAD, path, directive.line_number, stale.join("`, `"))
   end
 
-  def waivers = waived.map { |path, line, cops, reason| format(WAIVER, path, line, cops, reason || BARE) }
+  def waivers = waived.map { |path, line, cops, reason| format(WAIVER, path, line, cops, explained(reason)) }
+
+  def explained(reason) = reason.empty? ? BARE : reason
 
   def waived = @_waived ||= parsed.flat_map { |path, source| waivers_in(path, source) }
 
   def waivers_in(path, source)
     source.comments.map { RuboCop::Kata::Waiver.new(it) }.select(&:disabling?)
-      .map { [path, it.line, it.cops.join("`, `"), it.reason] }
+      .map { [path, it.line, it.cops.join("`, `"), it.reason.to_s] }
   end
 
   def active?(name, path)

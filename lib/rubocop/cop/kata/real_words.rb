@@ -87,11 +87,13 @@ class RuboCop::Cop::Kata::RealWords < RuboCop::Cop::Base
 
   def derivations(base) = DERIVATIONS.map { |pattern, stem| base.sub(pattern, stem) }
 
-  def banned?(segment) = bases(segment).any? { listed?("BannedWords", it) } || !expansion(segment).nil?
+  def banned?(segment) = bases(segment).any? { listed?("BannedWords", it) || clipping?(it) }
+
+  def clipping?(segment) = RuboCop::Kata::Dictionary::CLIPPINGS.key?(segment)
 
   def bases(segment)
     plain = segment.sub(/\d+\z/, "")
-    return [plain] if RuboCop::Kata::Dictionary::ENTRIES.include?(plain) && !RuboCop::Kata::Dictionary::CLIPPINGS.key?(plain)
+    return [plain] if RuboCop::Kata::Dictionary::ENTRIES.include?(plain) && !clipping?(plain)
     [plain, plain.sub(/e?s\z/, ""), plain.delete_suffix("s")].uniq
   end
 end
