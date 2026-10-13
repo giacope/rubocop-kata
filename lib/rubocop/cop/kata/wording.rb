@@ -16,8 +16,8 @@ module RuboCop::Cop::Kata::Wording
   end
 
   def core(words)
-    rest = listed?("Prefixes", words.first) && words.size > 1 ? words.drop(1) : words
-    listed?("Suffixes", rest.last) && rest.size > 1 ? rest[0..-2] : rest
+    rest = listed?("Prefixes", words.first) ? words.drop(1) : words
+    listed?("Suffixes", rest.last) ? rest[0..-2] : rest
   end
 
   def allowed?(name) = super || listed?("Terms", name)
