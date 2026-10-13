@@ -8,7 +8,11 @@ class Assay::Console
   end
 
   def to_h
-    rows = YAML.safe_load_file(@source).map { Assay::Invocation.new(@bundle, File.join(@work, it.fetch("id")), it).to_h }
+    rows = YAML.safe_load_file(@source).map { invoke(it) }
     { "total" => rows.size, "passed" => rows.count { it["passed"] }, "results" => rows }
   end
+
+  private
+
+  def invoke(item) = Assay::Invocation.new(@bundle, File.join(@work, item.fetch("id")), item).to_h
 end

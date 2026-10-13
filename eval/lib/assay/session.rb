@@ -10,12 +10,11 @@ class Assay::Session
   FLAGS = [
     ["--only LIST", Array], ["--jobs N", Integer], ["--elegant VERSION", String], ["--reveal"], ["--compare"]
   ].freeze
+  NAMES = File.join(Assay::ROOT, "names.yml")
   BUILDERS = {
     "settings" => ->(bundle, home, _) { Assay::Settings.new(bundle, home) },
     "cases" => ->(bundle, home, _) { Assay::Snippets.new(bundle, home, Dir[File.join(Assay::ROOT, "cases", "*.yml")]) },
-    "names" => lambda do |bundle, home, options|
-      Assay::Lexicon.new(bundle, home, File.join(Assay::ROOT, "names.yml"), reveal: options[:reveal])
-    end,
+    "names" => ->(bundle, home, options) { Assay::Lexicon.new(bundle, home, NAMES, reveal: options[:reveal]) },
     "cli" => ->(bundle, home, _) { Assay::Console.new(bundle, home, File.join(Assay::ROOT, "cli.yml")) }
   }.freeze
 

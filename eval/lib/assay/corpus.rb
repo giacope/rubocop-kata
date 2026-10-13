@@ -33,8 +33,10 @@ class Assay::Corpus
 
   def fixes
     return {} unless @spec["fix"]
-    { "safe" => Assay::Repair.new(self, export("safe"), "-a").to_h, "all" => Assay::Repair.new(self, export("all"), "-A").to_h }
+    { "safe" => repair("safe", "-a"), "all" => repair("all", "-A") }
   end
+
+  def repair(label, flag) = Assay::Repair.new(self, export(label), flag).to_h
 
   def sweep(dir)
     @bundle.rubocop("--format", "json", "--out", "report.json", "--cache", "false", *paths, dir: dir)
