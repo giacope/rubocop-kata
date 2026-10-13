@@ -4,10 +4,10 @@ RSpec.describe(RuboCop::Cop::Kata::GoodVariableName, :config) do
   let(:defaults) { YAML.load_file("config/default.yml", aliases: true).fetch("Kata/GoodVariableName") }
   let(:cop_config) { defaults.merge("Terms" => [], "AllowedNames" => []) }
 
-  def offense(name)
-    "`#{name}` needs two words: the second word names an object you have not introduced yet. " \
-      "Name that object, use a `Prefixes`/`Suffixes` role word — or, if `#{name}` is one domain concept " \
-      "here, add it to `Terms`."
+  def offense(name, count = 3, max = 2)
+    "`#{name}` strings #{count} words together, past the #{max} a name carries: the words describe an object " \
+      "you have not introduced yet. Name that object, give a role a `Prefixes`/`Suffixes` word — or, " \
+      "if `#{name}` is one domain concept here, add it to `Terms`."
   end
 
   context "with the shipped AllowedNames" do
@@ -35,10 +35,11 @@ RSpec.describe(RuboCop::Cop::Kata::GoodVariableName, :config) do
       RUBY
     end
 
-    it "still prices owner-plus-property names" do
+    it "allows a two-word name and prices a three-word one" do
       expect_offense(<<~RUBY)
         error_message = 1
-        ^^^^^^^^^^^^^ #{offense("error_message")}
+        last_error_message = 1
+        ^^^^^^^^^^^^^^^^^^ #{offense("last_error_message")}
       RUBY
     end
   end
@@ -73,85 +74,77 @@ RSpec.describe(RuboCop::Cop::Kata::GoodVariableName, :config) do
     RUBY
   end
 
-  it "flags two-word locals" do
-    expect_offense(<<~RUBY, message: offense("matching_ids"))
-      def run
+  it "allows two-word locals, parameters, and sigilled names" do
+    expect_no_offenses(<<~RUBY)
+      def run(covering_lines, apply_excludes: nil)
         matching_ids = 1
-        ^^^^^^^^^^^^ %{message}
+        @build_adapter = 1
+        @_covering_lines = 1
+        $source_root = 1
       end
     RUBY
   end
 
-  it "flags two-word parameters and keyword arguments" do
-    expect_offense(<<~RUBY, message: offense("covering_lines"))
-      def run(covering_lines)
-              ^^^^^^^^^^^^^^ %{message}
-      end
-    RUBY
-    expect_offense(<<~RUBY, message: offense("apply_excludes"))
-      def run(apply_excludes: nil)
-              ^^^^^^^^^^^^^^ %{message}
-      end
-    RUBY
-  end
-
-  it "flags sigilled and underscored two-word names" do
-    expect_offense(<<~RUBY, message: offense("@build_adapter"))
-      @build_adapter = 1
-      ^^^^^^^^^^^^^^ %{message}
-    RUBY
-    expect_offense(<<~RUBY, message: offense("@_covering_lines"))
-      @_covering_lines = 1
-      ^^^^^^^^^^^^^^^^ %{message}
-    RUBY
-    expect_offense(<<~RUBY, message: offense("$source_root"))
-      $source_root = 1
-      ^^^^^^^^^^^^ %{message}
-    RUBY
-  end
-
-  it "flags three-word names" do
-    expect_offense(<<~RUBY, message: offense("fork_pool_worker"))
-      def run
+  it "flags three-word locals, parameters, and sigilled names" do
+    expect_offense(<<~RUBY)
+      def run(covering_test_lines, apply_exclude_globs: nil)
+              ^^^^^^^^^^^^^^^^^^^ #{offense("covering_test_lines")}
+                                   ^^^^^^^^^^^^^^^^^^^ #{offense("apply_exclude_globs")}
         fork_pool_worker = 1
-        ^^^^^^^^^^^^^^^^ %{message}
+        ^^^^^^^^^^^^^^^^ #{offense("fork_pool_worker")}
+        @_covering_test_lines = 1
+        ^^^^^^^^^^^^^^^^^^^^^ #{offense("@_covering_test_lines")}
+        $source_tree_root = 1
+        ^^^^^^^^^^^^^^^^^ #{offense("$source_tree_root")}
       end
     RUBY
+  end
+
+  context "with MaxWords 1, for a team that wants one word" do
+    let(:cop_config) { defaults.merge("Terms" => [], "AllowedNames" => [], "MaxWords" => 1) }
+
+    it "flags two words, and allows a word with its roles" do
+      expect_offense(<<~RUBY)
+        matching_ids = 1
+        ^^^^^^^^^^^^ #{offense("matching_ids", 2, 1)}
+        user_id = 1
+      RUBY
+    end
   end
 
   context "with domain terms declared" do
-    let(:cop_config) { defaults.merge("Terms" => %w[changed_lines mutant_id], "AllowedNames" => []) }
+    let(:cop_config) { defaults.merge("Terms" => %w[changed_source_lines date_of_birth], "AllowedNames" => []) }
 
     it "allows them, sigils included" do
       expect_no_offenses(<<~RUBY)
-        def run(mutant_id)
-          changed_lines = mutant_id
-          @mutant_id = changed_lines
+        def run(date_of_birth)
+          changed_source_lines = date_of_birth
+          @date_of_birth = changed_source_lines
         end
       RUBY
     end
   end
 
   context "with the raw escape hatch" do
-    let(:cop_config) { defaults.merge("Terms" => [], "AllowedNames" => %w[matching_ids]) }
+    let(:cop_config) { defaults.merge("Terms" => [], "AllowedNames" => %w[matching_test_ids]) }
 
     it "allows the listed name" do
       expect_no_offenses(<<~RUBY)
         def run
-          matching_ids = 1
+          matching_test_ids = 1
         end
       RUBY
     end
   end
 
-  it "flags two-word names in class variables and every argument kind" do
+  it "flags three-word names in class variables and every argument kind" do
     expect_offense(<<~RUBY)
-      def run(customer_address = nil, billing_address:, shipping_address: nil)
-              ^^^^^^^^^^^^^^^^ #{offense("customer_address")}
-                                      ^^^^^^^^^^^^^^^ #{offense("billing_address")}
-                                                        ^^^^^^^^^^^^^^^^ #{offense("shipping_address")}
-        @@customer_address = customer_address
-        ^^^^^^^^^^^^^^^^^^ #{offense("@@customer_address")}
+      def run(customer_home_address = nil, billing_zip_area:, shipping_box_label: nil)
+              ^^^^^^^^^^^^^^^^^^^^^ #{offense("customer_home_address")}
+                                           ^^^^^^^^^^^^^^^^ #{offense("billing_zip_area")}
+                                                              ^^^^^^^^^^^^^^^^^^ #{offense("shipping_box_label")}
+        @@customer_home_address = customer_home_address
+        ^^^^^^^^^^^^^^^^^^^^^^^ #{offense("@@customer_home_address")}
       end
     RUBY
   end
@@ -159,12 +152,12 @@ RSpec.describe(RuboCop::Cop::Kata::GoodVariableName, :config) do
   context "with anonymous parameters, which need Ruby 3.1" do
     let(:ruby_version) { 3.4 }
 
-    it "flags two-word rest, keyword-rest, and block parameters, and skips anonymous ones" do
+    it "flags three-word rest, keyword-rest, and block parameters, and skips anonymous ones" do
       expect_offense(<<~RUBY)
-        def run(*extra_things, **more_options, &done_callback)
-                 ^^^^^^^^^^^^ #{offense("extra_things")}
-                                 ^^^^^^^^^^^^ #{offense("more_options")}
-                                                ^^^^^^^^^^^^^ #{offense("done_callback")}
+        def run(*extra_test_things, **more_merge_options, &done_hook_callback)
+                 ^^^^^^^^^^^^^^^^^ #{offense("extra_test_things")}
+                                      ^^^^^^^^^^^^^^^^^^ #{offense("more_merge_options")}
+                                                           ^^^^^^^^^^^^^^^^^^ #{offense("done_hook_callback")}
         end
         def pass(*, **, &)
         end
@@ -175,7 +168,7 @@ RSpec.describe(RuboCop::Cop::Kata::GoodVariableName, :config) do
   it "flags a name that breaks the word pattern, even as one word" do
     expect_offense(<<~RUBY)
       customerAddress = 1
-      ^^^^^^^^^^^^^^^ #{offense("customerAddress")}
+      ^^^^^^^^^^^^^^^ `customerAddress`: the segment `customerAddress` does not match `Pattern`; a segment is one lowercase word.
     RUBY
   end
 

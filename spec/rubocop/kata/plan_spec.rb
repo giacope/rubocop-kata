@@ -117,7 +117,7 @@ RSpec.describe(RuboCop::Kata::Plan) do
     end
 
     it "reads RuboCop's report as UTF-8, em-dashes and all" do
-      project("# frozen_string_literal: true\n\ndef customer_address\n  1\nend\n") do |root|
+      project("# frozen_string_literal: true\n\ndef customer_home_address\n  1\nend\n") do |root|
         expect(report(root).first).to(include("next: naming"))
       end
     end

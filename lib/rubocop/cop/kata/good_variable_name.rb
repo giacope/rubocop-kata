@@ -3,9 +3,9 @@
 class RuboCop::Cop::Kata::GoodVariableName < RuboCop::Cop::Base
   include RuboCop::Cop::Kata::Wording
 
-  MSG = "`%s` needs two words: the second word names an object you have not introduced yet. " \
-    "Name that object, use a `Prefixes`/`Suffixes` role word — or, if `%s` is one domain concept " \
-    "here, add it to `Terms`."
+  MSG = "`%s` strings %d words together, past the %d a name carries: the words describe an object " \
+    "you have not introduced yet. Name that object, give a role a `Prefixes`/`Suffixes` word — or, " \
+    "if `%s` is one domain concept here, add it to `Terms`."
 
   SIGIL = /\A(@@|@|\$)/
 
@@ -36,7 +36,8 @@ class RuboCop::Cop::Kata::GoodVariableName < RuboCop::Cop::Base
   def check(node, name)
     text = name.to_s
     stem = text.sub(SIGIL, "").delete_prefix("_")
-    return if allowed?(text) || allowed?(stem) || stem.empty? || good?(stem)
-    add_offense(node.loc.name, message: format(MSG, name, name))
+    return if allowed?(text) || allowed?(stem) || stem.empty?
+    complaint = complaint(name, stem)
+    add_offense(node.loc.name, message: complaint) if complaint
   end
 end

@@ -1,0 +1,43 @@
+# Two words are allowed by default; three, chained actions, smashes and
+# clippings are not.
+- id: two-word-method-allowed
+  cop: Kata/GoodMethodName
+  expect: clean
+  each: [parse_header, line_items, build_adapter, matching_ids, customer_address]
+  source: |
+    def {word} = 1
+- id: two-word-variable-allowed
+  cop: Kata/GoodVariableName
+  expect: clean
+  each: [error_message, retry_count, line_items, source_root]
+  source: |
+    def run
+      {word} = 1
+      {word}
+    end
+- id: three-word-method-flagged
+  cop: Kata/GoodMethodName
+  expect: offense
+  each: [customer_billing_address, assemble_monthly_report, fork_pool_worker]
+  source: |
+    def {word} = 1
+- id: three-word-variable-flagged
+  cop: Kata/GoodVariableName
+  expect: offense
+  each: [last_error_message, covering_test_lines]
+  source: |
+    def run
+      {word} = 1
+      {word}
+    end
+- id: chained-actions-flagged
+  cop: Kata/GoodMethodName
+  expect: offense
+  each: [validate_and_save, find_or_create]
+  source: |
+    def {word} = 1
+- id: smashed-pair-flagged
+  cop: Kata/RealWords
+  expect: offense
+  source: |
+    def errorcount = 1

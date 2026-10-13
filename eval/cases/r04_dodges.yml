@@ -1,47 +1,47 @@
 # Names minted without `def`, and the clock seam.
-- id: attr-reader-two-words-flagged
+- id: attr-reader-three-words-flagged
   cop: Kata/GoodMethodName
   expect: offense
   source: |
     class Account::Holder
-      attr_reader :user_name
+      attr_reader :user_home_page
     end
-- id: attr-accessor-two-words-flagged
+- id: attr-accessor-three-words-flagged
   cop: Kata/GoodMethodName
   expect: offense
   source: |
     class Account::Holder
       attr_accessor :billing_cycle_day
     end
-- id: attr-writer-two-words-flagged
+- id: attr-writer-three-words-flagged
   cop: Kata/GoodMethodName
   expect: offense
   source: |
     class Account::Holder
-      attr_writer :user_name
+      attr_writer :user_home_page
     end
-- id: define-method-two-words-flagged
+- id: define-method-three-words-flagged
   cop: Kata/GoodMethodName
   expect: offense
   source: |
     class Account::Holder
-      define_method(:user_name) { "x" }
+      define_method(:user_home_page) { "x" }
     end
-- id: alias-method-two-words-flagged
+- id: alias-method-three-words-flagged
   cop: Kata/GoodMethodName
   expect: offense
   source: |
     class Account::Holder
       def name = "x"
-      alias_method :user_name, :name
+      alias_method :user_home_page, :name
     end
-- id: alias-keyword-two-words-flagged
+- id: alias-keyword-three-words-flagged
   cop: Kata/GoodMethodName
   expect: offense
   source: |
     class Account::Holder
       def name = "x"
-      alias user_name name
+      alias user_home_page name
     end
 - id: attr-reader-one-word-allowed
   cop: Kata/GoodMethodName

@@ -4,9 +4,9 @@ class RuboCop::Cop::Kata::GoodMethodName < RuboCop::Cop::Base
   include RuboCop::Cop::Kata::Wording
   include RuboCop::Cop::Kata::Minting
 
-  MSG = "`%s` needs two words: either a concept is missing, or the method belongs on the object " \
-    "the second word names. Say it in one word, move it, give the role a `Prefixes`/`Suffixes` " \
-    "word — or, if `%s` is one domain concept here, add it to `Terms`."
+  MSG = "`%s` strings %d words together, past the %d a name carries: a concept is missing, or the " \
+    "method belongs on the object the words describe. Say it in fewer, move it, give a role a " \
+    "`Prefixes`/`Suffixes` word — or, if `%s` is one domain concept here, add it to `Terms`."
   CHAIN_MSG = "`%s` chains actions with `%s`; each action wants its own method."
   JOINTS = %w[and or then].freeze
   SUITE = /Test(Case)?\z/
@@ -24,7 +24,7 @@ class RuboCop::Cop::Kata::GoodMethodName < RuboCop::Cop::Base
     text = name.to_s
     stem = text.sub(/[?!=]\z/, "")
     return if !text.match?(/\A[a-z_]/) || allowed?(text) || allowed?(stem)
-    complaint = chain(name, stem) || (format(MSG, name, name) unless good?(stem))
+    complaint = chain(name, stem) || complaint(name, stem)
     add_offense(range, message: complaint) if complaint
   end
 

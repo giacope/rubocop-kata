@@ -173,14 +173,16 @@ Kata/NoComments:
 
 Kata/GoodMethodName:
   Description: >-
-    One word per method name. A second word is allowed only when it does not
-    hide a missing object: a role prefix (`after_fork`), a role suffix
-    (`file_of`), or a reviewed domain term. A name that chains actions
-    (`validate_and_save`) or spells out another object's property
-    (`customer_address`) is a missing method home, not a naming problem.
-    Do not delete the underscore — Kata/RealWords catches the smash. A
-    Minitest `test_` method in a test class is a sentence, like an RSpec
-    description, and goes unpriced.
+    At most `MaxWords` words per method name (two by default), not counting
+    a role prefix (`after_fork`), a role suffix (`file_of`), or a reviewed
+    domain term in `Terms`. Two words are often the honest name of one
+    concept (`line_items`, `parse_header`); three or more usually describe an
+    object or a method home that is missing (`customer_billing_address`). A
+    name that chains actions (`validate_and_save`) is two methods in one at
+    any length. Do not delete the underscore — Kata/RealWords catches the
+    smash. `MaxWords: 1` restores the one-word discipline for a team that
+    wants it. A Minitest `test_` method in a test class is a sentence, like
+    an RSpec description, and goes unpriced.
   Enabled: true
   VersionAdded: "0.5"
   VersionChanged: "0.11"
@@ -363,15 +365,17 @@ Kata/GoodMethodName:
 
 Kata/GoodVariableName:
   Description: >-
-    One word per variable name. A second word means a missing object, not a
-    name to smash together — Kata/RealWords catches the smash. Role prefixes, role
-    suffixes, and reviewed domain terms are the three exceptions. Grammatical
-    suffixes (`created_at`, `user_id`, `timeout_ms`) are representation, not a
-    second concept. Where names must mirror an external schema, `Exclude` the
-    file: the file is the boundary.
+    At most `MaxWords` words per variable name (two by default), not
+    counting role prefixes, role suffixes and reviewed domain terms.
+    Grammatical suffixes (`created_at`, `user_id`, `timeout_ms`) are
+    representation, not another concept. Three or more words describe an
+    object you have not introduced yet; a smash of them fails
+    Kata/RealWords. `MaxWords: 1` restores the one-word discipline. Where
+    names must mirror an external schema, `Exclude` the file: the file is the
+    boundary.
   Enabled: true
   VersionAdded: "0.5"
-  VersionChanged: "0.9"
+  VersionChanged: "0.11"
   MaxWords: 2
   Pattern: "^[a-z][a-z0-9]{0,15}$"
   Prefixes:
@@ -824,17 +828,26 @@ Metrics/ModuleLength:
     - "test/**/*"
     - "**/*_test.rb"
 
-# A wrapped call reads as one line, so it costs one; otherwise Max and
-# Layout/LineLength cannot both be satisfied under Kata/PairedBrackets. The
-# fold hides what a wrapped call carries (a lambda argument counts as one
-# line), so Metrics/AbcSize goes back to RuboCop's 17 from Elegant's 50:
-# measured on faraday and rubygems.org, it catches the 15 methods the fold
-# hides, while dropping `method_call` would flag 49 more for layout alone.
+# Method size is bounded by logic density, not lines. A five-line limit
+# fragmented code: in a blind readability study (eval/results/README.md),
+# code written to it averaged about 3 lines a method and readers judged half
+# of it over-fragmented, against almost none of the control. So the length
+# limit goes back to RuboCop's 10 and the complexity cops do the guarding at
+# RuboCop's defaults, from Elegant's 50 and 15: AbcSize 17,
+# CyclomaticComplexity 7, PerceivedComplexity 8. A wrapped call still counts
+# as one line, since Kata/PairedBrackets puts each argument on its own line;
+# AbcSize prices what such a call carries.
 Metrics/AbcSize:
   Max: 17
 
+Metrics/CyclomaticComplexity:
+  Max: 7
+
+Metrics/PerceivedComplexity:
+  Max: 8
+
 Metrics/MethodLength:
-  Max: 5
+  Max: 10
   CountAsOne:
     - array
     - hash

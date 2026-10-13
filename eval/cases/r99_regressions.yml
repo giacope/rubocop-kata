@@ -26,11 +26,11 @@
   path: config/initializers/token.rb
   source: |
     TOKEN = ENV.fetch("TOKEN")
-- id: two-word-method-flagged
+- id: three-word-method-flagged
   cop: Kata/GoodMethodName
   expect: offense
   source: |
-    def customer_address = "x"
+    def customer_billing_address = "x"
 - id: chained-method-flagged
   cop: Kata/GoodMethodName
   expect: offense

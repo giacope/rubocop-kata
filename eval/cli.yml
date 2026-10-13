@@ -6,7 +6,7 @@
   env: { LANG: C, LC_ALL: C }
   files:
     .rubocop.yml: "plugins:\n  - rubocop-kata\n\nAllCops:\n  TargetRubyVersion: 3.4\n"
-    lib/sample.rb: "# frozen_string_literal: true\n\ndef customer_address = 1\n"
+    lib/sample.rb: "# frozen_string_literal: true\n\ndef customer_home_address = 1\n"
   expect:
     status: [1]
     stdout: ["next: "]
