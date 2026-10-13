@@ -5,6 +5,8 @@
 # Derived from rubocop-elegant (https://github.com/yegor256/rubocop-elegant), see LICENSE.txt
 
 RSpec.describe(RuboCop::Cop::Kata::PairedBrackets) do
+  include TabledCop
+
   let(:cop) { described_class.new(RuboCop::Config.new) }
 
   it_behaves_like(
@@ -26,13 +28,14 @@ RSpec.describe(RuboCop::Cop::Kata::PairedBrackets) do
       "indexer_brackets" => "arr[0]",
       "empty_parens_paired" => "foo()",
       "empty_parens_split_at_edges" => "foo(\n)",
-      "nested_pairs_at_line_edges" => "foo(\n  bar(\n    1\n  )\n)"
+      "nested_pairs_at_line_edges" => "foo(\n  bar(\n    1\n  )\n)",
+      "block_parameters_after_the_brace" => "[1].each { |x|\n  x\n}",
+      "lambda_parameters_after_the_brace" => "lambda { |x|\n  x\n}"
     }, violations: {
       "opener_in_middle_of_line" => ["foo(bar(\n  1\n))", 2],
       "closer_not_at_start_of_line" => ["foo(\n  1)", 1],
       "opener_not_at_end_of_line" => ["foo(1,\n  2\n)", 1],
       "split_square_brackets_in_middle" => ["[1,\n 2]", 2],
-      "block_brace_with_argument_split" => ["[1].each { |x|\n  x\n}", 1],
       "closer_in_middle_when_chained" => ["foo(\n  1).bar", 1],
       "lambda_brace_keeps_its_own_closer" => ["[-> { 1 }, baz(\n  2\n)]", 2]
     }, corrections: {
@@ -40,7 +43,10 @@ RSpec.describe(RuboCop::Cop::Kata::PairedBrackets) do
       "opener_not_at_end_of_line" => ["foo(1,\n  2\n)", "foo(\n  1,\n  2\n)"],
       "split_square_brackets_in_middle" => ["[1,\n 2]", "[\n  1,\n 2\n]"],
       "closer_in_middle_when_chained" => ["foo(\n  1).bar", "foo(\n  1\n).bar"],
-      "opener_in_middle_of_line" => ["foo(bar(\n  1\n))", "foo(\n  bar(\n  1\n)\n)"],
+      "opener_in_middle_of_line" => ["foo(bar(\n  1\n))", "foo(\n  bar(\n    1\n  )\n)"],
+      "hash_argument_nests_one_step" => ["merge({\n  a: 1\n})", "merge(\n  {\n    a: 1\n  }\n)"],
+      "heredoc_body_is_never_shifted" => ["foo(bar(<<-TEXT\n  body\nTEXT\n))", "foo(\n  bar(<<-TEXT\n  body\nTEXT\n  )\n)"],
+      "multiline_string_is_never_shifted" => ["foo(bar(\"a\n  b\"\n))", "foo(\n  bar(\"a\n  b\"\n  )\n)"],
       "opener_with_indent" => ["  foo(1,\n    2\n  )", "  foo(\n    1,\n    2\n  )"],
       "closer_with_indent" => ["  foo(\n    1)", "  foo(\n    1\n  )"],
       "space_after_opener_is_consumed" => ["  { a: 1,\n    b: 2 }", "  {\n    a: 1,\n    b: 2\n  }"],
@@ -49,4 +55,14 @@ RSpec.describe(RuboCop::Cop::Kata::PairedBrackets) do
       ["# \u20ac\nfoo( 1,\n  2 )", "# \u20ac\nfoo(\n  1,\n  2\n)"]
     }
   )
+
+  it "settles three nested openers on one line into three indented levels" do
+    text = "a(b(c(\n  1\n)))"
+    5.times { text = autocorrect(text) }
+    expect(text).to(eq("a(\n  b(\n    c(\n      1\n    )\n  )\n)"))
+  end
+
+  it "reports a deferred inner bracket even while it waits for the outer one" do
+    expect(offenses("a(b(c(\n  1\n)))").size).to(eq(4))
+  end
 end
