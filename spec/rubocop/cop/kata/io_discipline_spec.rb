@@ -38,14 +38,16 @@ RSpec.describe(RuboCop::Cop::Kata::IoDiscipline, :config) do
   end
 
   context "with the shipped defaults" do
-    let(:config) { RuboCop::ConfigLoader.default_configuration }
+    let(:root) { File.expand_path("../../../..", __dir__) }
+    let(:shipped) { YAML.load_file(File.join(root, "config/default.yml"), aliases: true).slice("Kata/IoDiscipline") }
+    let(:config) { RuboCop::Config.new(shipped, File.join(root, ".rubocop.yml")) }
 
     it "exempts the boot layer and the test suite, and nothing else" do
       cop = described_class.new(config)
       %w[exe/tool bin/setup script/seed config/boot.rb lib/tasks/a.rake Rakefile spec/a_spec.rb test/a_test.rb].each do
-        expect(cop.relevant_file?(File.join(Dir.pwd, it))).to(be(false), it)
+        expect(cop.relevant_file?(File.join(root, it))).to(be(false), it)
       end
-      expect(cop.relevant_file?(File.join(Dir.pwd, "lib/a.rb"))).to(be(true))
+      expect(cop.relevant_file?(File.join(root, "lib/a.rb"))).to(be(true))
     end
   end
 end

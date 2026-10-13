@@ -588,6 +588,8 @@ Kata/NoBooleanFlag:
     - const_get
     - const_source_location
     - content_security_policy
+    - exit
+    - exit!
     - fetch
     - include?
     - instance_methods
@@ -611,36 +613,98 @@ Kata/NoBooleanFlag:
     - store
 
 Kata/ConstructorDiscipline:
-  Description: "Constructors assign; they do not compute."
+  Description: >-
+    Constructors assign; they do not compute. Shaping what was passed in is
+    assigning it: a Kernel conversion (`Array(items)`, `Integer(port)`), a
+    `to_*` conversion, a defensive `dup`, and `freeze`. So is the object's own
+    state that nothing could inject: a lock or a queue (`Mutex.new`), or an
+    empty collection (`Set.new`). A clock, a random number, a client, or a
+    sum is a dependency or a computation, and is flagged
+    (`@id = SecureRandom.uuid`).
   Enabled: true
   VersionAdded: "0.3"
+  VersionChanged: "0.11"
+  AllowedMethods:
+    - Array
+    - Complex
+    - Float
+    - Hash
+    - Integer
+    - Rational
+    - String
+    - dup
+    - freeze
+    - raise
+  AllowedConstructors:
+    - Array
+    - ConditionVariable
+    - Hash
+    - Monitor
+    - Mutex
+    - Queue
+    - Set
+    - SizedQueue
+    - String
+    - Thread::ConditionVariable
+    - Thread::Mutex
+    - Thread::Queue
+    - Thread::SizedQueue
   Exclude:
     - "spec/**/*"
     - "test/**/*"
 
 Kata/NoClassMethodLogic:
-  Description: "Classes construct; instances work."
+  Description: >-
+    Classes construct; instances work. `AllowedNames` holds the constructors
+    (`build`, `parse`, `of`, `from`, `from_*`, `new`, `[]`), the hooks Ruby
+    calls by name (`included`, `inherited`, `method_added`), and the
+    serialization protocols a framework calls on the class: a coder for
+    ActiveRecord `serialize` or YAML answers `load`/`dump`, Marshal `_load`,
+    the JSON additions `json_create`.
   Enabled: true
   VersionAdded: "0.3"
+  VersionChanged: "0.11"
   Exclude:
     - "spec/**/*"
     - "test/**/*"
     - "db/*migrate/**/*"
   AllowedNames:
+    - "[]"
+    - _load
     - build
-    - parse
-    - of
+    - const_missing
+    - dump
+    - extended
     - from
     - included
-    - extended
     - inherited
+    - json_create
+    - load
+    - method_added
+    - new
+    - of
+    - parse
     - prepended
+    - singleton_method_added
 
 Kata/NoHashAsObject:
-  Description: "Keys that travel together are an object without a name."
+  Description: >-
+    Keys that travel together are an object without a name. Keyword
+    arguments are exempt, as is a lookup table a constant names, and the hash
+    a serialization method returns: inside `to_h` or `as_json` the object
+    already has a name, and the protocol asks for a hash.
   Enabled: true
   VersionAdded: "0.3"
+  VersionChanged: "0.11"
   MaxKeys: 4
+  AllowedMethods:
+    - as_json
+    - attributes
+    - deconstruct_keys
+    - serializable_hash
+    - to_h
+    - to_hash
+    - to_json
   Exclude:
     - "spec/**/*"
     - "test/**/*"

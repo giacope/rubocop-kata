@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 RSpec.describe(RuboCop::Cop::Kata::NoClassMethodLogic, :config) do
+  let(:ruby_version) { 3.4 }
+
   let(:cop_config) { { "AllowedNames" => %w[build included] } }
 
   it "flags class methods that carry logic" do
@@ -58,5 +60,29 @@ RSpec.describe(RuboCop::Cop::Kata::NoClassMethodLogic, :config) do
         base.extend(self)
       end
     RUBY
+  end
+  context "with the shipped defaults" do
+    let(:cop_config) { RuboCop::ConfigLoader.default_configuration.for_cop("Kata/NoClassMethodLogic") }
+
+    it "allows the serialization protocols a framework calls on the class" do
+      expect_no_offenses(<<~RUBY)
+        class Money
+          def self.load(text) = new(text)
+          def self.dump(money) = money.to_s
+          def self._load(text) = new(text)
+          def self.json_create(object) = new(object["cents"])
+          def self.[](*parts) = new(*parts)
+        end
+      RUBY
+    end
+
+    it "still flags a query on the class" do
+      expect_offense(<<~RUBY)
+        class Money
+          def self.active = all.select(&:active?)
+                   ^^^^^^ `active` puts logic on the class; classes construct, instances work.
+        end
+      RUBY
+    end
   end
 end
