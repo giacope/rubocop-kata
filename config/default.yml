@@ -530,31 +530,26 @@ Kata/ProsePlacement:
 
 Kata/RealWords:
   Description: >-
-    Every name segment is a dictionary word: `errorcount` is a smash, `cfg`
-    is an abbreviation, `mutant` is fine. The dictionary ships with the gem;
-    `Terms` holds reviewed domain jargon, `AllowedNames` exempts names an
-    external protocol dictates.
+    Every name segment is a word: an English word, an initialism (`api`,
+    `uuid`), a technology's name (`rspec`, `postgres`), or the platform's own
+    spelling of the thing (`env` for Rack and `ENV`, `params`, `attr`, `dir`,
+    `io`, `regexp`, `proc`, `stdout`, `mkdir`). `errorcount` is a smash and
+    fails. A clipping of an English word fails wherever a dictionary lists it:
+    `args`, `opts`, `src`, `cmd`, `impl`, `str`, `req`, `conn` are all spelled
+    out, and the message names the word (`req` is `request`); `foo` and `qux`
+    are placeholders. The shipped table is data/clippings.txt; `BannedWords`
+    adds a project's own, `Terms` re-allows one as reviewed jargon, and
+    `AllowedNames` exempts names a protocol dictates (`to_str`).
   Enabled: true
   VersionAdded: "0.5"
-  BannedWords:
-    - usr
-    - cfg
-    - tmp
-    - res
-    - val
-    - obj
-    - arr
-    - num
-    - buf
-    - idx
-    - ctx
-    - err
-    - len
-    - msg
-    - pos
-    - ptr
+  VersionChanged: "0.11"
+  BannedWords: []
   Terms: []
-  AllowedNames: []
+  AllowedNames:
+    - to_ary
+    - to_int
+    - to_str
+    - to_sym
 
 Kata/BuilderNoun:
   Description: "Builders are named for what they return; verbs are for side effects."

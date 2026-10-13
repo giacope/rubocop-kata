@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 RSpec.describe(RuboCop::Cop::Kata::RealWords, :config) do
+  let(:ruby_version) { 3.4 }
   let(:cop_config) do
     {
       "BannedWords" => YAML.load_file("config/default.yml", aliases: true).fetch("Kata/RealWords").fetch("BannedWords"),
@@ -46,25 +47,79 @@ RSpec.describe(RuboCop::Cop::Kata::RealWords, :config) do
     RUBY
   end
 
+  it "flags a clipping whichever dictionary lists it, and names the word" do
+    expect_offense(<<~RUBY)
+      def call(args, opts, src, cmd) = [args, opts, src, cmd]
+               ^^^^ `args` is an abbreviation of `arguments`; spell the word out.
+                     ^^^^ `opts` is an abbreviation of `options`; spell the word out.
+                           ^^^ `src` is an abbreviation of `source`; spell the word out.
+                                ^^^ `cmd` is an abbreviation of `command`; spell the word out.
+      def run(str, req, resp, conn) = [str, req, resp, conn]
+              ^^^ `str` is an abbreviation of `string`; spell the word out.
+                   ^^^ `req` is an abbreviation of `request`; spell the word out.
+                        ^^^^ `resp` is an abbreviation of `response`; spell the word out.
+                              ^^^^ `conn` is an abbreviation of `connection`; spell the word out.
+      msgs = []
+      ^^^^ `msgs` is an abbreviation of `messages`; spell the word out.
+      utils = []
+      ^^^^^ `utils` is an abbreviation of `utilities`; spell the word out.
+    RUBY
+  end
+
+  it "names a placeholder for what it is" do
+    expect_offense(<<~RUBY)
+      foo = 1
+      ^^^ `foo` is a placeholder; name what it holds.
+    RUBY
+  end
+
+  it "keeps the platform's own names, and English words that end like a clipping's plural" do
+    expect_no_offenses(<<~RUBY)
+      def call(env, params, io, dir, regexp, stdout) = [env, params, io, dir, regexp, stdout]
+      lens = []
+      bars = []
+    RUBY
+  end
+
+  context "with the shipped defaults" do
+    let(:cop_config) { RuboCop::ConfigLoader.default_configuration.for_cop("Kata/RealWords") }
+
+    it "allows the conversion protocol Ruby calls by name" do
+      expect_no_offenses(<<~RUBY)
+        def to_str = "x"
+        def to_sym = :x
+        def to_ary = []
+        def to_int = 1
+      RUBY
+    end
+
+    it "still flags the clipping elsewhere" do
+      expect_offense(<<~RUBY)
+        def str = "x"
+            ^^^ `str` is an abbreviation of `string`; spell the word out.
+      RUBY
+    end
+  end
+
   it "flags abbreviations, including ones that happen to be dictionary words" do
     expect_offense(<<~RUBY)
       def cfg
-          ^^^ `cfg` is an abbreviation; spell the word out.
+          ^^^ `cfg` is an abbreviation of `configuration`; spell the word out.
       end
       def err
-          ^^^ `err` is an abbreviation; spell the word out.
+          ^^^ `err` is an abbreviation of `error`; spell the word out.
       end
       idx = 1
-      ^^^ `idx` is an abbreviation; spell the word out.
+      ^^^ `idx` is an abbreviation of `index`; spell the word out.
     RUBY
   end
 
   it "names the offending segment inside an underscored name" do
     expect_offense(<<~RUBY)
       error_cnt = 1
-      ^^^^^^^^^ `cnt` (in `error_cnt`) is not in the dictionary — restore the underscore between smashed words, spell the abbreviation out, or add it to `Terms` if it is one domain term here.
+      ^^^^^^^^^ `cnt` (in `error_cnt`) is an abbreviation of `count`; spell the word out.
       def report_msg
-          ^^^^^^^^^^ `msg` (in `report_msg`) is an abbreviation; spell the word out.
+          ^^^^^^^^^^ `msg` (in `report_msg`) is an abbreviation of `message`; spell the word out.
       end
     RUBY
   end
@@ -72,7 +127,7 @@ RSpec.describe(RuboCop::Cop::Kata::RealWords, :config) do
   it "strips sigils, memo underscores, and predicate, bang, and setter suffixes" do
     expect_offense(<<~RUBY)
       @ctx = 1
-      ^^^^ `@ctx` is an abbreviation; spell the word out.
+      ^^^^ `@ctx` is an abbreviation of `context`; spell the word out.
       def harnesscritical?
           ^^^^^^^^^^^^^^^^ `harnesscritical?` is not in the dictionary — restore the underscore between smashed words, spell the abbreviation out, or add it to `Terms` if it is one domain term here.
       end

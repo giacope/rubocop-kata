@@ -6,6 +6,9 @@ class RuboCop::Cop::Kata::RealWords < RuboCop::Cop::Base
   MSG = "%s is not in the dictionary — restore the underscore between smashed words, spell the " \
     "abbreviation out, or add it to `Terms` if it is one domain term here."
   ABBREVIATION_MSG = "%s is an abbreviation; spell the word out."
+  CLIPPING_MSG = "%s is an abbreviation of `%s`; spell the word out."
+  PLACEHOLDER_MSG = "%s is a placeholder; name what it holds."
+  PLACEHOLDER = "placeholder"
   SIGIL = /\A(@@|@|\$)/
   DERIVATIONS = [
     [/s\z/, ""], [/es\z/, ""], [/ies\z/, "y"],
@@ -44,7 +47,7 @@ class RuboCop::Cop::Kata::RealWords < RuboCop::Cop::Base
 
   def check(node, name)
     segment = flaw(name)
-    add_offense(node.loc.name, message: format(template(segment), label(name, segment))) if segment
+    add_offense(node.loc.name, message: message(name, segment)) if segment
   end
 
   def flaw(name)
@@ -55,7 +58,14 @@ class RuboCop::Cop::Kata::RealWords < RuboCop::Cop::Base
 
   def stem(name) = name.to_s.sub(SIGIL, "").delete_prefix("_").sub(/[?!=]\z/, "")
 
-  def template(segment) = banned?(segment) ? ABBREVIATION_MSG : MSG
+  def message(name, segment)
+    expansion = expansion(segment)
+    return format(MSG, label(name, segment)) unless banned?(segment)
+    return format(PLACEHOLDER_MSG, label(name, segment)) if expansion == PLACEHOLDER
+    expansion ? format(CLIPPING_MSG, label(name, segment), expansion) : format(ABBREVIATION_MSG, label(name, segment))
+  end
+
+  def expansion(segment) = bases(segment).filter_map { RuboCop::Kata::Dictionary::CLIPPINGS[it] }.first
 
   def label(name, segment) = stem(name) == segment ? "`#{name}`" : "`#{segment}` (in `#{name}`)"
 
@@ -73,5 +83,11 @@ class RuboCop::Cop::Kata::RealWords < RuboCop::Cop::Base
 
   def derivations(base) = DERIVATIONS.map { |pattern, stem| base.sub(pattern, stem) }
 
-  def banned?(segment) = listed?("BannedWords", segment)
+  def banned?(segment) = bases(segment).any? { listed?("BannedWords", it) } || !expansion(segment).nil?
+
+  def bases(segment)
+    plain = segment.sub(/\d+\z/, "")
+    return [plain] if RuboCop::Kata::Dictionary::ENTRIES.include?(plain) && !RuboCop::Kata::Dictionary::CLIPPINGS.key?(plain)
+    [plain, plain.sub(/e?s\z/, ""), plain.delete_suffix("s")].uniq
+  end
 end

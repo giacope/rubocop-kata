@@ -13,5 +13,6 @@ module RuboCop::Kata::Dictionary
   ).freeze
   AGENTS = Set.new(Zlib.gunzip(File.binread(File.join(DATA, "agents.txt.gz"))).split("\n")).freeze
   THINGS = Set.new(Zlib.gunzip(File.binread(File.join(DATA, "things.txt.gz"))).split("\n")).freeze
+  CLIPPINGS = File.readlines(File.join(DATA, "clippings.txt"), chomp: true).to_h { it.split(" ", 2) }.freeze
   VERBS = Set.new(Zlib.gunzip(File.binread(File.join(DATA, "verbs.txt.gz"))).split("\n")).freeze
 end
