@@ -25,6 +25,25 @@ RSpec.describe(RuboCop::Cop::Kata::GoodMethodName, :config) do
     RUBY
   end
 
+  it "judges a hook name by its words, not the underscores Ruby puts in front" do
+    expect_no_offenses(<<~RUBY)
+      def _fork
+      end
+      def _dump(level)
+      end
+      def __send
+      end
+    RUBY
+  end
+
+  it "still counts the words behind the underscores" do
+    expect_offense(<<~RUBY)
+      def _merge_cached_rows
+          ^^^^^^^^^^^^^^^^^^ #{offense("_merge_cached_rows")}
+      end
+    RUBY
+  end
+
   it "allows single-word names" do
     expect_no_offenses(<<~RUBY)
       def coverage

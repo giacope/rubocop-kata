@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+- `Kata/GoodMethodName` judges a hook name by the words behind its leading
+  underscores: `_fork`, `_dump` and `__send` pass, where they were reported as
+  having an empty segment.
 - kata's own `lib` now reads under those limits. hashira's fragmentation
   check found 21 public methods spread over chains of one-line helpers;
   folding single-use helpers into their callers took `lib` from 255 methods

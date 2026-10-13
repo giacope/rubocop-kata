@@ -27,7 +27,7 @@ class RuboCop::Cop::Kata::GoodMethodName < RuboCop::Cop::Base
   def check(range, name)
     text = name.to_s
     return unless text.match?(/\A[a-z_]/)
-    stem = text.sub(/[?!=]\z/, "")
+    stem = text.sub(/[?!=]\z/, "").sub(/\A_+/, "")
     joint = (stem.split("_") & JOINTS).first
     judge(range, name, stem) { format(CHAIN_MSG, name, joint) if joint }
   end
