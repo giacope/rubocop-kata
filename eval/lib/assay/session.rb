@@ -7,22 +7,23 @@ class Assay::Session
   KEPT = %w[
     PATH HOME GEM_HOME GEM_PATH BUNDLE_PATH LANG LC_ALL TMPDIR SSL_CERT_FILE HTTPS_PROXY HTTP_PROXY NO_PROXY
   ].freeze
-  USAGE = "usage: eval/run --kata PATH [--out FILE] [--only LIST] [--list CORPORA] [--gate] | " \
-    "eval/run --compare BEFORE AFTER [--out FILE]"
+  USAGE = "usage: eval/run --kata PATH [--out FILE] [--only LIST] [--list CORPORA] [--labels FILE] [--gate] | " \
+    "eval/run --compare BEFORE AFTER [--out FILE] | eval/run --draw [--out FILE]"
   DEFAULTS = { only: SECTIONS, jobs: 4, elegant: "0.8.0" }.freeze
   FLAGS = [
     ["--only LIST", Array], ["--jobs N", Integer], ["--elegant VERSION", String],
-    ["--reveal"], ["--compare"], ["--gate"]
+    ["--reveal"], ["--compare"], ["--gate"], ["--draw"]
   ].freeze
   NAMES = File.join(Assay::ROOT, "names.yml")
   CORPORA = File.join(Assay::ROOT, "corpora.yml")
-  GATE = File.join(Assay::ROOT, "gate.yml")
-  PATHS = %w[kata out work corpora list].freeze
+  SHEET = File.join(Assay::ROOT, "results", "human", "names.yml")
+  PATHS = %w[kata out work corpora list labels].freeze
   BUILDERS = {
     "settings" => ->(bundle, home, _) { Assay::Settings.new(bundle, home) },
     "cases" => ->(bundle, home, _) { Assay::Snippets.new(bundle, home, Dir[File.join(Assay::ROOT, "cases", "*.yml")]) },
     "names" => ->(bundle, home, options) { Assay::Lexicon.new(bundle, home, NAMES, reveal: options[:reveal]) },
-    "cli" => ->(bundle, home, _) { Assay::Console.new(bundle, home, File.join(Assay::ROOT, "cli.yml")) }
+    "cli" => ->(bundle, home, _) { Assay::Console.new(bundle, home, File.join(Assay::ROOT, "cli.yml")) },
+    "human" => ->(bundle, home, options) { Assay::Agreement.new(bundle, home, options[:labels] || SHEET) }
   }.freeze
 
   def initialize(arguments, io:, env:)
@@ -33,10 +34,9 @@ class Assay::Session
 
   def run
     return compare if options[:compare]
+    return emit(Assay::Sample.new(NAMES).to_s) if options[:draw]
     return usage unless options[:kata]
-    data = score
-    write(data)
-    options[:gate] ? check(data) : 0
+    gate(score.tap { write(it) })
   end
 
   private
@@ -63,16 +63,15 @@ class Assay::Session
 
   def compare
     before, after = @arguments.map { JSON.parse(File.read(it)) }
-    text = Assay::Comparison.new(before, after).markdown
+    emit(Assay::Comparison.new(before, after).markdown)
+  end
+
+  def emit(text)
     options[:out] ? File.write(options[:out], text) : @io.puts(text)
     0
   end
 
-  def check(data)
-    breaches = Assay::Gate.new(data, YAML.safe_load_file(GATE)).breaches
-    breaches.each { @io.puts("gate: #{it}") }
-    breaches.empty? ? 0 : 1
-  end
+  def gate(data) = options[:gate] ? Assay::Gate.new(data).check(@io) : 0
 
   def score
     bundle = Assay::Bundle.new(options[:kata], File.join(work, "bundle"), shell, elegant: options[:elegant]).prepare

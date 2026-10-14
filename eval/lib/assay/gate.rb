@@ -1,14 +1,20 @@
 # frozen_string_literal: true
 
 class Assay::Gate
-  def initialize(data, limits)
+  LIMITS = File.join(Assay::ROOT, "gate.yml")
+
+  def initialize(data)
     @data = data
-    @limits = limits
   end
 
-  def breaches = [*%w[cases cli].flat_map { cases(it) }, *names]
+  def check(io)
+    breaches.each { io.puts("gate: #{it}") }
+    breaches.empty? ? 0 : 1
+  end
 
   private
+
+  def breaches = @_breaches ||= [*%w[cases cli].flat_map { cases(it) }, *names]
 
   def cases(section) = @data.dig(section, "results").to_a.filter_map { verdict(it) }
 
@@ -22,7 +28,7 @@ class Assay::Gate
 
   def names
     return [] unless @data.key?("names")
-    @limits.fetch("names").flat_map do |variant, splits|
+    YAML.safe_load_file(LIMITS).fetch("names").flat_map do |variant, splits|
       splits.flat_map { |split, bound| worse(@data.dig("names", variant, split), "#{variant} #{split}", bound) }
     end
   end

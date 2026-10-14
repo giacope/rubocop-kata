@@ -36,7 +36,9 @@ What the sections measure:
   is a thing or never uses the verb, a doer now passes. Read once at the end,
   the holdout misses were Assembler, Benchmarker, Decoder, Escalator,
   Generator, Lexer, Merger and Refresher, and its one false positive Header
-  (which the shipped `AllowedNames` covers).
+  (which the shipped `AllowedNames` covers). The labels are the author's;
+  [human/](human/README.md) is a kit for a person to re-label 40 of them
+  blind and score the agreement.
 - **Shipped configuration**: facts read from the resolved config of a bare
   project. `AllowedNames` 45 per cop, duplicated for modules, is now one
   9-entry list (exception classes, domain roles, three words with an equally

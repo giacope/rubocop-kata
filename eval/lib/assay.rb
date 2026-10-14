@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "digest"
 require "fileutils"
 require "json"
 require "open3"
@@ -21,6 +22,8 @@ require_relative "assay/verdict"
 require_relative "assay/snippets"
 require_relative "assay/score"
 require_relative "assay/lexicon"
+require_relative "assay/sample"
+require_relative "assay/agreement"
 require_relative "assay/settings"
 require_relative "assay/invocation"
 require_relative "assay/console"

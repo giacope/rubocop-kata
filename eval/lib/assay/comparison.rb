@@ -5,8 +5,10 @@ class Assay::Comparison
 
   NAMES = %w[precision recall fp fn ambiguous_flagged roles_flagged].freeze
   PARTS = {
-    "cases" => %i[cases misses], "names" => %i[names errata], "settings" => %i[settings], "cli" => %i[console]
+    "cases" => %i[cases misses], "names" => %i[names errata], "settings" => %i[settings], "cli" => %i[console],
+    "human" => %i[panel accord]
   }.freeze
+  PANEL = { "human" => "the human's labels", "existing" => "eval/names.yml" }.freeze
 
   def markdown
     parts = PARTS.select { |key, _| @after.key?(key) }.values.flatten.map { method(it).call }
@@ -59,6 +61,20 @@ class Assay::Comparison
       "Shipped configuration", %w[Fact Value],
       (@after.fetch("settings").keys - %w[layout_silenced]).map { [it, shift("settings", it)] }
     )
+  end
+
+  def panel
+    section(
+      "Raw doer rule on #{@after.dig("human", "labelled")} human-labelled names", ["Scored against", *NAMES.first(4)],
+      PANEL.map { |key, title| [title, *NAMES.first(4).map { shift("human", key, it) }] }
+    )
+  end
+
+  def accord
+    human = @after.fetch("human")
+    "Agreement with eval/names.yml: #{human["agreed"]} of #{human["labelled"]} (#{human["agreement"]}), " \
+      "Cohen's kappa #{human["kappa"]}. Disagreements: " \
+      "#{human["disagreements"].map { |name, mine, theirs| "#{name} (#{mine}, was #{theirs})" }.join(", ")}.\n"
   end
 
   def console = section("CLI", %w[Case Result], @after.dig("cli", "results").map { [it["id"], outcome(it)] })

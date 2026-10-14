@@ -21,6 +21,17 @@ class Assay::Lexicon
     VARIANTS.keys.to_h { [it, splits(flagged.fetch(it, []))] }.merge("size" => names.size, "counts" => counts)
   end
 
+  def sweep
+    FileUtils.rm_rf(@work)
+    VARIANTS.each { |variant, extra| plant(variant, extra) }
+    report = File.join(@work, "report.json")
+    @bundle.rubocop(
+      "--format", "json", "--out", report, "--cache", "false", "--only", "Kata/GoodClassName",
+      *VARIANTS.keys.map { File.join(it, "lib/names.rb") }, dir: @work
+    )
+    flags(report)
+  end
+
   private
 
   def splits(flagged) = SPLITS.to_h { |split| [split, measure(split, flagged)] }
@@ -42,17 +53,6 @@ class Assay::Lexicon
   def names = LABELS.flat_map { data.fetch(it) }
 
   def data = @_data ||= YAML.safe_load_file(@source)
-
-  def sweep
-    FileUtils.rm_rf(@work)
-    VARIANTS.each { |variant, extra| plant(variant, extra) }
-    report = File.join(@work, "report.json")
-    @bundle.rubocop(
-      "--format", "json", "--out", report, "--cache", "false", "--only", "Kata/GoodClassName",
-      *VARIANTS.keys.map { File.join(it, "lib/names.rb") }, dir: @work
-    )
-    flags(report)
-  end
 
   def plant(variant, extra)
     home = File.join(@work, variant, "lib")
