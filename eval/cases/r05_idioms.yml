@@ -176,6 +176,7 @@
 - id: job-subject-allowed
   cop: Kata/GoodClassName
   expect: clean
+  known: WordNet reads reminder as "a message that reminds", a doer; eval/names.yml calls it ambiguous
   path: app/jobs/invoice_reminder_job.rb
   source: |
     class InvoiceReminderJob < ApplicationJob
@@ -183,6 +184,7 @@
 - id: job-doer-subject-flagged
   cop: Kata/GoodClassName
   expect: offense
+  known: WordNet's dominant generator is an apparatus, so the doer rule passes it
   path: app/jobs/report_generator_job.rb
   source: |
     class ReportGeneratorJob < ApplicationJob

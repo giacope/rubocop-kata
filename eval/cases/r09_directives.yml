@@ -31,6 +31,7 @@
 - id: disable-all-flagged
   cop: Kata/JustifiedDirective
   expect: offense
+  known: a disable all silences every cop on its line, this one included; rubocop-kata doctor lists it instead
   source: |
     # rubocop:disable all -- legacy file
     VALUE = 1

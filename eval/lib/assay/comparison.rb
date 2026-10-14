@@ -35,9 +35,9 @@ class Assay::Comparison
     "#{"#{old["passed"]} → " if old}#{now["passed"]} of #{now["total"]}"
   end
 
-  def misses
-    "## Still failing\n\n#{failures.map { "- `#{it["id"]}`: #{it["faults"].join("; ")}" }.join("\n")}\n"
-  end
+  def misses = "## Still failing\n\n#{failures.map { miss(it) }.join("\n")}\n"
+
+  def miss(row) = "- `#{row["id"]}`#{" (known)" if row["known"]}: #{row["faults"].join("; ")}"
 
   def failures = %w[cases cli].flat_map { @after.dig(it, "results").to_a }.reject { it["passed"] }
 
