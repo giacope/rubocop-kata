@@ -17,16 +17,21 @@ Kata/GoodClassName:
     object: a doer name (`-er`/`-or`), a junk-drawer name (`Service`, `Util`,
     `Data`), and a name packing several concepts (`CustomerOrderPayment`).
     Compound syntax is not the smell — `CreditCard` is one concept, and belongs
-    in `Terms`. `AllowedNames` and `BannedNames` match a whole name or a
-    trailing segment, so `Error` also exempts `UsageError` and `Service` also
-    catches `InvoiceService`. The default `AllowedNames` holds the suffixes a
-    framework resolves a class by, which are contracts rather than naming
-    choices, plus thing-words that merely end in `-er`/`-or` — `User` and
-    `Order` are objects, not doers. A known word whose stem is no verb
-    (`Volunteer`, `Filter`) is not a doer either. A trailing `Suffixes` word
-    names what the class is for, not what it is, so `UsersControllerTest` is
-    judged as `UsersController`. Absorbs Kata/AgentNoun and the class half
-    of Kata/NoUtilName.
+    in `Terms`. A doer is an agent noun: the shipped WordNet data says whether
+    a word's dominant sense is "one that <verb>s" (`Parser`, `Timer`) or a
+    thing (`Number`, `Header`, `Order`), and an unknown word is a doer when its
+    stem is a verb. A trailing `Suffixes` word names what the class is for
+    (`UsersControllerTest` is for `UsersController`). `ContractSuffixes` are
+    the words a framework resolves a class by (`UsersController`,
+    `EmailValidator`, `InviteMailer`); the framework dictates the suffix, not
+    the subject, so `UsersControllerTest` is judged as `Users`, and
+    `ReportGeneratorJob` as `ReportGenerator`. A class whose superclass ends in the same word inherits that word
+    (`ActionHandler < Avo::Actions::ActionHandler`, `AuditLogger < Logger`):
+    the doer, if any, is the parent. `AllowedNames` match a whole name or a
+    trailing segment: exception classes (`Error`), the domain roles a model
+    represents rather than performs (`User`, `Owner`), words whose thing and
+    doer readings are equally common in code (`Server`, `Container`), and
+    `Header`, which WordNet derives from the verb `head`.
   Enabled: true
   VersionAdded: "0.9"
   VersionChanged: "0.11"
@@ -38,51 +43,29 @@ Kata/GoodClassName:
     - TestCase
     - Spec
     - Preview
-  AllowedNames:
-    - Actor
+  ContractSuffixes:
     - Adapter
-    - Author
-    - Buffer
-    - Center
     - Channel
-    - Chapter
-    - Character
-    - Color
     - Component
-    - Container
     - Controller
-    - Cursor
-    - Customer
     - Decorator
-    - Delegator
-    - Driver
-    - Enumerator
-    - Error
-    - Fiber
-    - Folder
     - Generator
-    - Helper
     - Job
-    - Ledger
-    - Logger
     - Mailbox
     - Mailer
-    - Member
-    - Monitor
-    - Notifier
-    - Order
-    - Owner
     - Policy
-    - Presenter
     - Serializer
-    - Server
-    - Subscriber
-    - Supplier
-    - Timer
-    - Transfer
-    - User
+    - Task
     - Validator
-    - Vector
+  AllowedNames: &type_names
+    - Actor
+    - Container
+    - Error
+    - Header
+    - Owner
+    - Server
+    - Supplier
+    - User
     - Vendor
   BannedNames:
     - Util
@@ -112,61 +95,22 @@ Kata/GoodModuleName:
     namespaces (`Common`, `Shared`, `Core`), doer names, and names packing
     several concepts are flagged; a genuine compound domain like
     `AccessControl` passes. `BannedNames` matches a whole name or a trailing
-    segment, so `Services` also catches `ApplicationServices`. The default
-    `AllowedNames` holds the framework suffixes, so reopening
-    `ActionController` or `ActionMailer` is not an offense; reopening another
-    library's junk drawer (`FileUtils`) is a file-boundary `Exclude`, not a
-    naming choice. Absorbs the module half of Kata/NoUtilName.
+    segment, so `Services` also catches `ApplicationServices`. `ContractSuffixes`
+    hold the words a framework resolves a module by: Rails includes
+    `app/helpers/invoices_helper.rb` as `InvoicesHelper`, and a reopen of
+    `ActionController` must spell it exactly. Reopening another library's
+    junk drawer (`FileUtils`) is a file-boundary `Exclude`, not a naming
+    choice. `AllowedNames` is the class list. Absorbs the module half of
+    Kata/NoUtilName.
   Enabled: true
   VersionAdded: "0.9"
   VersionChanged: "0.11"
   MaxWords: 2
-  AllowedNames:
-    - Actor
-    - Adapter
-    - Author
-    - Buffer
-    - Center
-    - Channel
-    - Chapter
-    - Character
-    - Color
-    - Component
-    - Container
+  ContractSuffixes:
     - Controller
-    - Cursor
-    - Customer
-    - Decorator
-    - Delegator
-    - Driver
-    - Enumerator
-    - Error
-    - Fiber
-    - Folder
-    - Generator
     - Helper
-    - Job
-    - Ledger
-    - Logger
-    - Mailbox
     - Mailer
-    - Member
-    - Monitor
-    - Notifier
-    - Order
-    - Owner
-    - Policy
-    - Presenter
-    - Serializer
-    - Server
-    - Subscriber
-    - Supplier
-    - Timer
-    - Transfer
-    - User
-    - Validator
-    - Vector
-    - Vendor
+  AllowedNames: *type_names
   BannedNames:
     - Common
     - Core
@@ -197,14 +141,27 @@ Kata/GoodModuleName:
 
 Kata/NoComments:
   Description: >-
-    Say it in the code; keep only comments the machine or the law reads. A gem
-    that publishes API documentation sets `AllowDocumentation`, and a comment
-    block carrying a YARD tag (`@param`, `@return`) is kept whole. `config/`
-    is excluded: its comments are the framework's generated guidance.
+    Say it in the code; keep only what the code cannot say. Code can say what
+    and how; it cannot cite an external constraint, and a tool cannot read
+    prose. So the cop keeps magic comments and editor modelines (deleting
+    `# -*- coding: binary -*-` changes every string literal), tool directives
+    (RuboCop, Standard, SimpleCov, Steep `@type`, RBS `#:` and `@rbs`, Sorbet,
+    reek `:reek:`, kimera, hashira, RubyMine `language=`), RDoc and YARD
+    directives, licence headers, every comment block that cites a URL, an
+    issue or pull request (`rails/rails#123`, `#123`), an RFC or a CVE, and
+    every block carrying a YARD tag: a gem's API documentation is product, not
+    prose (`AllowDocumentation: false` to price it too). `AllowedPatterns`
+    adds the directives of tools it does not know. Removing a comment loses
+    what it said, so the correction is unsafe: `rubocop -A` applies it,
+    `rubocop -a` does not. `config/` is excluded: its comments are the
+    framework's generated guidance.
   Enabled: true
   VersionAdded: "0.1"
   VersionChanged: "0.11"
-  AllowDocumentation: false
+  SafeAutoCorrect: false
+  AllowDocumentation: true
+  AllowCitations: true
+  AllowedPatterns: []
   Exclude:
     - "spec/**/*"
     - "test/**/*"
@@ -216,14 +173,16 @@ Kata/NoComments:
 
 Kata/GoodMethodName:
   Description: >-
-    One word per method name. A second word is allowed only when it does not
-    hide a missing object: a role prefix (`after_fork`), a role suffix
-    (`file_of`), or a reviewed domain term. A name that chains actions
-    (`validate_and_save`) or spells out another object's property
-    (`customer_address`) is a missing method home, not a naming problem.
-    Do not delete the underscore — Kata/RealWords catches the smash. A
-    Minitest `test_` method in a test class is a sentence, like an RSpec
-    description, and goes unpriced.
+    At most `MaxWords` words per method name (two by default), not counting
+    a role prefix (`after_fork`), a role suffix (`file_of`), or a reviewed
+    domain term in `Terms`. Two words are often the honest name of one
+    concept (`line_items`, `parse_header`); three or more usually describe an
+    object or a method home that is missing (`customer_billing_address`). A
+    name that chains actions (`validate_and_save`) is two methods in one at
+    any length. Do not delete the underscore — Kata/RealWords catches the
+    smash. `MaxWords: 1` restores the one-word discipline for a team that
+    wants it. A Minitest `test_` method in a test class is a sentence, like
+    an RSpec description, and goes unpriced.
   Enabled: true
   VersionAdded: "0.5"
   VersionChanged: "0.11"
@@ -406,15 +365,17 @@ Kata/GoodMethodName:
 
 Kata/GoodVariableName:
   Description: >-
-    One word per variable name. A second word means a missing object, not a
-    name to smash together — Kata/RealWords catches the smash. Role prefixes, role
-    suffixes, and reviewed domain terms are the three exceptions. Grammatical
-    suffixes (`created_at`, `user_id`, `timeout_ms`) are representation, not a
-    second concept. Where names must mirror an external schema, `Exclude` the
-    file: the file is the boundary.
+    At most `MaxWords` words per variable name (two by default), not
+    counting role prefixes, role suffixes and reviewed domain terms.
+    Grammatical suffixes (`created_at`, `user_id`, `timeout_ms`) are
+    representation, not another concept. Three or more words describe an
+    object you have not introduced yet; a smash of them fails
+    Kata/RealWords. `MaxWords: 1` restores the one-word discipline. Where
+    names must mirror an external schema, `Exclude` the file: the file is the
+    boundary.
   Enabled: true
   VersionAdded: "0.5"
-  VersionChanged: "0.9"
+  VersionChanged: "0.11"
   MaxWords: 2
   Pattern: "^[a-z][a-z0-9]{0,15}$"
   Prefixes:
@@ -573,31 +534,26 @@ Kata/ProsePlacement:
 
 Kata/RealWords:
   Description: >-
-    Every name segment is a dictionary word: `errorcount` is a smash, `cfg`
-    is an abbreviation, `mutant` is fine. The dictionary ships with the gem;
-    `Terms` holds reviewed domain jargon, `AllowedNames` exempts names an
-    external protocol dictates.
+    Every name segment is a word: an English word, an initialism (`api`,
+    `uuid`), a technology's name (`rspec`, `postgres`), or the platform's own
+    spelling of the thing (`env` for Rack and `ENV`, `params`, `attr`, `dir`,
+    `io`, `regexp`, `proc`, `stdout`, `mkdir`). `errorcount` is a smash and
+    fails. A clipping of an English word fails wherever a dictionary lists it:
+    `args`, `opts`, `src`, `cmd`, `impl`, `str`, `req`, `conn` are all spelled
+    out, and the message names the word (`req` is `request`); `foo` and `qux`
+    are placeholders. The shipped table is data/clippings.txt; `BannedWords`
+    adds a project's own, `Terms` re-allows one as reviewed jargon, and
+    `AllowedNames` exempts names a protocol dictates (`to_str`).
   Enabled: true
   VersionAdded: "0.5"
-  BannedWords:
-    - usr
-    - cfg
-    - tmp
-    - res
-    - val
-    - obj
-    - arr
-    - num
-    - buf
-    - idx
-    - ctx
-    - err
-    - len
-    - msg
-    - pos
-    - ptr
+  VersionChanged: "0.11"
+  BannedWords: []
   Terms: []
-  AllowedNames: []
+  AllowedNames:
+    - to_ary
+    - to_int
+    - to_str
+    - to_sym
 
 Kata/BuilderNoun:
   Description: "Builders are named for what they return; verbs are for side effects."
@@ -636,6 +592,8 @@ Kata/NoBooleanFlag:
     - const_get
     - const_source_location
     - content_security_policy
+    - exit
+    - exit!
     - fetch
     - include?
     - instance_methods
@@ -659,36 +617,98 @@ Kata/NoBooleanFlag:
     - store
 
 Kata/ConstructorDiscipline:
-  Description: "Constructors assign; they do not compute."
+  Description: >-
+    Constructors assign; they do not compute. Shaping what was passed in is
+    assigning it: a Kernel conversion (`Array(items)`, `Integer(port)`), a
+    `to_*` conversion, a defensive `dup`, and `freeze`. So is the object's own
+    state that nothing could inject: a lock or a queue (`Mutex.new`), or an
+    empty collection (`Set.new`). A clock, a random number, a client, or a
+    sum is a dependency or a computation, and is flagged
+    (`@id = SecureRandom.uuid`).
   Enabled: true
   VersionAdded: "0.3"
+  VersionChanged: "0.11"
+  AllowedMethods:
+    - Array
+    - Complex
+    - Float
+    - Hash
+    - Integer
+    - Rational
+    - String
+    - dup
+    - freeze
+    - raise
+  AllowedConstructors:
+    - Array
+    - ConditionVariable
+    - Hash
+    - Monitor
+    - Mutex
+    - Queue
+    - Set
+    - SizedQueue
+    - String
+    - Thread::ConditionVariable
+    - Thread::Mutex
+    - Thread::Queue
+    - Thread::SizedQueue
   Exclude:
     - "spec/**/*"
     - "test/**/*"
 
 Kata/NoClassMethodLogic:
-  Description: "Classes construct; instances work."
+  Description: >-
+    Classes construct; instances work. `AllowedNames` holds the constructors
+    (`build`, `parse`, `of`, `from`, `from_*`, `new`, `[]`), the hooks Ruby
+    calls by name (`included`, `inherited`, `method_added`), and the
+    serialization protocols a framework calls on the class: a coder for
+    ActiveRecord `serialize` or YAML answers `load`/`dump`, Marshal `_load`,
+    the JSON additions `json_create`.
   Enabled: true
   VersionAdded: "0.3"
+  VersionChanged: "0.11"
   Exclude:
     - "spec/**/*"
     - "test/**/*"
     - "db/*migrate/**/*"
   AllowedNames:
+    - "[]"
+    - _load
     - build
-    - parse
-    - of
+    - const_missing
+    - dump
+    - extended
     - from
     - included
-    - extended
     - inherited
+    - json_create
+    - load
+    - method_added
+    - new
+    - of
+    - parse
     - prepended
+    - singleton_method_added
 
 Kata/NoHashAsObject:
-  Description: "Keys that travel together are an object without a name."
+  Description: >-
+    Keys that travel together are an object without a name. Keyword
+    arguments are exempt, as is a lookup table a constant names, and the hash
+    a serialization method returns: inside `to_h` or `as_json` the object
+    already has a name, and the protocol asks for a hash.
   Enabled: true
   VersionAdded: "0.3"
+  VersionChanged: "0.11"
   MaxKeys: 4
+  AllowedMethods:
+    - as_json
+    - attributes
+    - deconstruct_keys
+    - serializable_hash
+    - to_h
+    - to_hash
+    - to_json
   Exclude:
     - "spec/**/*"
     - "test/**/*"
@@ -767,9 +787,12 @@ Naming/RescuedExceptionsVariableName:
 
 # Memoization caches are marked with a leading underscore (@_name), so lazy
 # state is visible at the read site; Kata/GoodVariableName knows the
-# same @_word shape.
+# same @_word shape. The correction renames the ivar in the memoizing method
+# only, and every other reader keeps the old name: `rubocop -A` broke 25 of
+# faraday's specs that way. It reports; a person renames.
 Naming/MemoizedInstanceVariableName:
   EnforcedStyleForLeadingUnderscores: required
+  AutoCorrect: false
 
 # Kata owns naming now; the upstream cops force strictly one word, which is
 # what drives the underscore-smashing dodge.
@@ -805,10 +828,26 @@ Metrics/ModuleLength:
     - "test/**/*"
     - "**/*_test.rb"
 
-# A wrapped call reads as one line, so it costs one; otherwise Max and
-# Layout/LineLength cannot both be satisfied.
+# Method size is bounded by logic density, not lines. A five-line limit
+# fragmented code: in a blind readability study (eval/results/README.md),
+# code written to it averaged about 3 lines a method and readers judged half
+# of it over-fragmented, against almost none of the control. So the length
+# limit goes back to RuboCop's 10 and the complexity cops do the guarding at
+# RuboCop's defaults, from Elegant's 50 and 15: AbcSize 17,
+# CyclomaticComplexity 7, PerceivedComplexity 8. A wrapped call still counts
+# as one line, since Kata/PairedBrackets puts each argument on its own line;
+# AbcSize prices what such a call carries.
+Metrics/AbcSize:
+  Max: 17
+
+Metrics/CyclomaticComplexity:
+  Max: 7
+
+Metrics/PerceivedComplexity:
+  Max: 8
+
 Metrics/MethodLength:
-  Max: 5
+  Max: 10
   CountAsOne:
     - array
     - hash
@@ -826,9 +865,13 @@ Metrics/ParameterLists:
     - "spec/**/*"
     - "test/**/*"
 
+# Counted the way Metrics/MethodLength counts a method.
 RSpec/ExampleLength:
   CountAsOne:
+    - array
+    - hash
     - heredoc
+    - method_call
 
 RSpec/VerifiedDoubles:
   Enabled: true
@@ -855,37 +898,54 @@ Elegant/NoComments:
 Style/MethodCallWithArgsParentheses:
   Enabled: false
 
-# --- Core layout cops that autocorrect-loop against Elegant/PairedBrackets
-# and Elegant/NoEmptyLines*; the Elegant cops win.
+# --- Core layout cops. Kata/PairedBrackets now corrects to the indent these
+# expect, so the cops that only fought its drift are on, each in the style
+# that agrees with Elegant/MonotonicIndents (a fixed two-space step). Run one
+# at a time with `rubocop -A` over faraday and rubygems.org, none loops or
+# leaves an offense behind. The four below stay off: each wants a blank line
+# where Elegant/NoEmptyLinesInBlocks or NoEmptyLinesInMethods forbids one,
+# and `rubocop -A` reports infinite loops on them (382 on rubygems.org for
+# the guard clause alone).
 Layout/BlockAlignment:
-  Enabled: false
+  Enabled: true
+  EnforcedStyleAlignWith: start_of_line
 
 Layout/MultilineBlockLayout:
-  Enabled: false
+  Enabled: true
 
 Layout/ClosingParenthesisIndentation:
-  Enabled: false
+  Enabled: true
 
 Layout/FirstArgumentIndentation:
-  Enabled: false
+  Enabled: true
+  EnforcedStyle: consistent
+
+Layout/MultilineMethodCallBraceLayout:
+  Enabled: true
+
+Layout/MultilineArrayBraceLayout:
+  Enabled: true
+
+Layout/MultilineHashBraceLayout:
+  Enabled: true
+
+Layout/MultilineMethodCallIndentation:
+  Enabled: true
+  EnforcedStyle: indented
+
+Layout/ParameterAlignment:
+  Enabled: true
+  EnforcedStyle: with_fixed_indentation
+
+Layout/RescueEnsureAlignment:
+  Enabled: true
 
 # Its default aligns continuation arguments under the first argument's column,
 # an arbitrary step Elegant/MonotonicIndents rejects; a fixed step is +2.
 Layout/ArgumentAlignment:
   EnforcedStyle: with_fixed_indentation
 
-# Requires a blank line after `attr_reader` where Elegant/NoEmptyLinesInBlocks
-# forbids one; inside an `included do` block the two loop.
 Layout/EmptyLinesAroundAttributeAccessor:
-  Enabled: false
-
-Layout/MultilineMethodCallBraceLayout:
-  Enabled: false
-
-Layout/MultilineArrayBraceLayout:
-  Enabled: false
-
-Layout/MultilineHashBraceLayout:
   Enabled: false
 
 Layout/EmptyLinesAroundAccessModifier:
@@ -894,10 +954,25 @@ Layout/EmptyLinesAroundAccessModifier:
 Layout/EmptyLinesAfterModuleInclusion:
   Enabled: false
 
-# --- A disable comment is a note saying what the code should have said;
-# `rubocop-kata doctor` finds the ones core cannot see.
+Layout/EmptyLineAfterGuardClause:
+  Enabled: false
+
+# --- An inline disable is the only escape short of excluding a whole file,
+# so it stays, priced: Kata/JustifiedDirective wants the reason after `--`,
+# and `rubocop-kata doctor` lists every one with its reason.
 Style/DisableCopsWithinSourceCodeDirective:
+  Enabled: false
+
+Kata/JustifiedDirective:
+  Description: >-
+    An inline `rubocop:disable` says why, after `--`, in at least `MinWords`
+    words. A false positive then costs one reviewed line instead of a
+    per-file `Exclude` that hides every later offense in the file. A
+    `disable all` silences this cop too, on its own line; `rubocop-kata
+    doctor` lists it with the rest.
   Enabled: true
+  VersionAdded: "0.11"
+  MinWords: 3
 
 # --- Three Elegant cops ship here as Kata/*, fixed (see README); the
 # originals are off so an offence is reported once.
@@ -921,10 +996,18 @@ Kata/PairedBrackets:
   VersionAdded: "0.10"
 
 Kata/ClassInModule:
-  Description: "A class lives in a module, a class, or a compact namespace, never at the top level."
+  Description: >-
+    A class lives in a module, a class, or a compact namespace, never at the
+    top level. A file directly in a Zeitwerk root (`app/models/account.rb`,
+    `app/models/concerns/archivable.rb`) defines a top-level constant by
+    design, so those are excluded; a subdirectory of a root is a namespace,
+    and Zeitwerk already demands the matching module.
   Enabled: true
   VersionAdded: "0.10"
+  VersionChanged: "0.11"
   Exclude:
+    - "app/*/*.rb"
+    - "app/*/concerns/*.rb"
     - "**/*_test.rb"
     - "test/**/*"
     - "spec/**/*"
@@ -954,18 +1037,17 @@ ThreadSafety/DirChdir:
     - "spec/**/*"
     - "test/**/*"
 
-# --- Elegant's test-file exclusions never match Rails' `foo_test.rb`, nor a
-# suite addressed by directory.
+# --- With Kata/ClassInModule it left only `class A::B`, whose lexical scope
+# skips `A`; a module, a class and a compact namespace all name a namespace.
 Elegant/NoClassInModule:
-  inherit_mode:
-    merge:
-      - Exclude
-  Exclude:
-    - "**/*_test.rb"
-    - "test/**/*"
-    - "spec/**/*"
+  Enabled: false
 
+# --- Elegant's test-file exclusions never match Rails' `foo_test.rb`, nor a
+# suite addressed by directory. Before RuboCop grew its own
+# Style/OneClassPerFile, it read rubocop-elegant's `Style/OneClassPerFile:
+# Enabled: false` as this cop's and switched it off; it is on either way.
 Elegant/OneClassPerFile:
+  Enabled: true
   inherit_mode:
     merge:
       - Exclude

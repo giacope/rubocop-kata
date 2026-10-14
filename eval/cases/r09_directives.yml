@@ -1,0 +1,37 @@
+# An inline disable is allowed when it says why.
+- id: reasoned-disable-allowed-by-style
+  cop: Style/DisableCopsWithinSourceCodeDirective
+  expect: clean
+  source: |
+    # rubocop:disable Kata/GoodClassName -- Avo resolves the handler by this name
+    class Avo::Handler
+    end
+    # rubocop:enable Kata/GoodClassName
+- id: reasoned-disable-allowed
+  cop: Kata/JustifiedDirective
+  expect: clean
+  source: |
+    # rubocop:disable Kata/GoodClassName -- Avo resolves the handler by this name
+    class Avo::Handler
+    end
+    # rubocop:enable Kata/GoodClassName
+- id: bare-disable-flagged
+  cop: Kata/JustifiedDirective
+  expect: offense
+  source: |
+    # rubocop:disable Kata/GoodClassName
+    class Avo::Handler
+    end
+    # rubocop:enable Kata/GoodClassName
+- id: trailing-bare-disable-flagged
+  cop: Kata/JustifiedDirective
+  expect: offense
+  source: |
+    VALUE = load # rubocop:disable Security/MarshalLoad
+- id: disable-all-flagged
+  cop: Kata/JustifiedDirective
+  expect: offense
+  source: |
+    # rubocop:disable all -- legacy file
+    VALUE = 1
+    # rubocop:enable all

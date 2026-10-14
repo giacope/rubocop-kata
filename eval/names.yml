@@ -1,0 +1,496 @@
+# Class names ending in -er, -or or -ar, labelled for Kata/GoodClassName's
+# doer rule. Written before the rule was changed, and not edited to fit it.
+#
+# doer  - the word's dominant sense is "one, or that, which <verb>s" for an
+#         English verb: Parser parses, Timer times, User uses. People are
+#         doers too (User, Buyer); a domain may still want them, which is
+#         policy (AllowedNames), not linguistics. `roles` marks them.
+# thing - the dominant sense is not the agent of a verb: the ending is not the
+#         suffix (Number, Water, Corner), or the agent sense is rare or lost
+#         (Layer is a thickness before it is a hen; Header is a heading;
+#         Folder is the folded cover, the patient, not the agent).
+# ambiguous - both readings are common in code; scored apart, never in
+#         precision or recall. `notes` gives the reason.
+#
+# A name whose CRC32 is divisible by 3 is held out: the tuning loop prints
+# per-name errors for the dev split only, and the holdout is read once.
+doer:
+  - Accelerator
+  - Accumulator
+  - Adapter
+  - Aggregator
+  - Allocator
+  - Analyzer
+  - Approver
+  - Archiver
+  - Assembler
+  - Authenticator
+  - Authorizer
+  - Balancer
+  - Batcher
+  - Beggar
+  - Benchmarker
+  - Borrower
+  - Breaker
+  - Broadcaster
+  - Browser
+  - Builder
+  - Buyer
+  - Calculator
+  - Caller
+  - Carrier
+  - Caster
+  - Checker
+  - Chunker
+  - Classifier
+  - Cleaner
+  - Coercer
+  - Collector
+  - Commenter
+  - Comparator
+  - Compiler
+  - Composer
+  - Compressor
+  - Computer
+  - Configurator
+  - Constructor
+  - Consumer
+  - Controller
+  - Converter
+  - Coordinator
+  - Crawler
+  - Creator
+  - Debouncer
+  - Debugger
+  - Decider
+  - Decoder
+  - Decorator
+  - Decryptor
+  - Delegator
+  - Deployer
+  - Deserializer
+  - Detector
+  - Differ
+  - Dispatcher
+  - Downloader
+  - Driver
+  - Editor
+  - Elevator
+  - Emitter
+  - Employer
+  - Emulator
+  - Encoder
+  - Encryptor
+  - Enumerator
+  - Escalator
+  - Escaper
+  - Estimator
+  - Evaluator
+  - Executor
+  - Exporter
+  - Extractor
+  - Fetcher
+  - Finder
+  - Follower
+  - Formatter
+  - Forwarder
+  - Frobnicator
+  - Generator
+  - Handler
+  - Hasher
+  - Helper
+  - Highlighter
+  - Importer
+  - Indexer
+  - Injector
+  - Inspector
+  - Installer
+  - Instructor
+  - Instrumenter
+  - Interceptor
+  - Interpreter
+  - Inventor
+  - Investor
+  - Invoker
+  - Iterator
+  - Launcher
+  - Leader
+  - Lender
+  - Lexer
+  - Liar
+  - Limiter
+  - Linter
+  - Listener
+  - Loader
+  - Locator
+  - Logger
+  - Mailer
+  - Manager
+  - Mapper
+  - Matcher
+  - Memoizer
+  - Merger
+  - Migrator
+  - Minifier
+  - Mutator
+  - Narrator
+  - Navigator
+  - Normalizer
+  - Notifier
+  - Observer
+  - Optimizer
+  - Orchestrator
+  - Organizer
+  - Owner
+  - Packer
+  - Paginator
+  - Painter
+  - Parser
+  - Patcher
+  - Payer
+  - Persister
+  - Player
+  - Poller
+  - Predictor
+  - Prefetcher
+  - Presenter
+  - Printer
+  - Processor
+  - Producer
+  - Profiler
+  - Provider
+  - Pruner
+  - Publisher
+  - Quoter
+  - Reaper
+  - Rebalancer
+  - Receiver
+  - Recommender
+  - Recorder
+  - Reducer
+  - Refresher
+  - Refrigerator
+  - Registrar
+  - Renderer
+  - Replicator
+  - Reporter
+  - Requester
+  - Resolver
+  - Responder
+  - Retriever
+  - Reviewer
+  - Rotator
+  - Router
+  - Runner
+  - Sanitizer
+  - Scanner
+  - Scheduler
+  - Scraper
+  - Searcher
+  - Seeder
+  - Selector
+  - Seller
+  - Sender
+  - Serializer
+  - Signer
+  - Simulator
+  - Sorter
+  - Speaker
+  - Splitter
+  - Streamer
+  - Stringifier
+  - Subscriber
+  - Supervisor
+  - Supplier
+  - Supporter
+  - Sweeper
+  - Synchronizer
+  - Teacher
+  - Tester
+  - Throttler
+  - Timer
+  - Tokenizer
+  - Tracker
+  - Transformer
+  - Translator
+  - Trimmer
+  - Unmarshaler
+  - Uploader
+  - Upserter
+  - User
+  - Validator
+  - Vendor
+  - Verifier
+  - Viewer
+  - Visitor
+  - Voter
+  - Watcher
+  - Worker
+  - Wrapper
+  - Writer
+roles:
+  - Approver
+  - Beggar
+  - Borrower
+  - Buyer
+  - Commenter
+  - Creator
+  - Employer
+  - Follower
+  - Instructor
+  - Inventor
+  - Investor
+  - Leader
+  - Lender
+  - Liar
+  - Organizer
+  - Owner
+  - Payer
+  - Reviewer
+  - Seller
+  - Speaker
+  - Supplier
+  - Supporter
+  - Teacher
+  - User
+  - Vendor
+  - Voter
+thing:
+  - Altar
+  - Anchor
+  - Ancestor
+  - Answer
+  - Armor
+  - Author
+  - Avatar
+  - Banner
+  - Barrier
+  - Behavior
+  - Bladder
+  - Blister
+  - Border
+  - Brother
+  - Buffer
+  - Butter
+  - Calendar
+  - Caliber
+  - Cancer
+  - Career
+  - Cellar
+  - Center
+  - Chamber
+  - Chapter
+  - Character
+  - Charter
+  - Cluster
+  - Collar
+  - Color
+  - Copper
+  - Corner
+  - Creditor
+  - Cursor
+  - Customer
+  - Cylinder
+  - Daughter
+  - Debtor
+  - Dinner
+  - Disaster
+  - Doctor
+  - Dollar
+  - Donor
+  - Door
+  - Endeavor
+  - Engineer
+  - Error
+  - Exterior
+  - Factor
+  - Father
+  - Feather
+  - Fever
+  - Filter
+  - Finger
+  - Flavor
+  - Floor
+  - Flower
+  - Folder
+  - Footer
+  - Frontier
+  - Gender
+  - Ginger
+  - Grammar
+  - Hammer
+  - Hangar
+  - Harbor
+  - Header
+  - Honor
+  - Horror
+  - Humor
+  - Integer
+  - Interior
+  - Junior
+  - Labor
+  - Ladder
+  - Lawyer
+  - Layer
+  - Leather
+  - Ledger
+  - Letter
+  - Lever
+  - Liquor
+  - Liter
+  - Lumber
+  - Major
+  - Manner
+  - Matter
+  - Mayor
+  - Member
+  - Mentor
+  - Meter
+  - Minor
+  - Mirror
+  - Molar
+  - Monster
+  - Mortar
+  - Mother
+  - Motor
+  - Mountaineer
+  - Nectar
+  - Neighbor
+  - Number
+  - Offer
+  - Order
+  - Oyster
+  - Paper
+  - Parameter
+  - Partner
+  - Pepper
+  - Pillar
+  - Pioneer
+  - Powder
+  - Power
+  - Quarter
+  - Radar
+  - Razor
+  - Register
+  - Rigor
+  - River
+  - Roster
+  - Rubber
+  - Rumor
+  - Scalar
+  - Scholar
+  - Sector
+  - Semester
+  - Seminar
+  - Senior
+  - Shelter
+  - Shoulder
+  - Shower
+  - Sidebar
+  - Silver
+  - Sister
+  - Soldier
+  - Sonar
+  - Spider
+  - Sponsor
+  - Sugar
+  - Summer
+  - Supper
+  - Tensor
+  - Terror
+  - Theater
+  - Thunder
+  - Timber
+  - Toolbar
+  - Tower
+  - Tractor
+  - Transfer
+  - Trigger
+  - Tumor
+  - Tutor
+  - Vapor
+  - Vector
+  - Vicar
+  - Vinegar
+  - Volunteer
+  - Water
+  - Weather
+  - Winter
+  - Wonder
+ambiguous:
+  - Actor
+  - Container
+  - Counter
+  - Delimiter
+  - Drawer
+  - Identifier
+  - Indicator
+  - Locker
+  - Marker
+  - Modifier
+  - Monitor
+  - Operator
+  - Placeholder
+  - Planner
+  - Pointer
+  - Poster
+  - Qualifier
+  - Reminder
+  - Sensor
+  - Separator
+  - Server
+  - Slider
+  - Spinner
+  - Sticker
+  - Successor
+  - Trailer
+notes:
+  Actor: a person who acts (doer), or the actor model's unit of concurrency (thing)
+  Author: the noun came first; "to author" is a back-formation, so no -or suffix
+  Buffer: the dominant sense is a storage area or cushion, not one who buffs
+  Container: literally that which contains, but in code a box (thing)
+  Counter: a shop counter (thing), or a tally that counts (doer)
+  Creditor: one to whom money is owed, not one who credits
+  Customer: from "custom" (patronage), not a verb
+  Delimiter: that which delimits, but in code a character (thing)
+  Doctor: Latin "teacher"; no English verb "doct"
+  Drawer: a sliding box (thing), or one who draws (doer)
+  Error: from Latin errare; "err" is a verb but an error is no agent of it
+  Filter: the noun came first (felt); the verb is denominal
+  Folder: the folded cover, the patient of folding, not its agent
+  Footer: a page footer, not one who foots
+  Header: a heading line, not one who heads
+  Identifier: that which identifies, but in code a name (thing)
+  Indicator: a gauge (thing), or that which indicates (doer)
+  Layer: a thickness; "a hen that lays" is a rare sense
+  Locker: a cupboard (thing), or one who locks (doer)
+  Marker: a pen or a sentinel value (thing), or one who marks (doer)
+  Matter: substance, not one who mats
+  Meter: a unit of length (thing), sometimes a measuring device
+  Modifier: a grammatical word (thing), or that which modifies (doer)
+  Monitor: a screen (thing), or that which watches (doer)
+  Number: an amount, not one who numbs
+  Offer: same-form noun of the verb, no suffix
+  Operator: a symbol (thing), or one who operates (doer)
+  Order: same-form noun of the verb, no suffix
+  Placeholder: a stand-in value (thing), or that which holds a place (doer)
+  Planner: a diary (thing), or one who plans (doer)
+  Pointer: an address value (thing), or that which points (doer)
+  Poster: a printed sheet (thing), or one who posts (doer)
+  Qualifier: a grammatical word (thing), or one who qualifies (doer)
+  Register: from Latin registrum; a record or a CPU slot
+  Reminder: a message (thing), or that which reminds (doer)
+  Sensor: a device (thing), or that which senses (doer)
+  Separator: a character (thing), or that which separates (doer)
+  Server: a machine (thing), or that which serves (doer)
+  Slider: a UI control (thing), or one who slides (doer)
+  Spinner: a UI control (thing), or one who spins (doer)
+  Sticker: a label (thing), or one who sticks (doer)
+  Successor: the next in order (thing), or one who succeeds (doer)
+  Trailer: a vehicle or a preview (thing), or one who trails (doer)
+  Transfer: same-form noun of the verb, no suffix
+  Trigger: from Dutch trekker; the noun came first
+  Volunteer: the noun came first; the verb is denominal
+  Frobnicator: a coinage, scored as the doer its suffix says
+  Unmarshaler: a coinage, scored as the doer its suffix says
+  Upserter: a coinage, scored as the doer its suffix says

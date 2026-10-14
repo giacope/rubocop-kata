@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 RSpec.describe(RuboCop::Cop::Kata::NoBooleanFlag, :config) do
+  let(:ruby_version) { 3.4 }
+
   let(:cop_config) { { "AllowedMethods" => %w[respond_to? respond_to_missing? fetch] } }
 
   it "flags positional boolean arguments" do
@@ -43,5 +45,16 @@ RSpec.describe(RuboCop::Cop::Kata::NoBooleanFlag, :config) do
       def respond_to_missing?(name, include_private = false)
       end
     RUBY
+  end
+
+  context "with the shipped defaults" do
+    let(:cop_config) { RuboCop::ConfigLoader.default_configuration.for_cop("Kata/NoBooleanFlag") }
+
+    it "allows an exit status" do
+      expect_no_offenses(<<~RUBY)
+        exit(false)
+        exit!(true)
+      RUBY
+    end
   end
 end

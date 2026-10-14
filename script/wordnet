@@ -1,0 +1,19 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require "zlib"
+
+module RuboCop
+  module Kata
+  end
+end
+
+module Lexicography
+end
+
+$LOAD_PATH.unshift(File.expand_path("../lib", __dir__))
+require "rubocop/kata/agency"
+require_relative "lexicography/synset"
+require_relative "lexicography/wordnet"
+
+Lexicography::Wordnet.new(ARGV.fetch(0)).write(File.expand_path("../data", __dir__))

@@ -11,6 +11,7 @@ class RuboCop::Kata::Variable::Ledger
     @body = body
   end
 
+  # hashira:disable-next-line fragmentation -- blind raters preferred single, the one-read rule, to the merge
   def pairs
     singles.reject { |assign, read| RuboCop::Kata::Variable::Boundary.new(assign, read).crossed? }.to_h
   end

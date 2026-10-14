@@ -1,0 +1,3117 @@
+{
+  "kata": {
+    "path": "/tmp/claude-0/-home-user/826c9fc5-a8b5-53c7-bdbc-e3d4f5d63b82/scratchpad/kata-work/base",
+    "commit": "719080f4201c710ac01748d542b5700a342f276d",
+    "dirty": false,
+    "elegant": "0.8.0",
+    "versions": {
+      "rubocop": "1.92.0",
+      "rubocop-elegant": "0.8.0",
+      "rubocop-kata": "0.10.1"
+    }
+  },
+  "settings": {
+    "kata_cops": 18,
+    "kata_cops_enabled": 17,
+    "class_allowed_names": 45,
+    "module_allowed_names": 45,
+    "allowed_names_total": 90,
+    "allowed_names_distinct": 45,
+    "class_suffixes": 4,
+    "banned_words": 16,
+    "core_cops_silenced": 25,
+    "layout_cops_silenced": 14,
+    "layout_silenced": [
+      "Layout/BlockAlignment",
+      "Layout/ClosingParenthesisIndentation",
+      "Layout/EmptyLineAfterGuardClause",
+      "Layout/EmptyLinesAfterModuleInclusion",
+      "Layout/EmptyLinesAroundAccessModifier",
+      "Layout/EmptyLinesAroundAttributeAccessor",
+      "Layout/FirstArgumentIndentation",
+      "Layout/MultilineArrayBraceLayout",
+      "Layout/MultilineBlockLayout",
+      "Layout/MultilineHashBraceLayout",
+      "Layout/MultilineMethodCallBraceLayout",
+      "Layout/MultilineMethodCallIndentation",
+      "Layout/ParameterAlignment",
+      "Layout/RescueEnsureAlignment"
+    ],
+    "no_comments_safe_autocorrect": true,
+    "no_comments_allow_documentation": false,
+    "inline_disable_banned": true,
+    "memoized_ivar_autocorrect": true,
+    "method_length_count_as_one": [
+      "array",
+      "hash",
+      "heredoc",
+      "method_call"
+    ],
+    "abc_size_max": 50
+  },
+  "cases": {
+    "total": 187,
+    "passed": 95,
+    "by_gap": {
+      "R1": {
+        "total": 24,
+        "passed": 5
+      },
+      "R2": {
+        "total": 13,
+        "passed": 5
+      },
+      "R3": {
+        "total": 50,
+        "passed": 35
+      },
+      "R4": {
+        "total": 21,
+        "passed": 8
+      },
+      "R5": {
+        "total": 31,
+        "passed": 13
+      },
+      "R6": {
+        "total": 6,
+        "passed": 3
+      },
+      "R7": {
+        "total": 3,
+        "passed": 0
+      },
+      "R9": {
+        "total": 5,
+        "passed": 1
+      },
+      "R11": {
+        "total": 1,
+        "passed": 0
+      },
+      "R13": {
+        "total": 17,
+        "passed": 11
+      },
+      "R14": {
+        "total": 3,
+        "passed": 1
+      },
+      "extra": {
+        "total": 13,
+        "passed": 13
+      }
+    },
+    "results": [
+      {
+        "id": "emacs-coding-kept",
+        "gap": "R1",
+        "cop": "Kata/NoComments",
+        "expect": "clean",
+        "passed": false,
+        "found": 1,
+        "faults": [
+          "expected no offense, found 1",
+          "correction removed \"# -*- coding: binary -*-\""
+        ],
+        "messages": [
+          "Say it in the code: rename it, extract it, or name the constant."
+        ]
+      },
+      {
+        "id": "emacs-mode-line-kept",
+        "gap": "R1",
+        "cop": "Kata/NoComments",
+        "expect": "clean",
+        "passed": false,
+        "found": 1,
+        "faults": [
+          "expected no offense, found 1"
+        ],
+        "messages": [
+          "Say it in the code: rename it, extract it, or name the constant."
+        ]
+      },
+      {
+        "id": "vim-modeline-kept",
+        "gap": "R1",
+        "cop": "Kata/NoComments",
+        "expect": "clean",
+        "passed": false,
+        "found": 1,
+        "faults": [
+          "expected no offense, found 1",
+          "correction removed \"# vim: set fileencoding=ascii-8bit :\""
+        ],
+        "messages": [
+          "Say it in the code: rename it, extract it, or name the constant."
+        ]
+      },
+      {
+        "id": "steep-type-kept",
+        "gap": "R1",
+        "cop": "Kata/NoComments",
+        "expect": "clean",
+        "passed": false,
+        "found": 1,
+        "faults": [
+          "expected no offense, found 1"
+        ],
+        "messages": [
+          "Say it in the code: rename it, extract it, or name the constant."
+        ]
+      },
+      {
+        "id": "steep-ignore-kept",
+        "gap": "R1",
+        "cop": "Kata/NoComments",
+        "expect": "clean",
+        "passed": true,
+        "found": 0,
+        "faults": [],
+        "messages": []
+      },
+      {
+        "id": "rbs-inline-kept",
+        "gap": "R1",
+        "cop": "Kata/NoComments",
+        "expect": "clean",
+        "passed": false,
+        "found": 2,
+        "faults": [
+          "expected no offense, found 2"
+        ],
+        "messages": [
+          "Say it in the code: rename it, extract it, or name the constant."
+        ]
+      },
+      {
+        "id": "standard-directive-kept",
+        "gap": "R1",
+        "cop": "Kata/NoComments",
+        "expect": "clean",
+        "passed": false,
+        "found": 2,
+        "faults": [
+          "expected no offense, found 2"
+        ],
+        "messages": [
+          "Say it in the code: rename it, extract it, or name the constant."
+        ]
+      },
+      {
+        "id": "language-injection-kept",
+        "gap": "R1",
+        "cop": "Kata/NoComments",
+        "expect": "clean",
+        "passed": false,
+        "found": 1,
+        "faults": [
+          "expected no offense, found 1"
+        ],
+        "messages": [
+          "Say it in the code: rename it, extract it, or name the constant."
+        ]
+      },
+      {
+        "id": "noinspection-kept",
+        "gap": "R1",
+        "cop": "Kata/NoComments",
+        "expect": "clean",
+        "passed": false,
+        "found": 1,
+        "faults": [
+          "expected no offense, found 1"
+        ],
+        "messages": [
+          "Say it in the code: rename it, extract it, or name the constant."
+        ]
+      },
+      {
+        "id": "kimera-directive-kept",
+        "gap": "R1",
+        "cop": "Kata/NoComments",
+        "expect": "clean",
+        "passed": false,
+        "found": 1,
+        "faults": [
+          "expected no offense, found 1",
+          "correction removed \"  # kimera:disable-next-line: IO.pipe write ends are sync; the flush is redundant\""
+        ],
+        "messages": [
+          "Say it in the code: rename it, extract it, or name the constant."
+        ]
+      },
+      {
+        "id": "hashira-directive-kept",
+        "gap": "R1",
+        "cop": "Kata/NoComments",
+        "expect": "clean",
+        "passed": false,
+        "found": 1,
+        "faults": [
+          "expected no offense, found 1"
+        ],
+        "messages": [
+          "Say it in the code: rename it, extract it, or name the constant."
+        ]
+      },
+      {
+        "id": "reek-directive-kept",
+        "gap": "R1",
+        "cop": "Kata/NoComments",
+        "expect": "clean",
+        "passed": false,
+        "found": 1,
+        "faults": [
+          "expected no offense, found 1"
+        ],
+        "messages": [
+          "Say it in the code: rename it, extract it, or name the constant."
+        ]
+      },
+      {
+        "id": "url-citation-kept",
+        "gap": "R1",
+        "cop": "Kata/NoComments",
+        "expect": "clean",
+        "passed": false,
+        "found": 2,
+        "faults": [
+          "expected no offense, found 2",
+          "correction removed \"  # Net::HTTP reuses a socket the server already closed.\"",
+          "correction removed \"  # See https://github.com/ruby/net-http/issues/42\""
+        ],
+        "messages": [
+          "Say it in the code: rename it, extract it, or name the constant."
+        ]
+      },
+      {
+        "id": "repo-issue-citation-kept",
+        "gap": "R1",
+        "cop": "Kata/NoComments",
+        "expect": "clean",
+        "passed": false,
+        "found": 1,
+        "faults": [
+          "expected no offense, found 1"
+        ],
+        "messages": [
+          "Say it in the code: rename it, extract it, or name the constant."
+        ]
+      },
+      {
+        "id": "bare-issue-citation-kept",
+        "gap": "R1",
+        "cop": "Kata/NoComments",
+        "expect": "clean",
+        "passed": false,
+        "found": 1,
+        "faults": [
+          "expected no offense, found 1"
+        ],
+        "messages": [
+          "Say it in the code: rename it, extract it, or name the constant."
+        ]
+      },
+      {
+        "id": "rfc-citation-kept",
+        "gap": "R1",
+        "cop": "Kata/NoComments",
+        "expect": "clean",
+        "passed": false,
+        "found": 1,
+        "faults": [
+          "expected no offense, found 1"
+        ],
+        "messages": [
+          "Say it in the code: rename it, extract it, or name the constant."
+        ]
+      },
+      {
+        "id": "cve-citation-kept",
+        "gap": "R1",
+        "cop": "Kata/NoComments",
+        "expect": "clean",
+        "passed": false,
+        "found": 1,
+        "faults": [
+          "expected no offense, found 1"
+        ],
+        "messages": [
+          "Say it in the code: rename it, extract it, or name the constant."
+        ]
+      },
+      {
+        "id": "yard-block-kept-by-default",
+        "gap": "R1",
+        "cop": "Kata/NoComments",
+        "expect": "clean",
+        "passed": false,
+        "found": 3,
+        "faults": [
+          "expected no offense, found 3",
+          "correction removed \"# Sums the billable lines.\"",
+          "correction removed \"# @return [Integer]\""
+        ],
+        "messages": [
+          "Say it in the code: rename it, extract it, or name the constant."
+        ]
+      },
+      {
+        "id": "yard-tag-lines-kept-by-default",
+        "gap": "R1",
+        "cop": "Kata/NoComments",
+        "expect": "clean",
+        "passed": false,
+        "found": 2,
+        "faults": [
+          "expected no offense, found 2"
+        ],
+        "messages": [
+          "Say it in the code: rename it, extract it, or name the constant."
+        ]
+      },
+      {
+        "id": "prose-flagged",
+        "gap": "R1",
+        "cop": "Kata/NoComments",
+        "expect": "offense",
+        "passed": true,
+        "found": 1,
+        "faults": [],
+        "messages": [
+          "Say it in the code: rename it, extract it, or name the constant."
+        ]
+      },
+      {
+        "id": "todo-flagged",
+        "gap": "R1",
+        "cop": "Kata/NoComments",
+        "expect": "offense",
+        "passed": true,
+        "found": 1,
+        "faults": [],
+        "messages": [
+          "Say it in the code: rename it, extract it, or name the constant."
+        ]
+      },
+      {
+        "id": "prose-survives-safe-autocorrect",
+        "gap": "R1",
+        "cop": "Kata/NoComments",
+        "expect": "offense",
+        "passed": false,
+        "found": 1,
+        "faults": [
+          "correction removed \"  # add up the lines\""
+        ],
+        "messages": [
+          "Say it in the code: rename it, extract it, or name the constant."
+        ]
+      },
+      {
+        "id": "magic-and-shebang-kept",
+        "gap": "R1",
+        "cop": "Kata/NoComments",
+        "expect": "clean",
+        "passed": true,
+        "found": 0,
+        "faults": [],
+        "messages": []
+      },
+      {
+        "id": "number-sign-in-prose-still-flagged",
+        "gap": "R1",
+        "cop": "Kata/NoComments",
+        "expect": "offense",
+        "passed": true,
+        "found": 1,
+        "faults": [],
+        "messages": [
+          "Say it in the code: rename it, extract it, or name the constant."
+        ]
+      },
+      {
+        "id": "header-is-a-thing",
+        "gap": "R2",
+        "cop": "Kata/GoodClassName",
+        "expect": "clean",
+        "passed": false,
+        "found": 1,
+        "faults": [
+          "expected no offense, found 1"
+        ],
+        "messages": [
+          "`Header` names a doer; name the class for the thing it is, not the work it does."
+        ]
+      },
+      {
+        "id": "number-is-a-thing",
+        "gap": "R2",
+        "cop": "Kata/GoodClassName",
+        "expect": "clean",
+        "passed": false,
+        "found": 1,
+        "faults": [
+          "expected no offense, found 1"
+        ],
+        "messages": [
+          "`Number` names a doer; name the class for the thing it is, not the work it does."
+        ]
+      },
+      {
+        "id": "layer-is-a-thing",
+        "gap": "R2",
+        "cop": "Kata/GoodClassName",
+        "expect": "clean",
+        "passed": false,
+        "found": 1,
+        "faults": [
+          "expected no offense, found 1"
+        ],
+        "messages": [
+          "`Layer` names a doer; name the class for the thing it is, not the work it does."
+        ]
+      },
+      {
+        "id": "letter-is-a-thing",
+        "gap": "R2",
+        "cop": "Kata/GoodClassName",
+        "expect": "clean",
+        "passed": false,
+        "found": 1,
+        "faults": [
+          "expected no offense, found 1"
+        ],
+        "messages": [
+          "`Letter` names a doer; name the class for the thing it is, not the work it does."
+        ]
+      },
+      {
+        "id": "corner-is-a-thing",
+        "gap": "R2",
+        "cop": "Kata/GoodClassName",
+        "expect": "clean",
+        "passed": false,
+        "found": 1,
+        "faults": [
+          "expected no offense, found 1"
+        ],
+        "messages": [
+          "`Corner` names a doer; name the class for the thing it is, not the work it does."
+        ]
+      },
+      {
+        "id": "matter-is-a-thing",
+        "gap": "R2",
+        "cop": "Kata/GoodClassName",
+        "expect": "clean",
+        "passed": false,
+        "found": 1,
+        "faults": [
+          "expected no offense, found 1"
+        ],
+        "messages": [
+          "`Matter` names a doer; name the class for the thing it is, not the work it does."
+        ]
+      },
+      {
+        "id": "paper-is-a-thing",
+        "gap": "R2",
+        "cop": "Kata/GoodClassName",
+        "expect": "clean",
+        "passed": false,
+        "found": 1,
+        "faults": [
+          "expected no offense, found 1"
+        ],
+        "messages": [
+          "`Paper` names a doer; name the class for the thing it is, not the work it does."
+        ]
+      },
+      {
+        "id": "water-is-a-thing",
+        "gap": "R2",
+        "cop": "Kata/GoodClassName",
+        "expect": "clean",
+        "passed": true,
+        "found": 0,
+        "faults": [],
+        "messages": []
+      },
+      {
+        "id": "parser-is-a-doer",
+        "gap": "R2",
+        "cop": "Kata/GoodClassName",
+        "expect": "offense",
+        "passed": true,
+        "found": 1,
+        "faults": [],
+        "messages": [
+          "`Parser` names a doer; name the class for the thing it is, not the work it does."
+        ]
+      },
+      {
+        "id": "handler-is-a-doer",
+        "gap": "R2",
+        "cop": "Kata/GoodClassName",
+        "expect": "offense",
+        "passed": true,
+        "found": 1,
+        "faults": [],
+        "messages": [
+          "`Handler` names a doer; name the class for the thing it is, not the work it does."
+        ]
+      },
+      {
+        "id": "payment-processor-is-a-doer",
+        "gap": "R2",
+        "cop": "Kata/GoodClassName",
+        "expect": "offense",
+        "passed": true,
+        "found": 1,
+        "faults": [],
+        "messages": [
+          "`PaymentProcessor` names a doer; name the class for the thing it is, not the work it does."
+        ]
+      },
+      {
+        "id": "header-module-is-a-thing",
+        "gap": "R2",
+        "cop": "Kata/GoodModuleName",
+        "expect": "clean",
+        "passed": false,
+        "found": 1,
+        "faults": [
+          "expected no offense, found 1"
+        ],
+        "messages": [
+          "`Header` names a doer; name the module for the thing it is, not the work it does."
+        ]
+      },
+      {
+        "id": "parser-module-is-a-doer",
+        "gap": "R2",
+        "cop": "Kata/GoodModuleName",
+        "expect": "offense",
+        "passed": true,
+        "found": 1,
+        "faults": [],
+        "messages": [
+          "`Parser` names a doer; name the module for the thing it is, not the work it does."
+        ]
+      },
+      {
+        "id": "clipping-flagged-str",
+        "gap": "R3",
+        "cop": "Kata/RealWords",
+        "expect": "offense",
+        "passed": true,
+        "found": 1,
+        "faults": [],
+        "messages": [
+          "`str` is not in the dictionary — restore the underscore between smashed words, spell the abbreviation out, or add it to `Terms` if it is one domain term here."
+        ]
+      },
+      {
+        "id": "clipping-flagged-req",
+        "gap": "R3",
+        "cop": "Kata/RealWords",
+        "expect": "offense",
+        "passed": true,
+        "found": 1,
+        "faults": [],
+        "messages": [
+          "`req` is not in the dictionary — restore the underscore between smashed words, spell the abbreviation out, or add it to `Terms` if it is one domain term here."
+        ]
+      },
+      {
+        "id": "clipping-flagged-resp",
+        "gap": "R3",
+        "cop": "Kata/RealWords",
+        "expect": "offense",
+        "passed": true,
+        "found": 1,
+        "faults": [],
+        "messages": [
+          "`resp` is not in the dictionary — restore the underscore between smashed words, spell the abbreviation out, or add it to `Terms` if it is one domain term here."
+        ]
+      },
+      {
+        "id": "clipping-flagged-conn",
+        "gap": "R3",
+        "cop": "Kata/RealWords",
+        "expect": "offense",
+        "passed": true,
+        "found": 1,
+        "faults": [],
+        "messages": [
+          "`conn` is not in the dictionary — restore the underscore between smashed words, spell the abbreviation out, or add it to `Terms` if it is one domain term here."
+        ]
+      },
+      {
+        "id": "clipping-flagged-args",
+        "gap": "R3",
+        "cop": "Kata/RealWords",
+        "expect": "offense",
+        "passed": false,
+        "found": 0,
+        "faults": [
+          "expected an offense, found none"
+        ],
+        "messages": []
+      },
+      {
+        "id": "clipping-flagged-opts",
+        "gap": "R3",
+        "cop": "Kata/RealWords",
+        "expect": "offense",
+        "passed": false,
+        "found": 0,
+        "faults": [
+          "expected an offense, found none"
+        ],
+        "messages": []
+      },
+      {
+        "id": "clipping-flagged-src",
+        "gap": "R3",
+        "cop": "Kata/RealWords",
+        "expect": "offense",
+        "passed": false,
+        "found": 0,
+        "faults": [
+          "expected an offense, found none"
+        ],
+        "messages": []
+      },
+      {
+        "id": "clipping-flagged-cmd",
+        "gap": "R3",
+        "cop": "Kata/RealWords",
+        "expect": "offense",
+        "passed": false,
+        "found": 0,
+        "faults": [
+          "expected an offense, found none"
+        ],
+        "messages": []
+      },
+      {
+        "id": "clipping-flagged-impl",
+        "gap": "R3",
+        "cop": "Kata/RealWords",
+        "expect": "offense",
+        "passed": false,
+        "found": 0,
+        "faults": [
+          "expected an offense, found none"
+        ],
+        "messages": []
+      },
+      {
+        "id": "clipping-flagged-util",
+        "gap": "R3",
+        "cop": "Kata/RealWords",
+        "expect": "offense",
+        "passed": false,
+        "found": 0,
+        "faults": [
+          "expected an offense, found none"
+        ],
+        "messages": []
+      },
+      {
+        "id": "clipping-flagged-calc",
+        "gap": "R3",
+        "cop": "Kata/RealWords",
+        "expect": "offense",
+        "passed": false,
+        "found": 0,
+        "faults": [
+          "expected an offense, found none"
+        ],
+        "messages": []
+      },
+      {
+        "id": "clipping-flagged-func",
+        "gap": "R3",
+        "cop": "Kata/RealWords",
+        "expect": "offense",
+        "passed": false,
+        "found": 0,
+        "faults": [
+          "expected an offense, found none"
+        ],
+        "messages": []
+      },
+      {
+        "id": "clipping-flagged-ctx",
+        "gap": "R3",
+        "cop": "Kata/RealWords",
+        "expect": "offense",
+        "passed": true,
+        "found": 1,
+        "faults": [],
+        "messages": [
+          "`ctx` is an abbreviation; spell the word out."
+        ]
+      },
+      {
+        "id": "clipping-flagged-msg",
+        "gap": "R3",
+        "cop": "Kata/RealWords",
+        "expect": "offense",
+        "passed": true,
+        "found": 1,
+        "faults": [],
+        "messages": [
+          "`msg` is an abbreviation; spell the word out."
+        ]
+      },
+      {
+        "id": "clipping-flagged-msgs",
+        "gap": "R3",
+        "cop": "Kata/RealWords",
+        "expect": "offense",
+        "passed": false,
+        "found": 0,
+        "faults": [
+          "expected an offense, found none"
+        ],
+        "messages": []
+      },
+      {
+        "id": "clipping-flagged-attrs",
+        "gap": "R3",
+        "cop": "Kata/RealWords",
+        "expect": "offense",
+        "passed": false,
+        "found": 0,
+        "faults": [
+          "expected an offense, found none"
+        ],
+        "messages": []
+      },
+      {
+        "id": "clipping-flagged-cfg",
+        "gap": "R3",
+        "cop": "Kata/RealWords",
+        "expect": "offense",
+        "passed": true,
+        "found": 1,
+        "faults": [],
+        "messages": [
+          "`cfg` is an abbreviation; spell the word out."
+        ]
+      },
+      {
+        "id": "clipping-flagged-tmp",
+        "gap": "R3",
+        "cop": "Kata/RealWords",
+        "expect": "offense",
+        "passed": true,
+        "found": 1,
+        "faults": [],
+        "messages": [
+          "`tmp` is an abbreviation; spell the word out."
+        ]
+      },
+      {
+        "id": "clipping-flagged-num",
+        "gap": "R3",
+        "cop": "Kata/RealWords",
+        "expect": "offense",
+        "passed": true,
+        "found": 1,
+        "faults": [],
+        "messages": [
+          "`num` is an abbreviation; spell the word out."
+        ]
+      },
+      {
+        "id": "clipping-flagged-idx",
+        "gap": "R3",
+        "cop": "Kata/RealWords",
+        "expect": "offense",
+        "passed": true,
+        "found": 1,
+        "faults": [],
+        "messages": [
+          "`idx` is an abbreviation; spell the word out."
+        ]
+      },
+      {
+        "id": "clipping-flagged-init",
+        "gap": "R3",
+        "cop": "Kata/RealWords",
+        "expect": "offense",
+        "passed": false,
+        "found": 0,
+        "faults": [
+          "expected an offense, found none"
+        ],
+        "messages": []
+      },
+      {
+        "id": "clipping-flagged-cb",
+        "gap": "R3",
+        "cop": "Kata/RealWords",
+        "expect": "offense",
+        "passed": true,
+        "found": 1,
+        "faults": [],
+        "messages": [
+          "`cb` is not in the dictionary — restore the underscore between smashed words, spell the abbreviation out, or add it to `Terms` if it is one domain term here."
+        ]
+      },
+      {
+        "id": "clipping-flagged-fn",
+        "gap": "R3",
+        "cop": "Kata/RealWords",
+        "expect": "offense",
+        "passed": true,
+        "found": 1,
+        "faults": [],
+        "messages": [
+          "`fn` is not in the dictionary — restore the underscore between smashed words, spell the abbreviation out, or add it to `Terms` if it is one domain term here."
+        ]
+      },
+      {
+        "id": "placeholder-flagged-foo",
+        "gap": "R3",
+        "cop": "Kata/RealWords",
+        "expect": "offense",
+        "passed": false,
+        "found": 0,
+        "faults": [
+          "expected an offense, found none"
+        ],
+        "messages": []
+      },
+      {
+        "id": "placeholder-flagged-baz",
+        "gap": "R3",
+        "cop": "Kata/RealWords",
+        "expect": "offense",
+        "passed": false,
+        "found": 0,
+        "faults": [
+          "expected an offense, found none"
+        ],
+        "messages": []
+      },
+      {
+        "id": "placeholder-flagged-qux",
+        "gap": "R3",
+        "cop": "Kata/RealWords",
+        "expect": "offense",
+        "passed": false,
+        "found": 0,
+        "faults": [
+          "expected an offense, found none"
+        ],
+        "messages": []
+      },
+      {
+        "id": "platform-or-word-allowed-env",
+        "gap": "R3",
+        "cop": "Kata/RealWords",
+        "expect": "clean",
+        "passed": true,
+        "found": 0,
+        "faults": [],
+        "messages": []
+      },
+      {
+        "id": "platform-or-word-allowed-params",
+        "gap": "R3",
+        "cop": "Kata/RealWords",
+        "expect": "clean",
+        "passed": true,
+        "found": 0,
+        "faults": [],
+        "messages": []
+      },
+      {
+        "id": "platform-or-word-allowed-io",
+        "gap": "R3",
+        "cop": "Kata/RealWords",
+        "expect": "clean",
+        "passed": true,
+        "found": 0,
+        "faults": [],
+        "messages": []
+      },
+      {
+        "id": "platform-or-word-allowed-id",
+        "gap": "R3",
+        "cop": "Kata/RealWords",
+        "expect": "clean",
+        "passed": true,
+        "found": 0,
+        "faults": [],
+        "messages": []
+      },
+      {
+        "id": "platform-or-word-allowed-json",
+        "gap": "R3",
+        "cop": "Kata/RealWords",
+        "expect": "clean",
+        "passed": true,
+        "found": 0,
+        "faults": [],
+        "messages": []
+      },
+      {
+        "id": "platform-or-word-allowed-url",
+        "gap": "R3",
+        "cop": "Kata/RealWords",
+        "expect": "clean",
+        "passed": true,
+        "found": 0,
+        "faults": [],
+        "messages": []
+      },
+      {
+        "id": "platform-or-word-allowed-uri",
+        "gap": "R3",
+        "cop": "Kata/RealWords",
+        "expect": "clean",
+        "passed": true,
+        "found": 0,
+        "faults": [],
+        "messages": []
+      },
+      {
+        "id": "platform-or-word-allowed-html",
+        "gap": "R3",
+        "cop": "Kata/RealWords",
+        "expect": "clean",
+        "passed": true,
+        "found": 0,
+        "faults": [],
+        "messages": []
+      },
+      {
+        "id": "platform-or-word-allowed-sql",
+        "gap": "R3",
+        "cop": "Kata/RealWords",
+        "expect": "clean",
+        "passed": true,
+        "found": 0,
+        "faults": [],
+        "messages": []
+      },
+      {
+        "id": "platform-or-word-allowed-dir",
+        "gap": "R3",
+        "cop": "Kata/RealWords",
+        "expect": "clean",
+        "passed": true,
+        "found": 0,
+        "faults": [],
+        "messages": []
+      },
+      {
+        "id": "platform-or-word-allowed-app",
+        "gap": "R3",
+        "cop": "Kata/RealWords",
+        "expect": "clean",
+        "passed": true,
+        "found": 0,
+        "faults": [],
+        "messages": []
+      },
+      {
+        "id": "platform-or-word-allowed-config",
+        "gap": "R3",
+        "cop": "Kata/RealWords",
+        "expect": "clean",
+        "passed": true,
+        "found": 0,
+        "faults": [],
+        "messages": []
+      },
+      {
+        "id": "platform-or-word-allowed-stdout",
+        "gap": "R3",
+        "cop": "Kata/RealWords",
+        "expect": "clean",
+        "passed": true,
+        "found": 0,
+        "faults": [],
+        "messages": []
+      },
+      {
+        "id": "platform-or-word-allowed-regexp",
+        "gap": "R3",
+        "cop": "Kata/RealWords",
+        "expect": "clean",
+        "passed": true,
+        "found": 0,
+        "faults": [],
+        "messages": []
+      },
+      {
+        "id": "platform-or-word-allowed-spec",
+        "gap": "R3",
+        "cop": "Kata/RealWords",
+        "expect": "clean",
+        "passed": true,
+        "found": 0,
+        "faults": [],
+        "messages": []
+      },
+      {
+        "id": "platform-or-word-allowed-proc",
+        "gap": "R3",
+        "cop": "Kata/RealWords",
+        "expect": "clean",
+        "passed": true,
+        "found": 0,
+        "faults": [],
+        "messages": []
+      },
+      {
+        "id": "platform-or-word-allowed-lambda",
+        "gap": "R3",
+        "cop": "Kata/RealWords",
+        "expect": "clean",
+        "passed": true,
+        "found": 0,
+        "faults": [],
+        "messages": []
+      },
+      {
+        "id": "platform-or-word-allowed-eval",
+        "gap": "R3",
+        "cop": "Kata/RealWords",
+        "expect": "clean",
+        "passed": true,
+        "found": 0,
+        "faults": [],
+        "messages": []
+      },
+      {
+        "id": "platform-or-word-allowed-exec",
+        "gap": "R3",
+        "cop": "Kata/RealWords",
+        "expect": "clean",
+        "passed": true,
+        "found": 0,
+        "faults": [],
+        "messages": []
+      },
+      {
+        "id": "platform-or-word-allowed-attr",
+        "gap": "R3",
+        "cop": "Kata/RealWords",
+        "expect": "clean",
+        "passed": true,
+        "found": 0,
+        "faults": [],
+        "messages": []
+      },
+      {
+        "id": "platform-or-word-allowed-db",
+        "gap": "R3",
+        "cop": "Kata/RealWords",
+        "expect": "clean",
+        "passed": true,
+        "found": 0,
+        "faults": [],
+        "messages": []
+      },
+      {
+        "id": "platform-or-word-allowed-api",
+        "gap": "R3",
+        "cop": "Kata/RealWords",
+        "expect": "clean",
+        "passed": true,
+        "found": 0,
+        "faults": [],
+        "messages": []
+      },
+      {
+        "id": "platform-or-word-allowed-http",
+        "gap": "R3",
+        "cop": "Kata/RealWords",
+        "expect": "clean",
+        "passed": true,
+        "found": 0,
+        "faults": [],
+        "messages": []
+      },
+      {
+        "id": "conversion-protocol-allowed",
+        "gap": "R3",
+        "cop": "Kata/RealWords",
+        "expect": "clean",
+        "passed": false,
+        "found": 1,
+        "faults": [
+          "expected no offense, found 1"
+        ],
+        "messages": [
+          "`str` (in `to_str`) is not in the dictionary — restore the underscore between smashed words, spell the abbreviation out, or add it to `Terms` if it is one domain term here."
+        ]
+      },
+      {
+        "id": "attr-reader-three-words-flagged",
+        "gap": "R4",
+        "cop": "Kata/GoodMethodName",
+        "expect": "offense",
+        "passed": false,
+        "found": 0,
+        "faults": [
+          "expected an offense, found none"
+        ],
+        "messages": []
+      },
+      {
+        "id": "attr-accessor-three-words-flagged",
+        "gap": "R4",
+        "cop": "Kata/GoodMethodName",
+        "expect": "offense",
+        "passed": false,
+        "found": 0,
+        "faults": [
+          "expected an offense, found none"
+        ],
+        "messages": []
+      },
+      {
+        "id": "attr-writer-three-words-flagged",
+        "gap": "R4",
+        "cop": "Kata/GoodMethodName",
+        "expect": "offense",
+        "passed": false,
+        "found": 0,
+        "faults": [
+          "expected an offense, found none"
+        ],
+        "messages": []
+      },
+      {
+        "id": "define-method-three-words-flagged",
+        "gap": "R4",
+        "cop": "Kata/GoodMethodName",
+        "expect": "offense",
+        "passed": false,
+        "found": 0,
+        "faults": [
+          "expected an offense, found none"
+        ],
+        "messages": []
+      },
+      {
+        "id": "alias-method-three-words-flagged",
+        "gap": "R4",
+        "cop": "Kata/GoodMethodName",
+        "expect": "offense",
+        "passed": false,
+        "found": 0,
+        "faults": [
+          "expected an offense, found none"
+        ],
+        "messages": []
+      },
+      {
+        "id": "alias-keyword-three-words-flagged",
+        "gap": "R4",
+        "cop": "Kata/GoodMethodName",
+        "expect": "offense",
+        "passed": false,
+        "found": 0,
+        "faults": [
+          "expected an offense, found none"
+        ],
+        "messages": []
+      },
+      {
+        "id": "attr-reader-one-word-allowed",
+        "gap": "R4",
+        "cop": "Kata/GoodMethodName",
+        "expect": "clean",
+        "passed": true,
+        "found": 0,
+        "faults": [],
+        "messages": []
+      },
+      {
+        "id": "attr-reader-abbreviation-flagged",
+        "gap": "R4",
+        "cop": "Kata/RealWords",
+        "expect": "offense",
+        "passed": false,
+        "found": 0,
+        "faults": [
+          "expected an offense, found none"
+        ],
+        "messages": []
+      },
+      {
+        "id": "clock-keyword-seam-allowed",
+        "gap": "R4",
+        "cop": "Kata/ClockDiscipline",
+        "expect": "clean",
+        "passed": false,
+        "found": 1,
+        "faults": [
+          "expected no offense, found 1"
+        ],
+        "messages": [
+          "Inject a clock; `Time.now` reads the ambient time."
+        ]
+      },
+      {
+        "id": "clock-positional-seam-allowed",
+        "gap": "R4",
+        "cop": "Kata/ClockDiscipline",
+        "expect": "clean",
+        "passed": false,
+        "found": 1,
+        "faults": [
+          "expected no offense, found 1"
+        ],
+        "messages": [
+          "Inject a clock; `Time.now` reads the ambient time."
+        ]
+      },
+      {
+        "id": "clock-zone-now-flagged",
+        "gap": "R4",
+        "cop": "Kata/ClockDiscipline",
+        "expect": "offense",
+        "passed": false,
+        "found": 0,
+        "faults": [
+          "expected an offense, found none"
+        ],
+        "messages": []
+      },
+      {
+        "id": "clock-zone-today-flagged",
+        "gap": "R4",
+        "cop": "Kata/ClockDiscipline",
+        "expect": "offense",
+        "passed": false,
+        "found": 0,
+        "faults": [
+          "expected an offense, found none"
+        ],
+        "messages": []
+      },
+      {
+        "id": "clock-datetime-now-flagged",
+        "gap": "R4",
+        "cop": "Kata/ClockDiscipline",
+        "expect": "offense",
+        "passed": true,
+        "found": 1,
+        "faults": [],
+        "messages": [
+          "Inject a clock; `DateTime.now` reads the ambient time."
+        ]
+      },
+      {
+        "id": "clock-time-current-flagged",
+        "gap": "R4",
+        "cop": "Kata/ClockDiscipline",
+        "expect": "offense",
+        "passed": true,
+        "found": 1,
+        "faults": [],
+        "messages": [
+          "Inject a clock; `Time.current` reads the ambient time."
+        ]
+      },
+      {
+        "id": "clock-date-current-flagged",
+        "gap": "R4",
+        "cop": "Kata/ClockDiscipline",
+        "expect": "offense",
+        "passed": true,
+        "found": 1,
+        "faults": [],
+        "messages": [
+          "Inject a clock; `Date.current` reads the ambient time."
+        ]
+      },
+      {
+        "id": "clock-time-new-flagged",
+        "gap": "R4",
+        "cop": "Kata/ClockDiscipline",
+        "expect": "offense",
+        "passed": false,
+        "found": 0,
+        "faults": [
+          "expected an offense, found none"
+        ],
+        "messages": []
+      },
+      {
+        "id": "clock-time-new-with-parts-allowed",
+        "gap": "R4",
+        "cop": "Kata/ClockDiscipline",
+        "expect": "clean",
+        "passed": true,
+        "found": 0,
+        "faults": [],
+        "messages": []
+      },
+      {
+        "id": "clock-monotonic-flagged",
+        "gap": "R4",
+        "cop": "Kata/ClockDiscipline",
+        "expect": "offense",
+        "passed": false,
+        "found": 0,
+        "faults": [
+          "expected an offense, found none"
+        ],
+        "messages": []
+      },
+      {
+        "id": "clock-injected-allowed",
+        "gap": "R4",
+        "cop": "Kata/ClockDiscipline",
+        "expect": "clean",
+        "passed": true,
+        "found": 0,
+        "faults": [],
+        "messages": []
+      },
+      {
+        "id": "env-seam-allowed",
+        "gap": "R4",
+        "cop": "Kata/EnvDiscipline",
+        "expect": "clean",
+        "passed": true,
+        "found": 0,
+        "faults": [],
+        "messages": []
+      },
+      {
+        "id": "env-read-flagged",
+        "gap": "R4",
+        "cop": "Kata/EnvDiscipline",
+        "expect": "offense",
+        "passed": true,
+        "found": 1,
+        "faults": [],
+        "messages": [
+          "`ENV` belongs in the boot layer; pass configuration in."
+        ]
+      },
+      {
+        "id": "constructor-mutex-allowed",
+        "gap": "R5",
+        "cop": "Kata/ConstructorDiscipline",
+        "expect": "clean",
+        "passed": false,
+        "found": 1,
+        "faults": [
+          "expected no offense, found 1"
+        ],
+        "messages": [
+          "A constructor assigns; it does not compute. Move `new` out of `initialize`."
+        ]
+      },
+      {
+        "id": "constructor-kernel-conversion-allowed",
+        "gap": "R5",
+        "cop": "Kata/ConstructorDiscipline",
+        "expect": "clean",
+        "passed": false,
+        "found": 2,
+        "faults": [
+          "expected no offense, found 2"
+        ],
+        "messages": [
+          "A constructor assigns; it does not compute. Move `Array` out of `initialize`.",
+          "A constructor assigns; it does not compute. Move `String` out of `initialize`."
+        ]
+      },
+      {
+        "id": "constructor-to-conversion-allowed",
+        "gap": "R5",
+        "cop": "Kata/ConstructorDiscipline",
+        "expect": "clean",
+        "passed": false,
+        "found": 2,
+        "faults": [
+          "expected no offense, found 2"
+        ],
+        "messages": [
+          "A constructor assigns; it does not compute. Move `to_s` out of `initialize`.",
+          "A constructor assigns; it does not compute. Move `to_a` out of `initialize`."
+        ]
+      },
+      {
+        "id": "constructor-defensive-copy-allowed",
+        "gap": "R5",
+        "cop": "Kata/ConstructorDiscipline",
+        "expect": "clean",
+        "passed": false,
+        "found": 1,
+        "faults": [
+          "expected no offense, found 1"
+        ],
+        "messages": [
+          "A constructor assigns; it does not compute. Move `dup` out of `initialize`."
+        ]
+      },
+      {
+        "id": "constructor-empty-collection-allowed",
+        "gap": "R5",
+        "cop": "Kata/ConstructorDiscipline",
+        "expect": "clean",
+        "passed": false,
+        "found": 2,
+        "faults": [
+          "expected no offense, found 2"
+        ],
+        "messages": [
+          "A constructor assigns; it does not compute. Move `new` out of `initialize`."
+        ]
+      },
+      {
+        "id": "constructor-random-flagged",
+        "gap": "R5",
+        "cop": "Kata/ConstructorDiscipline",
+        "expect": "offense",
+        "passed": true,
+        "found": 1,
+        "faults": [],
+        "messages": [
+          "A constructor assigns; it does not compute. Move `uuid` out of `initialize`."
+        ]
+      },
+      {
+        "id": "constructor-dependency-flagged",
+        "gap": "R5",
+        "cop": "Kata/ConstructorDiscipline",
+        "expect": "offense",
+        "passed": true,
+        "found": 1,
+        "faults": [],
+        "messages": [
+          "A constructor assigns; it does not compute. Move `new` out of `initialize`."
+        ]
+      },
+      {
+        "id": "constructor-computation-flagged",
+        "gap": "R5",
+        "cop": "Kata/ConstructorDiscipline",
+        "expect": "offense",
+        "passed": true,
+        "found": 1,
+        "faults": [],
+        "messages": [
+          "A constructor assigns; it does not compute. Move `sum` out of `initialize`."
+        ]
+      },
+      {
+        "id": "class-load-dump-coder-allowed",
+        "gap": "R5",
+        "cop": "Kata/NoClassMethodLogic",
+        "expect": "clean",
+        "passed": false,
+        "found": 2,
+        "faults": [
+          "expected no offense, found 2"
+        ],
+        "messages": [
+          "`load` puts logic on the class; classes construct, instances work.",
+          "`dump` puts logic on the class; classes construct, instances work."
+        ]
+      },
+      {
+        "id": "class-json-create-allowed",
+        "gap": "R5",
+        "cop": "Kata/NoClassMethodLogic",
+        "expect": "clean",
+        "passed": false,
+        "found": 1,
+        "faults": [
+          "expected no offense, found 1"
+        ],
+        "messages": [
+          "`json_create` puts logic on the class; classes construct, instances work."
+        ]
+      },
+      {
+        "id": "class-query-flagged",
+        "gap": "R5",
+        "cop": "Kata/NoClassMethodLogic",
+        "expect": "offense",
+        "passed": true,
+        "found": 1,
+        "faults": [],
+        "messages": [
+          "`active` puts logic on the class; classes construct, instances work."
+        ]
+      },
+      {
+        "id": "hash-to-h-allowed",
+        "gap": "R5",
+        "cop": "Kata/NoHashAsObject",
+        "expect": "clean",
+        "passed": false,
+        "found": 1,
+        "faults": [
+          "expected no offense, found 1"
+        ],
+        "messages": [
+          "4 keys travelling together are an object without a name."
+        ]
+      },
+      {
+        "id": "hash-as-json-allowed",
+        "gap": "R5",
+        "cop": "Kata/NoHashAsObject",
+        "expect": "clean",
+        "passed": false,
+        "found": 1,
+        "faults": [
+          "expected no offense, found 1"
+        ],
+        "messages": [
+          "4 keys travelling together are an object without a name."
+        ]
+      },
+      {
+        "id": "hash-deconstruct-keys-allowed",
+        "gap": "R5",
+        "cop": "Kata/NoHashAsObject",
+        "expect": "clean",
+        "passed": false,
+        "found": 1,
+        "faults": [
+          "expected no offense, found 1"
+        ],
+        "messages": [
+          "4 keys travelling together are an object without a name."
+        ]
+      },
+      {
+        "id": "hash-payload-flagged",
+        "gap": "R5",
+        "cop": "Kata/NoHashAsObject",
+        "expect": "offense",
+        "passed": true,
+        "found": 1,
+        "faults": [],
+        "messages": [
+          "4 keys travelling together are an object without a name."
+        ]
+      },
+      {
+        "id": "boolean-exit-status-allowed",
+        "gap": "R5",
+        "cop": "Kata/NoBooleanFlag",
+        "expect": "clean",
+        "passed": false,
+        "found": 1,
+        "faults": [
+          "expected no offense, found 1"
+        ],
+        "messages": [
+          "A boolean flag is two methods trapped in one; split them or name the argument."
+        ]
+      },
+      {
+        "id": "boolean-exit-bang-allowed",
+        "gap": "R5",
+        "cop": "Kata/NoBooleanFlag",
+        "expect": "clean",
+        "passed": false,
+        "found": 1,
+        "faults": [
+          "expected no offense, found 1"
+        ],
+        "messages": [
+          "A boolean flag is two methods trapped in one; split them or name the argument."
+        ]
+      },
+      {
+        "id": "boolean-flag-call-flagged",
+        "gap": "R5",
+        "cop": "Kata/NoBooleanFlag",
+        "expect": "offense",
+        "passed": true,
+        "found": 1,
+        "faults": [],
+        "messages": [
+          "A boolean flag is two methods trapped in one; split them or name the argument."
+        ]
+      },
+      {
+        "id": "boolean-flag-default-flagged",
+        "gap": "R5",
+        "cop": "Kata/NoBooleanFlag",
+        "expect": "offense",
+        "passed": true,
+        "found": 1,
+        "faults": [],
+        "messages": [
+          "`force` defaults to a boolean flag, two methods trapped in one; split them or make it a keyword."
+        ]
+      },
+      {
+        "id": "controller-contract-allowed",
+        "gap": "R5",
+        "cop": "Kata/GoodClassName",
+        "expect": "clean",
+        "passed": true,
+        "found": 0,
+        "faults": [],
+        "messages": []
+      },
+      {
+        "id": "crowded-controller-subject-flagged",
+        "gap": "R5",
+        "cop": "Kata/GoodClassName",
+        "expect": "offense",
+        "passed": false,
+        "found": 0,
+        "faults": [
+          "expected an offense, found none"
+        ],
+        "messages": []
+      },
+      {
+        "id": "mailer-contract-allowed",
+        "gap": "R5",
+        "cop": "Kata/GoodClassName",
+        "expect": "clean",
+        "passed": true,
+        "found": 0,
+        "faults": [],
+        "messages": []
+      },
+      {
+        "id": "validator-contract-allowed",
+        "gap": "R5",
+        "cop": "Kata/GoodClassName",
+        "expect": "clean",
+        "passed": true,
+        "found": 0,
+        "faults": [],
+        "messages": []
+      },
+      {
+        "id": "job-subject-allowed",
+        "gap": "R5",
+        "cop": "Kata/GoodClassName",
+        "expect": "clean",
+        "passed": true,
+        "found": 0,
+        "faults": [],
+        "messages": []
+      },
+      {
+        "id": "job-doer-subject-flagged",
+        "gap": "R5",
+        "cop": "Kata/GoodClassName",
+        "expect": "offense",
+        "passed": false,
+        "found": 0,
+        "faults": [
+          "expected an offense, found none"
+        ],
+        "messages": []
+      },
+      {
+        "id": "task-contract-allowed",
+        "gap": "R5",
+        "cop": "Kata/GoodClassName",
+        "expect": "clean",
+        "passed": false,
+        "found": 1,
+        "faults": [
+          "expected no offense, found 1"
+        ],
+        "messages": [
+          "`SpamCleanupTask` packs 3 concepts into one name; a class names one object that exists in the model — or, if `SpamCleanupTask` reads as one concept here, add it to `Terms`."
+        ]
+      },
+      {
+        "id": "inherited-framework-name-allowed",
+        "gap": "R5",
+        "cop": "Kata/GoodClassName",
+        "expect": "clean",
+        "passed": false,
+        "found": 1,
+        "faults": [
+          "expected no offense, found 1"
+        ],
+        "messages": [
+          "`ActionHandler` names a doer; name the class for the thing it is, not the work it does."
+        ]
+      },
+      {
+        "id": "stdlib-subclass-allowed",
+        "gap": "R5",
+        "cop": "Kata/GoodClassName",
+        "expect": "clean",
+        "passed": false,
+        "found": 1,
+        "faults": [
+          "expected no offense, found 1"
+        ],
+        "messages": [
+          "`JsonFormatter` names a doer; name the class for the thing it is, not the work it does."
+        ]
+      },
+      {
+        "id": "error-suffix-allowed",
+        "gap": "R5",
+        "cop": "Kata/GoodClassName",
+        "expect": "clean",
+        "passed": true,
+        "found": 0,
+        "faults": [],
+        "messages": []
+      },
+      {
+        "id": "presenter-without-contract-flagged",
+        "gap": "R5",
+        "cop": "Kata/GoodClassName",
+        "expect": "offense",
+        "passed": false,
+        "found": 0,
+        "faults": [
+          "expected an offense, found none"
+        ],
+        "messages": []
+      },
+      {
+        "id": "helper-module-contract-allowed",
+        "gap": "R5",
+        "cop": "Kata/GoodModuleName",
+        "expect": "clean",
+        "passed": true,
+        "found": 0,
+        "faults": [],
+        "messages": []
+      },
+      {
+        "id": "nested-module-accepted-by-class-in-module",
+        "gap": "R6",
+        "cop": "Kata/ClassInModule",
+        "expect": "clean",
+        "passed": true,
+        "found": 0,
+        "faults": [],
+        "messages": []
+      },
+      {
+        "id": "nested-module-accepted-by-no-class-in-module",
+        "gap": "R6",
+        "cop": "Elegant/NoClassInModule",
+        "expect": "clean",
+        "passed": false,
+        "found": 1,
+        "faults": [
+          "expected no offense, found 1"
+        ],
+        "messages": [
+          "Class Invoice must use compact namespace syntax, not be nested inside a module"
+        ]
+      },
+      {
+        "id": "compact-namespace-accepted",
+        "gap": "R6",
+        "cop": "Kata/ClassInModule",
+        "expect": "clean",
+        "passed": true,
+        "found": 0,
+        "faults": [],
+        "messages": []
+      },
+      {
+        "id": "top-level-class-in-lib-flagged",
+        "gap": "R6",
+        "cop": "Kata/ClassInModule",
+        "expect": "offense",
+        "passed": true,
+        "found": 1,
+        "faults": [],
+        "messages": [
+          "Class Invoice must be defined inside a module, not globally"
+        ]
+      },
+      {
+        "id": "zeitwerk-model-root-accepted",
+        "gap": "R6",
+        "cop": "Kata/ClassInModule",
+        "expect": "clean",
+        "passed": false,
+        "found": 1,
+        "faults": [
+          "expected no offense, found 1"
+        ],
+        "messages": [
+          "Class Account must be defined inside a module, not globally"
+        ]
+      },
+      {
+        "id": "zeitwerk-concern-root-accepted",
+        "gap": "R6",
+        "cop": "Kata/ClassInModule",
+        "expect": "clean",
+        "passed": false,
+        "found": 1,
+        "faults": [
+          "expected no offense, found 1"
+        ],
+        "messages": [
+          "Class Archivable must be defined inside a module, not globally"
+        ]
+      },
+      {
+        "id": "nested-call-corrected-with-indent",
+        "gap": "R7",
+        "cop": "Kata/PairedBrackets",
+        "expect": "offense",
+        "passed": false,
+        "found": 2,
+        "faults": [
+          "correction produced \"# frozen_string_literal: true\\n\\nVALUE = total(\\n  lines(\\n  1\\n)\\n)\\n\""
+        ],
+        "messages": [
+          "Bracket ( must be paired on the same line, or start/end its line",
+          "Bracket ) must be paired on the same line, or start/end its line"
+        ]
+      },
+      {
+        "id": "block-parameters-belong-to-the-brace",
+        "gap": "R7",
+        "cop": "Kata/PairedBrackets",
+        "expect": "clean",
+        "passed": false,
+        "found": 1,
+        "faults": [
+          "expected no offense, found 1"
+        ],
+        "messages": [
+          "Bracket { must be paired on the same line, or start/end its line"
+        ]
+      },
+      {
+        "id": "hash-argument-corrected-with-indent",
+        "gap": "R7",
+        "cop": "Kata/PairedBrackets",
+        "expect": "offense",
+        "passed": false,
+        "found": 2,
+        "faults": [
+          "correction produced \"# frozen_string_literal: true\\n\\nVALUE = merge(\\n  {\\n  a: 1\\n}\\n)\\n\""
+        ],
+        "messages": [
+          "Bracket ( must be paired on the same line, or start/end its line",
+          "Bracket ) must be paired on the same line, or start/end its line"
+        ]
+      },
+      {
+        "id": "reasoned-disable-allowed-by-style",
+        "gap": "R9",
+        "cop": "Style/DisableCopsWithinSourceCodeDirective",
+        "expect": "clean",
+        "passed": false,
+        "found": 2,
+        "faults": [
+          "expected no offense, found 2"
+        ],
+        "messages": [
+          "RuboCop disable/enable directives are not permitted."
+        ]
+      },
+      {
+        "id": "reasoned-disable-allowed",
+        "gap": "R9",
+        "cop": "Kata/JustifiedDirective",
+        "expect": "clean",
+        "passed": true,
+        "found": 0,
+        "faults": [],
+        "messages": []
+      },
+      {
+        "id": "bare-disable-flagged",
+        "gap": "R9",
+        "cop": "Kata/JustifiedDirective",
+        "expect": "offense",
+        "passed": false,
+        "found": 0,
+        "faults": [
+          "expected an offense, found none"
+        ],
+        "messages": []
+      },
+      {
+        "id": "trailing-bare-disable-flagged",
+        "gap": "R9",
+        "cop": "Kata/JustifiedDirective",
+        "expect": "offense",
+        "passed": false,
+        "found": 0,
+        "faults": [
+          "expected an offense, found none"
+        ],
+        "messages": []
+      },
+      {
+        "id": "disable-all-flagged",
+        "gap": "R9",
+        "cop": "Kata/JustifiedDirective",
+        "expect": "offense",
+        "passed": false,
+        "found": 0,
+        "faults": [
+          "expected an offense, found none"
+        ],
+        "messages": []
+      },
+      {
+        "id": "memoized-ivar-not-renamed",
+        "gap": "R11",
+        "cop": "Naming/MemoizedInstanceVariableName",
+        "expect": "any",
+        "passed": false,
+        "found": 1,
+        "faults": [
+          "correction removed \"    @connection ||= open\""
+        ],
+        "messages": [
+          "Memoized variable `@connection` does not start with `_`. Use `@_connection` instead."
+        ]
+      },
+      {
+        "id": "two-word-method-allowed-parse_header",
+        "gap": "R13",
+        "cop": "Kata/GoodMethodName",
+        "expect": "clean",
+        "passed": false,
+        "found": 1,
+        "faults": [
+          "expected no offense, found 1"
+        ],
+        "messages": [
+          "`parse_header` needs two words: either a concept is missing, or the method belongs on the object the second word names. Say it in one word, move it, give the role a `Prefixes`/`Suffixes` word — or, if `parse_header` is one domain concept here, add it to `Terms`."
+        ]
+      },
+      {
+        "id": "two-word-method-allowed-line_items",
+        "gap": "R13",
+        "cop": "Kata/GoodMethodName",
+        "expect": "clean",
+        "passed": true,
+        "found": 0,
+        "faults": [],
+        "messages": []
+      },
+      {
+        "id": "two-word-method-allowed-build_adapter",
+        "gap": "R13",
+        "cop": "Kata/GoodMethodName",
+        "expect": "clean",
+        "passed": false,
+        "found": 1,
+        "faults": [
+          "expected no offense, found 1"
+        ],
+        "messages": [
+          "`build_adapter` needs two words: either a concept is missing, or the method belongs on the object the second word names. Say it in one word, move it, give the role a `Prefixes`/`Suffixes` word — or, if `build_adapter` is one domain concept here, add it to `Terms`."
+        ]
+      },
+      {
+        "id": "two-word-method-allowed-matching_ids",
+        "gap": "R13",
+        "cop": "Kata/GoodMethodName",
+        "expect": "clean",
+        "passed": false,
+        "found": 1,
+        "faults": [
+          "expected no offense, found 1"
+        ],
+        "messages": [
+          "`matching_ids` needs two words: either a concept is missing, or the method belongs on the object the second word names. Say it in one word, move it, give the role a `Prefixes`/`Suffixes` word — or, if `matching_ids` is one domain concept here, add it to `Terms`."
+        ]
+      },
+      {
+        "id": "two-word-method-allowed-customer_address",
+        "gap": "R13",
+        "cop": "Kata/GoodMethodName",
+        "expect": "clean",
+        "passed": false,
+        "found": 1,
+        "faults": [
+          "expected no offense, found 1"
+        ],
+        "messages": [
+          "`customer_address` needs two words: either a concept is missing, or the method belongs on the object the second word names. Say it in one word, move it, give the role a `Prefixes`/`Suffixes` word — or, if `customer_address` is one domain concept here, add it to `Terms`."
+        ]
+      },
+      {
+        "id": "two-word-variable-allowed-error_message",
+        "gap": "R13",
+        "cop": "Kata/GoodVariableName",
+        "expect": "clean",
+        "passed": false,
+        "found": 1,
+        "faults": [
+          "expected no offense, found 1"
+        ],
+        "messages": [
+          "`error_message` needs two words: the second word names an object you have not introduced yet. Name that object, use a `Prefixes`/`Suffixes` role word — or, if `error_message` is one domain concept here, add it to `Terms`."
+        ]
+      },
+      {
+        "id": "two-word-variable-allowed-retry_count",
+        "gap": "R13",
+        "cop": "Kata/GoodVariableName",
+        "expect": "clean",
+        "passed": true,
+        "found": 0,
+        "faults": [],
+        "messages": []
+      },
+      {
+        "id": "two-word-variable-allowed-line_items",
+        "gap": "R13",
+        "cop": "Kata/GoodVariableName",
+        "expect": "clean",
+        "passed": true,
+        "found": 0,
+        "faults": [],
+        "messages": []
+      },
+      {
+        "id": "two-word-variable-allowed-source_root",
+        "gap": "R13",
+        "cop": "Kata/GoodVariableName",
+        "expect": "clean",
+        "passed": false,
+        "found": 1,
+        "faults": [
+          "expected no offense, found 1"
+        ],
+        "messages": [
+          "`source_root` needs two words: the second word names an object you have not introduced yet. Name that object, use a `Prefixes`/`Suffixes` role word — or, if `source_root` is one domain concept here, add it to `Terms`."
+        ]
+      },
+      {
+        "id": "three-word-method-flagged-customer_billing_address",
+        "gap": "R13",
+        "cop": "Kata/GoodMethodName",
+        "expect": "offense",
+        "passed": true,
+        "found": 1,
+        "faults": [],
+        "messages": [
+          "`customer_billing_address` needs two words: either a concept is missing, or the method belongs on the object the second word names. Say it in one word, move it, give the role a `Prefixes`/`Suffixes` word — or, if `customer_billing_address` is one domain concept here, add it to `Terms`."
+        ]
+      },
+      {
+        "id": "three-word-method-flagged-assemble_monthly_report",
+        "gap": "R13",
+        "cop": "Kata/GoodMethodName",
+        "expect": "offense",
+        "passed": true,
+        "found": 1,
+        "faults": [],
+        "messages": [
+          "`assemble_monthly_report` needs two words: either a concept is missing, or the method belongs on the object the second word names. Say it in one word, move it, give the role a `Prefixes`/`Suffixes` word — or, if `assemble_monthly_report` is one domain concept here, add it to `Terms`."
+        ]
+      },
+      {
+        "id": "three-word-method-flagged-fork_pool_worker",
+        "gap": "R13",
+        "cop": "Kata/GoodMethodName",
+        "expect": "offense",
+        "passed": true,
+        "found": 1,
+        "faults": [],
+        "messages": [
+          "`fork_pool_worker` needs two words: either a concept is missing, or the method belongs on the object the second word names. Say it in one word, move it, give the role a `Prefixes`/`Suffixes` word — or, if `fork_pool_worker` is one domain concept here, add it to `Terms`."
+        ]
+      },
+      {
+        "id": "three-word-variable-flagged-last_error_message",
+        "gap": "R13",
+        "cop": "Kata/GoodVariableName",
+        "expect": "offense",
+        "passed": true,
+        "found": 1,
+        "faults": [],
+        "messages": [
+          "`last_error_message` needs two words: the second word names an object you have not introduced yet. Name that object, use a `Prefixes`/`Suffixes` role word — or, if `last_error_message` is one domain concept here, add it to `Terms`."
+        ]
+      },
+      {
+        "id": "three-word-variable-flagged-covering_test_lines",
+        "gap": "R13",
+        "cop": "Kata/GoodVariableName",
+        "expect": "offense",
+        "passed": true,
+        "found": 1,
+        "faults": [],
+        "messages": [
+          "`covering_test_lines` needs two words: the second word names an object you have not introduced yet. Name that object, use a `Prefixes`/`Suffixes` role word — or, if `covering_test_lines` is one domain concept here, add it to `Terms`."
+        ]
+      },
+      {
+        "id": "chained-actions-flagged-validate_and_save",
+        "gap": "R13",
+        "cop": "Kata/GoodMethodName",
+        "expect": "offense",
+        "passed": true,
+        "found": 1,
+        "faults": [],
+        "messages": [
+          "`validate_and_save` chains actions with `and`; each action wants its own method."
+        ]
+      },
+      {
+        "id": "chained-actions-flagged-find_or_create",
+        "gap": "R13",
+        "cop": "Kata/GoodMethodName",
+        "expect": "offense",
+        "passed": true,
+        "found": 1,
+        "faults": [],
+        "messages": [
+          "`find_or_create` chains actions with `or`; each action wants its own method."
+        ]
+      },
+      {
+        "id": "smashed-pair-flagged",
+        "gap": "R13",
+        "cop": "Kata/RealWords",
+        "expect": "offense",
+        "passed": true,
+        "found": 1,
+        "faults": [],
+        "messages": [
+          "`errorcount` is not in the dictionary — restore the underscore between smashed words, spell the abbreviation out, or add it to `Terms` if it is one domain term here."
+        ]
+      },
+      {
+        "id": "plain-eight-line-method-allowed",
+        "gap": "R14",
+        "cop": "Metrics/MethodLength",
+        "expect": "clean",
+        "passed": false,
+        "found": 1,
+        "faults": [
+          "expected no offense, found 1"
+        ],
+        "messages": [
+          "Method has too many lines. [7/5]"
+        ]
+      },
+      {
+        "id": "long-method-flagged",
+        "gap": "R14",
+        "cop": "Metrics/MethodLength",
+        "expect": "offense",
+        "passed": true,
+        "found": 1,
+        "faults": [],
+        "messages": [
+          "Method has too many lines. [11/5]"
+        ]
+      },
+      {
+        "id": "branching-method-flagged",
+        "gap": "R14",
+        "cop": "Metrics/CyclomaticComplexity",
+        "expect": "offense",
+        "passed": false,
+        "found": 0,
+        "faults": [
+          "expected an offense, found none"
+        ],
+        "messages": []
+      },
+      {
+        "id": "bare-puts-flagged",
+        "gap": "extra",
+        "cop": "Kata/IoDiscipline",
+        "expect": "offense",
+        "passed": true,
+        "found": 1,
+        "faults": [],
+        "messages": [
+          "Write through the injected `@io`, not bare `puts`."
+        ]
+      },
+      {
+        "id": "bare-p-flagged",
+        "gap": "extra",
+        "cop": "Kata/IoDiscipline",
+        "expect": "offense",
+        "passed": true,
+        "found": 1,
+        "faults": [],
+        "messages": [
+          "Write through the injected `@io`, not bare `p`."
+        ]
+      },
+      {
+        "id": "explicit-stream-allowed",
+        "gap": "extra",
+        "cop": "Kata/IoDiscipline",
+        "expect": "clean",
+        "passed": true,
+        "found": 0,
+        "faults": [],
+        "messages": []
+      },
+      {
+        "id": "io-in-exe-allowed",
+        "gap": "extra",
+        "cop": "Kata/IoDiscipline",
+        "expect": "clean",
+        "passed": true,
+        "found": 0,
+        "faults": [],
+        "messages": []
+      },
+      {
+        "id": "env-in-config-allowed",
+        "gap": "extra",
+        "cop": "Kata/EnvDiscipline",
+        "expect": "clean",
+        "passed": true,
+        "found": 0,
+        "faults": [],
+        "messages": []
+      },
+      {
+        "id": "three-word-method-flagged",
+        "gap": "extra",
+        "cop": "Kata/GoodMethodName",
+        "expect": "offense",
+        "passed": true,
+        "found": 1,
+        "faults": [],
+        "messages": [
+          "`customer_billing_address` needs two words: either a concept is missing, or the method belongs on the object the second word names. Say it in one word, move it, give the role a `Prefixes`/`Suffixes` word — or, if `customer_billing_address` is one domain concept here, add it to `Terms`."
+        ]
+      },
+      {
+        "id": "chained-method-flagged",
+        "gap": "extra",
+        "cop": "Kata/GoodMethodName",
+        "expect": "offense",
+        "passed": true,
+        "found": 1,
+        "faults": [],
+        "messages": [
+          "`validate_and_save` chains actions with `and`; each action wants its own method."
+        ]
+      },
+      {
+        "id": "smashed-name-flagged",
+        "gap": "extra",
+        "cop": "Kata/RealWords",
+        "expect": "offense",
+        "passed": true,
+        "found": 1,
+        "faults": [],
+        "messages": [
+          "`matchingids` is not in the dictionary — restore the underscore between smashed words, spell the abbreviation out, or add it to `Terms` if it is one domain term here."
+        ]
+      },
+      {
+        "id": "memo-ivar-allowed",
+        "gap": "extra",
+        "cop": "Kata/GoodVariableName",
+        "expect": "clean",
+        "passed": true,
+        "found": 0,
+        "faults": [],
+        "messages": []
+      },
+      {
+        "id": "builder-prefix-flagged",
+        "gap": "extra",
+        "cop": "Kata/BuilderNoun",
+        "expect": "offense",
+        "passed": true,
+        "found": 1,
+        "faults": [],
+        "messages": [
+          "A builder is named for what it returns: `total`, not `calculate_total`."
+        ]
+      },
+      {
+        "id": "junk-drawer-flagged",
+        "gap": "extra",
+        "cop": "Kata/GoodClassName",
+        "expect": "offense",
+        "passed": true,
+        "found": 1,
+        "faults": [],
+        "messages": [
+          "`InvoiceService` is a junk drawer; it hides the concept the code is missing."
+        ]
+      },
+      {
+        "id": "crowded-name-flagged",
+        "gap": "extra",
+        "cop": "Kata/GoodClassName",
+        "expect": "offense",
+        "passed": true,
+        "found": 1,
+        "faults": [],
+        "messages": [
+          "`CustomerOrderPayment` packs 3 concepts into one name; a class names one object that exists in the model — or, if `CustomerOrderPayment` reads as one concept here, add it to `Terms`."
+        ]
+      },
+      {
+        "id": "redundant-variable-flagged",
+        "gap": "extra",
+        "cop": "Kata/NoRedundantVariable",
+        "expect": "offense",
+        "passed": true,
+        "found": 1,
+        "faults": [],
+        "messages": [
+          "Variable \"sum\" is redundant and must be inlined: it is read only once"
+        ]
+      }
+    ]
+  },
+  "names": {
+    "shipped": {
+      "dev": {
+        "tp": 128,
+        "fp": 39,
+        "fn": 15,
+        "precision": 0.7665,
+        "recall": 0.8951,
+        "f1": 0.8258,
+        "ambiguous_flagged": 11,
+        "ambiguous": 14,
+        "roles_flagged": 12,
+        "roles": 17,
+        "false_positives": [
+          "Banner",
+          "Barrier",
+          "Brother",
+          "Butter",
+          "Charter",
+          "Copper",
+          "Creditor",
+          "Debtor",
+          "Dinner",
+          "Donor",
+          "Door",
+          "Floor",
+          "Flower",
+          "Footer",
+          "Hammer",
+          "Honor",
+          "Humor",
+          "Ladder",
+          "Layer",
+          "Manner",
+          "Matter",
+          "Meter",
+          "Minor",
+          "Number",
+          "Offer",
+          "Power",
+          "Razor",
+          "Rigor",
+          "River",
+          "Rubber",
+          "Rumor",
+          "Sector",
+          "Shoulder",
+          "Shower",
+          "Summer",
+          "Tower",
+          "Trigger",
+          "Tumor",
+          "Tutor"
+        ],
+        "false_negatives": [
+          "Adapter",
+          "Beggar",
+          "Controller",
+          "Decorator",
+          "Driver",
+          "Liar",
+          "Mailer",
+          "Owner",
+          "Presenter",
+          "Registrar",
+          "Serializer",
+          "Subscriber",
+          "Supplier",
+          "User",
+          "Validator"
+        ]
+      },
+      "holdout": {
+        "tp": 61,
+        "fp": 19,
+        "fn": 9,
+        "precision": 0.7625,
+        "recall": 0.8714,
+        "f1": 0.8133,
+        "ambiguous_flagged": 10,
+        "ambiguous": 12,
+        "roles_flagged": 8,
+        "roles": 9
+      },
+      "all": {
+        "tp": 189,
+        "fp": 58,
+        "fn": 24,
+        "precision": 0.7652,
+        "recall": 0.8873,
+        "f1": 0.8217,
+        "ambiguous_flagged": 21,
+        "ambiguous": 26,
+        "roles_flagged": 20,
+        "roles": 26
+      }
+    },
+    "raw": {
+      "dev": {
+        "tp": 140,
+        "fp": 48,
+        "fn": 3,
+        "precision": 0.7447,
+        "recall": 0.979,
+        "f1": 0.8459,
+        "ambiguous_flagged": 13,
+        "ambiguous": 14,
+        "roles_flagged": 15,
+        "roles": 17,
+        "false_positives": [
+          "Author",
+          "Banner",
+          "Barrier",
+          "Brother",
+          "Butter",
+          "Center",
+          "Charter",
+          "Color",
+          "Copper",
+          "Creditor",
+          "Cursor",
+          "Customer",
+          "Debtor",
+          "Dinner",
+          "Donor",
+          "Door",
+          "Error",
+          "Floor",
+          "Flower",
+          "Folder",
+          "Footer",
+          "Hammer",
+          "Honor",
+          "Humor",
+          "Ladder",
+          "Layer",
+          "Ledger",
+          "Manner",
+          "Matter",
+          "Meter",
+          "Minor",
+          "Number",
+          "Offer",
+          "Order",
+          "Power",
+          "Razor",
+          "Rigor",
+          "River",
+          "Rubber",
+          "Rumor",
+          "Sector",
+          "Shoulder",
+          "Shower",
+          "Summer",
+          "Tower",
+          "Trigger",
+          "Tumor",
+          "Tutor"
+        ],
+        "false_negatives": [
+          "Beggar",
+          "Liar",
+          "Registrar"
+        ]
+      },
+      "holdout": {
+        "tp": 69,
+        "fp": 20,
+        "fn": 1,
+        "precision": 0.7753,
+        "recall": 0.9857,
+        "f1": 0.8679,
+        "ambiguous_flagged": 11,
+        "ambiguous": 12,
+        "roles_flagged": 9,
+        "roles": 9
+      },
+      "all": {
+        "tp": 209,
+        "fp": 68,
+        "fn": 4,
+        "precision": 0.7545,
+        "recall": 0.9812,
+        "f1": 0.853,
+        "ambiguous_flagged": 24,
+        "ambiguous": 26,
+        "roles_flagged": 24,
+        "roles": 26
+      }
+    },
+    "size": 400,
+    "counts": {
+      "doer": 213,
+      "thing": 161,
+      "ambiguous": 26,
+      "roles": 26
+    }
+  },
+  "cli": {
+    "total": 8,
+    "passed": 2,
+    "results": [
+      {
+        "id": "plan-under-lang-c",
+        "gap": "R8",
+        "command": "plan",
+        "passed": false,
+        "status": 1,
+        "faults": [
+          "stdout lacks /next: /",
+          "stderr has /Error/",
+          "stderr has /\\.rb:\\d+:in /"
+        ],
+        "stdout": "",
+        "stderr": "/tmp/claude-0/-home-user/826c9fc5-a8b5-53c7-bdbc-e3d4f5d63b82/scratchpad/gems/gems/json-3.0.2/lib/json/common.rb:302:in 'String#encode': \"\\xE2\" on US-ASCII (Encoding::InvalidByteSequenceError)\n\tfrom /tmp/claude-0/-home-user/826c9fc5-a8b5-53c7-bdbc-e3d4f5d63b82/scratchpad/gems/gems/json-3.0.2/lib/json/common.rb:302:in 'JSON::Ext::Parser.parse'\n\tfrom /tmp/claude-0/-home-user/826c9fc5-a8b5-53c7-bdbc-e3d4f5d63b82/scratchpad/gems/gems/json-3.0.2/lib/json/common.rb:302:in 'JSON.parse'\n"
+      },
+      {
+        "id": "plan-stages-every-kata-cop",
+        "gap": "R8",
+        "command": "plan",
+        "passed": false,
+        "status": 1,
+        "faults": [
+          "stdout has /^rest .*Kata//"
+        ],
+        "stdout": "rest            3  Kata/PairedBrackets 2, Layout/RedundantLineBreak 1\nnext: rest — 3 offenses in 1 file\ndensest: lib/sample.rb (3)\n",
+        "stderr": ""
+      },
+      {
+        "id": "doctor-reads-inherit-from",
+        "gap": "R8",
+        "command": "doctor",
+        "passed": false,
+        "status": 0,
+        "faults": [
+          "exit status 0, expected [1]",
+          "stdout lacks /\\.rubocop_todo\\.yml:1: `Elegant/GoodMethodName`/"
+        ],
+        "stdout": "clean\n",
+        "stderr": ""
+      },
+      {
+        "id": "doctor-reports-unparsable-file",
+        "gap": "R8",
+        "command": "doctor",
+        "passed": false,
+        "status": 0,
+        "faults": [
+          "exit status 0, expected [1]",
+          "stdout lacks /broken\\.rb/"
+        ],
+        "stdout": "clean\n",
+        "stderr": ""
+      },
+      {
+        "id": "doctor-reports-undecodable-file",
+        "gap": "R8",
+        "command": "doctor",
+        "passed": false,
+        "status": 0,
+        "faults": [
+          "exit status 0, expected [1]",
+          "stdout lacks /binary\\.rb/"
+        ],
+        "stdout": "clean\n",
+        "stderr": ""
+      },
+      {
+        "id": "doctor-lists-reasoned-disables",
+        "gap": "R9",
+        "command": "doctor",
+        "passed": false,
+        "status": 0,
+        "faults": [
+          "stdout lacks /Avo resolves the handler by this name/"
+        ],
+        "stdout": "clean\n",
+        "stderr": ""
+      },
+      {
+        "id": "doctor-clean-project",
+        "gap": "R8",
+        "command": "doctor",
+        "passed": true,
+        "status": 0,
+        "faults": [],
+        "stdout": "clean\n",
+        "stderr": ""
+      },
+      {
+        "id": "plan-clean-project",
+        "gap": "R8",
+        "command": "plan",
+        "passed": true,
+        "status": 0,
+        "faults": [],
+        "stdout": "clean\n",
+        "stderr": ""
+      }
+    ]
+  },
+  "corpora": {
+    "faraday": {
+      "files": 33,
+      "lines": 3906,
+      "offenses": 1958,
+      "counts": {
+        "Kata/NoComments": 1003,
+        "Style/StringLiterals": 134,
+        "Elegant/NoEmptyLinesInMethods": 104,
+        "Kata/GoodMethodName": 98,
+        "Kata/GoodVariableName": 79,
+        "Metrics/MethodLength": 61,
+        "Kata/ConstructorDiscipline": 53,
+        "Elegant/NoClassInModule": 36,
+        "Elegant/NoEmptyLinesInBlocks": 35,
+        "Kata/RealWords": 32,
+        "Layout/MultilineAssignmentLayout": 30,
+        "Elegant/MonotonicIndents": 29,
+        "Style/ArgumentsForwarding": 28,
+        "Naming/BlockForwarding": 26,
+        "Kata/PairedBrackets": 24,
+        "Layout/ArgumentAlignment": 24,
+        "Kata/NoClassMethodLogic": 21,
+        "ThreadSafety/ClassInstanceVariable": 16,
+        "Style/Send": 15,
+        "Naming/MemoizedInstanceVariableName": 15,
+        "Kata/NoRedundantVariable": 13,
+        "ThreadSafety/ClassAndModuleAttributes": 10,
+        "Layout/RedundantLineBreak": 10,
+        "Elegant/NoNilReturn": 6,
+        "Kata/GoodModuleName": 5,
+        "Style/DisableCopsWithinSourceCodeDirective": 4,
+        "ThreadSafety/MethodRedefinition": 4,
+        "Layout/LineEndStringConcatenationIndentation": 4,
+        "Metrics/ClassLength": 4,
+        "Style/ImplicitRuntimeError": 4,
+        "Style/StringLiteralsInInterpolation": 4,
+        "Kata/GoodClassName": 4,
+        "Kata/NoHashAsObject": 3,
+        "Style/DocumentDynamicEvalDefinition": 3,
+        "Naming/RescuedExceptionsVariableName": 2,
+        "Style/QuotedSymbols": 2,
+        "Kata/IoDiscipline": 2,
+        "Naming/PredicateMethod": 2,
+        "Kata/EnvDiscipline": 1,
+        "Lint/RedundantRequireStatement": 1,
+        "ThreadSafety/LazySynchronizationPrimitive": 1,
+        "Metrics/ModuleLength": 1,
+        "Metrics/BlockLength": 1,
+        "Style/DoubleNegation": 1,
+        "Metrics/ParameterLists": 1,
+        "Style/ReturnNilInPredicateMethodDefinition": 1,
+        "Lint/RedundantCopDisableDirective": 1
+      },
+      "per_kloc": {
+        "Kata/NoComments": 256.78,
+        "Style/StringLiterals": 34.31,
+        "Elegant/NoEmptyLinesInMethods": 26.63,
+        "Kata/GoodMethodName": 25.09,
+        "Kata/GoodVariableName": 20.23,
+        "Metrics/MethodLength": 15.62,
+        "Kata/ConstructorDiscipline": 13.57,
+        "Elegant/NoClassInModule": 9.22,
+        "Elegant/NoEmptyLinesInBlocks": 8.96,
+        "Kata/RealWords": 8.19,
+        "Layout/MultilineAssignmentLayout": 7.68,
+        "Elegant/MonotonicIndents": 7.42,
+        "Style/ArgumentsForwarding": 7.17,
+        "Naming/BlockForwarding": 6.66,
+        "Kata/PairedBrackets": 6.14,
+        "Layout/ArgumentAlignment": 6.14,
+        "Kata/NoClassMethodLogic": 5.38,
+        "ThreadSafety/ClassInstanceVariable": 4.1,
+        "Style/Send": 3.84,
+        "Naming/MemoizedInstanceVariableName": 3.84,
+        "Kata/NoRedundantVariable": 3.33,
+        "ThreadSafety/ClassAndModuleAttributes": 2.56,
+        "Layout/RedundantLineBreak": 2.56,
+        "Elegant/NoNilReturn": 1.54,
+        "Kata/GoodModuleName": 1.28,
+        "Style/DisableCopsWithinSourceCodeDirective": 1.02,
+        "ThreadSafety/MethodRedefinition": 1.02,
+        "Layout/LineEndStringConcatenationIndentation": 1.02,
+        "Metrics/ClassLength": 1.02,
+        "Style/ImplicitRuntimeError": 1.02,
+        "Style/StringLiteralsInInterpolation": 1.02,
+        "Kata/GoodClassName": 1.02,
+        "Kata/NoHashAsObject": 0.77,
+        "Style/DocumentDynamicEvalDefinition": 0.77,
+        "Naming/RescuedExceptionsVariableName": 0.51,
+        "Style/QuotedSymbols": 0.51,
+        "Kata/IoDiscipline": 0.51,
+        "Naming/PredicateMethod": 0.51,
+        "Kata/EnvDiscipline": 0.26,
+        "Lint/RedundantRequireStatement": 0.26,
+        "ThreadSafety/LazySynchronizationPrimitive": 0.26,
+        "Metrics/ModuleLength": 0.26,
+        "Metrics/BlockLength": 0.26,
+        "Style/DoubleNegation": 0.26,
+        "Metrics/ParameterLists": 0.26,
+        "Style/ReturnNilInPredicateMethodDefinition": 0.26,
+        "Lint/RedundantCopDisableDirective": 0.26
+      },
+      "sha": "deeb6ef8e47b366581585ec40c30104bf500826f",
+      "config": "bare",
+      "method_length": {
+        "kata": 61,
+        "without_method_call": 66,
+        "raw": 70
+      },
+      "pristine_test": {
+        "status": 0,
+        "examples": 652,
+        "failures": 0
+      },
+      "safe": {
+        "corrected": 1584,
+        "comments_before": {
+          "files": 33,
+          "comments": 1068,
+          "kinds": {
+            "directive": 32,
+            "magic": 33,
+            "prose": 746,
+            "yard": 257
+          }
+        },
+        "comments_after": {
+          "files": 33,
+          "comments": 61,
+          "kinds": {
+            "magic": 33,
+            "yard": 28
+          }
+        },
+        "unparsable": [],
+        "failures": [],
+        "test": {
+          "status": 0,
+          "examples": 652,
+          "failures": 0
+        }
+      },
+      "all": {
+        "corrected": 1605,
+        "comments_before": {
+          "files": 33,
+          "comments": 1068,
+          "kinds": {
+            "directive": 32,
+            "magic": 33,
+            "prose": 746,
+            "yard": 257
+          }
+        },
+        "comments_after": {
+          "files": 33,
+          "comments": 61,
+          "kinds": {
+            "magic": 33,
+            "yard": 28
+          }
+        },
+        "unparsable": [],
+        "failures": [],
+        "test": {
+          "status": 1,
+          "examples": 652,
+          "failures": 24
+        }
+      }
+    },
+    "rubygems.org": {
+      "files": 574,
+      "lines": 26031,
+      "offenses": 7159,
+      "counts": {
+        "Kata/GoodMethodName": 1275,
+        "Elegant/NoEmptyLinesInMethods": 979,
+        "Kata/NoComments": 794,
+        "Kata/GoodVariableName": 600,
+        "Metrics/MethodLength": 458,
+        "Elegant/NoEmptyLinesInBlocks": 313,
+        "Kata/RealWords": 271,
+        "Kata/PairedBrackets": 213,
+        "Layout/LineLength": 199,
+        "Kata/NoClassMethodLogic": 185,
+        "Elegant/MonotonicIndents": 176,
+        "Kata/GoodClassName": 151,
+        "Kata/ClassInModule": 145,
+        "Layout/MultilineAssignmentLayout": 143,
+        "Layout/HashAlignment": 133,
+        "Kata/NoRedundantVariable": 116,
+        "Layout/RedundantLineBreak": 113,
+        "Kata/ConstructorDiscipline": 112,
+        "Layout/ArgumentAlignment": 84,
+        "Layout/LineEndStringConcatenationIndentation": 68,
+        "Naming/RescuedExceptionsVariableName": 52,
+        "Kata/NoHashAsObject": 41,
+        "Kata/ClockDiscipline": 40,
+        "Style/DisableCopsWithinSourceCodeDirective": 38,
+        "Kata/IoDiscipline": 33,
+        "Lint/UselessConstantScoping": 31,
+        "Layout/ArrayAlignment": 30,
+        "Metrics/ClassLength": 27,
+        "Style/StringLiteralsInInterpolation": 27,
+        "Naming/MemoizedInstanceVariableName": 27,
+        "Kata/GoodModuleName": 21,
+        "Kata/EnvDiscipline": 21,
+        "Style/Send": 17,
+        "Style/FormatStringToken": 17,
+        "Lint/RedundantCopDisableDirective": 16,
+        "Style/FetchEnvVar": 15,
+        "Style/ImplicitRuntimeError": 14,
+        "ThreadSafety/ClassInstanceVariable": 14,
+        "Style/EmptyMethod": 13,
+        "Elegant/NoClassInModule": 12,
+        "Kata/BuilderNoun": 12,
+        "Elegant/NoNilReturn": 12,
+        "Metrics/ParameterLists": 10,
+        "Lint/CopDirectiveSyntax": 9,
+        "Naming/BlockForwarding": 8,
+        "Style/ArgumentsForwarding": 8,
+        "Style/HashAsLastArrayItem": 8,
+        "Metrics/BlockLength": 7,
+        "Style/StaticClass": 7,
+        "Kata/NoBooleanFlag": 5,
+        "Style/StringLiterals": 5,
+        "Style/DateTime": 4,
+        "Style/HashSyntax": 4,
+        "ThreadSafety/ClassAndModuleAttributes": 3,
+        "Layout/MultilineOperationIndentation": 3,
+        "Style/SymbolArray": 2,
+        "Performance/RedundantMerge": 2,
+        "Layout/FirstHashElementIndentation": 2,
+        "Style/TopLevelMethodDefinition": 1,
+        "Lint/UselessAccessModifier": 1,
+        "Style/SymbolProc": 1,
+        "Style/FrozenStringLiteralComment": 1,
+        "Metrics/AbcSize": 1,
+        "Metrics/CyclomaticComplexity": 1,
+        "Metrics/ModuleLength": 1,
+        "Layout/EndAlignment": 1,
+        "Performance/StringReplacement": 1,
+        "Layout/ElseAlignment": 1,
+        "Layout/IndentationWidth": 1,
+        "Metrics/PerceivedComplexity": 1,
+        "Layout/SpaceInsideBlockBraces": 1,
+        "Style/UnlessElse": 1
+      },
+      "per_kloc": {
+        "Kata/GoodMethodName": 48.98,
+        "Elegant/NoEmptyLinesInMethods": 37.61,
+        "Kata/NoComments": 30.5,
+        "Kata/GoodVariableName": 23.05,
+        "Metrics/MethodLength": 17.59,
+        "Elegant/NoEmptyLinesInBlocks": 12.02,
+        "Kata/RealWords": 10.41,
+        "Kata/PairedBrackets": 8.18,
+        "Layout/LineLength": 7.64,
+        "Kata/NoClassMethodLogic": 7.11,
+        "Elegant/MonotonicIndents": 6.76,
+        "Kata/GoodClassName": 5.8,
+        "Kata/ClassInModule": 5.57,
+        "Layout/MultilineAssignmentLayout": 5.49,
+        "Layout/HashAlignment": 5.11,
+        "Kata/NoRedundantVariable": 4.46,
+        "Layout/RedundantLineBreak": 4.34,
+        "Kata/ConstructorDiscipline": 4.3,
+        "Layout/ArgumentAlignment": 3.23,
+        "Layout/LineEndStringConcatenationIndentation": 2.61,
+        "Naming/RescuedExceptionsVariableName": 2.0,
+        "Kata/NoHashAsObject": 1.58,
+        "Kata/ClockDiscipline": 1.54,
+        "Style/DisableCopsWithinSourceCodeDirective": 1.46,
+        "Kata/IoDiscipline": 1.27,
+        "Lint/UselessConstantScoping": 1.19,
+        "Layout/ArrayAlignment": 1.15,
+        "Metrics/ClassLength": 1.04,
+        "Style/StringLiteralsInInterpolation": 1.04,
+        "Naming/MemoizedInstanceVariableName": 1.04,
+        "Kata/GoodModuleName": 0.81,
+        "Kata/EnvDiscipline": 0.81,
+        "Style/Send": 0.65,
+        "Style/FormatStringToken": 0.65,
+        "Lint/RedundantCopDisableDirective": 0.61,
+        "Style/FetchEnvVar": 0.58,
+        "Style/ImplicitRuntimeError": 0.54,
+        "ThreadSafety/ClassInstanceVariable": 0.54,
+        "Style/EmptyMethod": 0.5,
+        "Elegant/NoClassInModule": 0.46,
+        "Kata/BuilderNoun": 0.46,
+        "Elegant/NoNilReturn": 0.46,
+        "Metrics/ParameterLists": 0.38,
+        "Lint/CopDirectiveSyntax": 0.35,
+        "Naming/BlockForwarding": 0.31,
+        "Style/ArgumentsForwarding": 0.31,
+        "Style/HashAsLastArrayItem": 0.31,
+        "Metrics/BlockLength": 0.27,
+        "Style/StaticClass": 0.27,
+        "Kata/NoBooleanFlag": 0.19,
+        "Style/StringLiterals": 0.19,
+        "Style/DateTime": 0.15,
+        "Style/HashSyntax": 0.15,
+        "ThreadSafety/ClassAndModuleAttributes": 0.12,
+        "Layout/MultilineOperationIndentation": 0.12,
+        "Style/SymbolArray": 0.08,
+        "Performance/RedundantMerge": 0.08,
+        "Layout/FirstHashElementIndentation": 0.08,
+        "Style/TopLevelMethodDefinition": 0.04,
+        "Lint/UselessAccessModifier": 0.04,
+        "Style/SymbolProc": 0.04,
+        "Style/FrozenStringLiteralComment": 0.04,
+        "Metrics/AbcSize": 0.04,
+        "Metrics/CyclomaticComplexity": 0.04,
+        "Metrics/ModuleLength": 0.04,
+        "Layout/EndAlignment": 0.04,
+        "Performance/StringReplacement": 0.04,
+        "Layout/ElseAlignment": 0.04,
+        "Layout/IndentationWidth": 0.04,
+        "Metrics/PerceivedComplexity": 0.04,
+        "Layout/SpaceInsideBlockBraces": 0.04,
+        "Style/UnlessElse": 0.04
+      },
+      "sha": "be8fc6b7d005c30830d0efa5014091d3f1b2f479",
+      "config": "bare",
+      "method_length": {
+        "kata": 458,
+        "without_method_call": 502,
+        "raw": 569
+      },
+      "safe": {
+        "corrected": 4521,
+        "comments_before": {
+          "files": 558,
+          "comments": 1370,
+          "kinds": {
+            "directive": 35,
+            "magic": 557,
+            "prose": 766,
+            "yard": 12
+          }
+        },
+        "comments_after": {
+          "files": 558,
+          "comments": 557,
+          "kinds": {
+            "magic": 557
+          }
+        },
+        "unparsable": [],
+        "failures": []
+      },
+      "all": {
+        "corrected": 4561,
+        "comments_before": {
+          "files": 558,
+          "comments": 1370,
+          "kinds": {
+            "directive": 35,
+            "magic": 557,
+            "prose": 766,
+            "yard": 12
+          }
+        },
+        "comments_after": {
+          "files": 558,
+          "comments": 558,
+          "kinds": {
+            "magic": 558
+          }
+        },
+        "unparsable": [],
+        "failures": []
+      }
+    },
+    "hashira": {
+      "files": 190,
+      "lines": 7944,
+      "offenses": 2,
+      "counts": {
+        "Metrics/ParameterLists": 2
+      },
+      "per_kloc": {
+        "Metrics/ParameterLists": 0.25
+      },
+      "sha": "32e7969554a26e050a30465cf142071d72a9f841",
+      "config": "own",
+      "method_length": {
+        "kata": 0,
+        "without_method_call": 0,
+        "raw": 0
+      },
+      "offense_list": [
+        [
+          "lib/hashira/analysis/finding.rb",
+          11,
+          "Metrics/ParameterLists",
+          "Avoid parameter lists longer than 4 parameters. [6/4]"
+        ],
+        [
+          "lib/hashira/coupling/catalog.rb",
+          30,
+          "Metrics/ParameterLists",
+          "Avoid parameter lists longer than 4 parameters. [5/4]"
+        ]
+      ]
+    },
+    "kimera": {
+      "files": 233,
+      "lines": 12091,
+      "offenses": 0,
+      "counts": {},
+      "per_kloc": {},
+      "sha": "758df8f966011f4b25e659ceb48d6b7316dde416",
+      "config": "own",
+      "method_length": {
+        "kata": 0,
+        "without_method_call": 6,
+        "raw": 13
+      },
+      "offense_list": []
+    }
+  }
+}

@@ -1,0 +1,80 @@
+# Kata/GoodClassName and Kata/GoodModuleName on single words; the full
+# measurement is eval/names.yml.
+- id: header-is-a-thing
+  cop: Kata/GoodClassName
+  expect: clean
+  source: |
+    class Mail::Header
+    end
+- id: number-is-a-thing
+  cop: Kata/GoodClassName
+  expect: clean
+  source: |
+    class Invoice::Number
+    end
+- id: layer-is-a-thing
+  cop: Kata/GoodClassName
+  expect: clean
+  source: |
+    class Map::Layer
+    end
+- id: letter-is-a-thing
+  cop: Kata/GoodClassName
+  expect: clean
+  source: |
+    class Post::Letter
+    end
+- id: corner-is-a-thing
+  cop: Kata/GoodClassName
+  expect: clean
+  source: |
+    class Shape::Corner
+    end
+- id: matter-is-a-thing
+  cop: Kata/GoodClassName
+  expect: clean
+  source: |
+    class Legal::Matter
+    end
+- id: paper-is-a-thing
+  cop: Kata/GoodClassName
+  expect: clean
+  source: |
+    class Print::Paper
+    end
+- id: water-is-a-thing
+  cop: Kata/GoodClassName
+  expect: clean
+  source: |
+    class Garden::Water
+    end
+- id: parser-is-a-doer
+  cop: Kata/GoodClassName
+  expect: offense
+  source: |
+    class Json::Parser
+    end
+- id: handler-is-a-doer
+  cop: Kata/GoodClassName
+  expect: offense
+  source: |
+    class Event::Handler
+    end
+- id: payment-processor-is-a-doer
+  cop: Kata/GoodClassName
+  expect: offense
+  source: |
+    class Billing::PaymentProcessor
+    end
+- id: header-module-is-a-thing
+  cop: Kata/GoodModuleName
+  expect: clean
+  source: |
+    module Header
+    end
+- id: parser-module-is-a-doer
+  cop: Kata/GoodModuleName
+  expect: offense
+  source: |
+    module Parser
+    end

@@ -3,6 +3,11 @@ plugins:
 
 AllCops:
   TargetRubyVersion: 3.4
+  inherit_mode:
+    merge:
+      - Exclude
+  Exclude:
+    - "eval/support/**/*"
 
 # expect_offense reads `%{message}` as its own template, not as a format string.
 Style/FormatStringToken:
@@ -15,9 +20,12 @@ Kata/GoodClassName:
   Exclude:
     - "lib/rubocop/cop/**/*"
 
-# The parser's node vocabulary is this project's domain language.
+# The parser's node vocabulary is this project's domain language, and the
+# evaluation suite counts offenses per kLOC of kata.
 Kata/RealWords:
   Terms:
+    - kata
+    - kloc
     - def
     - defs
     - arg
@@ -42,3 +50,11 @@ ThreadSafety/DirChdir:
   Exclude:
     - "lib/rubocop/kata/plan.rb"
 
+
+# eval/run is the evaluation suite's executable: the boot layer.
+Kata/EnvDiscipline:
+  inherit_mode:
+    merge:
+      - Exclude
+  Exclude:
+    - "eval/run"

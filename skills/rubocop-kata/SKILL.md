@@ -38,9 +38,9 @@ the same dictionary the cops read. Do that and the naming debt is never created.
 rubocop-kata doctor
 ```
 
-It reports `.rubocop.yml` entries for cops the inherited config already disables, and
-`rubocop:disable` comments naming a cop that is not enabled where the comment sits. RuboCop
-reports neither. Delete what it names — it is free, and it stops you tuning knobs that are
+It reports entries in `.rubocop.yml` and the files it inherits for cops the configuration
+already disables, and `rubocop:disable` comments naming a cop that is not enabled where the
+comment sits. RuboCop reports neither. It also lists every inline disable with its reason. Delete what it names — it is free, and it stops you tuning knobs that are
 not connected to anything.
 
 ### 2. Read the plan
@@ -49,13 +49,14 @@ not connected to anything.
 rubocop-kata plan
 ```
 
-It buckets every offense into four stages and names the one to work:
+It buckets every offense into five stages and names the one to work:
 
 - **structure** — the cops that change the shape of the code, and in doing so mint names.
   `NoRedundantVariable` rides here too: it deletes names the naming stage would otherwise price.
 - **naming** — the cops that price names.
-- **prose** — `NoComments`, `ProsePlacement`.
-- **rest** — bundled and core cops; mostly mechanical, mostly autocorrectable.
+- **prose** — `NoComments`, `ProsePlacement`, `JustifiedDirective`.
+- **layout** — `PairedBrackets` and the core Layout cops; mechanical, autocorrectable.
+- **rest** — the other bundled and core cops.
 
 Work the stage `plan` names, in that order. Structure before naming is the whole point: doing
 naming first means renaming things the structural pass is about to move or delete.
@@ -66,7 +67,7 @@ Take the file `plan` calls densest. Fix its offenses for the **current stage onl
 the other stages' offenses alone even when they are on the line you are editing. Mixing
 stages is what makes a diff unreviewable and a count unreadable.
 
-For `rest`, prefer `rubocop -a` (safe corrections). Do not run `-A` (unsafe) across a
+For `layout` and `rest`, prefer `rubocop -a` (safe corrections; it deletes no comment). Do not run `-A` (unsafe) across a
 codebase; kata turns off the correctors known to rewrite code wrongly, but unsafe correctors
 outside that list still change behaviour.
 
@@ -76,8 +77,8 @@ This is the step that keeps the count honest. Kata's naming rules, condensed:
 
 | rule | cop |
 | --- | --- |
-| one word, lowercase, ≤16 chars | `GoodMethodName`, `GoodVariableName` |
-| a second word only via a role prefix (`after_fork`), a role suffix (`file_of`), or a reviewed `Terms` entry | same |
+| at most two words, each lowercase and ≤16 chars | `GoodMethodName`, `GoodVariableName` |
+| role prefixes (`after_fork`), role suffixes (`file_of`) and reviewed `Terms` don't count; no chained actions (`validate_and_save`) | same |
 | never smash the underscore out — `errorcount` fails too | `RealWords` |
 | every segment is a real word; no `cfg`, `ctx`, `msg`, `tmp`, … | `RealWords` |
 | a class is one object, not a `-er`/`-or` doer, a junk drawer (`Service`, `Util`, `Data`), or three concepts packed together | `GoodClassName` |
@@ -96,10 +97,10 @@ If a word the domain genuinely needs is not in the dictionary, that is a `Terms`
 `.rubocop.yml`, not a reason to pick a worse name — but add it deliberately, one at a time,
 and say why in the commit.
 
-When a name is genuinely two words and neither the prefix nor the suffix list fits, that is
-usually the cop telling you an object is missing. `evidence_poller` wants to be
-`Evidence#poll` or an `EvidenceValidation`. Prefer extracting the object over adding a
-`Terms` entry.
+Two plain words are fine (`parse_header`, `line_items`); do not squeeze a two-word concept
+into one vague or metaphorical word to please a stricter config. Three or more words are
+usually the cop telling you an object is missing: `customer_billing_address` wants a
+`BillingAddress` the customer has. Prefer extracting the object over adding a `Terms` entry.
 
 ### 5. Re-run `plan` and report two numbers
 
@@ -120,7 +121,8 @@ they spread.
 - **Never `rubocop --auto-gen-config` to make a stage disappear.** A todo file converts a
   backlog you can see into one you cannot. If a cop is genuinely wrong for this codebase,
   turn it off in `.rubocop.yml` with a comment saying why; `doctor` will tell you later if
-  that entry stops meaning anything.
+  that entry stops meaning anything. A single false positive gets an inline
+  `# rubocop:disable Cop -- reason` instead of a file-wide `Exclude`.
 - **Never widen `AllowedNames`/`Terms` in bulk.** One entry, one reviewed reason.
 - **One stage per commit.** The reviewer needs to see a structural move as a structural move.
 - **Stop and ask** when a fix requires a decision you cannot verify from the code: what a

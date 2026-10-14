@@ -94,4 +94,38 @@ RSpec.describe(RuboCop::Kata::Plan) do
       expect(report(root).first).to(match(%r{^structure\s+\d+\s+Kata/EnvDiscipline 2, }))
     end
   end
+
+  it "stages every Kata cop, so none lands in rest" do
+    cops = RuboCop::Cop::Registry.global.cops.map(&:cop_name).grep(%r{\AKata/})
+    staged = described_class::STAGES.values.flatten
+    expect(cops - staged).to(be_empty)
+  end
+
+  it "puts layout after the stages that move code" do
+    project("# frozen_string_literal: true\n\nVALUE = total(lines(\n  1\n))\n") do |root|
+      expect(report(root).first).to(match(%r{^layout\s+\d+\s+Kata/PairedBrackets}))
+    end
+  end
+
+  context "when the locale is plain ASCII" do
+    around do |example|
+      previous = Encoding.default_external
+      Encoding.default_external = Encoding::US_ASCII
+      example.run
+    ensure
+      Encoding.default_external = previous
+    end
+
+    it "reads RuboCop's report as UTF-8, em-dashes and all" do
+      project("# frozen_string_literal: true\n\ndef customer_home_address\n  1\nend\n") do |root|
+        expect(report(root).first).to(include("next: naming"))
+      end
+    end
+  end
+
+  it "stages a core Layout cop under layout" do
+    project("# frozen_string_literal: true\n\nVALUE = 1 \n") do |root|
+      expect(report(root).first).to(match(%r{^layout\s+1\s+Layout/TrailingWhitespace 1$}))
+    end
+  end
 end

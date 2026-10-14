@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 RSpec.describe(RuboCop::Cop::Kata::NoHashAsObject, :config) do
+  let(:ruby_version) { 3.4 }
+
   let(:cop_config) { { "MaxKeys" => 4 } }
 
   it "flags hashes with enough keys to be an object" do
@@ -57,5 +59,24 @@ RSpec.describe(RuboCop::Cop::Kata::NoHashAsObject, :config) do
       user = { name: "a", email: "b" }
       create(name: "a", email: "b", age: 1, role: :admin)
     RUBY
+  end
+
+  context "with the shipped defaults" do
+    let(:cop_config) { RuboCop::ConfigLoader.default_configuration.for_cop("Kata/NoHashAsObject") }
+
+    it "allows the hash a serialization method returns" do
+      expect_no_offenses(<<~RUBY)
+        def to_h = { cents: 1, currency: "EUR", scale: 2, rounding: :up }
+        def as_json(*) = { cents: 1, currency: "EUR", scale: 2, rounding: :up }
+        def self.to_h = { cents: 1, currency: "EUR", scale: 2, rounding: :up }
+      RUBY
+    end
+
+    it "still flags the same hash anywhere else" do
+      expect_offense(<<~RUBY)
+        def payload = { cents: 1, currency: "EUR", scale: 2, rounding: :up }
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ 4 keys travelling together are an object without a name.
+      RUBY
+    end
   end
 end

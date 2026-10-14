@@ -1,0 +1,46 @@
+# Kata/PairedBrackets corrects to code the core Layout cops accept.
+- id: nested-call-corrected-with-indent
+  cop: Kata/PairedBrackets
+  expect: offense
+  correct: safe
+  only: true
+  becomes: |
+    # frozen_string_literal: true
+
+    VALUE = total(
+      lines(
+        1
+      )
+    )
+  source: |
+    # frozen_string_literal: true
+
+    VALUE = total(lines(
+      1
+    ))
+- id: block-parameters-belong-to-the-brace
+  cop: Kata/PairedBrackets
+  expect: clean
+  source: |
+    VALUE = [1].map { |item|
+      item + 1
+    }
+- id: hash-argument-corrected-with-indent
+  cop: Kata/PairedBrackets
+  expect: offense
+  correct: safe
+  only: true
+  becomes: |
+    # frozen_string_literal: true
+
+    VALUE = merge(
+      {
+        a: 1
+      }
+    )
+  source: |
+    # frozen_string_literal: true
+
+    VALUE = merge({
+      a: 1
+    })

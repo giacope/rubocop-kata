@@ -3,19 +3,27 @@
 module RuboCop::Cop::Kata::Wording
   include RuboCop::Cop::Kata::Roster
 
+  PATTERN_MSG = "`%s`: the segment `%s` does not match `Pattern`; a segment is one lowercase word."
+
   private
 
-  def good?(stem)
+  def judge(range, name, stem)
+    return if allowed?(name.to_s) || allowed?(stem)
+    complaint = (yield if block_given?) || complaint(name, stem)
+    add_offense(range, message: complaint) if complaint
+  end
+
+  def complaint(name, stem)
     words = stem.split("_")
-    return false unless words.all? { pattern.match?(it) }
+    odd = words.find { !pattern.match?(it) }
+    return format(PATTERN_MSG, name, odd) if odd
     count = core(words).size
-    return words.one? if count == words.size
-    count.between?(1, max)
+    format(self.class::MSG, name, count, max, name) if count > max
   end
 
   def core(words)
-    rest = listed?("Prefixes", words.first) && words.size > 1 ? words.drop(1) : words
-    listed?("Suffixes", rest.last) && rest.size > 1 ? rest[0..-2] : rest
+    rest = listed?("Prefixes", words.first) ? words.drop(1) : words
+    listed?("Suffixes", rest.last) ? rest[0..-2] : rest
   end
 
   def allowed?(name) = super || listed?("Terms", name)

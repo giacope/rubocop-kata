@@ -89,12 +89,116 @@ RSpec.describe(RuboCop::Cop::Kata::NoComments, :config) do
     RUBY
   end
 
-  it "flags YARD tags, which are prose for a reader" do
-    expect_offense(<<~RUBY)
-      # @return [Integer]
-      ^^^^^^^^^^^^^^^^^^^ Say it in the code: rename it, extract it, or name the constant.
+  context "with documentation priced, for an application" do
+    let(:cop_config) { { "AllowDocumentation" => false } }
+
+    it "flags YARD tags, which are prose for a reader" do
+      expect_offense(<<~RUBY)
+        # @return [Integer]
+        ^^^^^^^^^^^^^^^^^^^ Say it in the code: rename it, extract it, or name the constant.
+        def total = lines.sum
+      RUBY
+    end
+  end
+
+  it "keeps the editor modelines Ruby and editors read the encoding from" do
+    expect_no_offenses(<<~RUBY)
+      # -*- coding: binary -*-
+      # vim: set fileencoding=ascii-8bit :
+      # vim:ts=2:sw=2
+      # -*- mode: ruby -*-
       def total = lines.sum
     RUBY
+  end
+
+  it "flags prose that merely starts like a modeline" do
+    expect_offense(<<~RUBY)
+      # ex: the second total
+      ^^^^^^^^^^^^^^^^^^^^^^ Say it in the code: rename it, extract it, or name the constant.
+      def total = lines.sum
+    RUBY
+  end
+
+  it "keeps the directives type checkers, linters and mutation testers read" do
+    expect_no_offenses(<<~RUBY)
+      # rbs_inline: enabled
+      # @type var sum: Integer
+      # @rbs lines: Array[Integer]
+      #: (Array[Integer]) -> Integer
+      # standard:disable Style/GlobalVars
+      # steep:ignore
+      # :reek:FeatureEnvy
+      # kimera:disable-next-line: the flush is redundant on a sync pipe
+      # hashira:disable-next-line feature_envy -- formats another object's numbers by design
+      # language=SQL
+      # noinspection RubyResolve
+      def total(lines) = lines.sum
+    RUBY
+  end
+
+  it "keeps a block that cites what the code cannot: a URL, an issue, an RFC, a CVE" do
+    expect_no_offenses(<<~RUBY)
+      # Net::HTTP reuses a socket the server already closed.
+      # See https://github.com/ruby/net-http/issues/42
+      def close = nil
+
+      # Rack drops a nil header (rack/rack#2049).
+      HEADER = "x"
+      # Kept for old clients, see #1342.
+      LEGACY = true
+      # RFC 7231 section 6.5.1 forbids it.
+      STATUS = 400
+      # Escape first: CVE-2023-27530 and GH-17.
+      LIMIT = 1
+    RUBY
+  end
+
+  it "flags a number sign that cites nothing" do
+    expect_offense(<<~RUBY)
+      # the total is item#3 of the row
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Say it in the code: rename it, extract it, or name the constant.
+      def total = lines.sum
+    RUBY
+  end
+
+  context "with citations priced" do
+    let(:cop_config) { { "AllowCitations" => false } }
+
+    it "flags a citing block too" do
+      expect_offense(<<~RUBY)
+        # See https://example.com
+        ^^^^^^^^^^^^^^^^^^^^^^^^^ Say it in the code: rename it, extract it, or name the constant.
+        def close = nil
+      RUBY
+    end
+  end
+
+  context "with a project's own directive pattern" do
+    let(:cop_config) { { "AllowedPatterns" => ["\\A#\\s*brakeman:"] } }
+
+    it "keeps the comments it matches" do
+      expect_no_offenses(<<~RUBY)
+        # brakeman:ignore SQL
+        def close = nil
+      RUBY
+    end
+  end
+
+  context "with the shipped defaults" do
+    let(:cop_config) { RuboCop::ConfigLoader.default_configuration.for_cop("Kata/NoComments") }
+
+    it "keeps a YARD block whole" do
+      expect_no_offenses(<<~RUBY)
+        # Totals the billable lines.
+        #
+        # @return [Integer]
+        def total = lines.sum
+      RUBY
+    end
+
+    it "marks the correction unsafe, so rubocop -a never deletes what a comment said" do
+      expect(cop_config["SafeAutoCorrect"]).to(be(false))
+    end
   end
 
   context "with documentation allowed, for a gem that publishes its API" do

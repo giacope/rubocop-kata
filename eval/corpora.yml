@@ -1,0 +1,28 @@
+# Pinned codebases. `config: bare` replaces the project's RuboCop setup with
+# `plugins: [rubocop-kata]`, the zero-config install; `own` keeps the
+# project's `.rubocop.yml`, for codebases that already run kata. `fix` runs
+# `rubocop -a` and `-A` on a copy and checks that the copy still parses and,
+# where `test` is set, that its suite stays green.
+- name: faraday
+  url: https://github.com/lostisland/faraday.git
+  sha: deeb6ef8e47b366581585ec40c30104bf500826f
+  config: bare
+  paths: [lib]
+  fix: true
+  test: "ruby -I{shims} -Ilib -S rspec --format progress --no-color"
+- name: rubygems.org
+  url: https://github.com/rubygems/rubygems.org.git
+  sha: be8fc6b7d005c30830d0efa5014091d3f1b2f479
+  config: bare
+  paths: [app, lib]
+  fix: true
+- name: hashira
+  url: https://github.com/giacope/hashira.git
+  sha: 32e7969554a26e050a30465cf142071d72a9f841
+  config: own
+  paths: [lib]
+- name: kimera
+  url: https://github.com/giacope/kimera.git
+  sha: 758df8f966011f4b25e659ceb48d6b7316dde416
+  config: own
+  paths: [lib]

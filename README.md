@@ -1,32 +1,52 @@
 # rubocop-kata
 
-A RuboCop plugin that replaces a pile of linter gems and config with one dependency. Install it and your `.rubocop.yml` shrinks to project-specific overrides. Everything else comes from the gem: a curated stack of RuboCop extensions, opinionated style defaults, and eighteen house cops.
+A RuboCop plugin that replaces a pile of linter gems and config with one dependency. Install it and your `.rubocop.yml` shrinks to project-specific overrides. Everything else comes from the gem: a curated stack of RuboCop extensions, opinionated style defaults, and nineteen house cops.
 
-`Kata/GoodMethodName` asks for one word per method name. A second word is
-allowed only when it is not hiding a missing object: a role prefix
-(`after_fork`), a role suffix (`file_of`), or a compound noun you have added to
-`Terms` on purpose. The wrong way to satisfy the cop is `matching_ids` →
-`matchingids`: if you need two words, that is a modelling smell — the concept is
-missing, or the method belongs on a different object. `Kata/RealWords` catches
-that dodge with a shipped dictionary instead of a word list you maintain:
-`matchingids` is not a word, so it fails with zero configuration — and so does
-`cfg`.
+Kata's naming and size rules began as Elegant Objects' one-word names and
+five-line methods. We measured them and they moved. In a blind readability
+study, two samples each held 30 entry methods (with their same-class helpers)
+from kimera and hashira, two codebases written to kata's rules, and 30 from
+rubocop, faraday and rubygems.org. Each sample was rated by two independent
+AI reviewers (separate model instances that saw only the code, shuffled, with
+no source names), who agreed on 54 and 55 of 60 calls; no human has rated it
+yet. Readers judged 14–16 of the 30 house-style items
+over-fragmented, against 0–2 of 30 in the control. They scored readability
+about 3.0 against 4.0 and name clarity about 2.5 against 4.1, calling the
+one-word names vague or metaphorical (`rolls`, `homes`, `sightings`,
+`pinpoint`). House-style methods averaged 3.0 lines, the control 6.3. The
+study cannot separate the rules from the people who followed them, but it
+points one way, and the defaults followed:
+
+- **Methods** may run to RuboCop's 10 lines. Logic density is what is
+  bounded, by `Metrics/AbcSize` 17, `CyclomaticComplexity` 7 and
+  `PerceivedComplexity` 8.
+- **Names** may take two words (`parse_header`, `line_items`), not counting
+  role words (`after_fork`, `file_of`). Three or more words still fail, and
+  so do chained actions (`validate_and_save`). `Kata/RealWords` still fails a
+  smash (`matchingids`) and a clipping (`cfg`). `MaxWords: 1` restores the
+  one-word discipline for a team that wants it.
+
+The study's items and ratings are in hashira, under
+`eval/results/fragmentation/`.
 
 - **One dependency.** Bundles rubocop-rspec, rubocop-performance, rubocop-elegant, rubocop-packaging, and rubocop-thread_safety behind a single gem.
-- **Opinionated defaults.** Methods under 5 lines, classes under 100, 4 parameters max, 120-column lines, double quotes, `NewCops: enable`. See [config/default.yml](config/default.yml).
-- **Eighteen house cops.** Naming, dependency discipline, and data honesty in the Elegant Objects spirit — from `Kata/GoodClassName` to `Kata/ClockDiscipline`.
+- **Opinionated defaults.** Methods up to 10 lines and bounded by complexity, classes under 100, 4 parameters max, 120-column lines, double quotes, `NewCops: enable`. See [config/default.yml](config/default.yml).
+- **Nineteen house cops.** Naming, dependency discipline, and data honesty in the Elegant Objects spirit — from `Kata/GoodClassName` to `Kata/ClockDiscipline`.
 
 ```ruby
 class PaymentProcessor  # Kata/GoodClassName: `PaymentProcessor` names a doer; name the class
-end                     #   for the thing it is, not the work it does. Try `Payment`.
+end                     #   for the thing it is, not the work it does.
 
 class Payment           # OK
 end
 ```
 
-It suggests a name only when it can derive one: a compound minus its agent word,
-or a regular `-ator`/`-ector`/`-isor`/`-izer` noun the shipped dictionary
-confirms (`Selector` → `Selection`, `Synthesizer` → `Synthesis`).
+A doer is an agent noun, not a word that ends in `-er`: data derived from
+WordNet says whether a word's dominant sense is "one that parses" (`Parser`,
+`Timer`) or a thing (`Number`, `Layer`, `Order`, `Folder`). On 400 labelled
+names its precision is 0.99 where the old "is the stem a word" test scored
+0.75 (see [eval/results](eval/results/README.md)). It suggests a name only when
+it can derive one (`Selector` → `Selection`).
 
 ## Getting started
 
@@ -51,60 +71,51 @@ bundle install
 bundle exec rubocop
 ```
 
-That's it. The plugin loads the bundled extensions and the shared defaults, so your `.rubocop.yml` keeps only what's specific to your project. Requires Ruby >= 3.4 and RuboCop ~> 1.75.
+That's it. The plugin loads the bundled extensions and the shared defaults, so your `.rubocop.yml` keeps only what's specific to your project. Requires Ruby >= 3.4 and RuboCop ~> 1.75 (1.75.1 or later).
 
 ### The bundled rubocop-elegant
 
-The released `rubocop-elegant` 0.7.1 has four defects this project reported
-upstream: `NoRedundantVariable` autocorrect corrupts Ruby 3.1 shorthand
-([#74](https://github.com/yegor256/rubocop-elegant/issues/74)), `ClassInModule`
-reports a class nested in a class as global
-([#75](https://github.com/yegor256/rubocop-elegant/issues/75)),
-`PairedBrackets` autocorrect drifts the indent
-([#76](https://github.com/yegor256/rubocop-elegant/issues/76)), and the
-test-file exclusions never match a Rails or RSpec suite
-([#77](https://github.com/yegor256/rubocop-elegant/issues/77)).
-
-Until upstream releases the fixes, the three cops ship here, fixed, as
-`Kata/NoRedundantVariable`, `Kata/PairedBrackets`, and `Kata/ClassInModule`;
-the `Elegant/*` originals are off so each offence is reported once. They are
-derived from rubocop-elegant under its MIT licence, and the notice travels
-with the gem as `LICENSE.txt`. The exclusions are widened.
-Once upstream ships, the copies go and the originals come back on.
-
-On a Rails codebase, consider turning `Kata/ClassInModule` off: it wants
-every class inside a module, and Zeitwerk resolves `class Account` from
-`app/models/account.rb` as a top-level constant by design.
+Kata reported four rubocop-elegant defects upstream
+([#74](https://github.com/yegor256/rubocop-elegant/issues/74)–[#77](https://github.com/yegor256/rubocop-elegant/issues/77));
+0.8.0 fixes them, but Kata's copies carry further fixes found on real codebases
+(a heredoc inlined without its body, a lambda's brace, the indent after a
+nested break), so `Kata/NoRedundantVariable`, `Kata/PairedBrackets`, and
+`Kata/ClassInModule` stay, and the `Elegant/*` originals stay off. They are
+derived from rubocop-elegant under its MIT licence (see `LICENSE.txt`). CI tests
+both the oldest releases the gemspec allows and the newest.
 
 ## The cops
 
 | Cop | Default | What it enforces |
 | --- | --- | --- |
-| `Kata/GoodClassName` | on | A class names one object that exists in the model: no `-er`/`-or` doers (suggests the better name when it can derive one), no junk drawers (`Service`, `Util`, `Data`), no packing several concepts into one name (`CustomerOrderPayment`). Compound syntax is not the smell — `CreditCard` is one concept, and `Terms` holds those. `AllowedNames` and `BannedNames` match a whole name or a trailing segment, so `Error` covers `UsageError` and `Service` catches `InvoiceService`. A test or preview is judged by its subject (`UsersControllerTest` as `UsersController`), and a known word whose stem is no verb (`Volunteer`, `Filter`) is not a doer. |
-| `Kata/GoodModuleName` | on | A module names a domain vocabulary (`Billing`, `AccessControl`), not an implementation category: no layer buckets (`Services`, `Helpers`, `Logic`), no vague shared namespaces (`Common`, `Shared`, `Core`), no doers. Tune via `BannedNames`/`Terms`/`AllowedNames`. |
+| `Kata/GoodClassName` | on | A class names one object that exists in the model: no doers (agent nouns, read from WordNet data), no junk drawers (`Service`, `Util`, `Data`), no packing several concepts into one name (`CustomerOrderPayment`). `CreditCard` is one concept; `Terms` holds those. A framework's suffix is a contract, its subject is not: `UsersController` is judged as `Users`, `ReportBuilderJob` as `ReportBuilder`. A class inherits the agent word of the superclass that chose it (`ActionHandler < Avo::Actions::ActionHandler`). `AllowedNames` holds exception classes and the domain roles a model represents (`User`, `Owner`). |
+| `Kata/GoodModuleName` | on | A module names a domain vocabulary (`Billing`, `AccessControl`), not an implementation category: no layer buckets (`Services`, `Helpers`, `Logic`), no vague shared namespaces (`Common`, `Shared`, `Core`), no doers. Rails helper modules (`InvoicesHelper`) are judged by their subject. |
 | `Kata/NoRedundantVariable` | on | A local assigned once and read once is inlined at its read, unless the move would cross a loop, a branch, or a side effect. Autocorrects, and keeps Ruby 3.1 shorthand intact. Fixed copy of `Elegant/NoRedundantVariable`. |
 | `Kata/PairedBrackets` | on | Every bracket pairs on its line, or opens at line end and closes at line start. Autocorrects without drifting the indent. Fixed copy of `Elegant/PairedBrackets`. |
-| `Kata/ClassInModule` | on | A class lives in a module, a class, or a compact namespace, never at the top level. Fixed copy of `Elegant/ClassInModule`. |
-| `Kata/NoComments` | on | No prose comments; say it in the code. Magic comments, linter directives, RDoc and YARD directives (`:nodoc:`, `@!method`), and licence headers survive; `config/` keeps the framework's generated guidance. A gem that publishes API docs sets `AllowDocumentation: true` to keep every block carrying a YARD tag. Autocorrects. |
+| `Kata/ClassInModule` | on | A class lives in a module, a class, or a compact namespace, never at the top level. A file directly in a Zeitwerk root (`app/models/account.rb`) is exempt: Rails resolves it as a top-level constant by design. Fixed copy of `Elegant/ClassInModule`; `Elegant/NoClassInModule`, which allowed only the compact form, is off. |
+| `Kata/NoComments` | on | No prose comments; say it in the code. Code cannot cite an external constraint, so a block citing a URL, an issue (`rails/rails#123`), an RFC or a CVE is kept, as are YARD-documented blocks (`AllowDocumentation`), magic comments and editor modelines, tool directives (RuboCop, Standard, Steep, RBS, reek, kimera, hashira…; `AllowedPatterns` for more), and licence headers. Deleting a comment loses what it said, so it corrects only under `rubocop -A`. |
 | `Kata/IoDiscipline` | on | No bare `puts`/`warn`/`pp`/`p` outside the test suite and the boot layer; write through an injected `@io` or an explicit receiver. |
 | `Kata/ProsePlacement` | off | Sentence-length strings belong in the presentation layer. Enable with an `Include`/`Exclude` matching your layering. |
-| `Kata/RealWords` | on | Every name segment is a word the shipped dictionary knows — `errorcount` (smash) and `cfg` (abbreviation) both fail, with no word list to maintain. Tune via `Terms`/`BannedWords`/`AllowedNames`. |
-| `Kata/GoodMethodName` | on | One word per method name; a second word needs a role prefix (`after_fork`), a role suffix (`file_of`), or a reviewed `Terms` entry. A name chaining actions (`validate_and_save`, `find_or_create`) is flagged as two methods in one. A Minitest `test_` method in a test class is a sentence, like an RSpec description, and goes unpriced. Tune via `MaxWords`/`Prefixes`/`Suffixes`/`Terms`/`AllowedNames`. |
+| `Kata/RealWords` | on | Every name segment is a word: English, an initialism, a technology's name, or the platform's own spelling (`env`, `params`, `attr`, `io`). `errorcount` (a smash) fails, and so does every clipping, whichever dictionary lists it: `args`, `opts`, `src`, `impl`, `str`, `req`, `conn`, with the word named in the message. `foo` is a placeholder. Tune via `Terms`/`BannedWords`/`AllowedNames`. |
+| `Kata/GoodMethodName` | on | At most two words per method name (`MaxWords`), not counting a role prefix (`after_fork`), a role suffix (`file_of`) or a reviewed `Terms` entry; three or more words describe a missing object. A name chaining actions (`validate_and_save`) is two methods in one. Names minted by `attr_*`, `define_method`, `alias_method` and `alias` count. A Minitest `test_` method in a test class goes unpriced. |
 | `Kata/GoodVariableName` | on | The same rule for locals, parameters, ivars, class variables, and globals; `_name` and `@_name` stay exempt. |
 | `Kata/BuilderNoun` | on | Builders named for what they return: `total`, not `calculate_total`. Tune via `BannedPrefixes`/`AllowedNames`. |
 | `Kata/NoBooleanFlag` | on | No positional boolean arguments, and no positional parameter defaulting to one; split the method or use a keyword. `AllowedMethods` holds the calls whose boolean is a protocol or a value (`respond_to?(name, true)`, `fetch(:ssl, false)`). |
-| `Kata/ConstructorDiscipline` | on | `initialize` assigns, raises, or freezes — never computes. |
-| `Kata/NoClassMethodLogic` | on | Class methods construct (`build`, `parse`, `of`, `from`, `from_*`) or answer a Ruby hook (`included`, `inherited`); instances do the work. Methods opened with `class << self` count. |
-| `Kata/NoHashAsObject` | on | A hash with `MaxKeys`+ keys (default 4) wants to be an object. Keyword arguments, and a lookup table a constant names, are exempt. |
-| `Kata/ClockDiscipline` | on | No bare `Time.now`/`Date.today`/`.current`; inject a clock. |
+| `Kata/ConstructorDiscipline` | on | `initialize` assigns, raises, or freezes — never computes. Shaping an argument (`Array(x)`, `name.to_s`, `items.dup`) and the object's own lock or empty collection (`Mutex.new`, `Set.new`) are assignment; a clock, a random number or a client is a hidden dependency. |
+| `Kata/NoClassMethodLogic` | on | Class methods construct (`build`, `parse`, `of`, `from_*`, `new`, `[]`), answer a Ruby hook (`included`, `inherited`), or a serialization protocol (`load`/`dump`, `json_create`); instances do the work. |
+| `Kata/NoHashAsObject` | on | A hash with `MaxKeys`+ keys (default 4) wants to be an object. Keyword arguments, a lookup table a constant names, and the hash `to_h`/`as_json` return are exempt. |
+| `Kata/ClockDiscipline` | on | No ambient clock (`Time.now`, `Time.zone.now`, `Date.current`, `Time.new`, `Process.clock_gettime`); inject one. A parameter default is the seam: `def stamp(now: Time.now)`. |
+| `Kata/JustifiedDirective` | on | An inline `rubocop:disable` says why after `--` (`# rubocop:disable Kata/GoodClassName -- Avo resolves the handler by this name`), so a false positive costs one reviewed line, not a per-file `Exclude`. |
 | `Kata/EnvDiscipline` | on | `ENV` reads only in the boot layer (`config/`, `config.ru`, `db/seeds*`, `db/migrate/`, `lib/tasks/`, rake files, Gemfiles, `bin/`, `exe/`, `script/`) — or as a parameter default, which is the seam the cop asks for. |
 
 ## Dead configuration
 
-`doctor` reports configuration that no longer does anything: a `.rubocop.yml`
-entry for a cop the inherited configuration disables, and a
-`rubocop:disable`/`enable` comment naming a cop that is not enabled where the
-comment sits. RuboCop reports neither.
+`doctor` reports configuration that no longer does anything: an entry in
+`.rubocop.yml` or any file it inherits (`.rubocop_todo.yml` among them) for a
+cop the configuration disables, and a `rubocop:disable`/`enable` comment naming
+a cop that is not enabled where the comment sits. RuboCop reports neither. It
+names any file it could not read or parse, and lists every inline disable with
+its reason.
 
 ```sh
 bundle exec rubocop-kata doctor          # or: doctor path/to/project
@@ -133,13 +144,14 @@ bundle exec rubocop-kata plan            # or: plan path/to/project
 structure     184  Kata/ConstructorDiscipline 92, Kata/NoHashAsObject 48, Kata/EnvDiscipline 44
 naming        263  Kata/RealWords 141, Kata/GoodVariableName 88, Kata/GoodClassName 34
 prose          57  Kata/NoComments 57
-rest          412  Elegant/PairedBrackets 300, Layout/LineLength 112
+layout        300  Kata/PairedBrackets 210, Layout/LineLength 90
 next: structure — 184 offenses in 61 files; these mint the names `naming` then prices, so take them first
 densest: app/models/account.rb (14)
 ```
 
 Structure before naming, because doing naming first means renaming things the
-structural pass is about to move.
+structural pass is about to move; layout last, because every other stage moves
+lines.
 
 The gem also ships an agent skill that runs this loop: it works the stage `plan`
 names, checks every name it introduces against the same dictionary
@@ -156,12 +168,21 @@ skills from — a project, `~/.claude/skills/`, or a plugin.
 
 ## The defaults
 
-Double-quoted strings, `Metrics/MethodLength: 5`, `Metrics/ClassLength: 100`,
-`Metrics/ParameterLists: 4`, 120-column lines, endless methods on one line,
-`rescue => error`, `NewCops: enable`, heredocs counted as one line in spec
-examples, and no inline `rubocop:disable` comments
-(`Style/DisableCopsWithinSourceCodeDirective`). See
-[config/default.yml](config/default.yml).
+Double-quoted strings, `Metrics/MethodLength: 10` (a wrapped call counts as
+one line) guarded by `Metrics/AbcSize: 17`, `CyclomaticComplexity: 7` and
+`PerceivedComplexity: 8`, two-word names, `Metrics/ClassLength: 100`, `Metrics/ParameterLists: 4`, 120-column lines,
+endless methods on one line, `rescue => error`, `NewCops: enable`, and inline
+disables only with a reason. The core Layout cops stay on, except the four that
+loop against Elegant's no-blank-lines rule. `rubocop -a` deletes no comment and
+renames no ivar. See [config/default.yml](config/default.yml).
+
+## Measured
+
+`eval/run --kata PATH` scores a checkout: labelled cases per cop under the
+shipped defaults, 400 labelled `-er`/`-or`/`-ar` names, the `rubocop-kata`
+commands, and pinned codebases for offenses per kLOC and for what `-a` and `-A`
+leave behind. [eval/results](eval/results/README.md) holds this release against
+the previous one.
 
 ## License
 
@@ -181,4 +202,9 @@ third-party data under their own terms:
   dictionaries of [cspell-dicts](https://github.com/streetsidesoftware/cspell-dicts),
   each MIT-licensed. Copyright (c) 2017–2025 Street Side Software; the notice and
   permission text are reproduced in [data/CSPELL-LICENSE](data/CSPELL-LICENSE).
-- **`data/supplement.txt`** — this project's own additions, MIT.
+- **`data/agents.txt.gz`, `data/things.txt.gz`, `data/verbs.txt.gz`** — derived
+  from [WordNet 3.0](https://wordnet.princeton.edu) by `script/wordnet`. WordNet 3.0
+  Copyright 2006 by Princeton University, all rights reserved; its licence is
+  reproduced in [data/WORDNET-LICENSE](data/WORDNET-LICENSE).
+- **`data/supplement.txt`** and **`data/clippings.txt`** — this project's own
+  additions, MIT.

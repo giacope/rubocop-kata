@@ -8,6 +8,20 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: latest releases
+            rubocop: ">= 0"
+            elegant: ">= 0"
+          - name: oldest the gemspec allows
+            rubocop: "1.75.1"
+            elegant: "0.7.1"
+    name: test (${{ matrix.name }})
+    env:
+      RUBOCOP_VERSION: ${{ matrix.rubocop }}
+      RUBOCOP_ELEGANT_VERSION: ${{ matrix.elegant }}
     steps:
       - uses: actions/checkout@v4
       - uses: ruby/setup-ruby@v1

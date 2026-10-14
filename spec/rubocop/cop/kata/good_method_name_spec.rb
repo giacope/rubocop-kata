@@ -1,13 +1,13 @@
 # frozen_string_literal: true
 
 RSpec.describe(RuboCop::Cop::Kata::GoodMethodName, :config) do
-  let(:defaults) { YAML.load_file("config/default.yml").fetch("Kata/GoodMethodName") }
+  let(:defaults) { YAML.load_file("config/default.yml", aliases: true).fetch("Kata/GoodMethodName") }
   let(:cop_config) { defaults.merge("Terms" => [], "AllowedNames" => []) }
 
-  def offense(name)
-    "`#{name}` needs two words: either a concept is missing, or the method belongs on the object " \
-      "the second word names. Say it in one word, move it, give the role a `Prefixes`/`Suffixes` " \
-      "word — or, if `#{name}` is one domain concept here, add it to `Terms`."
+  def offense(name, count = 3, max = 2)
+    "`#{name}` strings #{count} words together, past the #{max} a name carries: a concept is missing, or the " \
+      "method belongs on the object the words describe. Say it in fewer, move it, give a role a " \
+      "`Prefixes`/`Suffixes` word — or, if `#{name}` is one domain concept here, add it to `Terms`."
   end
 
   it "ignores operator methods — Ruby dictates their names" do
@@ -21,6 +21,25 @@ RSpec.describe(RuboCop::Cop::Kata::GoodMethodName, :config) do
       def <=>(other)
       end
       def <<(item)
+      end
+    RUBY
+  end
+
+  it "judges a hook name by its words, not the underscores Ruby puts in front" do
+    expect_no_offenses(<<~RUBY)
+      def _fork
+      end
+      def _dump(level)
+      end
+      def __send
+      end
+    RUBY
+  end
+
+  it "still counts the words behind the underscores" do
+    expect_offense(<<~RUBY)
+      def _merge_cached_rows
+          ^^^^^^^^^^^^^^^^^^ #{offense("_merge_cached_rows")}
       end
     RUBY
   end
@@ -78,16 +97,21 @@ RSpec.describe(RuboCop::Cop::Kata::GoodMethodName, :config) do
     RUBY
   end
 
-  it "flags verb plus receiver" do
-    expect_offense(<<~RUBY, message: offense("build_adapter"))
+  it "allows two words, which are often one concept's honest name" do
+    expect_no_offenses(<<~RUBY)
       def build_adapter
-          ^^^^^^^^^^^^^ %{message}
+      end
+      def matching_ids
+      end
+      def harness_critical?
+      end
+      def source_root=(value)
       end
     RUBY
   end
 
-  it "flags the rest of the two-word smells" do
-    %w[assemble_report drive_pool cmd_run apply_excludes matching_ids covering_lines].each do |name|
+  it "flags three words, where a concept or a method home is missing" do
+    %w[assemble_monthly_report drive_worker_pool apply_exclude_globs].each do |name|
       expect_offense(<<~RUBY, name: name, message: offense(name))
         def %{name}
             ^{name} %{message}
@@ -96,61 +120,74 @@ RSpec.describe(RuboCop::Cop::Kata::GoodMethodName, :config) do
     end
   end
 
-  it "flags two-word predicates, bangs, and setters" do
-    expect_offense(<<~RUBY, message: offense("harness_critical?"))
-      def harness_critical?
-          ^^^^^^^^^^^^^^^^^ %{message}
+  it "flags three-word predicates, bangs, and setters, role prefix or not" do
+    expect_offense(<<~RUBY)
+      def harness_critical_zone?
+          ^^^^^^^^^^^^^^^^^^^^^^ #{offense("harness_critical_zone?")}
       end
-    RUBY
-    expect_offense(<<~RUBY, message: offense("class_body?"))
-      def class_body?
-          ^^^^^^^^^^^ %{message}
-      end
-    RUBY
-    expect_offense(<<~RUBY, message: offense("source_root="))
-      def source_root=(value)
-          ^^^^^^^^^^^^ %{message}
-      end
-    RUBY
-  end
-
-  it "flags three-word names, role prefix or not" do
-    expect_offense(<<~RUBY, message: offense("install_enum_guard!"))
       def install_enum_guard!
-          ^^^^^^^^^^^^^^^^^^^ %{message}
+          ^^^^^^^^^^^^^^^^^^^ #{offense("install_enum_guard!")}
       end
-    RUBY
-    expect_offense(<<~RUBY, message: offense("fork_pool_worker"))
+      def source_tree_root=(value)
+          ^^^^^^^^^^^^^^^^^ #{offense("source_tree_root=")}
+      end
       def self.fork_pool_worker
-               ^^^^^^^^^^^^^^^^ %{message}
+               ^^^^^^^^^^^^^^^^ #{offense("fork_pool_worker")}
       end
     RUBY
   end
 
-  it "flags names longer than the pattern allows" do
-    expect_offense(<<~RUBY, message: offense("supercalifragilistic"))
-      def supercalifragilistic
-          ^^^^^^^^^^^^^^^^^^^^ %{message}
+  it "does not count role words" do
+    expect_no_offenses(<<~RUBY)
+      def to_line_items
+      end
+      def line_item_count
+      end
+      def source_root_path=(value)
       end
     RUBY
+  end
+
+  it "flags a segment the pattern rejects" do
+    expect_offense(<<~RUBY)
+      def supercalifragilistic
+          ^^^^^^^^^^^^^^^^^^^^ `supercalifragilistic`: the segment `supercalifragilistic` does not match `Pattern`; a segment is one lowercase word.
+      end
+    RUBY
+  end
+
+  context "with MaxWords 1, for a team that wants one word" do
+    let(:cop_config) { defaults.merge("Terms" => [], "AllowedNames" => [], "MaxWords" => 1) }
+
+    it "flags two words" do
+      expect_offense(<<~RUBY)
+        def build_adapter
+            ^^^^^^^^^^^^^ #{offense("build_adapter", 2, 1)}
+        end
+        def to_line_items
+            ^^^^^^^^^^^^^ #{offense("to_line_items", 2, 1)}
+        end
+      RUBY
+    end
+
+    it "still allows a word with its roles" do
+      expect_no_offenses(<<~RUBY)
+        def after_fork
+        end
+        def file_of
+        end
+      RUBY
+    end
   end
 
   context "with domain terms declared" do
-    let(:cop_config) do
-      defaults.merge("Terms" => %w[changed_files covering_tests mutant_id source_root test_id], "AllowedNames" => [])
-    end
+    let(:cop_config) { defaults.merge("Terms" => %w[date_of_birth billing_cycle_day], "AllowedNames" => []) }
 
     it "allows them" do
       expect_no_offenses(<<~RUBY)
-        def changed_files
+        def date_of_birth
         end
-        def covering_tests
-        end
-        def mutant_id
-        end
-        def source_root
-        end
-        def test_id
+        def billing_cycle_day
         end
       RUBY
     end
@@ -231,11 +268,11 @@ RSpec.describe(RuboCop::Cop::Kata::GoodMethodName, :config) do
   end
 
   context "with the raw escape hatch" do
-    let(:cop_config) { defaults.merge("Terms" => [], "AllowedNames" => %w[build_adapter]) }
+    let(:cop_config) { defaults.merge("Terms" => [], "AllowedNames" => %w[build_pool_adapter]) }
 
     it "allows the listed name" do
       expect_no_offenses(<<~RUBY)
-        def build_adapter
+        def build_pool_adapter
         end
       RUBY
     end
@@ -247,6 +284,41 @@ RSpec.describe(RuboCop::Cop::Kata::GoodMethodName, :config) do
       end
       def count
       end
+    RUBY
+  end
+
+  it "prices the names attr macros, define_method and alias mint, not only def" do
+    expect_offense(<<~RUBY)
+      attr_reader :name, :user_home_page
+                         ^^^^^^^^^^^^^^^ #{offense("user_home_page")}
+      attr_accessor "billing_cycle_day"
+                    ^^^^^^^^^^^^^^^^^^^ #{offense("billing_cycle_day")}
+      attr_writer :user_home_page
+                  ^^^^^^^^^^^^^^^ #{offense("user_home_page")}
+      define_method(:user_home_page) { "x" }
+                    ^^^^^^^^^^^^^^^ #{offense("user_home_page")}
+      alias_method :user_home_page, :name
+                   ^^^^^^^^^^^^^^^ #{offense("user_home_page")}
+      alias user_home_page name
+            ^^^^^^^^^^^^^^ #{offense("user_home_page")}
+    RUBY
+  end
+
+  it "judges only the new name of an alias, and leaves other calls alone" do
+    expect_no_offenses(<<~RUBY)
+      alias_method :name, :user_home_page
+      alias name user_home_page
+      define_method(name) { "x" }
+      record.attr_reader(:user_home_page)
+      validates :user_home_page, presence: true
+      alias $new $old
+    RUBY
+  end
+
+  it "reads the macros on self too" do
+    expect_offense(<<~RUBY)
+      self.define_method(:user_home_page) { "x" }
+                         ^^^^^^^^^^^^^^^ #{offense("user_home_page")}
     RUBY
   end
 end

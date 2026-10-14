@@ -7,13 +7,13 @@ Gem::Specification.new do |spec|
   spec.version = RuboCop::Kata::VERSION
   spec.authors = ["Giacomo GK"]
   spec.email = ["giaco@hey.com"]
-  spec.summary = "Practiced forms for Ruby: a RuboCop plugin with opinionated defaults and eighteen house cops"
+  spec.summary = "Practiced forms for Ruby: a RuboCop plugin with opinionated defaults and nineteen house cops"
   spec.description = "Bundles a curated RuboCop stack (rspec, performance, elegant, packaging, " \
     "thread_safety) behind one dependency, layers opinionated style defaults on top, and adds " \
-    "eighteen cops of its own — naming (GoodMethodName, GoodVariableName, dictionary-backed " \
+    "nineteen cops of its own — naming (GoodMethodName, GoodVariableName, dictionary-backed " \
     "RealWords, GoodClassName, GoodModuleName, BuilderNoun), discipline (IoDiscipline, ClockDiscipline, " \
     "EnvDiscipline, ConstructorDiscipline, NoClassMethodLogic), and shape (NoComments, " \
-    "NoBooleanFlag, NoHashAsObject, ProsePlacement). The rubocop-kata command reports dead " \
+    "NoBooleanFlag, NoHashAsObject, ProsePlacement, JustifiedDirective). The rubocop-kata command reports dead " \
     "configuration (doctor), buckets a backlog into the stages that cause each other (plan), " \
     "and prints an agent skill for working it (skill)."
   spec.homepage = "https://github.com/giacope/rubocop-kata"
@@ -34,7 +34,7 @@ Gem::Specification.new do |spec|
   spec.executables = ["rubocop-kata"]
   spec.require_paths = ["lib"]
   spec.add_dependency("lint_roller", "~> 1.1")
-  spec.add_dependency("rubocop", "~> 1.75")
+  spec.add_dependency("rubocop", "~> 1.75", ">= 1.75.1")
   spec.add_dependency("rubocop-elegant", "~> 0.7")
   spec.add_dependency("rubocop-packaging", "~> 0.6")
   spec.add_dependency("rubocop-performance", "~> 1.25")

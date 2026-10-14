@@ -8,11 +8,4 @@ class RuboCop::Cop::Kata::GoodClassName < RuboCop::Cop::Base
     "in the model — or, if `%s` reads as one concept here, add it to `Terms`."
 
   def on_class(node) = check(node)
-
-  private
-
-  def subject(name)
-    role = list("Suffixes").find { name.end_with?(it) }
-    role ? name.delete_suffix(role) : name
-  end
 end

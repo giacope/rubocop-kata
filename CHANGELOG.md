@@ -2,6 +2,110 @@
 
 ## [Unreleased]
 
+- `Kata/GoodMethodName` judges a hook name by the words behind its leading
+  underscores: `_fork`, `_dump` and `__send` pass, where they were reported as
+  having an empty segment.
+- kata's own `lib` now reads under those limits. hashira's fragmentation
+  check found 21 public methods spread over chains of one-line helpers;
+  folding single-use helpers into their callers took `lib` from 255 methods
+  averaging 2.65 lines to 206 averaging 3.17. In a blind pairwise review of
+  the 9 refactors, both raters preferred the merge for Checkup, Plan,
+  PairedBrackets and GoodMethodName, both preferred the original for
+  NoComments, ConstructorDiscipline, Ledger and Inlining, and split on
+  RealWords, which keeps its merge; the four losses went back to their
+  named predicates. Under
+  hashira's revised check, which no longer counts named predicates, findings
+  go from 18 to 0, with NoComments and Ledger kept by a directive citing the
+  review. Cases, corpora and the mutation score (100%) are unchanged.
+
+- Methods may run to 10 lines and names may take two words. A blind
+  readability study compared kimera and hashira, written to kata's rules,
+  with rubocop, faraday and rubygems.org: two samples of 60 entry methods,
+  two independent AI reviewers each, agreeing on 54 and 55 of 60 calls. Readers judged 14–16
+  of 30 house-style items over-fragmented against 0–2 of 30 in the control,
+  and scored readability about 3.0 against 4.0 and name clarity about 2.5
+  against 4.1. House-style methods averaged 3.0 lines, the control 6.3.
+  `Metrics/MethodLength` goes from 5 to RuboCop's 10, and logic density is
+  bounded by the complexity cops at RuboCop's defaults instead of Elegant's:
+  `AbcSize` 17, `CyclomaticComplexity` 7 and `PerceivedComplexity` 8.
+  `Kata/GoodMethodName` and `Kata/GoodVariableName` allow two words by
+  default, role words uncounted. Three or more words, chained actions,
+  smashes and clippings still fail, and `MaxWords: 1` restores one word. The
+  messages now say that three words, not two, mean a missing concept, and a
+  segment the `Pattern` rejects gets its own message.
+
+Measured with the new `eval/run`, which scores a checkout as users install it;
+[eval/results](eval/results/README.md) has the full before/after. Snippet cases
+under the shipped defaults pass 164 of 167, up from 83.
+
+- `rubocop -a` no longer deletes comments. `Kata/NoComments` corrected as
+  safe, so plain `-a` cut faraday's 1,068 comment lines to 61, YARD tags and
+  all; its correction is unsafe now (`-a` keeps 1,067 of 1,068). It also keeps
+  what code cannot say or a tool reads: blocks that cite a URL, an issue or
+  pull request (`rails/rails#123`, `#123`), an RFC, a CVE or a GHSA; emacs and
+  vim modelines (`# -*- coding: binary -*-` sets every literal's encoding);
+  Steep, RBS, Standard, reek, kimera and hashira directives, RubyMine
+  `language=`; and, by default now, YARD-documented blocks
+  (`AllowDocumentation: true`). `AllowedPatterns` adds a tool's directives.
+- `Kata/GoodClassName` and `Kata/GoodModuleName` read a doer from WordNet 3.0:
+  a word is a doer when its dominant sense is the agent of the verb its stem
+  names, so `Number`, `Layer`, `Letter`, `Corner`, `Matter`, `Order` and
+  `Folder` are things. On 400 labelled names the rule's precision rises from
+  0.75 to 0.99 (recall 0.98 → 0.94). `AllowedNames` shrinks from 45 entries,
+  duplicated for modules, to 9 shared through a YAML anchor. Framework names
+  are `ContractSuffixes`: the framework dictates the suffix, not the subject,
+  so `UsersController` is judged as `Users` and `ReportBuilderJob` as
+  `ReportBuilder`. A class inherits the agent word of the superclass that
+  chose it (`ActionHandler < Avo::Actions::ActionHandler`). `Presenter`,
+  `Notifier`, `Subscriber`, `Driver` and `Timer` are no longer allowed: no
+  framework resolves a class by them. A suggestion never names the class
+  itself (`Liar` suggested `Liar`).
+- `Kata/RealWords` prices every clipping the same, whichever dictionary lists
+  it: `args`, `opts`, `src`, `cmd`, `impl`, `util`, `calc`, `func` now fail
+  beside `str`, `req`, `resp` and `conn`, and the message names the word.
+  `foo`, `baz` and `qux` are placeholders. The platform's own spellings pass
+  (`env`, `params`, `attr`, `io`, `regexp`, `stdout`), and so does the
+  conversion protocol (`to_str`, `to_sym`). The 123 reviewed clippings live in
+  `data/clippings.txt`; `BannedWords` starts empty.
+- `Kata/GoodMethodName` and `Kata/RealWords` price the names `attr_*`,
+  `define_method`, `alias_method` and `alias` mint.
+- `Kata/ClockDiscipline` accepts a parameter default as the seam, as
+  `Kata/EnvDiscipline` does (`def stamp(now: Time.now)`), and catches
+  `Time.zone.now`, `Date.current`, `Date.yesterday`, `Time.new` and
+  `Process.clock_gettime`.
+- `Kata/ConstructorDiscipline` allows shaping an argument (`Array(x)`,
+  `Integer(port)`, `to_*`, `dup`) and the object's own lock or empty
+  collection (`Mutex.new`, `Set.new`); `SecureRandom.uuid` stays flagged.
+  `Kata/NoClassMethodLogic` allows `load`/`dump`, `_load`, `json_create`,
+  `new` and `[]`. `Kata/NoHashAsObject` allows the hash `to_h` and `as_json`
+  return. `Kata/NoBooleanFlag` allows `exit(false)`.
+- `Kata/ClassInModule` excludes files directly in a Zeitwerk root
+  (`app/models/account.rb`), and `Elegant/NoClassInModule` is off: together
+  they accepted only `class A::B`, while the README promised a module, a
+  class, or a compact namespace.
+- New `Kata/JustifiedDirective` replaces the ban on inline disables: a
+  `rubocop:disable` must say why after `--`, so a false positive costs one
+  reviewed line, not a per-file `Exclude`.
+- `Kata/PairedBrackets` corrects to the indent the Layout cops expect (its own
+  spec expected a nested argument at its parent's column) and leaves block
+  parameters with their brace. Ten core Layout cops are back on; the four that
+  loop against Elegant's no-blank-lines rule stay off.
+- `Naming/MemoizedInstanceVariableName` no longer corrects: renaming the ivar
+  in one method broke 25 of faraday's specs under `-A` (now 0).
+  `Metrics/AbcSize` returns to 17, pricing the logic a wrapped call hides from
+  `Metrics/MethodLength`.
+- `Elegant/OneClassPerFile` is enabled explicitly: on RuboCop releases before
+  its own `Style/OneClassPerFile`, rubocop-elegant's config switched it off.
+- `plan` no longer crashes under `LANG=C`, stages `Kata/PairedBrackets` and
+  the Layout cops under a new `layout` stage, and a spec fails when a Kata cop
+  is unstaged. `doctor` follows `inherit_from` (the todo file among it), names
+  files it cannot read or parse instead of passing them, and lists every
+  inline disable with its reason.
+- The Gemfile tests released gems, and CI runs on both the newest releases and
+  the oldest the gemspec allows (rubocop 1.75.1, rubocop-elegant 0.7.1). The
+  floor moves from 1.75.0 to 1.75.1: 1.75.0's new `Style/ItBlockParameter`
+  crashes on every `it` block.
+
 Precision, measured on the same fifteen codebases: Kata offenses fall from
 46,417 to 40,502, and what is left is what the rules are for.
 

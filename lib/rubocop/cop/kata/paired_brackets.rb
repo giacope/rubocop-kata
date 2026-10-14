@@ -11,38 +11,68 @@ class RuboCop::Cop::Kata::PairedBrackets < RuboCop::Cop::Base
 
   OPENERS = %i[tLPAREN tLPAREN2 tLPAREN_ARG tLBRACK tLBRACK2 tLCURLY tLBRACE tLBRACE_ARG tLAMBEG].freeze
   CLOSERS = %i[tRPAREN tRBRACK tRCURLY].freeze
+  PARAMETERS = /\A\|[^|]*\|/
+  STEP = "  "
 
   def on_new_investigation
     super
-    pairs.each { |opener, closer| check(opener, closer) }
+    @_strings = nil
+    stack = []
+    found =
+      processed_source.tokens.filter_map do |token|
+        stack << token if OPENERS.include?(token.type)
+        [stack.pop, token] if CLOSERS.include?(token.type) && !stack.empty?
+      end
+    found.each { |opener, closer| check(opener, closer, found) }
   end
 
   private
 
-  def pairs
-    stack = []
-    processed_source.tokens.filter_map { pair(it, stack) }
-  end
-
-  def pair(token, stack)
-    type = token.type
-    stack << token if OPENERS.include?(type)
-    [stack.pop, token] if CLOSERS.include?(type) && !stack.empty?
-  end
-
-  def check(opener, closer)
+  def check(opener, closer, found)
     return if opener.line == closer.line
-    indent = leading(opener)
-    after(opener, indent) unless ends?(opener)
-    before(closer, indent) unless starts?(closer)
+    return defer(opener, closer) if found.any? { |outer, close| enclosing?(outer, close, opener) }
+    after(opener, closer, found) unless ends?(opener)
+    before(closer, leading(opener)) unless starts?(closer)
   end
 
-  def after(token, indent)
-    register(token) { it.replace(trailing(token), "\n#{indent}  ") }
+  def defer(opener, closer)
+    register(opener) unless ends?(opener)
+    register(closer) unless starts?(closer)
+  end
+
+  def enclosing?(outer, close, inner)
+    !outer.equal?(inner) && outer.line == inner.line && outer.pos.join(close.pos).contains?(inner.pos)
+  end
+
+  def after(token, closer, found)
+    register(token) do |corrector|
+      corrector.replace(trailing(token), "\n#{leading(token)}#{STEP}")
+      nested(token, closer, found).each { corrector.insert_before(start(it), STEP) }
+    end
   end
 
   def before(token, indent)
     register(token) { it.replace(preceding(token), "\n#{indent}") }
+  end
+
+  def nested(token, closer, found)
+    last = found.filter_map { |inner, close| close.line if enclosing?(token, closer, inner) }.max
+    return [] unless last
+    ((token.line + 1)..last).reject { untouched?(it) }
+  end
+
+  def untouched?(line)
+    processed_source.lines[line - 1].strip.empty? ||
+      strings.any? { it.contains?(processed_source.buffer.line_range(line)) }
+  end
+
+  def start(line) = processed_source.buffer.line_range(line).resize(0)
+
+  def strings
+    @_strings ||=
+      Array(processed_source.ast&.each_node(:str, :dstr, :xstr)).map do |node|
+        node.heredoc? ? node.loc.heredoc_body.join(node.loc.heredoc_end) : node.source_range.adjust(begin_pos: 1)
+      end
   end
 
   def trailing(token)
@@ -58,8 +88,8 @@ class RuboCop::Cop::Kata::PairedBrackets < RuboCop::Cop::Base
   def starts?(token) = processed_source.lines[token.line - 1][0...token.column].strip.empty?
 
   def ends?(token)
-    after = processed_source.lines[token.line - 1][(token.column + token.text.length)..].to_s.strip
-    after.empty? || after.start_with?("#")
+    rest = processed_source.lines[token.line - 1][token.pos.last_column..].to_s.strip.sub(PARAMETERS, "").strip
+    rest.empty? || rest.start_with?("#")
   end
 
   def leading(token) = processed_source.lines[token.line - 1][/\A[ \t]*/]

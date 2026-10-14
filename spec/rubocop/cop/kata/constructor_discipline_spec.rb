@@ -4,8 +4,8 @@ RSpec.describe(RuboCop::Cop::Kata::ConstructorDiscipline, :config) do
   it "flags computation inside initialize" do
     expect_offense(<<~RUBY)
       def initialize(io)
-        @io = io.dup
-              ^^^^^^ A constructor assigns; it does not compute. Move `dup` out of `initialize`.
+        @lines = io.readlines
+                 ^^^^^^^^^^^^ A constructor assigns; it does not compute. Move `readlines` out of `initialize`.
       end
     RUBY
   end
@@ -86,6 +86,49 @@ RSpec.describe(RuboCop::Cop::Kata::ConstructorDiscipline, :config) do
     expect_no_offenses(<<~RUBY)
       def build(io)
         @io = io.dup
+      end
+    RUBY
+  end
+
+  context "with the shipped defaults" do
+    let(:cop_config) { RuboCop::ConfigLoader.default_configuration.for_cop("Kata/ConstructorDiscipline") }
+
+    it "allows shaping what was passed in, and the object's own lock and collections" do
+      expect_no_offenses(<<~RUBY)
+        def initialize(items, name, port)
+          @items = Array(items).dup.freeze
+          @name = name.to_s
+          @port = Integer(port)
+          @lock = Mutex.new
+          @queue = Thread::Queue.new
+          @seen = Set.new
+          @index = Hash.new { |hash, key| hash[key] = [] }
+        end
+      RUBY
+    end
+
+    it "still flags a hidden dependency or a computation" do
+      expect_offense(<<~RUBY)
+        def initialize(items, url)
+          @id = SecureRandom.uuid
+                ^^^^^^^^^^^^^^^^^ A constructor assigns; it does not compute. Move `uuid` out of `initialize`.
+          @client = Http::Client.new(url)
+                    ^^^^^^^^^^^^^^^^^^^^^ A constructor assigns; it does not compute. Move `new` out of `initialize`.
+          @total = items.sum
+                   ^^^^^^^^^ A constructor assigns; it does not compute. Move `sum` out of `initialize`.
+          @ids = Set.new(items.map(&:id))
+                         ^^^^^^^^^^^^^^^ A constructor assigns; it does not compute. Move `map` out of `initialize`.
+          @size = String.instance_method(:size)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ A constructor assigns; it does not compute. Move `instance_method` out of `initialize`.
+        end
+      RUBY
+    end
+  end
+
+  it "reads only initialize" do
+    expect_no_offenses(<<~RUBY)
+      def build(items)
+        @total = items.sum
       end
     RUBY
   end

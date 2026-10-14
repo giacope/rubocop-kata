@@ -1,0 +1,42 @@
+# Method size is bounded by logic, not lines.
+- id: plain-eight-line-method-allowed
+  cop: Metrics/MethodLength
+  expect: clean
+  source: |
+    def report(totals)
+      lines = []
+      lines << "Invoices: #{totals.count}"
+      lines << "Billed: #{totals.billed}"
+      lines << "Paid: #{totals.paid}"
+      lines << "Open: #{totals.open}"
+      lines << "Overdue: #{totals.overdue}"
+      lines.join("\n")
+    end
+- id: long-method-flagged
+  cop: Metrics/MethodLength
+  expect: offense
+  source: |
+    def report(totals)
+      lines = []
+      lines << totals.a
+      lines << totals.b
+      lines << totals.c
+      lines << totals.d
+      lines << totals.e
+      lines << totals.f
+      lines << totals.g
+      lines << totals.h
+      lines << totals.i
+      lines.join
+    end
+- id: branching-method-flagged
+  cop: Metrics/CyclomaticComplexity
+  expect: offense
+  source: |
+    def grade(score, bonus, late)
+      return :a if score > 90 && !late
+      return :b if score > 80 || bonus
+      return :c if score > 70
+      return :d if score > 60 && bonus
+      :f if late
+    end
