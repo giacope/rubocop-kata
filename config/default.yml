@@ -880,6 +880,50 @@ Kata/CommandQuery:
     - "**/*_spec.rb"
     - "**/*_test.rb"
 
+Kata/NoTypeCheck:
+  Description: >-
+    `is_a?`, `kind_of?`, `instance_of?` and `respond_to?` ask an object what
+    it is so the caller can decide what to do; polymorphism lets the object
+    decide. The boot layer and the protocols that compare or convert values
+    are exempt: `AllowedMethods` holds `==`, `eql?`, `<=>`, `===`, `coerce`
+    and `respond_to_missing?`, whose contract is to accept any object and
+    check what it was handed. Off by default: on four codebases an
+    independent rater judged 1 of 25 sampled offenses actionable (see
+    eval/results). Most type checks in real code test a closed set of classes
+    another library owns (AST nodes) or validate input at a boundary, and the
+    call alone cannot tell those apart from the checks polymorphism would
+    remove.
+  Enabled: false
+  VersionAdded: "0.11"
+  AllowedMethods:
+    - "=="
+    - "!="
+    - "<=>"
+    - "==="
+    - coerce
+    - eql?
+    - equal?
+    - method_missing
+    - respond_to_missing?
+  Exclude:
+    - "spec/**/*"
+    - "test/**/*"
+    - "**/*_spec.rb"
+    - "**/*_test.rb"
+    - "db/**/*"
+    - "bin/**/*"
+    - "exe/**/*"
+    - "script/**/*"
+    - "config/**/*"
+    - "config.ru"
+    - "lib/tasks/**/*"
+    - "Rakefile"
+    - "**/*.rake"
+    - "*.gemspec"
+    - "Gemfile"
+    - "**/Gemfile"
+    - "gems.rb"
+
 Style/Documentation:
   Enabled: false
 
