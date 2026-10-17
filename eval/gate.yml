@@ -1,0 +1,12 @@
+# What `eval/run --gate` holds a run to. A snippet or CLI case fails the gate
+# unless it passes, or carries `known` (the reason it fails on purpose) and
+# still fails: a known failure that starts passing must lose its mark.
+#
+# On eval/names.yml, the doer rule may not flag more things (fp) or catch
+# fewer doers (recall) than main did at b83bbcc. Tighten these when a change
+# improves them.
+names:
+  raw:
+    all: { fp: 2, recall: 0.939 }
+  shipped:
+    all: { fp: 1, recall: 0.9202 }

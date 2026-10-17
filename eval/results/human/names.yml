@@ -1,0 +1,44 @@
+# Class names for one person to label, blind. After each colon write doer,
+# thing or ambiguous, by the rule in README.md beside this file. Do not open
+# eval/names.yml, eval/cases or the cop until every name has a label.
+# Drawn by `eval/run --draw`; scored by `eval/run --kata . --only human`.
+Mayor:
+Debtor:
+Slider:
+Estimator:
+Teacher:
+Generator:
+Shoulder:
+Benchmarker:
+Commenter:
+Author:
+Cylinder:
+Accelerator:
+Observer:
+Answer:
+Receiver:
+Oyster:
+Monster:
+Renderer:
+Floor:
+Upserter:
+Successor:
+Cursor:
+Resolver:
+Volunteer:
+Visitor:
+Beggar:
+Subscriber:
+Creditor:
+Server:
+Integer:
+Instrumenter:
+Delegator:
+Tensor:
+Manner:
+Weather:
+Drawer:
+Container:
+Actor:
+Planner:
+Delimiter:
