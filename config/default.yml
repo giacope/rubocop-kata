@@ -764,6 +764,20 @@ Kata/EnvDiscipline:
     - "gems.rb"
     - "**/*.gemfile"
 
+Kata/NoSetter:
+  Description: >-
+    An object takes its state in the constructor and keeps it: `attr_writer`,
+    `attr_accessor` and a `def name=` method each let a caller change it
+    afterwards. Return a new object instead (`with_name`). `[]=` is a
+    collection's protocol, not a setter, and is not reported.
+  Enabled: true
+  VersionAdded: "0.11"
+  Exclude:
+    - "spec/**/*"
+    - "test/**/*"
+    - "**/*_spec.rb"
+    - "**/*_test.rb"
+
 Style/Documentation:
   Enabled: false
 
