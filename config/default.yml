@@ -866,6 +866,20 @@ Kata/NoOutputArgument:
     - unshift
     - update
 
+Kata/CommandQuery:
+  Description: >-
+    A method whose name ends in `?` answers a question and changes nothing:
+    it assigns no instance variable and calls no `!` method on itself, its
+    state or its parameters. Memoizing the answer (`@valid ||= ...`) is not a
+    change.
+  Enabled: true
+  VersionAdded: "0.11"
+  Exclude:
+    - "spec/**/*"
+    - "test/**/*"
+    - "**/*_spec.rb"
+    - "**/*_test.rb"
+
 Style/Documentation:
   Enabled: false
 

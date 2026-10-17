@@ -110,6 +110,7 @@ both the oldest releases the gemspec allows and the newest.
 | `Kata/NoSetter` | on | No `attr_writer`, `attr_accessor` or `def name=`: an object takes its state in the constructor, and a change returns a new object. `[]=` is a collection's protocol and passes. |
 | `Kata/FrozenState` | on | An instance variable is assigned in `initialize` (or `initialize_copy`, or a helper only those call) and nowhere else. Memoization passes: `@x ||= ...`, `@x = ... unless @x`, `if @x.nil?`, `@x = @x \|\| ...`, `return @x if defined?(@x)`. Rails controllers, mailers and helpers, which hand views their data through ivars, are excluded. |
 | `Kata/NoOutputArgument` | on | A method does not change what it was handed: `list << x`, `options.delete(:k)`, `hash[k] = v` and the other `MutatingMethods` on a parameter. Splats (`*args`, `**options`) are fresh collections, a parameter reassigned first (`list = list.dup`) is a copy, and `AllowedNames` holds the sinks (`io`, `out`, `buffer`, Rack's `env`). |
+| `Kata/CommandQuery` | on | A `?` method answers and changes nothing: no ivar assignment (memoizing the answer passes) and no `!` call on itself, its state or its parameters. A bang whose value the query reads (`policy!(user, record).show?`) is a lookup that raises, and passes. |
 
 ## Dead configuration
 
