@@ -924,6 +924,37 @@ Kata/NoTypeCheck:
     - "**/Gemfile"
     - "gems.rb"
 
+Kata/NoSingleton:
+  Description: >-
+    A singleton is a global with a class name: `include Singleton`, or a
+    class method caching an instance in a class-level variable
+    (`def self.instance = @instance ||= new`). Build the object where the
+    program starts and pass it to what needs it. A class-level cache of a
+    value (`@members ||= Set.new(...)`, a `Struct.new`) is not an instance of
+    the class's service, and `AllowedConstructors` lists those classes.
+  Enabled: true
+  VersionAdded: "0.11"
+  AllowedConstructors:
+    - Array
+    - Class
+    - Concurrent::Map
+    - Data
+    - Hash
+    - Module
+    - Monitor
+    - Mutex
+    - Queue
+    - Regexp
+    - Set
+    - String
+    - Struct
+    - Thread::Mutex
+  Exclude:
+    - "spec/**/*"
+    - "test/**/*"
+    - "**/*_spec.rb"
+    - "**/*_test.rb"
+
 Style/Documentation:
   Enabled: false
 

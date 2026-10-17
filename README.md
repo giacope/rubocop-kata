@@ -112,6 +112,7 @@ both the oldest releases the gemspec allows and the newest.
 | `Kata/NoOutputArgument` | on | A method does not change what it was handed: `list << x`, `options.delete(:k)`, `hash[k] = v` and the other `MutatingMethods` on a parameter. Splats (`*args`, `**options`) are fresh collections, a parameter reassigned first (`list = list.dup`) is a copy, and `AllowedNames` holds the sinks (`io`, `out`, `buffer`, Rack's `env`). |
 | `Kata/CommandQuery` | on | A `?` method answers and changes nothing: no ivar assignment (memoizing the answer passes) and no `!` call on itself, its state or its parameters. A bang whose value the query reads (`policy!(user, record).show?`) is a lookup that raises, and passes. |
 | `Kata/NoTypeCheck` | off | No `is_a?`, `kind_of?`, `instance_of?` or `respond_to?`; let polymorphism choose. `==`, `eql?`, `<=>`, `===`, `coerce` and `respond_to_missing?` bodies and the boot layer are exempt. Off: a blind rater judged 1 of 25 corpus offenses actionable, since most checks test classes another library owns (AST nodes) or validate input at a boundary. |
+| `Kata/NoSingleton` | on | No `include Singleton`, and no class-level method caching an instance (`def self.instance = @instance ||= new`). A class-level cache of a value (`Set.new`, `Struct.new`; `AllowedConstructors`) passes. |
 
 ## Dead configuration
 
