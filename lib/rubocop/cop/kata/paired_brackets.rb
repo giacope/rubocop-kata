@@ -16,7 +16,6 @@ class RuboCop::Cop::Kata::PairedBrackets < RuboCop::Cop::Base
 
   def on_new_investigation
     super
-    @_strings = nil
     stack = []
     found =
       processed_source.tokens.filter_map do |token|
@@ -68,11 +67,12 @@ class RuboCop::Cop::Kata::PairedBrackets < RuboCop::Cop::Base
 
   def start(line) = processed_source.buffer.line_range(line).resize(0)
 
-  def strings
-    @_strings ||=
-      Array(processed_source.ast&.each_node(:str, :dstr, :xstr)).map do |node|
-        node.heredoc? ? node.loc.heredoc_body.join(node.loc.heredoc_end) : node.source_range.adjust(begin_pos: 1)
-      end
+  def strings = (@_strings ||= {}.compare_by_identity)[processed_source] ||= literals
+
+  def literals
+    Array(processed_source.ast&.each_node(:str, :dstr, :xstr)).map do |node|
+      node.heredoc? ? node.loc.heredoc_body.join(node.loc.heredoc_end) : node.source_range.adjust(begin_pos: 1)
+    end
   end
 
   def trailing(token)

@@ -32,11 +32,9 @@ class RuboCop::Kata::Variable::Ledger
 
   def tainted = nodes.select(&:shorthand_asgn?).map(&:assignment_node).select(&:lvasgn_type?).map(&:name)
 
-  def nodes(node = @body, found = [])
-    return found if node.def_type? || node.defs_type?
-    found << node
-    node.each_child_node { nodes(it, found) }
-    found
+  def nodes(node = @body)
+    return [] if node.def_type? || node.defs_type?
+    [node, *node.each_child_node.flat_map { nodes(it) }]
   end
 
   def statement?(node)

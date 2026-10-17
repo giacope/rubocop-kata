@@ -62,6 +62,40 @@ RSpec.describe(RuboCop::Cop::Kata::NoClassMethodLogic, :config) do
     RUBY
   end
 
+  it "flags a module of functions" do
+    expect_offense(<<~RUBY)
+      module Pricing
+        module_function
+        ^^^^^^^^^^^^^^^ `module_function` turns the module into a bag of functions; give the logic an object that holds its data.
+
+        def total(lines) = lines.sum(&:price)
+      end
+      module Tax
+        extend self
+        ^^^^^^^^^^^ `extend self` turns the module into a bag of functions; give the logic an object that holds its data.
+      end
+      module Rates
+        module_function :lookup
+        ^^^^^^^^^^^^^^^^^^^^^^^ `module_function` turns the module into a bag of functions; give the logic an object that holds its data.
+      end
+    RUBY
+  end
+
+  it "leaves extending another module, and code outside a module, alone" do
+    expect_no_offenses(<<~RUBY)
+      module Pricing
+        extend Forwardable
+        extend(self, Other)
+        class Line
+          extend self
+        end
+        Class.new { extend self }
+      end
+      extend self
+      Pricing.module_function
+    RUBY
+  end
+
   context "with the shipped defaults" do
     let(:cop_config) { RuboCop::ConfigLoader.default_configuration.for_cop("Kata/NoClassMethodLogic") }
 

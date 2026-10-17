@@ -24,7 +24,8 @@ What the sections measure:
   `job-doer-subject-flagged` (`ReportGeneratorJob`: WordNet's dominant
   *generator* is an apparatus, so the rule misses it), and
   `disable-all-flagged` (a `rubocop:disable all` silences every cop on its own
-  line, this one included; `rubocop-kata doctor` lists it instead).
+  line, this one included; `rubocop-kata doctor` lists it instead). A case
+  with `enable: true` switches its cop on, to pin a cop that ships off.
 - **Names** (`eval/names.yml`): 400 class names ending in -er/-or/-ar,
   labelled before the rule changed: 213 doers (26 of them people's roles),
   161 things, 26 ambiguous (scored apart). A third is held out by CRC32 and was
@@ -86,6 +87,92 @@ eval/run --kata .              --out eval/results/after.json --gate
 eval/run --compare eval/results/before.json eval/results/after.json
 git worktree remove ../kata-before
 ```
+
+## Object-discipline cops
+
+Six cops (`Kata/NoSetter`, `Kata/FrozenState`, `Kata/NoOutputArgument`,
+`Kata/CommandQuery`, `Kata/NoTypeCheck`, `Kata/NoSingleton`) and a new rule in
+`Kata/NoClassMethodLogic` (a module declared with `module_function` or `extend
+self`) were measured before their defaults were chosen. The bar: a cop is on by
+default only if at least one in three of its offenses is actionable.
+
+Each cop ran with `--only` over the four corpora (the same paths and configs as
+the corpus section: faraday and rubygems.org bare, hashira and kimera with their
+own `.rubocop.yml`). Up to 25 offenses per cop were drawn with a fixed seed
+(`Random.new(42)`), shuffled, and labelled by an independent rater: a separate
+model instance given only the codebase, file and line of each offense, each
+rule's one-paragraph statement, and the rubric. It did not see the cops' code or
+why their exemptions exist. The rubric:
+
+- **TP**: a genuine instance of the problem the rule describes, where the
+  rule's remedy would be a reasonable change to ask for in review.
+- **FP**: not an instance (the rule misread the code), covered by the rule's
+  own stated exemptions, or dictated by an external contract (a framework or
+  library API, a protocol, a Ruby requirement), so the remedy is not available.
+- **UNSURE**: cannot decide from the code and the repository (none were).
+
+Every label, with the rater's reason, is in
+[object_discipline_labels.json](object_discipline_labels.json).
+
+| Cop | faraday | rubygems.org | hashira | kimera | Total | Sampled | TP | Precision | Default |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `Kata/NoSetter` | 27 | 19 | 0 | 4 | 50 | 25 | 14 | 0.56 | on |
+| `Kata/FrozenState` | 10 | 29 | 23 | 31 | 93 | 25 | 18 | 0.72 | on |
+| `Kata/NoOutputArgument` | 7 | 19 | 11 | 38 | 75 | 25 | 21 | 0.84 | on |
+| `Kata/CommandQuery` | 0 | 8 | 0 | 2 | 10 | 10 | 10 | 1.00 | on |
+| `Kata/NoTypeCheck` | 67 | 41 | 112 | 112 | 332 | 25 | 1 | 0.04 | off |
+| `Kata/NoSingleton` | 2 | 2 | 0 | 0 | 4 | 4 | 2 | 0.50 | on |
+| `Kata/NoClassMethodLogic`, modules | 1 | 2 | 31 | 33 | 67 | 25 | 23 | 0.92 | on |
+
+What the false positives were:
+
+- **NoSetter** (11): ActiveRecord attribute writers and nested-attribute
+  writers (`conditions_attributes=`), which Rails mass assignment calls; a
+  setter a framework calls (Avo's `item=`, Faraday's middleware `Env#body=`);
+  kimera's process-wide runtime switch. Faraday's module- and class-level
+  configuration setters were judged true positives.
+- **FrozenState** (7): hashira's once-only walks, guarded by a flag
+  (`return if @_walked; @_walked = true; ...`), whose helpers fill several
+  caches; the rater read them as memoization, which the cop only recognises
+  when the guard tests the variable being assigned. Also kimera's runtime
+  switch.
+- **NoOutputArgument** (4): a shared thread-safe `Queue` popped by workers,
+  Rails' `append_info_to_payload` hook, and two writes into RSpec's
+  `filtered_examples`. An earlier run also reported Faraday and Rack
+  middleware writing `env[:body]`, which their protocol requires; `env` joined
+  `AllowedNames` before the sample was drawn.
+- **CommandQuery** (0): an earlier run also flagged `policy!(user,
+  record).show?`, a lookup that raises rather than a command; a bang call
+  whose value the query reads now passes, before the sample was drawn.
+- **NoTypeCheck** (24 of 25): type checks on Prism or Parser AST nodes, a
+  closed set of classes another library owns (14); validation of parsed JSON,
+  request params and options at a boundary, where the check is the conversion
+  the remedy asks for; feature detection on other libraries (RubyGems,
+  Minitest, Rails, Faraday adapters). Nothing in the call distinguishes these
+  from the checks polymorphism would remove, so the cop ships off.
+- **NoSingleton** (2 of 4): a cached configuration value
+  (`ConnectionOptions.new`) and a frozen, stateless validator. Four offenses
+  is a small sample; it clears the bar, but with little margin of evidence.
+  Before the sample was drawn, a class-level cache of a value
+  (`@members ||= Set.new(...)`) stopped counting (`AllowedConstructors`).
+- **NoClassMethodLogic, modules** (2): a null object built as a module, and
+  `Faraday::Utils`, a public API.
+
+What turning the on-by-default cops on adds to the two codebases that already
+run kata (offenses with their own configuration): hashira gains 65
+(FrozenState 23, NoOutputArgument 11, NoClassMethodLogic 31), kimera 108
+(FrozenState 31, NoOutputArgument 38, NoSetter 4, CommandQuery 2,
+NoClassMethodLogic 33). On rubocop-kata itself the on-by-default cops found
+six offenses, each fixed in the code: `Checkup#files` and `Ledger#nodes` no
+longer fill an accumulator parameter, `PairedBrackets` keys its string cache
+by the source instead of resetting it, the eval suite's corpus threads return
+their results instead of popping a shared queue into a shared hash, and its
+case loader no longer deletes a key from the case it was handed.
+
+The R15 snippet cases pin each cop's flagged and allowed shapes, and that
+`Kata/NoTypeCheck` is off unless enabled; a case's `enable: true` turns its cop
+on in that case's config. All 24 pass; across every gap 208 of 211 cases
+pass, the three failing being the ones listed above.
 
 ## Why methods may run to 10 lines and names to two words
 

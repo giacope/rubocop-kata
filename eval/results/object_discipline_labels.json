@@ -1,0 +1,1253 @@
+[
+  {
+    "id": "A-01",
+    "cop": "Kata/NoSetter",
+    "corpus": "faraday",
+    "path": "lib/faraday/connection.rb",
+    "line": 341,
+    "verdict": "TP",
+    "reason": "Connection#proxy= mutates connection after construction; could be constructor option."
+  },
+  {
+    "id": "A-02",
+    "cop": "Kata/NoSetter",
+    "corpus": "rubygems.org",
+    "path": "app/models/events/tags.rb",
+    "line": 14,
+    "verdict": "FP",
+    "reason": "Overrides ActiveRecord attribute writer; framework contract."
+  },
+  {
+    "id": "A-03",
+    "cop": "Kata/NoSetter",
+    "corpus": "kimera",
+    "path": "lib/kimera/runtime.rb",
+    "line": 31,
+    "verdict": "FP",
+    "reason": "Global runtime switch read by injected mutant code via constant; must be mutable."
+  },
+  {
+    "id": "A-04",
+    "cop": "Kata/NoSetter",
+    "corpus": "rubygems.org",
+    "path": "app/models/rubygem.rb",
+    "line": 9,
+    "verdict": "FP",
+    "reason": "AR virtual attribute set on DB-loaded record; constructor remedy unavailable."
+  },
+  {
+    "id": "A-05",
+    "cop": "Kata/NoSetter",
+    "corpus": "faraday",
+    "path": "lib/faraday/encoders/nested_params_encoder.rb",
+    "line": 178,
+    "verdict": "TP",
+    "reason": "Class-level mutable config accessors; genuine class setters."
+  },
+  {
+    "id": "A-06",
+    "cop": "Kata/NoSetter",
+    "corpus": "rubygems.org",
+    "path": "app/views/application_view.rb",
+    "line": 10,
+    "verdict": "FP",
+    "reason": "Sets view_context layout title, not receiver state; Phlex/Rails view idiom."
+  },
+  {
+    "id": "A-07",
+    "cop": "Kata/NoSetter",
+    "corpus": "faraday",
+    "path": "lib/faraday/utils.rb",
+    "line": 84,
+    "verdict": "TP",
+    "reason": "Module-level setter for global default URI parser."
+  },
+  {
+    "id": "A-08",
+    "cop": "Kata/NoSetter",
+    "corpus": "faraday",
+    "path": "lib/faraday/utils.rb",
+    "line": 62,
+    "verdict": "TP",
+    "reason": "Class-level attr_writer for global default encoder."
+  },
+  {
+    "id": "A-09",
+    "cop": "Kata/NoSetter",
+    "corpus": "rubygems.org",
+    "path": "app/jobs/fastly_log_processor.rb",
+    "line": 10,
+    "verdict": "TP",
+    "reason": "Constructor sets bucket/key; writers unnecessary."
+  },
+  {
+    "id": "A-10",
+    "cop": "Kata/NoSetter",
+    "corpus": "faraday",
+    "path": "lib/faraday/options/env.rb",
+    "line": 122,
+    "verdict": "FP",
+    "reason": "Env is mutated by middleware by protocol design; body= is part of contract."
+  },
+  {
+    "id": "A-11",
+    "cop": "Kata/NoSetter",
+    "corpus": "faraday",
+    "path": "lib/faraday/connection.rb",
+    "line": 114,
+    "verdict": "TP",
+    "reason": "Connection headers= setter mutates after construction."
+  },
+  {
+    "id": "A-12",
+    "cop": "Kata/NoSetter",
+    "corpus": "faraday",
+    "path": "lib/faraday.rb",
+    "line": 68,
+    "verdict": "TP",
+    "reason": "Module-level mutable accessor for global config."
+  },
+  {
+    "id": "A-13",
+    "cop": "Kata/NoSetter",
+    "corpus": "rubygems.org",
+    "path": "app/models/deletion.rb",
+    "line": 30,
+    "verdict": "FP",
+    "reason": "AR virtual attribute passed via create attributes; framework idiom."
+  },
+  {
+    "id": "A-14",
+    "cop": "Kata/NoSetter",
+    "corpus": "faraday",
+    "path": "lib/faraday/adapter/test.rb",
+    "line": 63,
+    "verdict": "TP",
+    "reason": "Constructor already takes stubs; writer is unnecessary."
+  },
+  {
+    "id": "A-15",
+    "cop": "Kata/NoSetter",
+    "corpus": "faraday",
+    "path": "lib/faraday.rb",
+    "line": 63,
+    "verdict": "TP",
+    "reason": "Module-level attr_writer for global default connection."
+  },
+  {
+    "id": "A-16",
+    "cop": "Kata/NoSetter",
+    "corpus": "faraday",
+    "path": "lib/faraday.rb",
+    "line": 135,
+    "verdict": "TP",
+    "reason": "Module-level setter mutating global default options."
+  },
+  {
+    "id": "A-17",
+    "cop": "Kata/NoSetter",
+    "corpus": "rubygems.org",
+    "path": "app/models/oidc/access_policy.rb",
+    "line": 71,
+    "verdict": "FP",
+    "reason": "Nested attributes writer required by ActiveModel assignment contract."
+  },
+  {
+    "id": "A-18",
+    "cop": "Kata/NoSetter",
+    "corpus": "rubygems.org",
+    "path": "app/models/rubygem_transfer.rb",
+    "line": 65,
+    "verdict": "FP",
+    "reason": "Overrides AR attribute writer to invalidate cache; framework attribute."
+  },
+  {
+    "id": "A-19",
+    "cop": "Kata/NoSetter",
+    "corpus": "rubygems.org",
+    "path": "app/models/version.rb",
+    "line": 325,
+    "verdict": "FP",
+    "reason": "AR attribute alias writer; Rails model attribute assignment."
+  },
+  {
+    "id": "A-20",
+    "cop": "Kata/NoSetter",
+    "corpus": "faraday",
+    "path": "lib/faraday/connection.rb",
+    "line": 390,
+    "verdict": "TP",
+    "reason": "path_prefix= setter mutates connection after construction."
+  },
+  {
+    "id": "A-21",
+    "cop": "Kata/NoSetter",
+    "corpus": "faraday",
+    "path": "lib/faraday/adapter/test.rb",
+    "line": 155,
+    "verdict": "TP",
+    "reason": "strict_mode= setter could be constructor option (already is)."
+  },
+  {
+    "id": "A-22",
+    "cop": "Kata/NoSetter",
+    "corpus": "faraday",
+    "path": "lib/faraday/encoders/flat_params_encoder.rb",
+    "line": 100,
+    "verdict": "TP",
+    "reason": "Class-level mutable config accessor."
+  },
+  {
+    "id": "A-23",
+    "cop": "Kata/NoSetter",
+    "corpus": "faraday",
+    "path": "lib/faraday/utils.rb",
+    "line": 25,
+    "verdict": "TP",
+    "reason": "Class-level attr_writer for global config."
+  },
+  {
+    "id": "A-24",
+    "cop": "Kata/NoSetter",
+    "corpus": "rubygems.org",
+    "path": "app/models/api_key.rb",
+    "line": 108,
+    "verdict": "FP",
+    "reason": "AR attribute writer override used by mass assignment."
+  },
+  {
+    "id": "A-25",
+    "cop": "Kata/NoSetter",
+    "corpus": "rubygems.org",
+    "path": "app/avo/fields/nested_field.rb",
+    "line": 32,
+    "verdict": "FP",
+    "reason": "Avo fill_field calls item= on holder; framework requires setter."
+  },
+  {
+    "id": "B-01",
+    "cop": "Kata/FrozenState",
+    "corpus": "kimera",
+    "path": "lib/kimera/frameworks/rspec_adapter.rb",
+    "line": 50,
+    "verdict": "TP",
+    "reason": "start records suite pid after construction; state change, not memoization."
+  },
+  {
+    "id": "B-02",
+    "cop": "Kata/FrozenState",
+    "corpus": "hashira",
+    "path": "lib/hashira/coupling/roster.rb",
+    "line": 37,
+    "verdict": "FP",
+    "reason": "Helper only called within flag-guarded one-time lazy computation; memoization."
+  },
+  {
+    "id": "B-03",
+    "cop": "Kata/FrozenState",
+    "corpus": "kimera",
+    "path": "lib/kimera/report/tally.rb",
+    "line": 22,
+    "verdict": "TP",
+    "reason": "begin! resets tally state post-construction."
+  },
+  {
+    "id": "B-04",
+    "cop": "Kata/FrozenState",
+    "corpus": "rubygems.org",
+    "path": "app/avo/actions/delete_user.rb",
+    "line": 68,
+    "verdict": "TP",
+    "reason": "Counter incremented in handler; could use locals/return values."
+  },
+  {
+    "id": "B-05",
+    "cop": "Kata/FrozenState",
+    "corpus": "faraday",
+    "path": "lib/faraday/adapter/test.rb",
+    "line": 156,
+    "verdict": "TP",
+    "reason": "Setter assigns ivar outside constructor."
+  },
+  {
+    "id": "B-06",
+    "cop": "Kata/FrozenState",
+    "corpus": "hashira",
+    "path": "lib/hashira/smells/ownership.rb",
+    "line": 26,
+    "verdict": "FP",
+    "reason": "Flag-guarded one-time lazy init; memoization in substance."
+  },
+  {
+    "id": "B-07",
+    "cop": "Kata/FrozenState",
+    "corpus": "kimera",
+    "path": "lib/kimera/frameworks/minitest_adapter.rb",
+    "line": 108,
+    "verdict": "TP",
+    "reason": "reindex rebuilds @methods after source load; mutable state."
+  },
+  {
+    "id": "B-08",
+    "cop": "Kata/FrozenState",
+    "corpus": "rubygems.org",
+    "path": "app/avo/actions/delete_user.rb",
+    "line": 38,
+    "verdict": "TP",
+    "reason": "Counters initialized in handle, not constructor; locals would do."
+  },
+  {
+    "id": "B-09",
+    "cop": "Kata/FrozenState",
+    "corpus": "hashira",
+    "path": "lib/hashira/complexity/cognitive_score.rb",
+    "line": 44,
+    "verdict": "FP",
+    "reason": "Walker nesting during once-only memoized walk."
+  },
+  {
+    "id": "B-10",
+    "cop": "Kata/FrozenState",
+    "corpus": "kimera",
+    "path": "lib/kimera/incremental/git_diff.rb",
+    "line": 53,
+    "verdict": "TP",
+    "reason": "Parser state mutated across feed calls outside constructor."
+  },
+  {
+    "id": "B-11",
+    "cop": "Kata/FrozenState",
+    "corpus": "rubygems.org",
+    "path": "app/models/user.rb",
+    "line": 259,
+    "verdict": "TP",
+    "reason": "Ivar used as side-channel flag for callbacks."
+  },
+  {
+    "id": "B-12",
+    "cop": "Kata/FrozenState",
+    "corpus": "kimera",
+    "path": "lib/kimera/execution/isolated_pulse.rb",
+    "line": 21,
+    "verdict": "TP",
+    "reason": "expired? query mutates @mark; hidden state change."
+  },
+  {
+    "id": "B-13",
+    "cop": "Kata/FrozenState",
+    "corpus": "rubygems.org",
+    "path": "lib/search_query_sanitizer.rb",
+    "line": 114,
+    "verdict": "TP",
+    "reason": "Sanitize pipeline reassigns @query step by step; could return values."
+  },
+  {
+    "id": "B-14",
+    "cop": "Kata/FrozenState",
+    "corpus": "kimera",
+    "path": "lib/kimera/runtime.rb",
+    "line": 50,
+    "verdict": "FP",
+    "reason": "Global runtime switchboard read by injected code; mutation inherent."
+  },
+  {
+    "id": "B-15",
+    "cop": "Kata/FrozenState",
+    "corpus": "hashira",
+    "path": "lib/hashira/complexity/cognitive_score.rb",
+    "line": 59,
+    "verdict": "FP",
+    "reason": "blank called only from memoized walked; one-time lazy init."
+  },
+  {
+    "id": "B-16",
+    "cop": "Kata/FrozenState",
+    "corpus": "faraday",
+    "path": "lib/faraday/connection.rb",
+    "line": 376,
+    "verdict": "TP",
+    "reason": "url_prefix= setter reassigns @proxy after construction."
+  },
+  {
+    "id": "B-17",
+    "cop": "Kata/FrozenState",
+    "corpus": "hashira",
+    "path": "lib/hashira/coupling/census.rb",
+    "line": 69,
+    "verdict": "FP",
+    "reason": "refold only called from flag-guarded settled; memoization."
+  },
+  {
+    "id": "B-18",
+    "cop": "Kata/FrozenState",
+    "corpus": "hashira",
+    "path": "lib/hashira/smells/visibility.rb",
+    "line": 26,
+    "verdict": "TP",
+    "reason": "entries resets scan ivars each call; not memoized, could use locals."
+  },
+  {
+    "id": "B-19",
+    "cop": "Kata/FrozenState",
+    "corpus": "kimera",
+    "path": "lib/kimera/registry/registry.rb",
+    "line": 20,
+    "verdict": "TP",
+    "reason": "<< mutates registry and invalidates cache after construction."
+  },
+  {
+    "id": "B-20",
+    "cop": "Kata/FrozenState",
+    "corpus": "rubygems.org",
+    "path": "app/avo/actions/delete_user.rb",
+    "line": 37,
+    "verdict": "TP",
+    "reason": "Handler state set in handle; locals suffice."
+  },
+  {
+    "id": "B-21",
+    "cop": "Kata/FrozenState",
+    "corpus": "hashira",
+    "path": "lib/hashira/complexity/cognitive_score.rb",
+    "line": 67,
+    "verdict": "FP",
+    "reason": "Counter during once-only memoized walk."
+  },
+  {
+    "id": "B-22",
+    "cop": "Kata/FrozenState",
+    "corpus": "rubygems.org",
+    "path": "app/avo/actions/delete_user.rb",
+    "line": 38,
+    "verdict": "TP",
+    "reason": "Counters initialized in handle via ivars; locals suffice."
+  },
+  {
+    "id": "B-23",
+    "cop": "Kata/FrozenState",
+    "corpus": "rubygems.org",
+    "path": "app/models/pusher.rb",
+    "line": 232,
+    "verdict": "TP",
+    "reason": "notify stores message/code as side-channel state."
+  },
+  {
+    "id": "B-24",
+    "cop": "Kata/FrozenState",
+    "corpus": "hashira",
+    "path": "lib/hashira/smells/visibility.rb",
+    "line": 28,
+    "verdict": "TP",
+    "reason": "entries resets scan ivars every call; not memoization."
+  },
+  {
+    "id": "B-25",
+    "cop": "Kata/FrozenState",
+    "corpus": "kimera",
+    "path": "lib/kimera/cli/run.rb",
+    "line": 43,
+    "verdict": "TP",
+    "reason": "detach reassigns @io after construction; could pass local."
+  },
+  {
+    "id": "C-01",
+    "cop": "Kata/NoOutputArgument",
+    "corpus": "faraday",
+    "path": "lib/faraday/encoders/nested_params_encoder.rb",
+    "line": 147,
+    "verdict": "TP",
+    "reason": "Writes into context parameter (output argument)."
+  },
+  {
+    "id": "C-02",
+    "cop": "Kata/NoOutputArgument",
+    "corpus": "rubygems.org",
+    "path": "app/views/components/button_component.rb",
+    "line": 48,
+    "verdict": "TP",
+    "reason": "options.delete mutates caller's hash; except(:data) would do."
+  },
+  {
+    "id": "C-03",
+    "cop": "Kata/NoOutputArgument",
+    "corpus": "hashira",
+    "path": "lib/hashira/coupling/reach.rb",
+    "line": 9,
+    "verdict": "TP",
+    "reason": "frontier.shift/concat mutates parameter array."
+  },
+  {
+    "id": "C-04",
+    "cop": "Kata/NoOutputArgument",
+    "corpus": "faraday",
+    "path": "lib/faraday/adapter/test.rb",
+    "line": 215,
+    "verdict": "TP",
+    "reason": "meta carrier hash used as output argument."
+  },
+  {
+    "id": "C-05",
+    "cop": "Kata/NoOutputArgument",
+    "corpus": "kimera",
+    "path": "lib/kimera/frameworks/minitest_adapter.rb",
+    "line": 89,
+    "verdict": "TP",
+    "reason": "Appends into failed/failures parameters."
+  },
+  {
+    "id": "C-06",
+    "cop": "Kata/NoOutputArgument",
+    "corpus": "rubygems.org",
+    "path": "app/models/concerns/attestation_bundle_repair.rb",
+    "line": 86,
+    "verdict": "TP",
+    "reason": "Appends into errors parameter accumulator."
+  },
+  {
+    "id": "C-07",
+    "cop": "Kata/NoOutputArgument",
+    "corpus": "kimera",
+    "path": "lib/kimera/execution/isolated_scheduling.rb",
+    "line": 54,
+    "verdict": "FP",
+    "reason": "sweep is a shared thread-safe work queue owning its data; pop is its API."
+  },
+  {
+    "id": "C-08",
+    "cop": "Kata/NoOutputArgument",
+    "corpus": "hashira",
+    "path": "lib/hashira/duplication/index.rb",
+    "line": 21,
+    "verdict": "TP",
+    "reason": "Increments into counts parameter."
+  },
+  {
+    "id": "C-09",
+    "cop": "Kata/NoOutputArgument",
+    "corpus": "rubygems.org",
+    "path": "lib/gemcutter/request_log_payload.rb",
+    "line": 19,
+    "verdict": "FP",
+    "reason": "Rails append_info_to_payload hook contract requires mutating payload."
+  },
+  {
+    "id": "C-10",
+    "cop": "Kata/NoOutputArgument",
+    "corpus": "rubygems.org",
+    "path": "lib/compact_index/versions_file.rb",
+    "line": 14,
+    "verdict": "TP",
+    "reason": "args.delete mutates caller's options hash."
+  },
+  {
+    "id": "C-11",
+    "cop": "Kata/NoOutputArgument",
+    "corpus": "kimera",
+    "path": "lib/kimera/frameworks/group_scope.rb",
+    "line": 26,
+    "verdict": "FP",
+    "reason": "Must mutate RSpec's filtered_examples hash; external library contract."
+  },
+  {
+    "id": "C-12",
+    "cop": "Kata/NoOutputArgument",
+    "corpus": "kimera",
+    "path": "lib/kimera/registry/source_file.rb",
+    "line": 53,
+    "verdict": "TP",
+    "reason": "Appends into found parameter."
+  },
+  {
+    "id": "C-13",
+    "cop": "Kata/NoOutputArgument",
+    "corpus": "kimera",
+    "path": "lib/kimera/synthesis/body_trim.rb",
+    "line": 124,
+    "verdict": "TP",
+    "reason": "Recursive accumulator found parameter mutated."
+  },
+  {
+    "id": "C-14",
+    "cop": "Kata/NoOutputArgument",
+    "corpus": "kimera",
+    "path": "lib/kimera/cli.rb",
+    "line": 52,
+    "verdict": "TP",
+    "reason": "argv.shift mutates parameter; first/drop would do."
+  },
+  {
+    "id": "C-15",
+    "cop": "Kata/NoOutputArgument",
+    "corpus": "hashira",
+    "path": "lib/hashira/coupling/cycle_search.rb",
+    "line": 39,
+    "verdict": "TP",
+    "reason": "path.unshift mutates parameter in recursion."
+  },
+  {
+    "id": "C-16",
+    "cop": "Kata/NoOutputArgument",
+    "corpus": "kimera",
+    "path": "lib/kimera/default_removal_source.rb",
+    "line": 22,
+    "verdict": "TP",
+    "reason": "Appends into found parameter."
+  },
+  {
+    "id": "C-17",
+    "cop": "Kata/NoOutputArgument",
+    "corpus": "faraday",
+    "path": "lib/faraday/encoders/nested_params_encoder.rb",
+    "line": 161,
+    "verdict": "TP",
+    "reason": "Assigns into hash parameter in place."
+  },
+  {
+    "id": "C-18",
+    "cop": "Kata/NoOutputArgument",
+    "corpus": "kimera",
+    "path": "lib/kimera/frameworks/group_scope.rb",
+    "line": 23,
+    "verdict": "FP",
+    "reason": "merge! into RSpec's filtered_examples required to scope run."
+  },
+  {
+    "id": "C-19",
+    "cop": "Kata/NoOutputArgument",
+    "corpus": "rubygems.org",
+    "path": "app/avo/concerns/auditable.rb",
+    "line": 10,
+    "verdict": "TP",
+    "reason": "merge! mutates changes parameter; could return merged hash."
+  },
+  {
+    "id": "C-20",
+    "cop": "Kata/NoOutputArgument",
+    "corpus": "rubygems.org",
+    "path": "lib/gemcutter/middleware/hostess.rb",
+    "line": 6,
+    "verdict": "TP",
+    "reason": "Mutates options parameter; options.merge would avoid."
+  },
+  {
+    "id": "C-21",
+    "cop": "Kata/NoOutputArgument",
+    "corpus": "kimera",
+    "path": "lib/kimera/memoization.rb",
+    "line": 94,
+    "verdict": "TP",
+    "reason": "Appends into holes parameter."
+  },
+  {
+    "id": "C-22",
+    "cop": "Kata/NoOutputArgument",
+    "corpus": "kimera",
+    "path": "lib/kimera/registry/builder.rb",
+    "line": 45,
+    "verdict": "TP",
+    "reason": "Builder appends into passed registry; could return points."
+  },
+  {
+    "id": "C-23",
+    "cop": "Kata/NoOutputArgument",
+    "corpus": "hashira",
+    "path": "lib/hashira/smells/rivals.rb",
+    "line": 24,
+    "verdict": "TP",
+    "reason": "Assigns into found parameter."
+  },
+  {
+    "id": "C-24",
+    "cop": "Kata/NoOutputArgument",
+    "corpus": "kimera",
+    "path": "lib/kimera/rewrite/conditions.rb",
+    "line": 29,
+    "verdict": "TP",
+    "reason": "Assigns into found parameter."
+  },
+  {
+    "id": "C-25",
+    "cop": "Kata/NoOutputArgument",
+    "corpus": "kimera",
+    "path": "lib/kimera/rewrite/kwarg_handlers.rb",
+    "line": 34,
+    "verdict": "TP",
+    "reason": "delete_at/[]= mutates args parameter."
+  },
+  {
+    "id": "D-01",
+    "cop": "Kata/CommandQuery",
+    "corpus": "rubygems.org",
+    "path": "app/models/concerns/user_multifactor_methods.rb",
+    "line": 60,
+    "verdict": "TP",
+    "reason": "save! on self inside ui_mfa_verified? uses up a recovery code; a state-changing query"
+  },
+  {
+    "id": "D-02",
+    "cop": "Kata/CommandQuery",
+    "corpus": "kimera",
+    "path": "lib/kimera/execution/worker_databases.rb",
+    "line": 14,
+    "verdict": "TP",
+    "reason": "active? calls register!, which requires a file; side effect in a query"
+  },
+  {
+    "id": "D-03",
+    "cop": "Kata/CommandQuery",
+    "corpus": "rubygems.org",
+    "path": "app/controllers/concerns/webauthn_verifiable.rb",
+    "line": 33,
+    "verdict": "TP",
+    "reason": "Sets the @webauthn_error ivar inside a ? method; not memoizing"
+  },
+  {
+    "id": "D-04",
+    "cop": "Kata/CommandQuery",
+    "corpus": "kimera",
+    "path": "lib/kimera/execution/isolated_pulse.rb",
+    "line": 21,
+    "verdict": "TP",
+    "reason": "expired? reassigns @mark, changing the observed state; not memoizing the answer"
+  },
+  {
+    "id": "D-05",
+    "cop": "Kata/CommandQuery",
+    "corpus": "rubygems.org",
+    "path": "app/controllers/concerns/webauthn_verifiable.rb",
+    "line": 42,
+    "verdict": "TP",
+    "reason": "Error ivar assignment inside a ? method, in a rescue branch"
+  },
+  {
+    "id": "D-06",
+    "cop": "Kata/CommandQuery",
+    "corpus": "rubygems.org",
+    "path": "app/controllers/concerns/webauthn_verifiable.rb",
+    "line": 18,
+    "verdict": "TP",
+    "reason": "Assigns @credential state inside a verification query; not memoizing the answer"
+  },
+  {
+    "id": "D-07",
+    "cop": "Kata/CommandQuery",
+    "corpus": "rubygems.org",
+    "path": "app/models/gem_typo.rb",
+    "line": 28,
+    "verdict": "TP",
+    "reason": "protected_typo? stores @protected_gem as a side effect"
+  },
+  {
+    "id": "D-08",
+    "cop": "Kata/CommandQuery",
+    "corpus": "rubygems.org",
+    "path": "app/controllers/concerns/webauthn_verifiable.rb",
+    "line": 30,
+    "verdict": "TP",
+    "reason": "update! persists the sign count inside a ? method"
+  },
+  {
+    "id": "D-09",
+    "cop": "Kata/CommandQuery",
+    "corpus": "rubygems.org",
+    "path": "app/controllers/concerns/webauthn_verifiable.rb",
+    "line": 21,
+    "verdict": "TP",
+    "reason": "Error ivar assignment inside a ? method"
+  },
+  {
+    "id": "D-10",
+    "cop": "Kata/CommandQuery",
+    "corpus": "rubygems.org",
+    "path": "app/controllers/concerns/webauthn_verifiable.rb",
+    "line": 39,
+    "verdict": "TP",
+    "reason": "Error ivar assignment inside a ? method, in a rescue branch"
+  },
+  {
+    "id": "E-01",
+    "cop": "Kata/NoTypeCheck",
+    "corpus": "faraday",
+    "path": "lib/faraday/error.rb",
+    "line": 34,
+    "verdict": "TP",
+    "reason": "Response or Hash switched on in each accessor; could convert once in initialize"
+  },
+  {
+    "id": "E-02",
+    "cop": "Kata/NoTypeCheck",
+    "corpus": "rubygems.org",
+    "path": "app/models/pusher.rb",
+    "line": 415,
+    "verdict": "FP",
+    "reason": "Feature-detects a private RubyGems method that varies by version; external contract"
+  },
+  {
+    "id": "E-03",
+    "cop": "Kata/NoTypeCheck",
+    "corpus": "hashira",
+    "path": "lib/hashira/boundaries.rb",
+    "line": 17,
+    "verdict": "FP",
+    "reason": "Type-validates raw declaration input at the boundary itself"
+  },
+  {
+    "id": "E-04",
+    "cop": "Kata/NoTypeCheck",
+    "corpus": "kimera",
+    "path": "lib/kimera/execution/guard_modules.rb",
+    "line": 15,
+    "verdict": "FP",
+    "reason": "Parses arguments of the Rails enum API it overrides; external signature"
+  },
+  {
+    "id": "E-05",
+    "cop": "Kata/NoTypeCheck",
+    "corpus": "faraday",
+    "path": "lib/faraday/response/json.rb",
+    "line": 61,
+    "verdict": "FP",
+    "reason": "One-time boundary normalization of a user option, which is the remedy itself"
+  },
+  {
+    "id": "E-06",
+    "cop": "Kata/NoTypeCheck",
+    "corpus": "hashira",
+    "path": "lib/hashira/smells/state_sprawl.rb",
+    "line": 74,
+    "verdict": "FP",
+    "reason": "Prism AST node type discrimination; foreign closed class set"
+  },
+  {
+    "id": "E-07",
+    "cop": "Kata/NoTypeCheck",
+    "corpus": "kimera",
+    "path": "lib/kimera/synthesis/body_trim.rb",
+    "line": 95,
+    "verdict": "FP",
+    "reason": "Prism AST node type check"
+  },
+  {
+    "id": "E-08",
+    "cop": "Kata/NoTypeCheck",
+    "corpus": "kimera",
+    "path": "lib/kimera/cli/coverage_minimum.rb",
+    "line": 31,
+    "verdict": "FP",
+    "reason": "Prism AST node type check"
+  },
+  {
+    "id": "E-09",
+    "cop": "Kata/NoTypeCheck",
+    "corpus": "kimera",
+    "path": "lib/kimera/frameworks/minitest_adapter.rb",
+    "line": 129,
+    "verdict": "FP",
+    "reason": "Distinguishes Minitest's own result classes; external library types"
+  },
+  {
+    "id": "E-10",
+    "cop": "Kata/NoTypeCheck",
+    "corpus": "kimera",
+    "path": "lib/kimera/execution/guard_modules.rb",
+    "line": 16,
+    "verdict": "FP",
+    "reason": "Guard module prepended into Rails classes detects defined_enums; framework capability"
+  },
+  {
+    "id": "E-11",
+    "cop": "Kata/NoTypeCheck",
+    "corpus": "hashira",
+    "path": "lib/hashira/boundaries.rb",
+    "line": 60,
+    "verdict": "FP",
+    "reason": "Prism AST node type check"
+  },
+  {
+    "id": "E-12",
+    "cop": "Kata/NoTypeCheck",
+    "corpus": "faraday",
+    "path": "lib/faraday/connection.rb",
+    "line": 564,
+    "verdict": "FP",
+    "reason": "Third-party adapters may not subclass Faraday::Adapter; plugin compatibility"
+  },
+  {
+    "id": "E-13",
+    "cop": "Kata/NoTypeCheck",
+    "corpus": "rubygems.org",
+    "path": "app/models/version.rb",
+    "line": 84,
+    "verdict": "FP",
+    "reason": "ActiveModel cast_value is the boundary conversion the framework requires"
+  },
+  {
+    "id": "E-14",
+    "cop": "Kata/NoTypeCheck",
+    "corpus": "hashira",
+    "path": "lib/hashira/smells/foreign.rb",
+    "line": 100,
+    "verdict": "FP",
+    "reason": "Prism AST node type check"
+  },
+  {
+    "id": "E-15",
+    "cop": "Kata/NoTypeCheck",
+    "corpus": "kimera",
+    "path": "lib/kimera/support/syntax.rb",
+    "line": 41,
+    "verdict": "FP",
+    "reason": "Prism AST node type check"
+  },
+  {
+    "id": "E-16",
+    "cop": "Kata/NoTypeCheck",
+    "corpus": "hashira",
+    "path": "lib/hashira/smells/lookup.rb",
+    "line": 25,
+    "verdict": "FP",
+    "reason": "Prism AST node type check"
+  },
+  {
+    "id": "E-17",
+    "cop": "Kata/NoTypeCheck",
+    "corpus": "hashira",
+    "path": "lib/hashira/smells/conditions.rb",
+    "line": 33,
+    "verdict": "FP",
+    "reason": "Prism AST node type check"
+  },
+  {
+    "id": "E-18",
+    "cop": "Kata/NoTypeCheck",
+    "corpus": "hashira",
+    "path": "lib/hashira/smells/ownership.rb",
+    "line": 61,
+    "verdict": "FP",
+    "reason": "Prism AST node type check"
+  },
+  {
+    "id": "E-19",
+    "cop": "Kata/NoTypeCheck",
+    "corpus": "hashira",
+    "path": "lib/hashira/ci/baseline.rb",
+    "line": 58,
+    "verdict": "FP",
+    "reason": "Validates the shape of parsed JSON at the file boundary"
+  },
+  {
+    "id": "E-20",
+    "cop": "Kata/NoTypeCheck",
+    "corpus": "kimera",
+    "path": "lib/kimera/execution/isolated_outcome/ruling.rb",
+    "line": 58,
+    "verdict": "FP",
+    "reason": "Validates the shape of parsed JSON ledger input at the boundary"
+  },
+  {
+    "id": "E-21",
+    "cop": "Kata/NoTypeCheck",
+    "corpus": "hashira",
+    "path": "lib/hashira/smells/census.rb",
+    "line": 32,
+    "verdict": "FP",
+    "reason": "Prism AST node type check"
+  },
+  {
+    "id": "E-22",
+    "cop": "Kata/NoTypeCheck",
+    "corpus": "hashira",
+    "path": "lib/hashira/smells/nil_check.rb",
+    "line": 106,
+    "verdict": "FP",
+    "reason": "Prism AST node type check"
+  },
+  {
+    "id": "E-23",
+    "cop": "Kata/NoTypeCheck",
+    "corpus": "rubygems.org",
+    "path": "app/controllers/api/v1/rubygems_controller.rb",
+    "line": 43,
+    "verdict": "FP",
+    "reason": "Validates untrusted request params at the controller boundary"
+  },
+  {
+    "id": "E-24",
+    "cop": "Kata/NoTypeCheck",
+    "corpus": "kimera",
+    "path": "lib/kimera/execution/isolated_child_minitest.rb",
+    "line": 30,
+    "verdict": "FP",
+    "reason": "Capability check on Minitest runnables; external library, child script"
+  },
+  {
+    "id": "E-25",
+    "cop": "Kata/NoTypeCheck",
+    "corpus": "faraday",
+    "path": "lib/faraday/connection.rb",
+    "line": 326,
+    "verdict": "FP",
+    "reason": "Backward compatibility with an old parallel-manager API, marked for removal in 3.0"
+  },
+  {
+    "id": "F-01",
+    "cop": "Kata/NoSingleton",
+    "corpus": "faraday",
+    "path": "lib/faraday.rb",
+    "line": 129,
+    "verdict": "FP",
+    "reason": "Caches config value object, not a service instance."
+  },
+  {
+    "id": "F-02",
+    "cop": "Kata/NoSingleton",
+    "corpus": "rubygems.org",
+    "path": "lib/rubygem_fs.rb",
+    "line": 7,
+    "verdict": "TP",
+    "reason": "Class-level cached shared filesystem service instance."
+  },
+  {
+    "id": "F-03",
+    "cop": "Kata/NoSingleton",
+    "corpus": "faraday",
+    "path": "lib/faraday.rb",
+    "line": 122,
+    "verdict": "TP",
+    "reason": "Caches shared Connection service globally."
+  },
+  {
+    "id": "F-04",
+    "cop": "Kata/NoSingleton",
+    "corpus": "rubygems.org",
+    "path": "lib/gem_validator.rb",
+    "line": 8,
+    "verdict": "FP",
+    "reason": "Frozen stateless validator memoized like a constant."
+  },
+  {
+    "id": "G-01",
+    "cop": "Kata/NoClassMethodLogic",
+    "corpus": "kimera",
+    "path": "lib/kimera/execution/concern_overrides.rb",
+    "line": 8,
+    "verdict": "TP",
+    "reason": "Procedures over a class and thread-local state; could be an override object"
+  },
+  {
+    "id": "G-02",
+    "cop": "Kata/NoClassMethodLogic",
+    "corpus": "hashira",
+    "path": "lib/hashira/coupling/no_folding.rb",
+    "line": 6,
+    "verdict": "FP",
+    "reason": "Null object used in place of a folding object; already an object role"
+  },
+  {
+    "id": "G-03",
+    "cop": "Kata/NoClassMethodLogic",
+    "corpus": "hashira",
+    "path": "lib/hashira/cli/choice.rb",
+    "line": 4,
+    "verdict": "TP",
+    "reason": "Error-building function; could be an error class"
+  },
+  {
+    "id": "G-04",
+    "cop": "Kata/NoClassMethodLogic",
+    "corpus": "hashira",
+    "path": "lib/hashira/cli/package_by.rb",
+    "line": 6,
+    "verdict": "TP",
+    "reason": "Parse function; could be a value object for the choice"
+  },
+  {
+    "id": "G-05",
+    "cop": "Kata/NoClassMethodLogic",
+    "corpus": "kimera",
+    "path": "lib/kimera/operators.rb",
+    "line": 78,
+    "verdict": "TP",
+    "reason": "Module-level mutable registry; could be a Registry object"
+  },
+  {
+    "id": "G-06",
+    "cop": "Kata/NoClassMethodLogic",
+    "corpus": "kimera",
+    "path": "lib/kimera/execution/reflections.rb",
+    "line": 6,
+    "verdict": "TP",
+    "reason": "Procedures over owner reflections; utility bag"
+  },
+  {
+    "id": "G-07",
+    "cop": "Kata/NoClassMethodLogic",
+    "corpus": "kimera",
+    "path": "lib/kimera/support/unparse_grouping.rb",
+    "line": 8,
+    "verdict": "TP",
+    "reason": "Functions over AST nodes; could be an object holding the node"
+  },
+  {
+    "id": "G-08",
+    "cop": "Kata/NoClassMethodLogic",
+    "corpus": "hashira",
+    "path": "lib/hashira/cli/fail_on.rb",
+    "line": 22,
+    "verdict": "TP",
+    "reason": "Small function bag for parsing a flag"
+  },
+  {
+    "id": "G-09",
+    "cop": "Kata/NoClassMethodLogic",
+    "corpus": "kimera",
+    "path": "lib/kimera/synthesis/superclass_pin.rb",
+    "line": 7,
+    "verdict": "TP",
+    "reason": "Source-rewriting procedures; could be an object holding the source"
+  },
+  {
+    "id": "G-10",
+    "cop": "Kata/NoClassMethodLogic",
+    "corpus": "hashira",
+    "path": "lib/hashira/cli/usage.rb",
+    "line": 37,
+    "verdict": "TP",
+    "reason": "Help-text procedures; utility bag"
+  },
+  {
+    "id": "G-11",
+    "cop": "Kata/NoClassMethodLogic",
+    "corpus": "hashira",
+    "path": "lib/hashira/smells/conditions.rb",
+    "line": 10,
+    "verdict": "TP",
+    "reason": "Node-predicate utility bag; could wrap the node in an object"
+  },
+  {
+    "id": "G-12",
+    "cop": "Kata/NoClassMethodLogic",
+    "corpus": "kimera",
+    "path": "lib/kimera/support/test_exit.rb",
+    "line": 7,
+    "verdict": "TP",
+    "reason": "Functions over an exit error; could be an object wrapping the error"
+  },
+  {
+    "id": "G-13",
+    "cop": "Kata/NoClassMethodLogic",
+    "corpus": "hashira",
+    "path": "lib/hashira/smells/mapping.rb",
+    "line": 13,
+    "verdict": "TP",
+    "reason": "Branch-predicate utility bag; could wrap the branch"
+  },
+  {
+    "id": "G-14",
+    "cop": "Kata/NoClassMethodLogic",
+    "corpus": "faraday",
+    "path": "lib/faraday/utils.rb",
+    "line": 10,
+    "verdict": "FP",
+    "reason": "Faraday::Utils is a public library API; changing it breaks users"
+  },
+  {
+    "id": "G-15",
+    "cop": "Kata/NoClassMethodLogic",
+    "corpus": "kimera",
+    "path": "lib/kimera/support/warnings.rb",
+    "line": 5,
+    "verdict": "TP",
+    "reason": "Stateless helper module, a genuine function bag"
+  },
+  {
+    "id": "G-16",
+    "cop": "Kata/NoClassMethodLogic",
+    "corpus": "kimera",
+    "path": "lib/kimera/cli/report_file.rb",
+    "line": 15,
+    "verdict": "TP",
+    "reason": "Functions over report data; could be a Report object"
+  },
+  {
+    "id": "G-17",
+    "cop": "Kata/NoClassMethodLogic",
+    "corpus": "kimera",
+    "path": "lib/kimera/rewrite/ast_walk.rb",
+    "line": 6,
+    "verdict": "TP",
+    "reason": "Traversal utility bag"
+  },
+  {
+    "id": "G-18",
+    "cop": "Kata/NoClassMethodLogic",
+    "corpus": "hashira",
+    "path": "lib/hashira/cli/needs.rb",
+    "line": 8,
+    "verdict": "TP",
+    "reason": "Procedures checking options; could live on the options object"
+  },
+  {
+    "id": "G-19",
+    "cop": "Kata/NoClassMethodLogic",
+    "corpus": "kimera",
+    "path": "lib/kimera/execution/signal_guard.rb",
+    "line": 15,
+    "verdict": "TP",
+    "reason": "A procedure module; could be a guard object"
+  },
+  {
+    "id": "G-20",
+    "cop": "Kata/NoClassMethodLogic",
+    "corpus": "hashira",
+    "path": "lib/hashira/smells/scope.rb",
+    "line": 10,
+    "verdict": "TP",
+    "reason": "Node-traversal utility bag"
+  },
+  {
+    "id": "G-21",
+    "cop": "Kata/NoClassMethodLogic",
+    "corpus": "kimera",
+    "path": "lib/kimera/scope/file_set.rb",
+    "line": 9,
+    "verdict": "TP",
+    "reason": "Functions over globs and options; could be a FileSet object"
+  },
+  {
+    "id": "G-22",
+    "cop": "Kata/NoClassMethodLogic",
+    "corpus": "hashira",
+    "path": "lib/hashira/coupling/words.rb",
+    "line": 8,
+    "verdict": "TP",
+    "reason": "Functions over a tree; utility bag"
+  },
+  {
+    "id": "G-23",
+    "cop": "Kata/NoClassMethodLogic",
+    "corpus": "kimera",
+    "path": "lib/kimera/memoization.rb",
+    "line": 30,
+    "verdict": "TP",
+    "reason": "Functions over source and ranges; could be an object holding the source"
+  },
+  {
+    "id": "G-24",
+    "cop": "Kata/NoClassMethodLogic",
+    "corpus": "kimera",
+    "path": "lib/kimera/incremental/selection.rb",
+    "line": 8,
+    "verdict": "TP",
+    "reason": "Functions over registry and changes; could move onto the registry"
+  },
+  {
+    "id": "G-25",
+    "cop": "Kata/NoClassMethodLogic",
+    "corpus": "hashira",
+    "path": "lib/hashira/smells/shape.rb",
+    "line": 11,
+    "verdict": "TP",
+    "reason": "Digest functions over nodes; utility bag"
+  }
+]

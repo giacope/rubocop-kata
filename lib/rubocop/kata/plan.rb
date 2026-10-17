@@ -9,6 +9,8 @@ class RuboCop::Kata::Plan
       Kata/ConstructorDiscipline Kata/NoClassMethodLogic Kata/NoHashAsObject
       Kata/NoBooleanFlag Kata/IoDiscipline Kata/ClockDiscipline Kata/EnvDiscipline
       Kata/ClassInModule Kata/NoRedundantVariable
+      Kata/NoSetter Kata/FrozenState Kata/NoOutputArgument Kata/CommandQuery
+      Kata/NoTypeCheck Kata/NoSingleton
     ],
     "naming" => %w[
       Kata/RealWords Kata/GoodMethodName Kata/GoodVariableName Kata/GoodClassName

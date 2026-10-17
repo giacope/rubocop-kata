@@ -8,7 +8,7 @@ jobs: 4
 max_survivors: 0
 max_errors: 0
 fail_on_no_coverage: false
-max_ignored: 3
+max_ignored: 4
 ignore:
 - file: lib/rubocop/kata/variable/boundary.rb
   line: 18
@@ -29,3 +29,11 @@ ignore:
   reason: >-
     twin and read are distinct lvar nodes, and two nodes of one type cannot
     begin at the same offset, so the begin positions are never equal
+- file: lib/rubocop/cop/kata/no_output_argument.rb
+  line: 50
+  label: "<= => <"
+  reason: >-
+    an assignment that rebinds the parameter ends where its value ends, and the
+    mutated receiver is a separate lvar node that either sits inside that value
+    (ending later) or after a separator, so it can never begin at the offset
+    where the assignment ends
