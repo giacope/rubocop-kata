@@ -51,9 +51,9 @@ class RuboCop::Kata::Checkup
 
   def files(file = File.join(@root, ".rubocop.yml"), seen = [])
     return seen if seen.include?(file) || !File.file?(file)
-    seen << file
-    Array(settings(file)["inherit_from"]).each { files(File.expand_path(it, File.dirname(file)), seen) }
-    seen
+    Array(settings(file)["inherit_from"]).reduce([*seen, file]) do |found, path|
+      files(File.expand_path(path, File.dirname(file)), found)
+    end
   end
 
   def live?(key, own) = config.cop_enabled?(key) || own.dig(key, "Enabled") == false

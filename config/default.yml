@@ -664,7 +664,9 @@ Kata/NoClassMethodLogic:
     calls by name (`included`, `inherited`, `method_added`), and the
     serialization protocols a framework calls on the class: a coder for
     ActiveRecord `serialize` or YAML answers `load`/`dump`, Marshal `_load`,
-    the JSON additions `json_create`.
+    the JSON additions `json_create`. A module declared with
+    `module_function` or `extend self` is a bag of functions called on the
+    module, the same logic with no class, and its declaration is reported.
   Enabled: true
   VersionAdded: "0.3"
   VersionChanged: "0.11"
@@ -763,6 +765,197 @@ Kata/EnvDiscipline:
     - "**/Gemfile"
     - "gems.rb"
     - "**/*.gemfile"
+
+Kata/NoSetter:
+  Description: >-
+    An object takes its state in the constructor and keeps it: `attr_writer`,
+    `attr_accessor` and a `def name=` method each let a caller change it
+    afterwards. Return a new object instead (`with_name`). `[]=` is a
+    collection's protocol, not a setter, and is not reported.
+  Enabled: true
+  VersionAdded: "0.11"
+  Exclude:
+    - "spec/**/*"
+    - "test/**/*"
+    - "**/*_spec.rb"
+    - "**/*_test.rb"
+
+Kata/FrozenState:
+  Description: >-
+    An instance variable is assigned in `initialize` (or `initialize_copy`,
+    or a helper only those call) and never again. Memoization is not a
+    change of state: `@x ||= ...`, `@x = ... unless @x`, `@x = ... if
+    @x.nil?`, `@x = @x || ...` and `return @x if defined?(@x)` pass. Rails
+    hands a view its data through a controller's or mailer's instance
+    variables, so `app/controllers`, `app/mailers` and `app/helpers` are
+    excluded.
+  Enabled: true
+  VersionAdded: "0.11"
+  Exclude:
+    - "spec/**/*"
+    - "test/**/*"
+    - "**/*_spec.rb"
+    - "**/*_test.rb"
+    - "app/controllers/**/*"
+    - "app/mailers/**/*"
+    - "app/helpers/**/*"
+    - "app/views/**/*"
+
+Kata/NoOutputArgument:
+  Description: >-
+    A method does not change the objects it was handed: `items << x`,
+    `options.delete(:key)`, `headers[k] = v` and the other `MutatingMethods`
+    on a parameter reach back into the caller. Return a new value, or move
+    the change to the object that owns the data. Only the method's own
+    positional and keyword parameters count; a splat (`*args`, `**options`)
+    is a fresh collection, and a parameter reassigned first (`list =
+    list.dup`) is a copy. `AllowedNames` holds the parameters that are sinks
+    by convention, written to rather than returned (`io`, `out`, `buffer`),
+    and `env`, which Rack and Faraday middleware is contracted to change.
+  Enabled: true
+  VersionAdded: "0.11"
+  Exclude:
+    - "spec/**/*"
+    - "test/**/*"
+    - "**/*_spec.rb"
+    - "**/*_test.rb"
+  AllowedNames:
+    - buffer
+    - env
+    - io
+    - out
+    - output
+    - stderr
+    - stdout
+    - stream
+    - yielder
+  MutatingMethods:
+    - "<<"
+    - "[]="
+    - append
+    - clear
+    - collect!
+    - compact!
+    - concat
+    - delete
+    - delete_if
+    - fill
+    - filter!
+    - flatten!
+    - gsub!
+    - insert
+    - keep_if
+    - map!
+    - merge!
+    - pop
+    - prepend
+    - push
+    - reject!
+    - replace
+    - reverse!
+    - rotate!
+    - select!
+    - shift
+    - shuffle!
+    - slice!
+    - sort!
+    - sort_by!
+    - store
+    - sub!
+    - transform_keys!
+    - transform_values!
+    - uniq!
+    - unshift
+    - update
+
+Kata/CommandQuery:
+  Description: >-
+    A method whose name ends in `?` answers a question and changes nothing:
+    it assigns no instance variable and calls no `!` method on itself, its
+    state or its parameters. Memoizing the answer (`@valid ||= ...`) is not a
+    change.
+  Enabled: true
+  VersionAdded: "0.11"
+  Exclude:
+    - "spec/**/*"
+    - "test/**/*"
+    - "**/*_spec.rb"
+    - "**/*_test.rb"
+
+Kata/NoTypeCheck:
+  Description: >-
+    `is_a?`, `kind_of?`, `instance_of?` and `respond_to?` ask an object what
+    it is so the caller can decide what to do; polymorphism lets the object
+    decide. The boot layer and the protocols that compare or convert values
+    are exempt: `AllowedMethods` holds `==`, `eql?`, `<=>`, `===`, `coerce`
+    and `respond_to_missing?`, whose contract is to accept any object and
+    check what it was handed. Off by default: on four codebases an
+    independent rater judged 1 of 25 sampled offenses actionable (see
+    eval/results). Most type checks in real code test a closed set of classes
+    another library owns (AST nodes) or validate input at a boundary, and the
+    call alone cannot tell those apart from the checks polymorphism would
+    remove.
+  Enabled: false
+  VersionAdded: "0.11"
+  AllowedMethods:
+    - "=="
+    - "!="
+    - "<=>"
+    - "==="
+    - coerce
+    - eql?
+    - equal?
+    - method_missing
+    - respond_to_missing?
+  Exclude:
+    - "spec/**/*"
+    - "test/**/*"
+    - "**/*_spec.rb"
+    - "**/*_test.rb"
+    - "db/**/*"
+    - "bin/**/*"
+    - "exe/**/*"
+    - "script/**/*"
+    - "config/**/*"
+    - "config.ru"
+    - "lib/tasks/**/*"
+    - "Rakefile"
+    - "**/*.rake"
+    - "*.gemspec"
+    - "Gemfile"
+    - "**/Gemfile"
+    - "gems.rb"
+
+Kata/NoSingleton:
+  Description: >-
+    A singleton is a global with a class name: `include Singleton`, or a
+    class method caching an instance in a class-level variable
+    (`def self.instance = @instance ||= new`). Build the object where the
+    program starts and pass it to what needs it. A class-level cache of a
+    value (`@members ||= Set.new(...)`, a `Struct.new`) is not an instance of
+    the class's service, and `AllowedConstructors` lists those classes.
+  Enabled: true
+  VersionAdded: "0.11"
+  AllowedConstructors:
+    - Array
+    - Class
+    - Concurrent::Map
+    - Data
+    - Hash
+    - Module
+    - Monitor
+    - Mutex
+    - Queue
+    - Regexp
+    - Set
+    - String
+    - Struct
+    - Thread::Mutex
+  Exclude:
+    - "spec/**/*"
+    - "test/**/*"
+    - "**/*_spec.rb"
+    - "**/*_test.rb"
 
 Style/Documentation:
   Enabled: false

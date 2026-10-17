@@ -77,17 +77,15 @@ class Assay::Session
   end
 
   def corpora(bundle)
-    queue = Queue.new.tap { |pending| specs.each { pending << it } }.tap(&:close)
-    results = {}
-    Array.new(options[:jobs]) { start(queue, results, bundle) }.each(&:join)
+    results = lanes.map { start(it, bundle) }.map(&:value).reduce({}, :merge)
     specs.to_h { [it["name"], results.fetch(it["name"])] }
   end
 
-  def start(queue, results, bundle)
+  def lanes = specs.each_with_index.group_by { |_, index| index % options[:jobs] }.values.map { it.map(&:first) }
+
+  def start(lane, bundle)
     Thread.new do # rubocop:disable ThreadSafety/NewThread -- each thread only waits on a child rubocop process
-      while (spec = queue.pop)
-        results[spec["name"]] = measure(spec, bundle)
-      end
+      lane.to_h { [it["name"], measure(it, bundle)] }
     end
   end
 

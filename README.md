@@ -1,6 +1,6 @@
 # rubocop-kata
 
-A RuboCop plugin that replaces a pile of linter gems and config with one dependency. Install it and your `.rubocop.yml` shrinks to project-specific overrides. Everything else comes from the gem: a curated stack of RuboCop extensions, opinionated style defaults, and nineteen house cops.
+A RuboCop plugin that replaces a pile of linter gems and config with one dependency. Install it and your `.rubocop.yml` shrinks to project-specific overrides. Everything else comes from the gem: a curated stack of RuboCop extensions, opinionated style defaults, and twenty-five house cops.
 
 Kata's naming and size rules began as Elegant Objects' one-word names and
 five-line methods. We measured them and they moved. In a blind readability
@@ -31,7 +31,7 @@ The study's items and ratings are in hashira, under
 
 - **One dependency.** Bundles rubocop-rspec, rubocop-performance, rubocop-elegant, rubocop-packaging, and rubocop-thread_safety behind a single gem.
 - **Opinionated defaults.** Methods up to 10 lines and bounded by complexity, classes under 100, 4 parameters max, 120-column lines, double quotes, `NewCops: enable`. See [config/default.yml](config/default.yml).
-- **Nineteen house cops.** Naming, dependency discipline, and data honesty in the Elegant Objects spirit — from `Kata/GoodClassName` to `Kata/ClockDiscipline`.
+- **Twenty-five house cops.** Naming, dependency discipline, immutability, and data honesty in the Elegant Objects spirit — from `Kata/GoodClassName` to `Kata/FrozenState`.
 
 ```ruby
 class PaymentProcessor  # Kata/GoodClassName: `PaymentProcessor` names a doer; name the class
@@ -102,11 +102,17 @@ both the oldest releases the gemspec allows and the newest.
 | `Kata/BuilderNoun` | on | Builders named for what they return: `total`, not `calculate_total`. Tune via `BannedPrefixes`/`AllowedNames`. |
 | `Kata/NoBooleanFlag` | on | No positional boolean arguments, and no positional parameter defaulting to one; split the method or use a keyword. `AllowedMethods` holds the calls whose boolean is a protocol or a value (`respond_to?(name, true)`, `fetch(:ssl, false)`). |
 | `Kata/ConstructorDiscipline` | on | `initialize` assigns, raises, or freezes — never computes. Shaping an argument (`Array(x)`, `name.to_s`, `items.dup`) and the object's own lock or empty collection (`Mutex.new`, `Set.new`) are assignment; a clock, a random number or a client is a hidden dependency. |
-| `Kata/NoClassMethodLogic` | on | Class methods construct (`build`, `parse`, `of`, `from_*`, `new`, `[]`), answer a Ruby hook (`included`, `inherited`), or a serialization protocol (`load`/`dump`, `json_create`); instances do the work. |
+| `Kata/NoClassMethodLogic` | on | Class methods construct (`build`, `parse`, `of`, `from_*`, `new`, `[]`), answer a Ruby hook (`included`, `inherited`), or a serialization protocol (`load`/`dump`, `json_create`); instances do the work. A module of functions (`module_function`, `extend self`) is the same logic without a class, and is reported too. |
 | `Kata/NoHashAsObject` | on | A hash with `MaxKeys`+ keys (default 4) wants to be an object. Keyword arguments, a lookup table a constant names, and the hash `to_h`/`as_json` return are exempt. |
 | `Kata/ClockDiscipline` | on | No ambient clock (`Time.now`, `Time.zone.now`, `Date.current`, `Time.new`, `Process.clock_gettime`); inject one. A parameter default is the seam: `def stamp(now: Time.now)`. |
 | `Kata/JustifiedDirective` | on | An inline `rubocop:disable` says why after `--` (`# rubocop:disable Kata/GoodClassName -- Avo resolves the handler by this name`), so a false positive costs one reviewed line, not a per-file `Exclude`. |
 | `Kata/EnvDiscipline` | on | `ENV` reads only in the boot layer (`config/`, `config.ru`, `db/seeds*`, `db/migrate/`, `lib/tasks/`, rake files, Gemfiles, `bin/`, `exe/`, `script/`) — or as a parameter default, which is the seam the cop asks for. |
+| `Kata/NoSetter` | on | No `attr_writer`, `attr_accessor` or `def name=`: an object takes its state in the constructor, and a change returns a new object. `[]=` is a collection's protocol and passes. |
+| `Kata/FrozenState` | on | An instance variable is assigned in `initialize` (or `initialize_copy`, or a helper only those call) and nowhere else. Memoization passes: `@x ||= ...`, `@x = ... unless @x`, `if @x.nil?`, `@x = @x \|\| ...`, `return @x if defined?(@x)`. Rails controllers, mailers and helpers, which hand views their data through ivars, are excluded. |
+| `Kata/NoOutputArgument` | on | A method does not change what it was handed: `list << x`, `options.delete(:k)`, `hash[k] = v` and the other `MutatingMethods` on a parameter. Splats (`*args`, `**options`) are fresh collections, a parameter reassigned first (`list = list.dup`) is a copy, and `AllowedNames` holds the sinks (`io`, `out`, `buffer`, Rack's `env`). |
+| `Kata/CommandQuery` | on | A `?` method answers and changes nothing: no ivar assignment (memoizing the answer passes) and no `!` call on itself, its state or its parameters. A bang whose value the query reads (`policy!(user, record).show?`) is a lookup that raises, and passes. |
+| `Kata/NoTypeCheck` | off | No `is_a?`, `kind_of?`, `instance_of?` or `respond_to?`; let polymorphism choose. `==`, `eql?`, `<=>`, `===`, `coerce` and `respond_to_missing?` bodies and the boot layer are exempt. Off: a blind rater judged 1 of 25 corpus offenses actionable, since most checks test classes another library owns (AST nodes) or validate input at a boundary. |
+| `Kata/NoSingleton` | on | No `include Singleton`, and no class-level method caching an instance (`def self.instance = @instance ||= new`). A class-level cache of a value (`Set.new`, `Struct.new`; `AllowedConstructors`) passes. |
 
 ## Dead configuration
 
@@ -177,6 +183,26 @@ loop against Elegant's no-blank-lines rule. `rubocop -a` deletes no comment and
 renames no ivar. See [config/default.yml](config/default.yml).
 
 ## Measured
+
+The six object-discipline cops (`NoSetter`, `FrozenState`, `NoOutputArgument`,
+`CommandQuery`, `NoTypeCheck`, `NoSingleton`) and `NoClassMethodLogic`'s module
+rule shipped with a blind precision check: an independent rater, who saw only
+the shuffled offenses and the codebases, labelled up to 25 per cop on faraday,
+rubygems.org, hashira and kimera. A cop is on by default only when at least one
+in three of its offenses is judged actionable:
+
+| Cop | Offenses | Sampled | Actionable | Default |
+| --- | --- | --- | --- | --- |
+| `Kata/NoSetter` | 50 | 25 | 14 (0.56) | on |
+| `Kata/FrozenState` | 93 | 25 | 18 (0.72) | on |
+| `Kata/NoOutputArgument` | 75 | 25 | 21 (0.84) | on |
+| `Kata/CommandQuery` | 10 | 10 | 10 (1.00) | on |
+| `Kata/NoTypeCheck` | 332 | 25 | 1 (0.04) | off |
+| `Kata/NoSingleton` | 4 | 4 | 2 (0.50) | on |
+| `Kata/NoClassMethodLogic`, modules | 67 | 25 | 23 (0.92) | on |
+
+The per-corpus counts and every label are in
+[eval/results](eval/results/README.md#object-discipline-cops).
 
 `eval/run --kata PATH` scores a checkout: labelled cases per cop under the
 shipped defaults, 400 labelled `-er`/`-or`/`-ar` names, the `rubocop-kata`

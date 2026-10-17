@@ -1,0 +1,238 @@
+# Objects keep their state, their arguments and their answers: setters,
+# state changed after construction, output arguments, queries that act,
+# type checks, singletons and modules of functions.
+- id: attr-accessor-flagged
+  cop: Kata/NoSetter
+  expect: offense
+  source: |
+    class Billing::Account
+      attr_accessor :owner
+    end
+- id: setter-method-flagged
+  cop: Kata/NoSetter
+  expect: offense
+  source: |
+    class Billing::Account
+      def owner=(owner)
+        @owner = owner
+      end
+    end
+- id: reader-and-element-writer-allowed
+  cop: Kata/NoSetter
+  expect: clean
+  source: |
+    class Billing::Ledger
+      attr_reader :entries
+
+      def []=(key, value)
+        entries.store(key, value)
+      end
+    end
+- id: state-changed-after-construction-flagged
+  cop: Kata/FrozenState
+  expect: offense
+  source: |
+    class Billing::Account
+      def initialize(balance)
+        @balance = balance
+      end
+
+      def deposit(amount)
+        @balance += amount
+      end
+    end
+- id: memoization-allowed
+  cop: Kata/FrozenState
+  expect: clean
+  source: |
+    class Billing::Report
+      def initialize(rows)
+        @rows = rows
+      end
+
+      def total = @total ||= @rows.sum
+
+      def header
+        return @header if defined?(@header)
+        @header = @rows.first
+      end
+
+      def footer
+        @footer = @rows.last unless @footer
+        @footer
+      end
+    end
+- id: constructor-helper-allowed
+  cop: Kata/FrozenState
+  expect: clean
+  source: |
+    class Billing::Report
+      def initialize(rows)
+        load(rows)
+      end
+
+      private
+
+      def load(rows)
+        @rows = rows.to_a
+      end
+    end
+- id: controller-assigns-allowed
+  cop: Kata/FrozenState
+  expect: clean
+  path: app/controllers/accounts_controller.rb
+  source: |
+    class AccountsController < ApplicationController
+      def show
+        @account = Account.find(params[:id])
+      end
+    end
+- id: parameter-appended-flagged
+  cop: Kata/NoOutputArgument
+  expect: offense
+  source: |
+    module Billing
+      def self.collect(node, found)
+        found << node
+      end
+    end
+- id: options-key-deleted-flagged
+  cop: Kata/NoOutputArgument
+  expect: offense
+  source: |
+    class Billing::Button
+      def initialize(options = {})
+        @data = options.delete(:data)
+      end
+    end
+- id: parameter-indexed-write-flagged
+  cop: Kata/NoOutputArgument
+  expect: offense
+  source: |
+    class Billing::Tally
+      def count(counts, word)
+        counts[word] += 1
+      end
+    end
+- id: locals-copies-splats-and-sinks-allowed
+  cop: Kata/NoOutputArgument
+  expect: clean
+  source: |
+    class Billing::Printer
+      def print(io, rows, *extra, **options)
+        lines = []
+        lines << rows.first
+        rows = rows.dup
+        rows.sort!
+        extra.shift
+        options.delete(:color)
+        io << lines.join
+      end
+    end
+- id: query-assigns-state-flagged
+  cop: Kata/CommandQuery
+  expect: offense
+  source: |
+    class Billing::Typo
+      def protected?
+        @match = candidates.first
+        !@match.nil?
+      end
+    end
+- id: query-saves-flagged
+  cop: Kata/CommandQuery
+  expect: offense
+  source: |
+    class Billing::Code
+      def verified?(code)
+        return false unless matches?(code)
+        save!(validate: false)
+      end
+    end
+- id: memoized-query-and-raising-lookup-allowed
+  cop: Kata/CommandQuery
+  expect: clean
+  source: |
+    class Billing::Policy
+      def valid? = @valid ||= errors.empty?
+
+      def show? = policy!(user, record).show?
+    end
+- id: type-check-off-by-default
+  cop: Kata/NoTypeCheck
+  expect: clean
+  source: |
+    class Billing::Amount
+      def render(value) = value.is_a?(Symbol) ? value.to_s : value
+    end
+- id: type-check-flagged-when-enabled
+  cop: Kata/NoTypeCheck
+  enable: true
+  expect: offense
+  source: |
+    class Billing::Amount
+      def render(value) = value.is_a?(Symbol) ? value.to_s : value
+    end
+- id: type-check-in-equality-allowed
+  cop: Kata/NoTypeCheck
+  enable: true
+  expect: clean
+  source: |
+    class Billing::Money
+      attr_reader :cents
+
+      def ==(other) = other.is_a?(Billing::Money) && cents == other.cents
+    end
+- id: type-check-in-boot-layer-allowed
+  cop: Kata/NoTypeCheck
+  enable: true
+  expect: clean
+  path: config/initializers/billing.rb
+  source: |
+    Billing.adapter = :http if Billing.adapter.is_a?(String)
+- id: singleton-mixin-flagged
+  cop: Kata/NoSingleton
+  expect: offense
+  source: |
+    class Billing::Registry
+      include Singleton
+    end
+- id: cached-class-instance-flagged
+  cop: Kata/NoSingleton
+  expect: offense
+  source: |
+    class Billing::Gateway
+      def self.default = @default ||= new(timeout: 3)
+    end
+- id: class-level-value-cache-allowed
+  cop: Kata/NoSingleton
+  expect: clean
+  source: |
+    class Billing::Field
+      def self.members = @members ||= Set.new(%i[amount currency])
+    end
+- id: module-function-flagged
+  cop: Kata/NoClassMethodLogic
+  expect: offense
+  source: |
+    module Billing::Pricing
+      module_function
+
+      def total(lines) = lines.sum(&:price)
+    end
+- id: extend-self-flagged
+  cop: Kata/NoClassMethodLogic
+  expect: offense
+  source: |
+    module Billing::Pricing
+      extend self
+
+      def total(lines) = lines.sum(&:price)
+    end
+- id: extending-another-module-allowed
+  cop: Kata/NoClassMethodLogic
+  expect: clean
+  source: |
+    module Billing::Pricing
+      extend Forwardable
+    end
