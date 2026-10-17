@@ -778,6 +778,27 @@ Kata/NoSetter:
     - "**/*_spec.rb"
     - "**/*_test.rb"
 
+Kata/FrozenState:
+  Description: >-
+    An instance variable is assigned in `initialize` (or `initialize_copy`,
+    or a helper only those call) and never again. Memoization is not a
+    change of state: `@x ||= ...`, `@x = ... unless @x`, `@x = ... if
+    @x.nil?`, `@x = @x || ...` and `return @x if defined?(@x)` pass. Rails
+    hands a view its data through a controller's or mailer's instance
+    variables, so `app/controllers`, `app/mailers` and `app/helpers` are
+    excluded.
+  Enabled: true
+  VersionAdded: "0.11"
+  Exclude:
+    - "spec/**/*"
+    - "test/**/*"
+    - "**/*_spec.rb"
+    - "**/*_test.rb"
+    - "app/controllers/**/*"
+    - "app/mailers/**/*"
+    - "app/helpers/**/*"
+    - "app/views/**/*"
+
 Style/Documentation:
   Enabled: false
 

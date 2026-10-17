@@ -108,6 +108,7 @@ both the oldest releases the gemspec allows and the newest.
 | `Kata/JustifiedDirective` | on | An inline `rubocop:disable` says why after `--` (`# rubocop:disable Kata/GoodClassName -- Avo resolves the handler by this name`), so a false positive costs one reviewed line, not a per-file `Exclude`. |
 | `Kata/EnvDiscipline` | on | `ENV` reads only in the boot layer (`config/`, `config.ru`, `db/seeds*`, `db/migrate/`, `lib/tasks/`, rake files, Gemfiles, `bin/`, `exe/`, `script/`) — or as a parameter default, which is the seam the cop asks for. |
 | `Kata/NoSetter` | on | No `attr_writer`, `attr_accessor` or `def name=`: an object takes its state in the constructor, and a change returns a new object. `[]=` is a collection's protocol and passes. |
+| `Kata/FrozenState` | on | An instance variable is assigned in `initialize` (or `initialize_copy`, or a helper only those call) and nowhere else. Memoization passes: `@x ||= ...`, `@x = ... unless @x`, `if @x.nil?`, `@x = @x \|\| ...`, `return @x if defined?(@x)`. Rails controllers, mailers and helpers, which hand views their data through ivars, are excluded. |
 
 ## Dead configuration
 
