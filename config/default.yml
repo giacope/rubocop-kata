@@ -799,6 +799,73 @@ Kata/FrozenState:
     - "app/helpers/**/*"
     - "app/views/**/*"
 
+Kata/NoOutputArgument:
+  Description: >-
+    A method does not change the objects it was handed: `items << x`,
+    `options.delete(:key)`, `headers[k] = v` and the other `MutatingMethods`
+    on a parameter reach back into the caller. Return a new value, or move
+    the change to the object that owns the data. Only the method's own
+    positional and keyword parameters count; a splat (`*args`, `**options`)
+    is a fresh collection, and a parameter reassigned first (`list =
+    list.dup`) is a copy. `AllowedNames` holds the parameters that are sinks
+    by convention, written to rather than returned (`io`, `out`, `buffer`),
+    and `env`, which Rack and Faraday middleware is contracted to change.
+  Enabled: true
+  VersionAdded: "0.11"
+  Exclude:
+    - "spec/**/*"
+    - "test/**/*"
+    - "**/*_spec.rb"
+    - "**/*_test.rb"
+  AllowedNames:
+    - buffer
+    - env
+    - io
+    - out
+    - output
+    - stderr
+    - stdout
+    - stream
+    - yielder
+  MutatingMethods:
+    - "<<"
+    - "[]="
+    - append
+    - clear
+    - collect!
+    - compact!
+    - concat
+    - delete
+    - delete_if
+    - fill
+    - filter!
+    - flatten!
+    - gsub!
+    - insert
+    - keep_if
+    - map!
+    - merge!
+    - pop
+    - prepend
+    - push
+    - reject!
+    - replace
+    - reverse!
+    - rotate!
+    - select!
+    - shift
+    - shuffle!
+    - slice!
+    - sort!
+    - sort_by!
+    - store
+    - sub!
+    - transform_keys!
+    - transform_values!
+    - uniq!
+    - unshift
+    - update
+
 Style/Documentation:
   Enabled: false
 

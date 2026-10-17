@@ -90,8 +90,10 @@ class Assay::Snippets
   end
 
   def expand(item)
-    words = item.delete("each")
+    words = item["each"]
     return [item] unless words
-    words.map { |word| item.merge("id" => "#{item["id"]}-#{word}", "source" => item["source"].gsub("{word}", word)) }
+    words.map do |word|
+      item.except("each").merge("id" => "#{item["id"]}-#{word}", "source" => item["source"].gsub("{word}", word))
+    end
   end
 end
