@@ -664,7 +664,9 @@ Kata/NoClassMethodLogic:
     calls by name (`included`, `inherited`, `method_added`), and the
     serialization protocols a framework calls on the class: a coder for
     ActiveRecord `serialize` or YAML answers `load`/`dump`, Marshal `_load`,
-    the JSON additions `json_create`.
+    the JSON additions `json_create`. A module declared with
+    `module_function` or `extend self` is a bag of functions called on the
+    module, the same logic with no class, and its declaration is reported.
   Enabled: true
   VersionAdded: "0.3"
   VersionChanged: "0.11"
