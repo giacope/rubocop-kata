@@ -5,6 +5,7 @@ class Assay::Snippets
   PATH = "lib/sample.rb"
   MODES = { "safe" => "-a", "all" => "-A" }.freeze
   EXTRA = 99
+  ENABLE = "\n%s:\n  Enabled: true\n"
 
   def initialize(bundle, work, sources)
     @bundle = bundle
@@ -67,7 +68,7 @@ class Assay::Snippets
     home = File.join(root, item["id"])
     path = File.join(home, item.fetch("path", PATH))
     FileUtils.mkdir_p(File.dirname(path))
-    File.write(File.join(home, ".rubocop.yml"), CONFIG)
+    File.write(File.join(home, ".rubocop.yml"), CONFIG + (item["enable"] ? format(ENABLE, item.fetch("cop")) : ""))
     File.write(path, item.fetch("source"))
   end
 

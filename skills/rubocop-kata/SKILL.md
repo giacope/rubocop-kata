@@ -3,7 +3,8 @@ name: rubocop-kata
 description: >-
   Adopt rubocop-kata's rules on an existing codebase without the offense count going
   the wrong way. Kata's structural cops (ConstructorDiscipline, NoHashAsObject,
-  Io/Clock/EnvDiscipline, NoClassMethodLogic, NoBooleanFlag, ClassInModule) create names, and its naming
+  Io/Clock/EnvDiscipline, NoClassMethodLogic, NoBooleanFlag, ClassInModule, NoSetter, FrozenState,
+  NoOutputArgument, CommandQuery, NoSingleton) create names, and its naming
   cops (RealWords, GoodMethodName, GoodVariableName, GoodClassName, GoodModuleName, BuilderNoun)
   charge for every name created — so a structural refactor removes offenses and adds more,
   and a single total cannot tell progress from regression. This skill sequences the work by

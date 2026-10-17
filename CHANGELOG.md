@@ -2,6 +2,41 @@
 
 ## [Unreleased]
 
+- Six cops for objects that keep their state, their arguments and their
+  answers, each measured before its default was chosen: an independent rater
+  labelled up to 25 offenses per cop on faraday, rubygems.org, hashira and
+  kimera (every label is in `eval/results/object_discipline_labels.json`),
+  and a cop is on only if at least one in three is actionable.
+  - `Kata/NoSetter` (on; 50 offenses, 14 of 25 actionable): `attr_writer`,
+    `attr_accessor` and `def name=`. `[]=` passes.
+  - `Kata/FrozenState` (on; 93, 18 of 25): an ivar assigned outside
+    `initialize`, `initialize_copy` or a helper only those call. Memoization
+    passes (`@x ||=`, `@x = ... unless @x`, `if @x.nil?`, `@x = @x || ...`,
+    `defined?(@x)`), and Rails controllers, mailers and helpers are excluded.
+  - `Kata/NoOutputArgument` (on; 75, 21 of 25): `<<`, `[]=`, `delete`,
+    `merge!`, `sort!` and the other `MutatingMethods` on a method's own
+    parameter. Splats, a parameter reassigned first, and the sinks in
+    `AllowedNames` (`io`, `out`, `buffer`, Rack's `env`) pass.
+  - `Kata/CommandQuery` (on; 10, 10 of 10): a `?` method that assigns an ivar
+    (memoizing passes) or calls a `!` method on itself, its state or its
+    parameters. A bang whose value the query reads (`policy!(...).show?`) is
+    a lookup, and passes.
+  - `Kata/NoTypeCheck` (off; 332, 1 of 25): `is_a?`, `kind_of?`,
+    `instance_of?`, `respond_to?`, outside the boot layer and the bodies of
+    `==`, `eql?`, `<=>`, `===`, `coerce` and `respond_to_missing?`. Most
+    checks in real code test AST node classes another library owns or
+    validate input at a boundary, which the call cannot tell apart.
+  - `Kata/NoSingleton` (on; 4, 2 of 4): `include Singleton`, and a
+    class-level method caching an instance (`@instance ||= new`). A cached
+    value (`Set.new`, `Struct.new`; `AllowedConstructors`) passes.
+- `Kata/NoClassMethodLogic` also reports a module of functions: the
+  `module_function` or `extend self` that declares it (67 offenses, 23 of 25
+  actionable). hashira and kimera, written to kata's rules, account for 64.
+- kata's own code passes the new cops: `Checkup#files` and `Ledger#nodes`
+  return what they collect instead of filling a parameter, `PairedBrackets`
+  keys its string cache by the source, and the eval suite's threads return
+  their results. A snippet case can `enable: true` a cop that ships off.
+
 - `Kata/GoodMethodName` judges a hook name by the words behind its leading
   underscores: `_fork`, `_dump` and `__send` pass, where they were reported as
   having an empty segment.

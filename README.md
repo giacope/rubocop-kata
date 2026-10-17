@@ -1,6 +1,6 @@
 # rubocop-kata
 
-A RuboCop plugin that replaces a pile of linter gems and config with one dependency. Install it and your `.rubocop.yml` shrinks to project-specific overrides. Everything else comes from the gem: a curated stack of RuboCop extensions, opinionated style defaults, and nineteen house cops.
+A RuboCop plugin that replaces a pile of linter gems and config with one dependency. Install it and your `.rubocop.yml` shrinks to project-specific overrides. Everything else comes from the gem: a curated stack of RuboCop extensions, opinionated style defaults, and twenty-five house cops.
 
 Kata's naming and size rules began as Elegant Objects' one-word names and
 five-line methods. We measured them and they moved. In a blind readability
@@ -31,7 +31,7 @@ The study's items and ratings are in hashira, under
 
 - **One dependency.** Bundles rubocop-rspec, rubocop-performance, rubocop-elegant, rubocop-packaging, and rubocop-thread_safety behind a single gem.
 - **Opinionated defaults.** Methods up to 10 lines and bounded by complexity, classes under 100, 4 parameters max, 120-column lines, double quotes, `NewCops: enable`. See [config/default.yml](config/default.yml).
-- **Nineteen house cops.** Naming, dependency discipline, and data honesty in the Elegant Objects spirit — from `Kata/GoodClassName` to `Kata/ClockDiscipline`.
+- **Twenty-five house cops.** Naming, dependency discipline, immutability, and data honesty in the Elegant Objects spirit — from `Kata/GoodClassName` to `Kata/FrozenState`.
 
 ```ruby
 class PaymentProcessor  # Kata/GoodClassName: `PaymentProcessor` names a doer; name the class
@@ -183,6 +183,26 @@ loop against Elegant's no-blank-lines rule. `rubocop -a` deletes no comment and
 renames no ivar. See [config/default.yml](config/default.yml).
 
 ## Measured
+
+The six object-discipline cops (`NoSetter`, `FrozenState`, `NoOutputArgument`,
+`CommandQuery`, `NoTypeCheck`, `NoSingleton`) and `NoClassMethodLogic`'s module
+rule shipped with a blind precision check: an independent rater, who saw only
+the shuffled offenses and the codebases, labelled up to 25 per cop on faraday,
+rubygems.org, hashira and kimera. A cop is on by default only when at least one
+in three of its offenses is judged actionable:
+
+| Cop | Offenses | Sampled | Actionable | Default |
+| --- | --- | --- | --- | --- |
+| `Kata/NoSetter` | 50 | 25 | 14 (0.56) | on |
+| `Kata/FrozenState` | 93 | 25 | 18 (0.72) | on |
+| `Kata/NoOutputArgument` | 75 | 25 | 21 (0.84) | on |
+| `Kata/CommandQuery` | 10 | 10 | 10 (1.00) | on |
+| `Kata/NoTypeCheck` | 332 | 25 | 1 (0.04) | off |
+| `Kata/NoSingleton` | 4 | 4 | 2 (0.50) | on |
+| `Kata/NoClassMethodLogic`, modules | 67 | 25 | 23 (0.92) | on |
+
+The per-corpus counts and every label are in
+[eval/results](eval/results/README.md#object-discipline-cops).
 
 `eval/run --kata PATH` scores a checkout: labelled cases per cop under the
 shipped defaults, 400 labelled `-er`/`-or`/`-ar` names, the `rubocop-kata`
