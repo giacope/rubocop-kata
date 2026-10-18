@@ -4,6 +4,7 @@ api
 app
 async
 autocorrect
+avif
 aws
 backend
 barcode
@@ -36,16 +37,19 @@ dsl
 email
 endpoint
 enqueue
+firefox
 formatter
 frontend
 frontmatter
 gemspec
+gif
 github
 gitlab
 glyph
 gui
 gzip
 heard
+heic
 held
 html
 http
@@ -69,6 +73,7 @@ mfa
 middleware
 min
 mixin
+mp4
 multiline
 namespace
 nginx
@@ -83,6 +88,8 @@ pdf
 plugin
 postgresql
 proc
+pwa
+qr
 queueing
 readme
 redis
@@ -115,6 +122,8 @@ uuid
 validator
 webauthn
 webhook
+webm
+webp
 webpage
 website
 whitespace

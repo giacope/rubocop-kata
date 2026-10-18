@@ -3,6 +3,10 @@
 ## [Unreleased]
 
 - Fixes found by running kata on 37signals' Campfire:
+  - `Kata/RealWords` knows `gif`, `webp`, `mp4`, `webm`, `avif` and `heic`
+    (`svg`, `png` and `jpeg` already passed), the browser `firefox`, and the
+    initialisms `qr` and `pwa`, which a web app names. Campfire's
+    `ApplicationPlatform#firefox?` was its last offense.
   - `Kata/NoRedundantVariable` no longer inlines a safe-navigation chain as
     a receiver. `type = image&.type` read as `type.in?(list)` became
     `image&.type.in?(list)`, whose `&.` skips the `in?` too, so a nil image
