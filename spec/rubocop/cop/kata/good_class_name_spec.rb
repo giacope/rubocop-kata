@@ -232,6 +232,29 @@ RSpec.describe(RuboCop::Cop::Kata::GoodClassName, :config) do
       RUBY
     end
 
+    context "with the module contracts Kata/GoodModuleName ships" do
+      let(:other_cops) do
+        { "Kata/GoodModuleName" => RuboCop::ConfigLoader.default_configuration.for_cop("Kata/GoodModuleName") }
+      end
+
+      it "judges a helper's test by the helper's subject, as Kata/GoodModuleName judges the helper" do
+        expect_no_offenses(<<~RUBY)
+          class MessagesHelperTest < ActionView::TestCase
+          end
+          class RichTextHelperTest < ActionView::TestCase
+          end
+        RUBY
+      end
+
+      it "keeps a class that ends in a module's contract a doer when no test names it" do
+        expect_offense(<<~RUBY)
+          class MessagesHelper
+                ^^^^^^^^^^^^^^ `MessagesHelper` names a doer; name the class for the thing it is, not the work it does.
+          end
+        RUBY
+      end
+    end
+
     it "keeps a bare suffix a doer, since no framework resolves it" do
       expect_offense(<<~RUBY)
         class Controller

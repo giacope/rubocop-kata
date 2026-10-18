@@ -25,12 +25,17 @@ module RuboCop::Cop::Kata::TypeName
     format(self.class::CROWD_MSG, name, count, name) if count > max
   end
 
-  def subject(name) = %w[Suffixes ContractSuffixes].reduce(name) { |stem, key| strip(stem, key) }
+  def subject(name)
+    stem = strip(name, list("Suffixes"))
+    strip(stem, list("ContractSuffixes") + (stem == name ? [] : contracts))
+  end
 
-  def strip(name, key)
-    role = list(key).find { name.end_with?(it) && name != it }
+  def strip(name, roles)
+    role = roles.find { name.end_with?(it) && name != it }
     role ? name.delete_suffix(role) : name
   end
+
+  def contracts = Array(config.for_cop("Kata/GoodModuleName")["ContractSuffixes"]).map(&:to_s)
 
   def inherited?(name, node)
     parent = node.parent_class if node.class_type?
