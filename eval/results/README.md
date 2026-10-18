@@ -2,7 +2,11 @@
 
 `before.json` is `main` at `719080f`, `after.json` is this branch at `d6cf35c`,
 both run by `eval/run` with rubocop 1.92.0 and the released rubocop-elegant
-0.8.0, the versions a fresh `bundle install` resolves. Regenerate with:
+0.8.0, the versions a fresh `bundle install` resolves; both report
+rubocop-kata 0.10.1. The numbers below are a snapshot of those two commits,
+not of `main` today: CI re-checks the cheap sections on every pull request,
+and the rest is re-run before a release (see
+[What CI runs](#what-ci-runs-and-what-waits-for-a-release)). Regenerate with:
 
 ```sh
 eval/run --kata ../main-checkout --out eval/results/before.json
@@ -33,7 +37,9 @@ What the sections measure:
   is a thing or never uses the verb, a doer now passes. Read once at the end,
   the holdout misses were Assembler, Benchmarker, Decoder, Escalator,
   Generator, Lexer, Merger and Refresher, and its one false positive Header
-  (which the shipped `AllowedNames` covers).
+  (which the shipped `AllowedNames` covers). The labels are the author's;
+  [human/](human/README.md) is a kit for a person to re-label 40 of them
+  blind and score the agreement.
 - **Shipped configuration**: facts read from the resolved config of a bare
   project. `AllowedNames` 45 per cop, duplicated for modules, is now one
   9-entry list (exception classes, domain roles, three words with an equally
@@ -49,6 +55,38 @@ What the sections measure:
 - **MethodLength by CountAsOne** reports the length cop under three counting
   rules. With the limit at 10 the fold matters little (faraday 20 vs 22
   without any folding, rubygems.org 143 vs 203).
+
+## What CI runs, and what waits for a release
+
+The `eval` job in `.github/workflows/ci.yml` runs the sections that need no
+network on every push to `main` and every pull request, in about 70 seconds:
+
+```sh
+eval/run --kata . --only settings,cases,names,cli --out tmp/eval/ci.json --gate
+```
+
+`--gate` exits 1 when a snippet or CLI case fails, unless the case carries
+`known` (the reason it fails on purpose, as the three above do), and when a
+`known` case starts passing, so the mark comes off. It also fails when the doer
+rule on `eval/names.yml`, raw or shipped, gains false positives or loses
+recall against `eval/gate.yml`; tighten those numbers when a change improves
+them. The shipped-configuration facts are reported, not gated. The suite
+reads RuboCop's UTF-8 output, so under a C or POSIX locale set
+`LANG=C.UTF-8`.
+
+The full run is a pre-release step. Corpora, autocorrect safety (with
+faraday's specs) and the before/after comparison need the pinned corpora,
+which the first run clones into `tmp/eval/corpora`. Before a release, score
+the last release and the candidate, then refresh the files here, the tables
+below, and the commits and versions at the top:
+
+```sh
+git worktree add ../kata-before <last release commit>
+eval/run --kata ../kata-before --out eval/results/before.json
+eval/run --kata .              --out eval/results/after.json --gate
+eval/run --compare eval/results/before.json eval/results/after.json
+git worktree remove ../kata-before
+```
 
 ## Object-discipline cops
 

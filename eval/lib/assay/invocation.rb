@@ -10,7 +10,7 @@ class Assay::Invocation
   def to_h
     outcome = launch
     faults = faults(@item.fetch("expect"), outcome)
-    @item.slice("id", "gap", "command").merge(
+    @item.slice("id", "gap", "command", "known").merge(
       "passed" => faults.empty?, "status" => outcome.status, "faults" => faults,
       "stdout" => outcome.stdout.lines.first(6).join, "stderr" => outcome.stderr.lines.first(3).join
     )

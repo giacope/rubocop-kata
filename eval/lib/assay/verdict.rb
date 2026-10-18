@@ -9,7 +9,7 @@ class Assay::Verdict
 
   def to_h
     faults = self.faults
-    @item.slice("id", "gap", "cop", "expect").merge(
+    @item.slice("id", "gap", "cop", "expect", "known").merge(
       "passed" => faults.empty?, "found" => mine.size, "faults" => faults,
       "messages" => mine.map { it["message"] }.uniq.first(2)
     )

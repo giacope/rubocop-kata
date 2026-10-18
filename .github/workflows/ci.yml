@@ -32,6 +32,26 @@ jobs:
       - run: bundle exec rspec
       - run: bundle exec hashira --ratchet
 
+  eval:
+    runs-on: ubuntu-latest
+    env:
+      RUBOCOP_ELEGANT_VERSION: "0.8.0"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.4"
+          bundler-cache: true
+      - run: eval/run --kata . --only settings,cases,names,cli --out tmp/eval/ci.json --gate
+        env:
+          BUNDLE_PATH: ${{ github.workspace }}/vendor/bundle
+          LANG: C.UTF-8
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: eval-scoreboard
+          path: tmp/eval/ci.*
+
   mutation:
     runs-on: ubuntu-latest
     steps:
