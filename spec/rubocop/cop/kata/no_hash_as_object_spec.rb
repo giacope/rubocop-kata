@@ -45,6 +45,23 @@ RSpec.describe(RuboCop::Cop::Kata::NoHashAsObject, :config) do
     RUBY
   end
 
+  it "allows the rows of a table a constant names, frozen or not" do
+    expect_no_offenses(<<~RUBY)
+      LABELS = {
+        email: { en: "Email", es: "Correo", fr: "Courriel", de: "E-Mail" },
+        name: { en: "Name", es: "Nombre", fr: "Nom", de: "Name" }.freeze,
+        nested: { deep: { en: "a", es: "b", fr: "c", de: "d" } }
+      }.freeze
+    RUBY
+  end
+
+  it "still flags a hash a table row only builds on" do
+    expect_offense(<<~RUBY)
+      LABELS = { email: { en: "Email", es: "Correo", fr: "Courriel", de: "E-Mail" }.merge(extra) }
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ 4 keys travelling together are an object without a name.
+    RUBY
+  end
+
   it "still flags a hash a constant only builds on, or a local holds frozen" do
     expect_offense(<<~RUBY)
       DEFAULT = { name: "a", email: "b", age: 1, role: :admin }.merge(extra)

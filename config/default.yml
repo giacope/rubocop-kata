@@ -696,7 +696,8 @@ Kata/NoClassMethodLogic:
 Kata/NoHashAsObject:
   Description: >-
     Keys that travel together are an object without a name. Keyword
-    arguments are exempt, as is a lookup table a constant names, and the hash
+    arguments are exempt, as is a lookup table a constant names, rows and
+    all (`LABELS = { email: { en: ..., fr: ... } }`), and the hash
     a serialization method returns: inside `to_h` or `as_json` the object
     already has a name, and the protocol asks for a hash.
   Enabled: true

@@ -13,6 +13,9 @@
     before it. On a line `Kata/NoComments` deleted in the same `rubocop -A`
     pass, the step survived the deletion and pushed the next line two columns
     right.
+  - `Kata/NoHashAsObject` exempts the rows of a lookup table a constant
+    names, not only the table: Campfire's `TRANSLATIONS`, one hash per
+    phrase keyed by locale, raised 13 offenses.
 
 - Six cops for objects that keep their state, their arguments and their
   answers, each measured before its default was chosen: an independent rater

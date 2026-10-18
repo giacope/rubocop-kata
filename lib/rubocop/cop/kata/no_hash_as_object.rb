@@ -19,10 +19,13 @@ class RuboCop::Cop::Kata::NoHashAsObject < RuboCop::Cop::Base
   end
 
   def table?(node)
-    holder = node.parent
-    holder = holder.parent if holder&.send_type? && holder.method?(:freeze)
+    value = freezing?(node.parent) ? node.parent : node
+    holder = value.parent
+    return table?(holder.parent) if holder&.pair_type? && holder.value.equal?(value)
     holder&.casgn_type?
   end
+
+  def freezing?(node) = node&.send_type? && node.method?(:freeze)
 
   def protocol?(node)
     method = node.each_ancestor(:def, :defs).first
