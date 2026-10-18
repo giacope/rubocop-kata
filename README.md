@@ -88,7 +88,7 @@ both the oldest releases the gemspec allows and the newest.
 
 | Cop | Default | What it enforces |
 | --- | --- | --- |
-| `Kata/GoodClassName` | on | A class names one object that exists in the model: no doers (agent nouns, read from WordNet data), no junk drawers (`Service`, `Util`, `Data`), no packing several concepts into one name (`CustomerOrderPayment`). `CreditCard` is one concept; `Terms` holds those. A framework's suffix is a contract, its subject is not: `UsersController` is judged as `Users`, `ReportBuilderJob` as `ReportBuilder`. A class inherits the agent word of the superclass that chose it (`ActionHandler < Avo::Actions::ActionHandler`). `AllowedNames` holds exception classes and the domain roles a model represents (`User`, `Owner`). |
+| `Kata/GoodClassName` | on | A class names one object that exists in the model: no doers (agent nouns, read from WordNet data), no junk drawers (`Service`, `Util`, `Data`), no packing several concepts into one name (`CustomerOrderPayment`). `CreditCard` is one concept; `Terms` holds those. A framework's suffix is a contract, its subject is not: `UsersController` is judged as `Users`, `ReportBuilderJob` as `ReportBuilder`, a helper's test as the helper (`InvoicesHelperTest` as `Invoices`). A class inherits the agent word of the superclass that chose it (`ActionHandler < Avo::Actions::ActionHandler`). `AllowedNames` holds exception classes and the domain roles a model represents (`User`, `Owner`). |
 | `Kata/GoodModuleName` | on | A module names a domain vocabulary (`Billing`, `AccessControl`), not an implementation category: no layer buckets (`Services`, `Helpers`, `Logic`), no vague shared namespaces (`Common`, `Shared`, `Core`), no doers. Rails helper modules (`InvoicesHelper`) are judged by their subject. |
 | `Kata/NoRedundantVariable` | on | A local assigned once and read once is inlined at its read, unless the move would cross a loop, a branch, or a side effect. Autocorrects, and keeps Ruby 3.1 shorthand intact. Fixed copy of `Elegant/NoRedundantVariable`. |
 | `Kata/PairedBrackets` | on | Every bracket pairs on its line, or opens at line end and closes at line start. Autocorrects without drifting the indent. Fixed copy of `Elegant/PairedBrackets`. |
@@ -103,7 +103,7 @@ both the oldest releases the gemspec allows and the newest.
 | `Kata/NoBooleanFlag` | on | No positional boolean arguments, and no positional parameter defaulting to one; split the method or use a keyword. `AllowedMethods` holds the calls whose boolean is a protocol or a value (`respond_to?(name, true)`, `fetch(:ssl, false)`). |
 | `Kata/ConstructorDiscipline` | on | `initialize` assigns, raises, or freezes — never computes. Shaping an argument (`Array(x)`, `name.to_s`, `items.dup`) and the object's own lock or empty collection (`Mutex.new`, `Set.new`) are assignment; a clock, a random number or a client is a hidden dependency. |
 | `Kata/NoClassMethodLogic` | on | Class methods construct (`build`, `parse`, `of`, `from_*`, `new`, `[]`), answer a Ruby hook (`included`, `inherited`), or a serialization protocol (`load`/`dump`, `json_create`); instances do the work. A module of functions (`module_function`, `extend self`) is the same logic without a class, and is reported too. |
-| `Kata/NoHashAsObject` | on | A hash with `MaxKeys`+ keys (default 4) wants to be an object. Keyword arguments, a lookup table a constant names, and the hash `to_h`/`as_json` return are exempt. |
+| `Kata/NoHashAsObject` | on | A hash with `MaxKeys`+ keys (default 4) wants to be an object. Keyword arguments, a lookup table a constant names (its rows too), and the hash `to_h`/`as_json` return are exempt. |
 | `Kata/ClockDiscipline` | on | No ambient clock (`Time.now`, `Time.zone.now`, `Date.current`, `Time.new`, `Process.clock_gettime`); inject one. A parameter default is the seam: `def stamp(now: Time.now)`. |
 | `Kata/JustifiedDirective` | on | An inline `rubocop:disable` says why after `--` (`# rubocop:disable Kata/GoodClassName -- Avo resolves the handler by this name`), so a false positive costs one reviewed line, not a per-file `Exclude`. |
 | `Kata/EnvDiscipline` | on | `ENV` reads only in the boot layer (`config/`, `config.ru`, `db/seeds*`, `db/migrate/`, `lib/tasks/`, rake files, Gemfiles, `bin/`, `exe/`, `script/`) — or as a parameter default, which is the seam the cop asks for. |
@@ -154,6 +154,10 @@ layout        300  Kata/PairedBrackets 210, Layout/LineLength 90
 next: structure — 184 offenses in 61 files; these mint the names `naming` then prices, so take them first
 densest: app/models/account.rb (14)
 ```
+
+`plan` always applies kata's defaults beneath the project's own configuration,
+so on a project that has not named the plugin yet it previews what adopting kata
+would report, instead of running Kata cops with no configuration at all.
 
 Structure before naming, because doing naming first means renaming things the
 structural pass is about to move; layout last, because every other stage moves

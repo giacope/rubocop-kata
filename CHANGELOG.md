@@ -2,6 +2,31 @@
 
 ## [Unreleased]
 
+- Fixes found by running kata on 37signals' Campfire:
+  - `Kata/NoRedundantVariable` no longer inlines a safe-navigation chain as
+    a receiver. `type = image&.type` read as `type.in?(list)` became
+    `image&.type.in?(list)`, whose `&.` skips the `in?` too, so a nil image
+    answered nil where it answered false. It still reports the variable,
+    and an argument (`baz(a&.b)`) or a safe receiver (`a&.b&.c`) still
+    inlines.
+  - `Kata/PairedBrackets` puts the step it adds after a line's indent, not
+    before it. On a line `Kata/NoComments` deleted in the same `rubocop -A`
+    pass, the step survived the deletion and pushed the next line two columns
+    right.
+  - `Kata/NoHashAsObject` exempts the rows of a lookup table a constant
+    names, not only the table: Campfire's `TRANSLATIONS`, one hash per
+    phrase keyed by locale, raised 13 offenses.
+  - `Kata/GoodClassName` judges a test of a framework-resolved module by the
+    module's subject: `MessagesHelperTest` is judged as `Messages`, as
+    `Kata/GoodModuleName` judges `MessagesHelper`, where it was a doer.
+  - `Kata/ProsePlacement` reads a string literal holding bytes that are not
+    valid text (`"\xFF"`) as no prose, where it raised.
+  - `rubocop-kata plan` runs with kata's defaults beneath the project's own
+    configuration. On a project that had not named the plugin, Kata cops
+    ran with no configuration at all: `Kata/ProsePlacement`, off by default,
+    reported 593 offenses on Campfire, and `Kata/ClassInModule` ignored the
+    Zeitwerk roots.
+
 - Six cops for objects that keep their state, their arguments and their
   answers, each measured before its default was chosen: an independent rater
   labelled up to 25 offenses per cop on faraday, rubygems.org, hashira and

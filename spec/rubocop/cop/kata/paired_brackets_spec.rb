@@ -66,6 +66,29 @@ RSpec.describe(RuboCop::Cop::Kata::PairedBrackets) do
     expect(text).to(eq("a(\n  b(\n    c(\n      1\n    )\n  )\n)"))
   end
 
+  it "leaves no stray step on a line Kata/NoComments deletes in the same pass" do
+    comments = RuboCop::Cop::Kata::NoComments.new(RuboCop::Config.new)
+    text = "encode([\n  path,\n  # Old cookies stay valid.\n  token\n])\n"
+    3.times { text = together(text, [cop, comments]) }
+    expect(text).to(eq("encode(\n  [\n    path,\n    token\n  ]\n)\n"))
+  end
+
+  def together(source, cops)
+    parsed = processed(source)
+    corrector = RuboCop::Cop::Corrector.new(parsed)
+    cops.each do |each|
+      found = RuboCop::Cop::Commissioner.new([each], [], raise_error: true).investigate(parsed).offenses
+      own = RuboCop::Cop::Corrector.new(parsed)
+      found.each { own.merge!(it.corrector) unless it.corrector.nil? }
+      begin
+        corrector.merge!(own)
+      rescue Parser::ClobberingError
+        next
+      end
+    end
+    corrector.process
+  end
+
   it "reports a deferred inner bracket even while it waits for the outer one" do
     expect(offenses("a(b(c(\n  1\n)))").size).to(eq(4))
   end

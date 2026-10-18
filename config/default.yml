@@ -25,7 +25,9 @@ Kata/GoodClassName:
     the words a framework resolves a class by (`UsersController`,
     `EmailValidator`, `InviteMailer`); the framework dictates the suffix, not
     the subject, so `UsersControllerTest` is judged as `Users`, and
-    `ReportGeneratorJob` as `ReportGenerator`. A class whose superclass ends in the same word inherits that word
+    `ReportGeneratorJob` as `ReportGenerator`. A test of a module a framework
+    resolves is judged by the module's subject, as Kata/GoodModuleName judges
+    the module: `InvoicesHelperTest` as `Invoices`. A class whose superclass ends in the same word inherits that word
     (`ActionHandler < Avo::Actions::ActionHandler`, `AuditLogger < Logger`):
     the doer, if any, is the parent. `AllowedNames` match a whole name or a
     trailing segment: exception classes (`Error`), the domain roles a model
@@ -696,7 +698,8 @@ Kata/NoClassMethodLogic:
 Kata/NoHashAsObject:
   Description: >-
     Keys that travel together are an object without a name. Keyword
-    arguments are exempt, as is a lookup table a constant names, and the hash
+    arguments are exempt, as is a lookup table a constant names, rows and
+    all (`LABELS = { email: { en: ..., fr: ... } }`), and the hash
     a serialization method returns: inside `to_h` or `as_json` the object
     already has a name, and the protocol asks for a hash.
   Enabled: true

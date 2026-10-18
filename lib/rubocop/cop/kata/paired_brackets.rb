@@ -65,7 +65,10 @@ class RuboCop::Cop::Kata::PairedBrackets < RuboCop::Cop::Base
       strings.any? { it.contains?(processed_source.buffer.line_range(line)) }
   end
 
-  def start(line) = processed_source.buffer.line_range(line).resize(0)
+  def start(line)
+    range = processed_source.buffer.line_range(line)
+    range.adjust(begin_pos: range.source[/\A[ \t]*/].length).resize(0)
+  end
 
   def strings = (@_strings ||= {}.compare_by_identity)[processed_source] ||= literals
 

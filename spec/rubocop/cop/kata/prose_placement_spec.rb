@@ -42,6 +42,14 @@ RSpec.describe(RuboCop::Cop::Kata::ProsePlacement, :config) do
     RUBY
   end
 
+  it "reads bytes that are not valid text as no prose rather than raising" do
+    expect_no_offenses(<<~'RUBY')
+      body = "\xFF".b
+      tail = "\xFF one two three four five"
+      line = "\xFF #{word} one two three four five"
+    RUBY
+  end
+
   it "allows a string one word short of prose" do
     expect_no_offenses(<<~RUBY)
       text = "one two three four"
