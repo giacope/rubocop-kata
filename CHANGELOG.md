@@ -19,6 +19,14 @@
   - `Kata/GoodClassName` judges a test of a framework-resolved module by the
     module's subject: `MessagesHelperTest` is judged as `Messages`, as
     `Kata/GoodModuleName` judges `MessagesHelper`, where it was a doer.
+  - `Kata/GoodClassName` judges a test as its subject when the subject's
+    agent word is one a framework superclass hands down:
+    `ScrubbingFormatter < Logger::Formatter` passed, and its
+    `ScrubbingFormatterTest` was a doer. The superclass lives in the
+    subject's file, out of the test's sight, so the new
+    `FrameworkSuperclasses` (`Logger`, `Logger::Formatter`,
+    `ActiveSupport::LogSubscriber`) say which words a subject inherits;
+    `PaymentProcessorTest` is still a doer.
   - `Kata/ProsePlacement` reads a string literal holding bytes that are not
     valid text (`"\xFF"`) as no prose, where it raised.
   - `rubocop-kata plan` runs with kata's defaults beneath the project's own

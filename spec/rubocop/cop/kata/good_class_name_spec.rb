@@ -274,6 +274,36 @@ RSpec.describe(RuboCop::Cop::Kata::GoodClassName, :config) do
       RUBY
     end
 
+    it "judges a test as its subject, heir to the framework class that chose the agent word" do
+      expect_no_offenses(<<~RUBY)
+        class Campfire::ScrubbingFormatterTest < ActiveSupport::TestCase
+        end
+        class AuditLoggerTest < ActiveSupport::TestCase
+        end
+        class RequestSubscriberSpec
+        end
+      RUBY
+    end
+
+    it "still flags the test of a doer no framework class names, or the class itself" do
+      expect_offense(<<~RUBY)
+        class PaymentProcessorTest < ActiveSupport::TestCase
+              ^^^^^^^^^^^^^^^^^^^^ `PaymentProcessor` names a doer; name the class for the thing it is, not the work it does.
+        end
+        class ScrubbingFormatter
+              ^^^^^^^^^^^^^^^^^^ `ScrubbingFormatter` names a doer; name the class for the thing it is, not the work it does.
+        end
+      RUBY
+    end
+
+    it "judges the test of a contract by the contract's subject, whatever the contract inherits" do
+      expect_offense(<<~RUBY)
+        class ScrubbingFormatterJobTest < ActiveJob::TestCase
+              ^^^^^^^^^^^^^^^^^^^^^^^^^ `ScrubbingFormatter` names a doer; name the class for the thing it is, not the work it does.
+        end
+      RUBY
+    end
+
     it "still flags a doer whose superclass names something else" do
       expect_offense(<<~RUBY)
         class AuditLogger < Base
@@ -360,6 +390,23 @@ RSpec.describe(RuboCop::Cop::Kata::GoodClassName, :config) do
             ^^^^^^^^^ `Processor` names a doer; name the class for the thing it is, not the work it does.
       end
     RUBY
+  end
+
+  context "with a project's framework superclasses" do
+    let(:cop_config) { { "Suffixes" => %w[Test], "FrameworkSuperclasses" => %w[Avo::Actions::ActionHandler] } }
+
+    it "judges a test by the agent word the listed superclass hands its subject" do
+      expect_offense(<<~RUBY)
+        class Avo::ActionHandlerTest
+        end
+        class ActionHandler
+              ^^^^^^^^^^^^^ `ActionHandler` names a doer; name the class for the thing it is, not the work it does.
+        end
+        class ScrubbingFormatterTest
+              ^^^^^^^^^^^^^^^^^^^^^^ `ScrubbingFormatter` names a doer; name the class for the thing it is, not the work it does.
+        end
+      RUBY
+    end
   end
 
   context "when reading the doer data" do

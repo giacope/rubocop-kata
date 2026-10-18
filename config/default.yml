@@ -29,7 +29,12 @@ Kata/GoodClassName:
     resolves is judged by the module's subject, as Kata/GoodModuleName judges
     the module: `InvoicesHelperTest` as `Invoices`. A class whose superclass ends in the same word inherits that word
     (`ActionHandler < Avo::Actions::ActionHandler`, `AuditLogger < Logger`):
-    the doer, if any, is the parent. `AllowedNames` match a whole name or a
+    the doer, if any, is the parent. A test cannot see its subject's
+    superclass, which lives in another file, so a test whose subject ends in
+    the word of one of the `FrameworkSuperclasses` is judged as that heir:
+    `ScrubbingFormatterTest` passes, as `ScrubbingFormatter < Logger::Formatter`
+    does, while `PaymentProcessorTest` is still a doer. A subject that names
+    the word without inheriting it is still flagged in its own file. `AllowedNames` match a whole name or a
     trailing segment: exception classes (`Error`), the domain roles a model
     represents rather than performs (`User`, `Owner`), words whose thing and
     doer readings are equally common in code (`Server`, `Container`), and
@@ -59,6 +64,10 @@ Kata/GoodClassName:
     - Serializer
     - Task
     - Validator
+  FrameworkSuperclasses:
+    - ActiveSupport::LogSubscriber
+    - Logger
+    - Logger::Formatter
   AllowedNames: &type_names
     - Actor
     - Container
