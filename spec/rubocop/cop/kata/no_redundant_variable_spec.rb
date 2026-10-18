@@ -119,7 +119,8 @@ RSpec.describe(RuboCop::Cop::Kata::NoRedundantVariable) do
       "assignment_after_a_parenthesised_condition_assignment" =>
       ["def foo\n  if (x = bar)\n    1\n  end\n  x = 2\n  baz(x)\nend", 1],
       "multi_line_assignment" => ["def foo\n  x = [\n    1\n  ]\n  baz(x)\nend", 1],
-      "heredoc_assignment" => ["def foo\n  sql = <<~SQL\n    x\n  SQL\n  run(sql)\nend", 1]
+      "heredoc_assignment" => ["def foo\n  sql = <<~SQL\n    x\n  SQL\n  run(sql)\nend", 1],
+      "safe_navigation_into_a_receiver" => ["def foo\n  x = a&.b\n  x.to_s\nend", 1]
     }, corrections: {
       "send_call_inlines_unwrapped" =>
       ["def foo\n  x = bar\n  baz(x)\nend", "def foo\n  baz(bar)\nend"],
@@ -185,6 +186,14 @@ RSpec.describe(RuboCop::Cop::Kata::NoRedundantVariable) do
     ],
       "bare_read_inside_another_redundant_assignment_inlines_the_inner_one" =>
       ["def foo\n  a = one\n  b = a\n  bar(b)\nend", "def foo\n  b = one\n  bar(b)\nend"],
+      "safe_navigation_into_a_receiver_is_left_alone" =>
+      ["def foo\n  x = a&.b\n  x.to_s\nend", "def foo\n  x = a&.b\n  x.to_s\nend"],
+      "safe_navigation_inside_a_chain_into_a_receiver_is_left_alone" =>
+      ["def foo\n  x = a&.b.c\n  x.nil?\nend", "def foo\n  x = a&.b.c\n  x.nil?\nend"],
+      "safe_navigation_into_a_safe_receiver_inlines" =>
+      ["def foo\n  x = a&.b\n  x&.c\nend", "def foo\n  a&.b&.c\nend"],
+      "safe_navigation_into_an_argument_inlines_unwrapped" =>
+      ["def foo\n  x = a&.b\n  baz(x)\nend", "def foo\n  baz(a&.b)\nend"],
       "call_into_bare_send_arg_inlines_unwrapped" =>
       ["def foo\n  x = a.b\n  baz x\nend", "def foo\n  baz a.b\nend"],
       "brace_led_call_into_bare_send_arg_is_wrapped" =>

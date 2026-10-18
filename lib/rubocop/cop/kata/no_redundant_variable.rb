@@ -21,7 +21,7 @@ class RuboCop::Cop::Kata::NoRedundantVariable < RuboCop::Cop::Base
 
   def audit(body)
     singles = RuboCop::Kata::Variable::Ledger.new(body).pairs
-    movable = singles.select { |assign, _| solo?(assign) && !heredoc?(assign) && !swallows?(assign, singles) }
+    movable = singles.select { |assign, read| movable?(assign, read, singles) }
     gap = RuboCop::Kata::Variable::Gap.new(singles, movable)
     singles.each { |assign, read| register(assign, read, movable) unless gap.crossed?(assign) }
   end
@@ -42,6 +42,12 @@ class RuboCop::Cop::Kata::NoRedundantVariable < RuboCop::Cop::Base
   def swallows?(assign, singles)
     singles.any? { |_, read| assign.source_range.contains?(read.source_range) }
   end
+
+  def movable?(assign, read, singles)
+    solo?(assign) && !heredoc?(assign) && !swallows?(assign, singles) && faithful?(assign, read)
+  end
+
+  def faithful?(assign, read) = RuboCop::Kata::Variable::Inlining.new(assign.expression, read).faithful?
 
   def heredoc?(assign) = assign.each_descendant(:str, :dstr, :xstr).any?(&:heredoc?)
 

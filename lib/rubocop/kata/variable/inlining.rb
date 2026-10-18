@@ -19,6 +19,8 @@ class RuboCop::Kata::Variable::Inlining
 
   def text = pair ? "#{pair.key.source}: #{value}" : value
 
+  def faithful? = !(guarded? && receiver?)
+
   private
 
   def pair
@@ -34,6 +36,17 @@ class RuboCop::Kata::Variable::Inlining
     return true if PRIMARY.include?(@rhs.type)
     return @rhs.parenthesized? || @rhs.arguments.empty? if @rhs.call_type?
     @rhs.begin_type? && @rhs.children.size == 1
+  end
+
+  def guarded?
+    link = @rhs
+    link = link.receiver while link&.send_type?
+    link&.csend_type?
+  end
+
+  def receiver?
+    parent = @read.parent
+    parent&.send_type? && parent.receiver.equal?(@read)
   end
 
   def bare?

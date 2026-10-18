@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+- Fixes found by running kata on 37signals' Campfire:
+  - `Kata/NoRedundantVariable` no longer inlines a safe-navigation chain as
+    a receiver. `type = image&.type` read as `type.in?(list)` became
+    `image&.type.in?(list)`, whose `&.` skips the `in?` too, so a nil image
+    answered nil where it answered false. It still reports the variable,
+    and an argument (`baz(a&.b)`) or a safe receiver (`a&.b&.c`) still
+    inlines.
+
 - Six cops for objects that keep their state, their arguments and their
   answers, each measured before its default was chosen: an independent rater
   labelled up to 25 offenses per cop on faraday, rubygems.org, hashira and
