@@ -16,7 +16,7 @@ module RuboCop::Cop::Kata::TypeName
 
   def complaint(name, node)
     return format(self.class::BANNED_MSG, name) if banned?(name)
-    return doer(name, node.type) if doer?(name) && !inherited?(name, node)
+    return doer(name, node.type) if doer?(name) && !heir?(name, node)
     crowd(name)
   end
 
@@ -37,11 +37,21 @@ module RuboCop::Cop::Kata::TypeName
 
   def contracts = Array(config.for_cop("Kata/GoodModuleName")["ContractSuffixes"]).map(&:to_s)
 
+  def heir?(name, node) = inherited?(name, node) || tested_heir?(name, node)
+
   def inherited?(name, node)
     parent = node.parent_class if node.class_type?
     return false unless parent&.const_type?
-    parent.short_name.to_s.scan(SEGMENT).last == name.scan(SEGMENT).last
+    same_role?(parent.short_name.to_s, name)
   end
+
+  def tested_heir?(name, node)
+    tested = node.identifier.short_name.to_s
+    return false unless strip(tested, list("Suffixes")) == name && tested != name
+    list("FrameworkSuperclasses").any? { same_role?(it, name) }
+  end
+
+  def same_role?(parent, name) = parent.scan(SEGMENT).last == name.scan(SEGMENT).last
 
   def banned?(name) = list("BannedNames").any? { name.end_with?(it) }
 
