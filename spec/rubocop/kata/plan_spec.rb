@@ -4,9 +4,9 @@ require "rubocop/kata/plan"
 require "tmpdir"
 
 RSpec.describe(RuboCop::Kata::Plan) do
-  def project(*sources)
+  def project(*sources, config: "plugins:\n  - rubocop-kata\n")
     Dir.mktmpdir("kata-plan") do |root|
-      File.write(File.join(root, ".rubocop.yml"), "plugins:\n  - rubocop-kata\n")
+      File.write(File.join(root, ".rubocop.yml"), config)
       sources.each_with_index { |text, index| File.write(File.join(root, "sample#{index}.rb"), text) }
       yield(root)
     end
@@ -15,6 +15,22 @@ RSpec.describe(RuboCop::Kata::Plan) do
   def report(root)
     io = StringIO.new
     described_class.new(root, io: io).run.then { [io.string, it] }
+  end
+
+  context "when the project has not named the plugin yet", :restore_configuration do
+    around do |example|
+      loaded = RuboCop::ConfigLoader.loaded_plugins.dup
+      RuboCop::ConfigLoader.loaded_plugins.clear
+      RuboCop::ConfigLoader.default_configuration = nil
+      example.run
+    ensure
+      RuboCop::ConfigLoader.loaded_plugins.replace(loaded)
+    end
+
+    it "plans against kata's own configuration, not Kata cops run bare" do
+      prose = "# frozen_string_literal: true\n\nTEXT = \"this sentence reads as prose to anyone\"\n"
+      project(prose, config: "AllCops:\n  NewCops: enable\n") { |root| expect(report(root).first).to(eq("clean\n")) }
+    end
   end
 
   it "reports nothing to do on a clean project", :aggregate_failures do

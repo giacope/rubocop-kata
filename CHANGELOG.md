@@ -21,6 +21,11 @@
     `Kata/GoodModuleName` judges `MessagesHelper`, where it was a doer.
   - `Kata/ProsePlacement` reads a string literal holding bytes that are not
     valid text (`"\xFF"`) as no prose, where it raised.
+  - `rubocop-kata plan` runs with kata's defaults beneath the project's own
+    configuration. On a project that had not named the plugin, Kata cops
+    ran with no configuration at all: `Kata/ProsePlacement`, off by default,
+    reported 593 offenses on Campfire, and `Kata/ClassInModule` ignored the
+    Zeitwerk roots.
 
 - Six cops for objects that keep their state, their arguments and their
   answers, each measured before its default was chosen: an independent rater

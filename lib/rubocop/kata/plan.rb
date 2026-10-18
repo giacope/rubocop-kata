@@ -90,7 +90,7 @@ class RuboCop::Kata::Plan
     @_report ||=
       Dir.chdir(@root) do
         Tempfile.create("rubocop-kata-plan") do |sink|
-          RuboCop::CLI.new.run(["--format", "json", "--out", sink.path, "."])
+          RuboCop::CLI.new.run(["--format", "json", "--out", sink.path, "--plugin", "rubocop-kata", "."])
           JSON.parse(File.read(sink.path, encoding: Encoding::UTF_8))
         end
       end

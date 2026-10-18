@@ -155,6 +155,10 @@ next: structure — 184 offenses in 61 files; these mint the names `naming` then
 densest: app/models/account.rb (14)
 ```
 
+`plan` always applies kata's defaults beneath the project's own configuration,
+so on a project that has not named the plugin yet it previews what adopting kata
+would report, instead of running Kata cops with no configuration at all.
+
 Structure before naming, because doing naming first means renaming things the
 structural pass is about to move; layout last, because every other stage moves
 lines.
