@@ -15,7 +15,9 @@ class RuboCop::Cop::Kata::ProsePlacement < RuboCop::Cop::Base
 
   private
 
-  def prose?(text) = text.split(/\s+/).count { it.match?(/\A[A-Za-z][a-z]*[,.:;]?\z/) } >= WORDS
+  def prose?(text)
+    text.valid_encoding? && text.split(/\s+/).count { it.match?(/\A[A-Za-z][a-z]*[,.:;]?\z/) } >= WORDS
+  end
 
   def exempt?(node)
     node.each_ancestor(:send).any? { it.method?(:raise) } || node.each_ancestor(:dstr).any?

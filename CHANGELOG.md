@@ -19,6 +19,8 @@
   - `Kata/GoodClassName` judges a test of a framework-resolved module by the
     module's subject: `MessagesHelperTest` is judged as `Messages`, as
     `Kata/GoodModuleName` judges `MessagesHelper`, where it was a doer.
+  - `Kata/ProsePlacement` reads a string literal holding bytes that are not
+    valid text (`"\xFF"`) as no prose, where it raised.
 
 - Six cops for objects that keep their state, their arguments and their
   answers, each measured before its default was chosen: an independent rater
