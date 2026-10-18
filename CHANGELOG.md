@@ -9,6 +9,10 @@
     answered nil where it answered false. It still reports the variable,
     and an argument (`baz(a&.b)`) or a safe receiver (`a&.b&.c`) still
     inlines.
+  - `Kata/PairedBrackets` puts the step it adds after a line's indent, not
+    before it. On a line `Kata/NoComments` deleted in the same `rubocop -A`
+    pass, the step survived the deletion and pushed the next line two columns
+    right.
 
 - Six cops for objects that keep their state, their arguments and their
   answers, each measured before its default was chosen: an independent rater
