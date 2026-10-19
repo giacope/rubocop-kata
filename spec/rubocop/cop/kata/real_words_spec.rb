@@ -47,6 +47,15 @@ RSpec.describe(RuboCop::Cop::Kata::RealWords, :config) do
     RUBY
   end
 
+  # once-campfire: svg, png and jpeg were words, gif and webp were not, and
+  # neither was the browser it sniffs for.
+  it "knows the media formats, browsers and initialisms a web app names" do
+    expect_no_offenses(<<~RUBY)
+      def firefox? = gif_frames + webp_size + mp4_track + webm_track + avif_size + heic_size
+      qr_code = pwa_install
+    RUBY
+  end
+
   it "flags a clipping whichever dictionary lists it, and names the word" do
     expect_offense(<<~RUBY)
       def call(args, opts, src, cmd) = [args, opts, src, cmd]
