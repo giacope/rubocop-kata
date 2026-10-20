@@ -1167,21 +1167,51 @@ RSpec/ExampleLength:
 RSpec/VerifiedDoubles:
   Enabled: true
 
-# RSpec's blank-line cops reach every `*_spec.rb`, so these stand down on
-# the same files, or the two autocorrect in a loop.
+# Elegant's blank-line cops delete every blank line in a method or block,
+# including the lines of a heredoc or a multi-line string inside it, which
+# changes the string (a message's paragraph breaks, a generated script). Kata
+# ships fixed copies that leave literal text alone; the originals are off.
 Elegant/NoEmptyLinesInBlocks:
-  Exclude:
-    - "spec/**/*"
-    - "test/**/*"
-    - "**/*_spec.rb"
-    - "**/*_test.rb"
+  Enabled: false
 
 Elegant/NoEmptyLinesInMethods:
+  Enabled: false
+
+# RSpec's blank-line cops reach every file under a `spec/` folder at any depth
+# (an engine's, a monorepo gem's), so these stand down on the same files, or
+# the two autocorrect in a loop.
+Kata/NoEmptyLinesInBlocks:
+  Description: >-
+    A block, a conditional or a loop holds no blank line: the next thought
+    belongs in its own method. Blank lines inside a heredoc or a multi-line
+    string are text, not layout, and are left alone. Fixed copy of
+    `Elegant/NoEmptyLinesInBlocks`.
+  Enabled: true
+  VersionAdded: "0.12"
   Exclude:
     - "spec/**/*"
     - "test/**/*"
+    - "**/spec/**/*"
+    - "**/test/**/*"
     - "**/*_spec.rb"
     - "**/*_test.rb"
+    - "**/*.jbuilder"
+
+Kata/NoEmptyLinesInMethods:
+  Description: >-
+    A method body holds no blank line: a method that needs one is two
+    methods. Blank lines inside a heredoc or a multi-line string are text, not
+    layout, and are left alone. Fixed copy of `Elegant/NoEmptyLinesInMethods`.
+  Enabled: true
+  VersionAdded: "0.12"
+  Exclude:
+    - "spec/**/*"
+    - "test/**/*"
+    - "**/spec/**/*"
+    - "**/test/**/*"
+    - "**/*_spec.rb"
+    - "**/*_test.rb"
+    - "**/*.jbuilder"
 
 Elegant/NoComments:
   Enabled: false
@@ -1409,6 +1439,21 @@ Style/DefWithParentheses:
 Performance/BindCall:
   SafeAutoCorrect: false
 
+# Each of these changed what code does under plain `rubocop -a` in the second
+# field test. The first three swap a name for its "equivalent" without asking
+# whether the project defines that name: `sprintf` -> `format` calls a
+# formatter's own `#format` (rouge), `yield_self` -> `then` calls a Result's
+# own `#then`, which runs only on success (steep), and `TRUE` -> `true`
+# replaces a class's own constant (steep); the last two are marked where the
+# pending cops are enabled, below. Lint/AmbiguousRegexpLiteral drops the
+# opening paren of `puts /a/.match?(x) ? 1 : 2`, which no longer parses
+# (vita-min).
+Style/FormatString:
+  SafeAutoCorrect: false
+
+Lint/AmbiguousRegexpLiteral:
+  SafeAutoCorrect: false
+
 # Raises FrozenError inspecting `require File.dirname(__FILE__) + "/x"` in a
 # file with the frozen-string-literal comment Style/FrozenStringLiteralComment
 # adds (rubocop-packaging 0.6.0).
@@ -1495,6 +1540,7 @@ Lint/DataDefineOverride:
 
 Lint/DeprecatedConstants:
   Enabled: true
+  SafeAutoCorrect: false
 
 Lint/DeprecatedReference:
   Enabled: true
@@ -1871,6 +1917,7 @@ Style/NumberedParametersLimit:
 
 Style/ObjectThen:
   Enabled: true
+  SafeAutoCorrect: false
 
 Style/OpenStructUse:
   Enabled: true
