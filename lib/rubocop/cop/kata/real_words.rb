@@ -56,8 +56,11 @@ class RuboCop::Cop::Kata::RealWords < RuboCop::Cop::Base
 
   def forms(base)
     roots = [base, *PREFIXES.map { base.delete_prefix(it) }]
-    2.times.reduce(roots) { |found, _| found | found.flat_map { |form| DERIVATIONS.map { form.sub(*it) } } }
+    derived = 2.times.reduce(roots) { |found, _| found | found.flat_map { |form| DERIVATIONS.map { form.sub(*it) } } }
+    american? ? derived : derived | derived.flat_map { RuboCop::Kata::Spelling.new(it).american }
   end
+
+  def american? = cop_config["Spelling"] == "en-US"
 
   def banned?(segment) = bases(segment).any? { listed?("BannedWords", it) || clipping?(it) }
 

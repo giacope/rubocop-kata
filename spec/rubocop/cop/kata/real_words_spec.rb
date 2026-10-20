@@ -319,6 +319,42 @@ RSpec.describe(RuboCop::Cop::Kata::RealWords, :config) do
     RUBY
   end
 
+  # vita-min, whitehall and alaveteli: British and Commonwealth codebases spell
+  # organisation, offence and colour the way their authors do.
+  it "knows British and Commonwealth spellings and their derivations" do
+    expect_no_offenses(<<~RUBY)
+      organisation = offence = colour = behaviour = neighbour = 1
+      sanitised = authorised = labelled = metres = programme = analyse = 2
+      centred = travelling = licence = personalisation = paediatric = 3
+    RUBY
+  end
+
+  it "knows the cloud and government initialisms an infrastructure codebase names" do
+    expect_no_offenses(<<~RUBY)
+      uk_region = vpc_id = iam_role = acl_entry = arn = 1
+    RUBY
+  end
+
+  it "still flags a smash of two British words" do
+    expect_offense(<<~RUBY)
+      colourcount = 1
+      ^^^^^^^^^^^ `colourcount` is not in the dictionary — restore the underscore between smashed words, spell the abbreviation out, or add it to `Terms` if it is one domain term here.
+    RUBY
+  end
+
+  context "with American spelling required" do
+    let(:cop_config) do
+      { "BannedWords" => [], "Terms" => [], "AllowedNames" => [], "Spelling" => "en-US" }
+    end
+
+    it "flags the British spelling of a word it knows in American" do
+      expect_offense(<<~RUBY)
+        organisation = color = 1
+        ^^^^^^^^^^^^ `organisation` is not in the dictionary — restore the underscore between smashed words, spell the abbreviation out, or add it to `Terms` if it is one domain term here.
+      RUBY
+    end
+  end
+
   context "with a project's own banned word" do
     let(:cop_config) { { "BannedWords" => %w[zap], "Terms" => [], "AllowedNames" => [] } }
 

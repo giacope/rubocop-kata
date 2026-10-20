@@ -119,6 +119,32 @@ RSpec.describe(RuboCop::Cop::Kata::NoTypeCheck, :config) do
     RUBY
   end
 
+  it "judges a project's own top-level type whatever RuboCop itself has loaded" do
+    expect_offense(<<~RUBY)
+      class Parser; end
+      module AST; end
+      class Rainbow; end
+      def render(input)
+        input.is_a?(Parser) || input.is_a?(AST) || input.is_a?(Rainbow)
+              ^^^^^ `is_a?` asks an object what it is; tell it what to do, and let polymorphism choose.
+                                     ^^^^^ `is_a?` asks an object what it is; tell it what to do, and let polymorphism choose.
+                                                         ^^^^^ `is_a?` asks an object what it is; tell it what to do, and let polymorphism choose.
+      end
+    RUBY
+  end
+
+  it "leaves probes for IO and reflection protocols, even where the project defines the method" do
+    expect_no_offenses(<<~RUBY)
+      def read = @io.read
+      def rewind = @io.rewind
+      def superclass = @parent
+      def name = @name
+      def load(source) = source.respond_to?(:read) ? source.read : File.read(source)
+      def reset(io) = io.rewind if io.respond_to?(:rewind)
+      def lineage(klass) = klass.respond_to?(:superclass) && klass.respond_to?(:name)
+    RUBY
+  end
+
   context "with the project's other files" do
     include TabledCop
 

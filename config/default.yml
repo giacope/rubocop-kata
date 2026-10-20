@@ -586,10 +586,14 @@ Kata/RealWords:
     out, and the message names the word (`req` is `request`); `foo` and `qux`
     are placeholders. The shipped table is data/clippings.txt; `BannedWords`
     adds a project's own, `Terms` re-allows one as reviewed jargon, and
-    `AllowedNames` exempts names a protocol dictates (`to_str`).
+    `AllowedNames` exempts names a protocol dictates (`to_str`). English is
+    English: British, Canadian and Australian spellings (`organisation`,
+    `colour`, `offence`, `labelled`, `metre`) are words; `Spelling: en-US`
+    accepts American spelling only.
   Enabled: true
   VersionAdded: "0.5"
-  VersionChanged: "0.11"
+  VersionChanged: "0.12"
+  Spelling: any
   BannedWords: []
   Terms: []
   AllowedNames:
@@ -758,13 +762,17 @@ Kata/NoHashAsObject:
   Description: >-
     Keys that travel together are an object without a name. Keyword
     arguments are exempt, as is a lookup table a constant names, rows and
-    all (`LABELS = { email: { en: ..., fr: ... } }`), and the hash
-    a serialization method returns: inside `to_h` or `as_json` the object
-    already has a name, and the protocol asks for a hash.
+    all, whether the table is a hash or an array of rows
+    (`LABELS = { email: { en: ..., fr: ... } }`, `FLAVORS = [{ id: ..., ram: ... }]`),
+    a value table a `TableMethods` call takes (Rails' `enum` mapping, under
+    the Rails profile), and the hash a serialization method returns: inside
+    `to_h` or `as_json` the object already has a name, and the protocol asks
+    for a hash.
   Enabled: true
   VersionAdded: "0.3"
-  VersionChanged: "0.11"
+  VersionChanged: "0.12"
   MaxKeys: 4
+  TableMethods: []
   AllowedMethods:
     - as_json
     - attributes

@@ -15,4 +15,5 @@ module RuboCop::Kata::Dictionary
     %w[agents things verbs].map { Set.new(Zlib.gunzip(File.binread("#{DATA}/#{it}.txt.gz")).split("\n")).freeze }
   VERBS = (WORDNET_VERBS | File.readlines(File.join(DATA, "actions.txt"), chomp: true)).freeze
   CLIPPINGS = File.readlines(File.join(DATA, "clippings.txt"), chomp: true).to_h { it.split(" ", 2) }.freeze
+  CORE = Set.new(File.readlines(File.join(DATA, "core.txt"), chomp: true)).freeze
 end

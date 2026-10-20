@@ -17,7 +17,7 @@ class RuboCop::Kata::Plan
       Kata/GoodModuleName Kata/BuilderNoun
     ],
     "prose" => %w[Kata/NoComments Kata/ProsePlacement Kata/JustifiedDirective],
-    "layout" => %w[Kata/PairedBrackets]
+    "layout" => %w[Kata/PairedBrackets Kata/NoEmptyLinesInMethods Kata/NoEmptyLinesInBlocks]
   }.freeze
   DEPARTMENTS = { "Layout/" => "layout" }.freeze
   REST = "rest"

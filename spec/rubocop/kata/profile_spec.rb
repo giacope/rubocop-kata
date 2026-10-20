@@ -104,6 +104,6 @@ RSpec.describe(RuboCop::Kata::Profile) do
     setting = YAML.load_file(rails)
     names = setting.dig("Kata/GoodMethodName", "AllowedNames")
     expect([setting.keys, names.include?("default_url_options"), setting.dig("Kata/NoComments", "Exclude")])
-      .to(eq([%w[Kata/GoodMethodName Kata/NoComments], true, %w[bin/**/* db/**/*]]))
+      .to(eq([%w[Kata/GoodMethodName Kata/NoComments Kata/NoHashAsObject], true, %w[bin/**/* db/**/*]]))
   end
 end
