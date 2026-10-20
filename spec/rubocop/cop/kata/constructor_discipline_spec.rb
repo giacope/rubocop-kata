@@ -115,6 +115,7 @@ RSpec.describe(RuboCop::Cop::Kata::ConstructorDiscipline, :config) do
           @seen = {}.compare_by_identity
           @memo = Hash.new { |hash, key| hash[key] = key.to_s }.compare_by_identity
           @names = names
+          compare_by_identity
         end
       RUBY
     end

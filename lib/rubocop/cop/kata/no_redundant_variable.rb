@@ -9,6 +9,7 @@ class RuboCop::Cop::Kata::NoRedundantVariable < RuboCop::Cop::Base
   include RuboCop::Cop::RangeHelp
 
   MSG = 'Variable "%s" is redundant and must be inlined: it is read only once'
+  LIMIT = 120
 
   def on_def(node)
     body = node.body
@@ -21,10 +22,19 @@ class RuboCop::Cop::Kata::NoRedundantVariable < RuboCop::Cop::Base
 
   def audit(body)
     singles = RuboCop::Kata::Variable::Ledger.new(body).pairs
-    movable = singles.select { |assign, read| movable?(assign, read, singles) }
+    plain = singles.reject { |assign, read| RuboCop::Kata::Variable::Label.new(assign).explains? || long?(assign, read) }
+    movable = plain.select { |assign, read| movable?(assign, read, singles) }
     gap = RuboCop::Kata::Variable::Gap.new(singles, movable)
-    singles.each { |assign, read| register(assign, read, movable) unless gap.crossed?(assign) }
+    plain.each { |assign, read| register(assign, read, movable) unless gap.crossed?(assign) }
   end
+
+  def long?(assign, read)
+    limit = config.for_cop("Layout/LineLength")
+    return false if limit["Enabled"] == false || assign.expression.source.include?("\n")
+    width(RuboCop::Kata::Variable::Inlining.new(assign.expression, read)) > limit.fetch("Max", LIMIT)
+  end
+
+  def width(inlining) = inlining.range.then { it.source_line.length - it.length } + inlining.text.length
 
   def register(assign, read, movable)
     return inline(assign, read) if movable.key?(assign)

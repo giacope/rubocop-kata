@@ -116,6 +116,8 @@ RSpec.describe(RuboCop::Cop::Kata::NoClassMethodLogic, :config) do
                  ^^^^^^ `export` puts logic on the class; classes construct, instances work.
         def self.copy(rubric) = rubric.new
                  ^^^^ `copy` puts logic on the class; classes construct, instances work.
+        def self.reset = clear_all
+                 ^^^^^ `reset` puts logic on the class; classes construct, instances work.
       end
       module Rubrics
         def self.make(title) = Rubrics.new(title)

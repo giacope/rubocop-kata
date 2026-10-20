@@ -34,7 +34,7 @@ class RuboCop::Cop::Kata::ConstructorDiscipline < RuboCop::Cop::Base
 
   def own?(receiver)
     receiver = receiver.send_node if receiver&.any_block_type?
-    return false if receiver.nil?
+    return true if receiver.nil?
     LITERALS.include?(receiver.type) || (receiver.send_type? && state?(receiver))
   end
 

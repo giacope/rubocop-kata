@@ -16,7 +16,7 @@ class RuboCop::Kata::Plugin < LintRoller::Plugin
     LintRoller::Rules.new(
       type: :path,
       config_format: :rubocop,
-      value: Pathname.new(__dir__).join("../../../config/default.yml")
+      value: Pathname.new(RuboCop::Kata::Profile.new(Dir.pwd, @config).path)
     )
   end
 end

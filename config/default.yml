@@ -14,6 +14,13 @@ AllCops:
     - "vendor/**/*"
     - "db/*schema.rb"
 
+# A .jbuilder template is presentation, not an object: no Kata cop reads it.
+# A cop with its own Exclude list carries the same entry, since a cop's list
+# replaces the department's.
+Kata:
+  Exclude:
+    - "**/*.jbuilder"
+
 Kata/GoodClassName:
   Description: >-
     A class names one object that exists in the model. Three shapes hide that
@@ -38,6 +45,9 @@ Kata/GoodClassName:
     `ScrubbingFormatterTest` passes, as `ScrubbingFormatter < Logger::Formatter`
     does, while `PaymentProcessorTest` is still a doer. A subject that names
     the word without inheriting it is still flagged in its own file. A class
+    whose superclass is one of the `ContractSuperclasses` is named by a
+    contract: RuboCop resolves `Style/UseLanguageServerAliases` to the class
+    of that name, so a cop class is not judged. A class
     whose superclass is one of the `EntitySuperclasses` (`ApplicationRecord`)
     is a persisted record of a thing in the domain (`Manufacturer`,
     `Teacher`), so the doer test does not apply to it; junk drawers and
@@ -52,6 +62,7 @@ Kata/GoodClassName:
   VersionChanged: "0.11"
   Exclude:
     - "db/*migrate/**/*"
+    - "**/*.jbuilder"
   MaxWords: 2
   Suffixes:
     - Test
@@ -79,6 +90,9 @@ Kata/GoodClassName:
   EntitySuperclasses:
     - ActiveRecord::Base
     - ApplicationRecord
+  ContractSuperclasses:
+    - RuboCop::Cop::Base
+    - RuboCop::Cop::Cop
   AllowedNames: &type_names
     - Actor
     - Container
@@ -193,6 +207,7 @@ Kata/NoComments:
     - "*.gemspec"
     - "Gemfile"
     - "**/Gemfile"
+    - "**/*.jbuilder"
 
 Kata/GoodMethodName:
   Description: >-
@@ -205,10 +220,14 @@ Kata/GoodMethodName:
     any length. Do not delete the underscore — Kata/RealWords catches the
     smash. `MaxWords: 1` restores the one-word discipline for a team that
     wants it. A Minitest `test_` method in a test class is a sentence, like
-    an RSpec description, and goes unpriced.
+    an RSpec description, and goes unpriced. A name a dispatcher dictates is
+    a contract, not a choice: `AllowedPatterns` holds those patterns, Prism's
+    `on_call_node_enter` listeners among them.
   Enabled: true
   VersionAdded: "0.5"
   VersionChanged: "0.11"
+  AllowedPatterns:
+    - "\\Aon_\\w+_node_(enter|leave)\\z"
   MaxWords: 2
   Pattern: "^[a-z][a-z0-9]{0,15}$"
   Prefixes:
@@ -549,6 +568,7 @@ Kata/IoDiscipline:
     - "**/Gemfile"
     - "gems.rb"
     - "**/*.gemfile"
+    - "**/*.jbuilder"
 
 Kata/ProsePlacement:
   Description: "Keep sentence-length strings in the presentation layer."
@@ -608,6 +628,7 @@ Kata/NoBooleanFlag:
     - "**/*_spec.rb"
     - "**/*_test.rb"
     - "db/*migrate/**/*"
+    - "**/*.jbuilder"
   AllowedMethods:
     - all?
     - any?
@@ -683,6 +704,7 @@ Kata/ConstructorDiscipline:
   Exclude:
     - "spec/**/*"
     - "test/**/*"
+    - "**/*.jbuilder"
 
 Kata/NoClassMethodLogic:
   Description: >-
@@ -704,6 +726,7 @@ Kata/NoClassMethodLogic:
     - "spec/**/*"
     - "test/**/*"
     - "db/*migrate/**/*"
+    - "**/*.jbuilder"
   AllowedNames:
     - "==="
     - "[]"
@@ -752,6 +775,7 @@ Kata/NoHashAsObject:
     - "spec/**/*"
     - "test/**/*"
     - "config/**/*"
+    - "**/*.jbuilder"
 
 Kata/ClockDiscipline:
   Description: "Read time from an injected clock, not the ambient one."
@@ -777,6 +801,7 @@ Kata/ClockDiscipline:
     - "**/Gemfile"
     - "gems.rb"
     - "**/*.gemfile"
+    - "**/*.jbuilder"
 
 Kata/EnvDiscipline:
   Description: "ENV belongs in the boot layer; pass configuration in."
@@ -802,6 +827,7 @@ Kata/EnvDiscipline:
     - "**/Gemfile"
     - "gems.rb"
     - "**/*.gemfile"
+    - "**/*.jbuilder"
 
 Kata/NoSetter:
   Description: >-
@@ -816,6 +842,7 @@ Kata/NoSetter:
     - "test/**/*"
     - "**/*_spec.rb"
     - "**/*_test.rb"
+    - "**/*.jbuilder"
 
 Kata/FrozenState:
   Description: >-
@@ -841,6 +868,7 @@ Kata/FrozenState:
     - "app/mailers/**/*"
     - "app/helpers/**/*"
     - "app/views/**/*"
+    - "**/*.jbuilder"
 
 Kata/NoOutputArgument:
   Description: >-
@@ -860,6 +888,7 @@ Kata/NoOutputArgument:
     - "test/**/*"
     - "**/*_spec.rb"
     - "**/*_test.rb"
+    - "**/*.jbuilder"
   AllowedNames:
     - buffer
     - env
@@ -923,6 +952,7 @@ Kata/CommandQuery:
     - "test/**/*"
     - "**/*_spec.rb"
     - "**/*_test.rb"
+    - "**/*.jbuilder"
 
 Kata/NoTypeCheck:
   Description: >-
@@ -931,14 +961,20 @@ Kata/NoTypeCheck:
     decide. The boot layer and the protocols that compare or convert values
     are exempt: `AllowedMethods` holds `==`, `eql?`, `<=>`, `===`, `coerce`
     and `respond_to_missing?`, whose contract is to accept any object and
-    check what it was handed. Off by default: on four codebases an
-    independent rater judged 1 of 25 sampled offenses actionable (see
-    eval/results). Most type checks in real code test a closed set of classes
-    another library owns (AST nodes) or validate input at a boundary, and the
-    call alone cannot tell those apart from the checks polymorphism would
-    remove.
-  Enabled: false
+    check what it was handed. Only the project's own types are judged: a
+    check against a class or module the project defines (in the file, or in
+    `OwnedPaths`), or a `respond_to?` probe for a method the project defines.
+    A check against a class another library owns (an AST node, `String`) is
+    the boundary where foreign data comes in, which polymorphism cannot
+    reach, and is left alone; so are the conversion and iteration protocols
+    (`respond_to?(:to_h)`, `:each`, `:call`).
+  Enabled: true
   VersionAdded: "0.11"
+  VersionChanged: "0.11"
+  OwnedPaths:
+    - "app/**/*.rb"
+    - "lib/**/*.rb"
+    - "*/lib/**/*.rb"
   AllowedMethods:
     - "=="
     - "!="
@@ -967,6 +1003,7 @@ Kata/NoTypeCheck:
     - "Gemfile"
     - "**/Gemfile"
     - "gems.rb"
+    - "**/*.jbuilder"
 
 Kata/NoSingleton:
   Description: >-
@@ -998,6 +1035,7 @@ Kata/NoSingleton:
     - "test/**/*"
     - "**/*_spec.rb"
     - "**/*_test.rb"
+    - "**/*.jbuilder"
 
 Style/Documentation:
   Enabled: false
@@ -1241,9 +1279,17 @@ Elegant/ClassInModule:
   Enabled: false
 
 Kata/NoRedundantVariable:
-  Description: "A local assigned once and read once is inlined at its read."
+  Description: >-
+    A local assigned once and read once is inlined at its read when its name
+    says nothing its value does not: the value is a literal or a bare read,
+    the name is a letter or a generic word (`result`, `value`), or the
+    expression already spells it (`user = User.find(id)`). A name that adds
+    a word explains the value (`subtotal = [...].max`), as Clean Code asks of
+    an explanatory variable, and stays; so does a local whose inlining would
+    push its line past Layout/LineLength.
   Enabled: true
   VersionAdded: "0.10"
+  VersionChanged: "0.11"
 
 Kata/PairedBrackets:
   Description: "A bracket pairs on its line, or opens at the end of one and closes at the start of another."
@@ -1307,6 +1353,7 @@ Kata/ClassInModule:
     - "test/**/*"
     - "spec/**/*"
     - "db/*migrate/**/*"
+    - "**/*.jbuilder"
 
 # Rewrites reopened classes into modules, clashing with the primary
 # class definition at boot.

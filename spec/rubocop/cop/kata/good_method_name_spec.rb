@@ -267,6 +267,23 @@ RSpec.describe(RuboCop::Cop::Kata::GoodMethodName, :config) do
     RUBY
   end
 
+  context "with the patterns a dispatcher dictates" do
+    let(:cop_config) { defaults.merge("Terms" => [], "AllowedNames" => [], "AllowedPatterns" => ["_sql\\z"]) }
+
+    it "leaves a name the pattern matches, and prices the rest" do
+      expect_offense(<<~RUBY)
+        def select_limit_sql; end
+        def customer_billing_address; end
+            ^^^^^^^^^^^^^^^^^^^^^^^^ #{offense("customer_billing_address")}
+      RUBY
+    end
+  end
+
+  it "ships Prism's listener names as a contract" do
+    expect(defaults.fetch("AllowedPatterns").map { Regexp.new(it) }.map { "on_call_node_enter".match?(it) })
+      .to(eq([true]))
+  end
+
   context "with the raw escape hatch" do
     let(:cop_config) { defaults.merge("Terms" => [], "AllowedNames" => %w[build_pool_adapter]) }
 

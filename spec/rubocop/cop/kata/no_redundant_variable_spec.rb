@@ -165,13 +165,13 @@ RSpec.describe(RuboCop::Cop::Kata::NoRedundantVariable) do
       "hash_into_bare_send_arg_is_wrapped" =>
       ["def foo\n  x = { a: 1 }\n  baz x\nend", "def foo\n  baz ({ a: 1 })\nend"],
       "shorthand_pair_expands_to_long_form" =>
-      ["def foo\n  ids = compute\n  bar(ids:)\nend", "def foo\n  bar(ids: compute)\nend"],
+      ["def foo\n  ids = compute_ids\n  bar(ids:)\nend", "def foo\n  bar(ids: compute_ids)\nend"],
       "shorthand_pair_in_hash_literal_expands" =>
-      ["def foo\n  ids = compute\n  bar({ ids: })\nend", "def foo\n  bar({ ids: compute })\nend"],
+      ["def foo\n  ids = compute_ids\n  bar({ ids: })\nend", "def foo\n  bar({ ids: compute_ids })\nend"],
       "long_form_pair_still_inlines_the_value_only" =>
-      ["def foo\n  ids = compute\n  bar(list: ids)\nend", "def foo\n  bar(list: compute)\nend"],
+      ["def foo\n  ids = compute_ids\n  bar(list: ids)\nend", "def foo\n  bar(list: compute_ids)\nend"],
       "hash_rocket_pair_keeps_its_key" =>
-      ["def foo\n  ids = compute\n  bar(\"ids\" => ids)\nend", "def foo\n  bar(\"ids\" => compute)\nend"],
+      ["def foo\n  ids = compute_ids\n  bar(\"ids\" => ids)\nend", "def foo\n  bar(\"ids\" => compute_ids)\nend"],
       "parenthesised_expression_is_not_wrapped_again" =>
       ["def foo\n  x = (a + b)\n  baz(x)\nend", "def foo\n  baz((a + b))\nend"],
       "defined_check_is_wrapped" =>
@@ -216,6 +216,66 @@ RSpec.describe(RuboCop::Cop::Kata::NoRedundantVariable) do
     ]
     }
   )
+
+  it "keeps a local whose name explains what its value does not say" do
+    source = <<~RUBY
+      def line
+        subtotal = [@order.items.sum(&:price) - @order.discount, 0].max
+        tax = [(subtotal * @rate).round, 1].max
+        cents = subtotal + tax
+        format("%.2f", cents / 100.0)
+      end
+    RUBY
+    expect(offenses(source)).to(be_empty)
+  end
+
+  it "inlines a local whose name its value already says, or a generic one" do
+    source = <<~RUBY
+      def show(id)
+        user = User.find(id)
+        render(user)
+      end
+
+      def list(order)
+        line_items = order.line_items
+        show(line_items)
+      end
+
+      def sum
+        result = add(1, 2)
+        log(result)
+      end
+
+      def at(index)
+        @cache = nil
+        cache = @cache
+        draw(cache)
+      end
+    RUBY
+    expect(offenses(source).map(&:line)).to(eq([2, 7, 12, 18]))
+  end
+
+  it "does not move a plain local across an explaining one it would reorder" do
+    source = "def foo\n  x = bar\n  total = compute\n  baz(x, total)\nend"
+    expect([offenses(source).size, autocorrect(source)]).to(eq([0, source]))
+  end
+
+  it "keeps a local whose inlining would run past the line limit" do
+    source = "def foo\n  x = compute_the_value_of_x\n  render(#{"1111111111, " * 9}x)\nend"
+    short = "def foo\n  x = compute_the_value_of_x\n  render(#{"1111111111, " * 7}x)\nend"
+    expect([offenses(source).size, offenses(short).size]).to(eq([0, 1]))
+  end
+
+  context "with the line limit switched off" do
+    let(:cop) do
+      described_class.new(RuboCop::Config.new("Layout/LineLength" => { "Enabled" => false }))
+    end
+
+    it "inlines however long the line becomes" do
+      source = "def foo\n  x = compute_the_value_of_x\n  render(#{"1111111111, " * 9}x)\nend"
+      expect(offenses(source).size).to(eq(1))
+    end
+  end
 
   it "names the redundant variable" do
     expect(offenses("def foo\n  greeting = 'hi'\n  puts(greeting)\nend").first.message).to(include('"greeting"'))

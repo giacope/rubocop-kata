@@ -151,6 +151,35 @@ RSpec.describe(RuboCop::Cop::Kata::GoodClassName, :config) do
     end
   end
 
+  context "with a contract superclass" do
+    let(:cop_config) { { "ContractSuperclasses" => %w[RuboCop::Cop::Base] } }
+
+    it "leaves a class a framework resolves by its name, written in full or found lexically" do
+      expect_no_offenses(<<~RUBY)
+        class TokenCrowdedCheckerName < RuboCop::Cop::Base
+        end
+        module RuboCop
+          module Cop
+            module Lsp
+              class UseLanguageServerAliasesNow < Base
+              end
+            end
+          end
+        end
+      RUBY
+    end
+
+    it "still judges a class whose Base is some other library's" do
+      expect_offense(<<~RUBY)
+        module Billing
+          class InvoiceProcessor < Base
+                ^^^^^^^^^^^^^^^^ `InvoiceProcessor` names a doer; name the class for the thing it is, not the work it does.
+          end
+        end
+      RUBY
+    end
+  end
+
   context "with the shipped defaults" do
     let(:cop_config) { RuboCop::ConfigLoader.default_configuration.for_cop("Kata/GoodClassName") }
 

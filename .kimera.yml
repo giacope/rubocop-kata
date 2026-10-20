@@ -30,7 +30,7 @@ ignore:
     twin and read are distinct lvar nodes, and two nodes of one type cannot
     begin at the same offset, so the begin positions are never equal
 - file: lib/rubocop/cop/kata/no_output_argument.rb
-  line: 50
+  line: 52
   label: "<= => <"
   reason: >-
     an assignment that rebinds the parameter ends where its value ends, and the
