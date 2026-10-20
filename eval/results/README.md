@@ -46,12 +46,14 @@ What the sections measure:
   common thing reading, and `Header`). Framework names moved to
   `ContractSuffixes` (not shown in `class_suffixes`, which counts the test
   suffixes).
-- **Corpora** (`eval/corpora.yml`): faraday `lib`, rubygems.org `app`+`lib`
-  with a bare kata config; hashira and kimera `lib` with their own config.
-  *Autocorrect safety* copies each tree, runs `rubocop -a` or `-A`, then
-  counts files that no longer parse, comment lines kept (all, YARD tags,
-  encoding magic), and faraday's 652 specs. rubygems.org's suite needs
-  PostgreSQL and is not run.
+- **Corpora** (`eval/corpora.yml`): faraday `lib`, Sequel `lib`, rubygems.org
+  `app`+`lib` with a bare kata config; hashira and kimera `lib` with their
+  own config. *Autocorrect safety* copies each tree, runs `rubocop -a` or
+  `-A`, then counts files that no longer parse, comment lines kept (all, YARD
+  tags, encoding magic), faraday's 652 specs and Sequel's 8,261 database-free
+  tests (the field test's case: `-a` once left Sequel unable to load; now its
+  suite stays green after `-a`, and fails after `-A`, which is unsafe by
+  definition). rubygems.org's suite needs PostgreSQL and is not run.
 - **MethodLength by CountAsOne** reports the length cop under three counting
   rules. With the limit at 10 the fold matters little (faraday 20 vs 22
   without any folding, rubygems.org 143 vs 203).
