@@ -10,7 +10,7 @@ class RuboCop::Cop::Kata::ConstructorDiscipline < RuboCop::Cop::Base
 
   def on_def(node)
     return unless node.method?(:initialize)
-    node.each_descendant(:send, :csend) { judge(it, node) }
+    node.body&.each_node(:send, :csend) { judge(it, node) }
   end
 
   private

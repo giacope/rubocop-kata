@@ -11,7 +11,8 @@ module RuboCop::Kata::Dictionary
     [WORDS, SOFTWARE].flat_map { Zlib.gunzip(File.binread(it)).split("\n") } +
       File.readlines(EXTRA, chomp: true)
   ).freeze
-  AGENTS, THINGS, VERBS =
+  AGENTS, THINGS, WORDNET_VERBS =
     %w[agents things verbs].map { Set.new(Zlib.gunzip(File.binread("#{DATA}/#{it}.txt.gz")).split("\n")).freeze }
+  VERBS = (WORDNET_VERBS | File.readlines(File.join(DATA, "actions.txt"), chomp: true)).freeze
   CLIPPINGS = File.readlines(File.join(DATA, "clippings.txt"), chomp: true).to_h { it.split(" ", 2) }.freeze
 end

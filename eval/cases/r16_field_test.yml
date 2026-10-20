@@ -1,0 +1,240 @@
+# What the field test on ten MIT codebases larger than Fizzy found: each
+# case is the shape a codebase misread or an autocorrect broke.
+- id: class-built-in-an-expression-survives-safe-autocorrect
+  cop: Style/EmptyClassDefinition
+  expect: offense
+  correct: safe
+  keeps: ["  NAMES = [(Missing = Class.new(StandardError)).name].freeze"]
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      NAMES = [(Missing = Class.new(StandardError)).name].freeze
+    end
+- id: rescue-variable-read-in-ensure-is-not-renamed
+  cop: Naming/RescuedExceptionsVariableName
+  expect: offense
+  correct: safe
+  keeps: ["rescue StandardError => e", "  finish(e)"]
+  source: |
+    # frozen_string_literal: true
+
+    def run
+      yield
+    rescue StandardError => e
+      @failed = true
+    ensure
+      finish(e)
+    end
+- id: rbs-inline-signature-survives-safe-autocorrect
+  cop: Layout/LeadingCommentSpace
+  expect: clean
+  correct: safe
+  keeps: ["  #: (String) -> void"]
+  source: |
+    # frozen_string_literal: true
+
+    class Label
+      #: (String) -> void
+      def initialize(text)
+        @text = text
+      end
+    end
+- id: closer-on-a-heredoc-line-moves-below-the-heredoc
+  cop: Kata/PairedBrackets
+  expect: offense
+  correct: safe
+  only: true
+  becomes: |
+    create(
+      name, <<~SQL, returns: :trigger
+        RETURN NULL;
+      SQL
+    )
+  source: |
+    create(
+      name, <<~SQL, returns: :trigger)
+        RETURN NULL;
+      SQL
+- id: dash-form-magic-comment-kept
+  cop: Kata/NoComments
+  expect: clean
+  source: |
+    # frozen-string-literal: true
+    # Shareable-Constant-Value: literal
+    TABLE = { a: [1] }
+- id: defs-inside-a-block-do-not-loop
+  cop: Layout/EmptyLineBetweenDefs
+  expect: clean
+  correct: safe
+  keeps: ["    host.module_exec do"]
+  source: |
+    # frozen_string_literal: true
+
+    module Box
+      def self.included(host)
+        host.module_exec do
+          def first
+            1
+          end
+
+          def second
+            2
+          end
+        end
+      end
+    end
+- id: brand-name-is-no-doer
+  cop: Kata/GoodClassName
+  expect: clean
+  source: |
+    class IframeEmbed::Instapaper
+    end
+    class IframeEmbed::Kickstarter
+    end
+- id: coinage-on-a-verb-stem-is-a-doer
+  cop: Kata/GoodClassName
+  expect: offense
+  source: |
+    class Shelf::Chunker
+    end
+- id: persisted-record-names-the-thing
+  cop: Kata/GoodClassName
+  expect: clean
+  source: |
+    class Manufacturer < ApplicationRecord
+    end
+- id: cop-class-is-a-contract
+  cop: Kata/GoodClassName
+  expect: clean
+  source: |
+    module RuboCop
+      module Cop
+        module Lsp
+          class UseLanguageServerAliases < Base
+          end
+        end
+      end
+    end
+- id: technology-names-are-words
+  cop: Kata/RealWords
+  expect: clean
+  source: |
+    def resolve(graphql, imap, hmac, sso) = [graphql, imap, hmac, sso]
+- id: plural-agent-noun-is-a-word
+  cop: Kata/RealWords
+  expect: clean
+  source: |
+    def check(matchers, satisfiable) = matchers.any? && satisfiable
+- id: named-constructor-constructs
+  cop: Kata/NoClassMethodLogic
+  expect: clean
+  source: |
+    class Rubric
+      def self.build_from_legacy(legacy) = new(legacy.title)
+      def self.name = "Rubric"
+    end
+- id: own-empty-buffer-is-state
+  cop: Kata/ConstructorDiscipline
+  expect: clean
+  source: |
+    class Buffer
+      def initialize(names)
+        @text = +""
+        @seen = {}.compare_by_identity
+        @names = names
+      end
+    end
+- id: hook-the-superclass-constructor-calls-is-construction
+  cop: Kata/FrozenState
+  expect: clean
+  source: |
+    class Model
+      def initialize(raw)
+        @raw = raw
+        setup
+      end
+
+      def setup = nil
+    end
+
+    class Version < Model
+      def setup = @status = @raw.fetch("status")
+    end
+- id: raising-guard-is-no-command
+  cop: Kata/CommandQuery
+  expect: clean
+  source: |
+    class Config
+      def specified?(key)
+        UI.user_error!("key must be a symbol") unless key.is_a?(Symbol)
+        @values.key?(key)
+      end
+    end
+- id: phlex-paragraph-is-no-output
+  cop: Kata/IoDiscipline
+  expect: clean
+  source: |
+    class Card
+      def view_template = p(class: "empty") { "No senders" }
+    end
+- id: core-reopen-still-flagged
+  cop: Kata/ClassInModule
+  expect: offense
+  source: |
+    class String
+      def shout = upcase
+    end
+- id: define-method-setter-flagged
+  cop: Kata/NoSetter
+  expect: offense
+  source: |
+    class Box
+      define_method(:depth=) { |value| @depth = value }
+    end
+- id: check-against-own-type-flagged
+  cop: Kata/NoTypeCheck
+  expect: offense
+  source: |
+    class Card
+    end
+
+    class Deck
+      def add(item) = item.is_a?(Card) ? item : nil
+    end
+- id: check-against-foreign-type-allowed
+  cop: Kata/NoTypeCheck
+  expect: clean
+  source: |
+    class Deck
+      def add(item) = item.is_a?(String) ? item.upcase : item
+    end
+- id: explanatory-variable-kept
+  cop: Kata/NoRedundantVariable
+  expect: clean
+  source: |
+    class Invoice
+      def line
+        subtotal = [@order.items.sum(&:price) - @order.discount, 0].max
+        tax = [(subtotal * @rate).round, 1].max
+        cents = subtotal + tax
+        format("%.2f", cents / 100.0)
+      end
+    end
+- id: name-the-value-already-says-inlined
+  cop: Kata/NoRedundantVariable
+  expect: offense
+  source: |
+    class Show
+      def call(id)
+        user = User.find(id)
+        render(user)
+      end
+    end
+- id: dispatcher-listener-name-is-a-contract
+  cop: Kata/GoodMethodName
+  expect: clean
+  source: |
+    class Hover
+      def on_constant_path_node_enter(node) = node
+    end

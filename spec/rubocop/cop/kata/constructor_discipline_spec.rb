@@ -172,6 +172,16 @@ RSpec.describe(RuboCop::Cop::Kata::ConstructorDiscipline, :config) do
     end
   end
 
+  it "leaves a parameter default, the seam a dependency comes in through" do
+    expect_no_offenses(<<~RUBY)
+      def initialize(items, shelf: Dir.tmpdir, id: SecureRandom.uuid)
+        @items = items
+        @shelf = shelf
+        @id = id
+      end
+    RUBY
+  end
+
   it "reads only initialize" do
     expect_no_offenses(<<~RUBY)
       def build(items)

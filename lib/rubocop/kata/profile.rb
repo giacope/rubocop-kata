@@ -11,16 +11,17 @@ class RuboCop::Kata::Profile
   LOCKS = %w[Gemfile.lock gems.locked].freeze
   RSPEC = /^ {4}rspec-core \(/
 
-  def initialize(root, options)
+  def initialize(root, options, shelf: Dir.tmpdir)
     @root = root
     @options = options
+    @shelf = shelf
   end
 
   def path
     layer = overlay
     return BASE if layer == { "inherit_from" => [BASE] }
     text = YAML.dump(layer)
-    target = File.join(Dir.tmpdir, "rubocop-kata-#{Digest::SHA256.hexdigest(text)[0, 16]}.yml")
+    target = File.join(@shelf, "rubocop-kata-#{Digest::SHA256.hexdigest(text)[0, 16]}.yml")
     publish(target, text) unless File.file?(target) && File.read(target) == text
     target
   end

@@ -171,6 +171,13 @@
   expect: offense
   source: |
     class Billing::Amount
+      def render(value) = value.is_a?(Billing::Amount) ? value.to_s : value
+    end
+- id: type-check-on-a-foreign-type-allowed
+  cop: Kata/NoTypeCheck
+  expect: clean
+  source: |
+    class Billing::Amount
       def render(value) = value.is_a?(Symbol) ? value.to_s : value
     end
 - id: type-check-in-equality-allowed

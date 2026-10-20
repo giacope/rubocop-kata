@@ -486,6 +486,9 @@ RSpec.describe(RuboCop::Cop::Kata::GoodClassName, :config) do
         class Chunker
               ^^^^^^^ `Chunker` names a doer; name the class for the thing it is, not the work it does.
         end
+        class Upserter
+              ^^^^^^^^ `Upserter` names a doer; name the class for the thing it is, not the work it does.
+        end
       RUBY
     end
   end

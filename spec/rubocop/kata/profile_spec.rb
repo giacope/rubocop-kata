@@ -48,11 +48,30 @@ RSpec.describe(RuboCop::Kata::Profile) do
     end
   end
 
-  it "writes the overlay once, where RuboCop can load it, and hands back the same file" do
-    project(["config/application.rb", ""]) do |root|
-      profile = described_class.new(root, {})
+  def shelved(*files)
+    project(*files) do |root|
+      Dir.mktmpdir("kata-shelf") { |shelf| yield(described_class.new(root, {}, shelf:), shelf) }
+    end
+  end
+
+  it "writes the overlay where RuboCop can load it, and hands back the same file" do
+    shelved(["config/application.rb", ""]) do |profile, shelf|
       first = profile.path
-      expect([YAML.load_file(first), profile.path]).to(eq([profile.overlay, first]))
+      expect([YAML.load_file(first), profile.path, Dir.children(shelf).size]).to(eq([profile.overlay, first, 1]))
+    end
+  end
+
+  it "leaves an overlay already written alone" do
+    shelved(["config/application.rb", ""]) do |profile, _|
+      File.utime(Time.at(0), Time.at(0), profile.path)
+      expect(File.mtime(profile.path).to_i).to(eq(0))
+    end
+  end
+
+  it "rewrites an overlay a crash cut short" do
+    shelved(["config/application.rb", ""]) do |profile, _|
+      File.write(profile.path, "inherit_from:")
+      expect(YAML.load_file(profile.path)).to(eq(profile.overlay))
     end
   end
 

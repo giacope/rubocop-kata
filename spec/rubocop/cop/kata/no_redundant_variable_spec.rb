@@ -251,8 +251,13 @@ RSpec.describe(RuboCop::Cop::Kata::NoRedundantVariable) do
         cache = @cache
         draw(cache)
       end
+
+      def tidy
+        rows = @rows.compact
+        draw(rows)
+      end
     RUBY
-    expect(offenses(source).map(&:line)).to(eq([2, 7, 12, 18]))
+    expect(offenses(source).map(&:line)).to(eq([2, 7, 12, 18, 23]))
   end
 
   it "does not move a plain local across an explaining one it would reorder" do
@@ -261,9 +266,9 @@ RSpec.describe(RuboCop::Cop::Kata::NoRedundantVariable) do
   end
 
   it "keeps a local whose inlining would run past the line limit" do
-    source = "def foo\n  x = compute_the_value_of_x\n  render(#{"1111111111, " * 9}x)\nend"
-    short = "def foo\n  x = compute_the_value_of_x\n  render(#{"1111111111, " * 7}x)\nend"
-    expect([offenses(source).size, offenses(short).size]).to(eq([0, 1]))
+    at_limit = "def foo\n  x = compute_the_value_of_x\n  render(#{"1" * 86}, x)\nend"
+    past_limit = "def foo\n  x = compute_the_value_of_x\n  render(#{"1" * 87}, x)\nend"
+    expect([offenses(at_limit).size, offenses(past_limit).size]).to(eq([1, 0]))
   end
 
   context "with the line limit switched off" do

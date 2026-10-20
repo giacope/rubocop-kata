@@ -668,8 +668,10 @@ Kata/ConstructorDiscipline:
     state that nothing could inject: a lock or a queue (`Mutex.new`), or an
     empty collection (`Set.new`, `+""`, `{}.compare_by_identity`). A clock, a
     random number, a client, or a sum is a dependency or a computation, and
-    is flagged (`@id = SecureRandom.uuid`). A guard may raise, through
-    `raise` or one of the project's `RaisingMethods` (`UI.user_error!`).
+    is flagged (`@id = SecureRandom.uuid`); a parameter default is the seam
+    such a dependency comes in through (`def initialize(clock: Time)`), and
+    passes. A guard may raise, through `raise` or one of the project's
+    `RaisingMethods` (`UI.user_error!`).
   Enabled: true
   VersionAdded: "0.3"
   VersionChanged: "0.11"

@@ -50,6 +50,15 @@
   expect:
     status: [1]
     stdout: ["binary\\.rb"]
+- id: doctor-names-an-unloadable-plugin
+  gap: R16
+  command: doctor
+  files:
+    .rubocop.yml: "plugins:\n  - rubocop-kata\n  - rubocop-missing-plugin\n"
+    lib/sample.rb: "# frozen_string_literal: true\n"
+  expect:
+    status: [2]
+    stdout: ["configuration does not load", "bundle exec rubocop-kata doctor"]
 - id: doctor-lists-reasoned-disables
   gap: R9
   command: doctor
