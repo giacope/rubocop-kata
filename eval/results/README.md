@@ -169,10 +169,16 @@ by the source instead of resetting it, the eval suite's corpus threads return
 their results instead of popping a shared queue into a shared hash, and its
 case loader no longer deletes a key from the case it was handed.
 
-The R15 snippet cases pin each cop's flagged and allowed shapes, and that
-`Kata/NoTypeCheck` is off unless enabled; a case's `enable: true` turns its cop
-on in that case's config. All 24 pass; across every gap 208 of 211 cases
-pass, the three failing being the ones listed above.
+The R15 snippet cases pin each cop's flagged and allowed shapes; a case's
+`enable: true` turns its cop on in that case's config. All 24 pass; across every
+gap 208 of 211 cases pass, the three failing being the ones listed above.
+
+The field test that followed (R16, `eval/cases/r16_field_test.yml`) turned
+`Kata/NoTypeCheck` on with a narrower reach: the 24 offenses above that tested
+Prism and Parser nodes, Minitest, Rails and Faraday types are checks against a
+type another library owns, which the cop now leaves alone, and a check against
+one of the project's own types is the kind polymorphism removes; R15 gained the
+foreign-type case. With the R16 cases, 233 of 236 pass, the same three failing.
 
 ## Why methods may run to 10 lines and names to two words
 
