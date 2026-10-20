@@ -5,10 +5,12 @@ class RuboCop::Cop::Kata::ConstructorDiscipline < RuboCop::Cop::Base
 
   MSG = "A constructor assigns; it does not compute. Move `%s` out of `initialize`."
   CONVERSION = /\Ato_[a-z]+\z/
+  FRESH = %i[+@ -@ compare_by_identity].freeze
+  LITERALS = %i[str dstr hash array].freeze
 
   def on_def(node)
     return unless node.method?(:initialize)
-    node.each_descendant(:send, :csend) { judge(it, node) }
+    node.body&.each_node(:send, :csend) { judge(it, node) }
   end
 
   private
@@ -26,7 +28,14 @@ class RuboCop::Cop::Kata::ConstructorDiscipline < RuboCop::Cop::Base
 
   def state?(send)
     receiver = send.receiver
+    return own?(receiver) if FRESH.include?(send.method_name)
     send.method?(:new) && receiver&.const_type? && listed?("AllowedConstructors", receiver.const_name)
+  end
+
+  def own?(receiver)
+    receiver = receiver.send_node if receiver&.any_block_type?
+    return true if receiver.nil?
+    LITERALS.include?(receiver.type) || (receiver.send_type? && state?(receiver))
   end
 
   def exempt?(send, root)
@@ -35,7 +44,7 @@ class RuboCop::Cop::Kata::ConstructorDiscipline < RuboCop::Cop::Base
 
   def deferred?(node) = node.any_block_type? && (node.lambda_or_proc? || state?(node.send_node))
 
-  def raised?(node) = node&.send_type? && node.method?(:raise)
+  def raised?(node) = node&.send_type? && listed?("RaisingMethods", node.method_name.to_s)
 
   def guard?(node) = node.if_type? && node.branches.all? { raised?(it) }
 end

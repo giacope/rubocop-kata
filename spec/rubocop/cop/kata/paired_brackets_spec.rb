@@ -92,4 +92,25 @@ RSpec.describe(RuboCop::Cop::Kata::PairedBrackets) do
   it "reports a deferred inner bracket even while it waits for the outer one" do
     expect(offenses("a(b(c(\n  1\n)))").size).to(eq(4))
   end
+
+  it "moves a closer below the heredoc its line opens, not into the heredoc's body" do
+    source = "  create(\n    name, <<~SQL, returns: :trigger)\n      RETURN NULL;\n    SQL\n"
+    moved = "  create(\n    name, <<~SQL, returns: :trigger\n      RETURN NULL;\n    SQL\n  )\n"
+    expect(autocorrect(source)).to(eq(moved))
+  end
+
+  it "moves the closer below the last of two heredocs opened on its line" do
+    source = "join(\n  <<~A, <<~B)\n  a\nA\n  b\nB\n"
+    expect(autocorrect(source)).to(eq("join(\n  <<~A, <<~B\n  a\nA\n  b\nB\n)\n"))
+  end
+
+  it "keeps a trailing comment on the heredoc line when it moves the closer" do
+    source = "run(\n  <<~SQL) # trigger\n  x\nSQL\n"
+    expect(autocorrect(source)).to(eq("run(\n  <<~SQL # trigger\n  x\nSQL\n)\n"))
+  end
+
+  it "reports, but leaves alone, a closer followed by code on a heredoc's line" do
+    source = "run(\n  <<~SQL).strip\n  x\nSQL\n"
+    expect([offenses(source).size, autocorrect(source)]).to(eq([1, source]))
+  end
 end

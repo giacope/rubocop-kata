@@ -23,8 +23,10 @@ class RuboCop::Cop::Kata::NoOutputArgument < RuboCop::Cop::Base
     target = call.receiver
     return unless target&.lvar_type? && names.include?(target.children.first) && mutation?(call)
     return if outside?(call, method) || fresh?(target, method)
-    add_offense(call, message: format(MSG, call.method_name, target.children.first))
+    add_offense(call, message: format(MSG, label(call), target.children.first))
   end
+
+  def label(call) = written?(call) ? :[]= : call.method_name
 
   def mutation?(call)
     name = call.method_name

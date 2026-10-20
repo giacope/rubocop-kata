@@ -3,10 +3,11 @@
 # still fails: a known failure that starts passing must lose its mark.
 #
 # On eval/names.yml, the doer rule may not flag more things (fp) or catch
-# fewer doers (recall) than main did at b83bbcc. Tighten these when a change
-# improves them.
+# fewer doers (recall) than the field-test fixes did (an unknown word is a doer
+# only on a verb stem; data/actions.txt adds the technology verbs WordNet
+# lacks). Tighten these when a change improves them.
 names:
   raw:
-    all: { fp: 2, recall: 0.939 }
+    all: { fp: 2, recall: 0.9437 }
   shipped:
-    all: { fp: 1, recall: 0.9202 }
+    all: { fp: 1, recall: 0.9249 }

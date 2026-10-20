@@ -151,6 +151,35 @@ RSpec.describe(RuboCop::Cop::Kata::GoodClassName, :config) do
     end
   end
 
+  context "with a contract superclass" do
+    let(:cop_config) { { "ContractSuperclasses" => %w[RuboCop::Cop::Base] } }
+
+    it "leaves a class a framework resolves by its name, written in full or found lexically" do
+      expect_no_offenses(<<~RUBY)
+        class TokenCrowdedCheckerName < RuboCop::Cop::Base
+        end
+        module RuboCop
+          module Cop
+            module Lsp
+              class UseLanguageServerAliasesNow < Base
+              end
+            end
+          end
+        end
+      RUBY
+    end
+
+    it "still judges a class whose Base is some other library's" do
+      expect_offense(<<~RUBY)
+        module Billing
+          class InvoiceProcessor < Base
+                ^^^^^^^^^^^^^^^^ `InvoiceProcessor` names a doer; name the class for the thing it is, not the work it does.
+          end
+        end
+      RUBY
+    end
+  end
+
   context "with the shipped defaults" do
     let(:cop_config) { RuboCop::ConfigLoader.default_configuration.for_cop("Kata/GoodClassName") }
 
@@ -165,6 +194,21 @@ RSpec.describe(RuboCop::Cop::Kata::GoodClassName, :config) do
         class Monitor
         end
         class PowerUser
+        end
+      RUBY
+    end
+
+    it "reads a persisted record as the thing it records, whatever its name" do
+      expect_offense(<<~RUBY)
+        class Manufacturer < ApplicationRecord
+        end
+        class Teacher < ActiveRecord::Base
+        end
+        class Teacher < Person
+              ^^^^^^^ `Teacher` names a doer; name the class for the thing it is, not the work it does.
+        end
+        class OrderService < ApplicationRecord
+              ^^^^^^^^^^^^ `OrderService` is a junk drawer; it hides the concept the code is missing.
         end
       RUBY
     end
@@ -429,12 +473,21 @@ RSpec.describe(RuboCop::Cop::Kata::GoodClassName, :config) do
       RUBY
     end
 
-    it "reads a coinage as a doer, and a known word whose stem is no verb as none" do
+    it "reads a coinage as a doer only when its stem is a verb, as the configuration says" do
       expect_offense(<<~RUBY)
         class Differ
         end
         class Zorper
-              ^^^^^^ `Zorper` names a doer; name the class for the thing it is, not the work it does.
+        end
+        class Instapaper
+        end
+        class Kickstarter
+        end
+        class Chunker
+              ^^^^^^^ `Chunker` names a doer; name the class for the thing it is, not the work it does.
+        end
+        class Upserter
+              ^^^^^^^^ `Upserter` names a doer; name the class for the thing it is, not the work it does.
         end
       RUBY
     end

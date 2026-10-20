@@ -148,9 +148,17 @@ RSpec.describe(RuboCop::Kata::Checkup) do
     end
   end
 
-  it "says which file does not parse" do
+  it "says which file does not parse, and as which Ruby" do
     project("", "# rubocop:disable Kata/GoodClassName -- generated\ndef total(\n") do |root|
-      expect(report(root).first).to(include("sample.rb: does not parse"))
+      expect(report(root).first).to(include("sample.rb: does not parse as Ruby 2.7, the target version"))
+    end
+  end
+
+  it "names a plugin the project needs and this Ruby cannot load, instead of a backtrace" do
+    project("plugins:\n  - rubocop-kata\n  - rubocop-missing-plugin\n") do |root|
+      output, status = report(root)
+      expect([output.lines.first, status])
+        .to(match([include("configuration does not load", "bundle exec rubocop-kata doctor"), 2]))
     end
   end
 

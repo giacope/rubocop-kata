@@ -6,8 +6,11 @@ class RuboCop::Cop::Kata::NoComments < RuboCop::Cop::Base
   MSG = "Say it in the code: rename it, extract it, or name the constant."
 
   MAGIC = /
-    \A\#\s*(frozen_string_literal|encoding|coding|warn_indent|warn_past_scope|shareable_constant_value|rbs_inline):
-  /x
+    \A\#\s*(
+      frozen[-_]string[-_]literal|encoding|coding|warn[-_]indent|warn[-_]past[-_]scope|
+      shareable[-_]constant[-_]value|rbs[-_]inline
+    )\s*:
+  /xi
   MODELINE = /\A#.*-\*-.*-\*-|\A#\s*(vim?|ex):\s*(set?\s+)?\w+[=:]/
   DIRECTIVE = /
     \A\#\s*(

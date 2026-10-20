@@ -26,7 +26,7 @@ module RuboCop::Cop::Kata::Wording
     listed?("Suffixes", rest.last) ? rest[0..-2] : rest
   end
 
-  def allowed?(name) = super || listed?("Terms", name)
+  def allowed?(name) = super || listed?("Terms", name) || list("AllowedPatterns").any? { name.match?(Regexp.new(it)) }
 
   def max = Integer(cop_config.fetch("MaxWords", 2))
 

@@ -96,6 +96,36 @@ RSpec.describe(RuboCop::Cop::Kata::NoClassMethodLogic, :config) do
     RUBY
   end
 
+  it "reads a class method whose result is a new instance of its class as a constructor" do
+    expect_no_offenses(<<~RUBY)
+      class Rubric
+        def self.build_from_legacy(legacy) = new(legacy.title)
+        def self.create(title) = self.new(title.strip)
+        def self.restore(row)
+          title = row.fetch(:title)
+          Rubric.new(title)
+        end
+      end
+    RUBY
+  end
+
+  it "still flags a class method that builds some other class" do
+    expect_offense(<<~RUBY)
+      class Rubric
+        def self.export(rubric) = Sheet.new(rubric)
+                 ^^^^^^ `export` puts logic on the class; classes construct, instances work.
+        def self.copy(rubric) = rubric.new
+                 ^^^^ `copy` puts logic on the class; classes construct, instances work.
+        def self.reset = clear_all
+                 ^^^^^ `reset` puts logic on the class; classes construct, instances work.
+      end
+      module Rubrics
+        def self.make(title) = Rubrics.new(title)
+                 ^^^^ `make` puts logic on the class; classes construct, instances work.
+      end
+    RUBY
+  end
+
   context "with the shipped defaults" do
     let(:cop_config) { RuboCop::ConfigLoader.default_configuration.for_cop("Kata/NoClassMethodLogic") }
 
@@ -107,6 +137,19 @@ RSpec.describe(RuboCop::Cop::Kata::NoClassMethodLogic, :config) do
           def self._load(text) = new(text)
           def self.json_create(object) = new(object["cents"])
           def self.[](*parts) = new(*parts)
+        end
+      RUBY
+    end
+
+    it "allows the protocol methods Ruby calls on a class by name" do
+      expect_no_offenses(<<~RUBY)
+        class Rubric
+          def self.name = "Rubric"
+          def self.to_s = name
+          def self.inspect = name
+          def self.===(other) = other.is_a?(Hash)
+          def self.respond_to_missing?(name, all) = name.start_with?("of_") || super
+          def self.method_missing(name, *) = name.start_with?("of_") ? new : super
         end
       RUBY
     end

@@ -3,7 +3,14 @@
 require "rubocop/kata/plan"
 require "tmpdir"
 
-RSpec.describe(RuboCop::Kata::Plan) do
+RSpec.describe(RuboCop::Kata::Plan, :restore_configuration) do
+  around do |example|
+    loaded = RuboCop::ConfigLoader.loaded_plugins.dup
+    example.run
+  ensure
+    RuboCop::ConfigLoader.loaded_plugins.replace(loaded)
+  end
+
   def project(*sources, config: "plugins:\n  - rubocop-kata\n")
     Dir.mktmpdir("kata-plan") do |root|
       File.write(File.join(root, ".rubocop.yml"), config)

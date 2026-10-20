@@ -2,6 +2,87 @@
 
 ## [Unreleased]
 
+- From a field test on ten MIT codebases larger than Fizzy (Chatwoot,
+  Coursemology, Feedbin, Huginn, Human Essentials, fastlane, Sequel,
+  graphql-ruby, YARD, ruby-lsp). Plain `rubocop -a` no longer changes what
+  code does; it left Sequel unable to load and failing 350 of its 8,261
+  tests, and corrupted ruby-lsp's 1,986 RBS signatures:
+  - `NewCops` is `disable`, and the 184 pending cops kata wants are listed
+    one by one: a RuboCop upgrade adds no autocorrect nobody reviewed.
+    `Style/EmptyClassDefinition` (which turned `(E = Class.new(Error)).name`
+    into a nil class body) and `Style/Proc` (`proc` in a `BasicObject`) run
+    under `-A` only, as do eight corrections that broke Sequel's or
+    ruby-lsp's files: `Style/SingleLineMethods` and `Style/EmptyMethod`
+    (`def (@m.db).name() false end`), `Style/Lambda` (`lambda{|| 1}`),
+    `Style/DefWithParentheses` (once `Layout/LineLength` has split the line),
+    `Style/OperatorMethodCall` (`o.~(a: 1)`), `Performance/BindCall`
+    (Sequel's `dataset.bind(...).call(...)`), `Style/CaseEquality`
+    (`Array === proxy`) and `Lint/UselessNumericOperation` (`Sequel.**(1)`).
+  - `Naming/RescuedExceptionsVariableName` keeps `PreferredName: error` but
+    reports only: RuboCop renamed the variable inside the rescue clause and
+    left `ensure` and later lines on the old name.
+  - `Layout/LeadingCommentSpace` allows RBS (`#:`) and Steep annotations,
+    which `Kata/NoComments` already keeps.
+  - `Kata/PairedBrackets` moves a closer below the heredoc its line opens,
+    where it moved it into the heredoc's body.
+  - `Kata/NoComments` reads a magic comment as Ruby does, in any case and
+    with dashes or underscores (`# frozen-string-literal: true`).
+  - `Layout/EmptyLineBetweenDefs` is off: it loops against the Elegant
+    blank-line cops wherever defs sit in a block or method body.
+  - `Packaging/RequireHardcodingLib` is off: it raises on a file with the
+    frozen-string-literal comment kata itself adds.
+- Misreads from the same field test:
+  - `Kata/GoodClassName`: an unknown `-er` word is a doer only on a verb
+    stem, as its configuration said (`Instapaper`, `Kickstarter` pass);
+    `data/actions.txt` adds the technology verbs WordNet lacks (`upsert`).
+    A class under one of the new `EntitySuperclasses` (`ApplicationRecord`)
+    is a record of a thing (`Manufacturer`), and one under a
+    `ContractSuperclasses` entry (`RuboCop::Cop::Base`) is named by a
+    contract. `Docker` joins `AllowedNames`.
+  - `Kata/RealWords`: derivations apply twice (`matchers`, `satisfiable`),
+    `graphql`, `imap`, `hmac`, `sso`, `ai`, `llm`, `decrypt` and other names
+    are words, and a clipping with several readings names them all.
+  - `Kata/NoClassMethodLogic`: a class method whose result is a new
+    instance of its class is a constructor; `name`, `to_s`, `inspect`,
+    `===`, `method_missing` and `respond_to_missing?` are Ruby's protocol.
+  - `Kata/ConstructorDiscipline`: `+""` and `{}.compare_by_identity` are the
+    object's own state, a parameter default is a seam, and a guard may raise
+    through the project's `RaisingMethods`.
+  - `Kata/FrozenState`: a hook a superclass's constructor calls is
+    construction (`ConstructorHooks` for a superclass in another file);
+    state set in a `define_method` block or by `instance_variable_set` on
+    self is judged.
+  - `Kata/NoSetter` reports a setter `define_method` mints.
+  - `Kata/IoDiscipline` leaves a `p` given a block or no argument (Phlex).
+  - `Kata/ClassInModule` asks for a refinement or a decorator when a file
+    reopens a core class.
+  - `Kata/CommandQuery` reads a guard's bang on a constant as a raise.
+  - `Kata/NoOutputArgument` names `[]=` for `counts[word] += 1`.
+  - `rubocop-kata doctor` names a plugin the project cannot load instead of
+    printing a backtrace, and the Ruby a file failed to parse as.
+- Design, under one rule: framework contracts are exempt, framework idioms
+  are not.
+  - `Kata/NoTypeCheck` is on, judging only the project's own types (defined
+    in the file or under the new `OwnedPaths`) and `respond_to?` probes for
+    methods the project defines.
+  - `Kata/NoRedundantVariable` inlines only a local whose name says nothing
+    its value does not, and never past `Layout/LineLength`: an explanatory
+    variable stays.
+  - `Kata/GoodMethodName` and `Kata/GoodVariableName` take
+    `AllowedPatterns`; Prism's listener names ship as a contract.
+  - The plugin reads the project: rubocop-packaging runs only in a gem,
+    rubocop-rspec only where RSpec runs, and a Rails app gets
+    `config/rails.yml` (the names Rails, Devise and Turbo dictate, and
+    generated `bin/` and `db/` out of `Kata/NoComments`). Plugin options
+    `rails:`, `packaging:` and `rspec:` overrule the detection. The profile
+    is written as one file: RuboCop checks a file a plugin's configuration
+    inherits against the cops it knows, and the oldest release kata supports
+    knows fewer cops than kata lists.
+  - Kata cops skip `.jbuilder` templates.
+- Known upstream: `Naming/RescuedExceptionsVariableName` raises on
+  `x = begin ... rescue => e ... end.size` whether or not it may correct, since
+  RuboCop builds the correction to mark the offense correctable.
+
 - Fixes found by running kata on 37signals' Campfire:
   - `Kata/RealWords` knows `gif`, `webp`, `mp4`, `webm`, `avif` and `heic`
     (`svg`, `png` and `jpeg` already passed), the browser `firefox`, and the

@@ -42,6 +42,28 @@ RSpec.describe(RuboCop::Cop::Kata::CommandQuery, :config) do
     RUBY
   end
 
+  it "allows a guard that raises through a bang on a constant" do
+    expect_no_offenses(<<~RUBY)
+      def specified?(key)
+        Guard.reject!("key must be a symbol") unless key.is_a?(Symbol)
+        UI.user_error!("no values") if @values.nil?
+        @values.key?(key)
+      end
+    RUBY
+  end
+
+  it "still flags a bang on a constant that is not a guard's only branch" do
+    expect_offense(<<~RUBY)
+      def stale?
+        if expired?
+          Cache.clear!
+          ^^^^^^^^^^^^ `stale?` asks a question and changes state with `clear!`; a query answers, a command acts.
+          true
+        end
+      end
+    RUBY
+  end
+
   it "allows memoizing the answer" do
     expect_no_offenses(<<~RUBY)
       def valid?

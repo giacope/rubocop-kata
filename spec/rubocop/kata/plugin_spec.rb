@@ -26,6 +26,12 @@ RSpec.describe(RuboCop::Kata::Plugin) do
     expect(path.realpath).to(eq(Pathname.new("config/default.yml").realpath))
   end
 
+  it "hands its options to the profile, so a project can ask for the Rails setting" do
+    path = described_class.new("rails" => true).rules(LintRoller::Context.new(engine: :rubocop)).value
+    names = YAML.load_file(path, aliases: true).dig("Kata/GoodMethodName", "AllowedNames")
+    expect(names).to(include("default_url_options"))
+  end
+
   it "leaves every cop it tunes switched on, unless it switches one off itself" do
     tuned = shipped.select { |key, value| key.include?("/") && value.is_a?(Hash) && !value.key?("Enabled") }.keys
     effective { |config| expect(tuned.select { config.for_cop(it)["Enabled"] == false }).to(be_empty) }
@@ -40,6 +46,44 @@ RSpec.describe(RuboCop::Kata::Plugin) do
   it "accepts a module, a class, or a compact namespace, as the README says" do
     effective do |config|
       expect(%w[Elegant/NoClassInModule Kata/ClassInModule].map { config.for_cop(it)["Enabled"] }).to(eq([false, true]))
+    end
+  end
+
+  it "switches on no cop a later RuboCop adds, and leaves none it ships pending" do
+    effective do |config|
+      pending = config.to_h.keys.select { it.include?("/") && config.for_cop(it)["Enabled"] == "pending" }
+      expect([config.for_all_cops["NewCops"], pending]).to(eq(["disable", []]))
+    end
+  end
+
+  it "reports rescue variables to rename without renaming half their readers" do
+    effective do |config|
+      expect(config.for_cop("Naming/RescuedExceptionsVariableName").slice("PreferredName", "AutoCorrect"))
+        .to(eq("PreferredName" => "error", "AutoCorrect" => false))
+    end
+  end
+
+  it "keeps the corrections it knows to break code out of rubocop -a" do
+    effective do |config|
+      cops = %w[
+        Style/EmptyClassDefinition Style/Proc Style/SingleLineMethods Style/Lambda Style/DefWithParentheses
+        Style/OperatorMethodCall Performance/BindCall Style/EmptyMethod Style/CaseEquality Lint/UselessNumericOperation
+      ]
+      expect(cops.reject { config.for_cop(it)["SafeAutoCorrect"] == false }).to(be_empty)
+    end
+  end
+
+  it "leaves type annotations alone, as Kata/NoComments promises" do
+    effective do |config|
+      expect(config.for_cop("Layout/LeadingCommentSpace").slice("AllowRBSInlineAnnotation", "AllowSteepAnnotation"))
+        .to(eq("AllowRBSInlineAnnotation" => true, "AllowSteepAnnotation" => true))
+    end
+  end
+
+  it "switches off the layout and packaging cops that loop or crash" do
+    effective do |config|
+      expect(%w[Layout/EmptyLineBetweenDefs Packaging/RequireHardcodingLib].map { config.cop_enabled?(it) })
+        .to(eq([false, false]))
     end
   end
 

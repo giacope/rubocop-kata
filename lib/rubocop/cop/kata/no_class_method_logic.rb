@@ -25,9 +25,21 @@ class RuboCop::Cop::Kata::NoClassMethodLogic < RuboCop::Cop::Base
 
   def check(node)
     name = node.method_name.to_s
-    return if constructor?(name)
+    return if constructor?(name) || builds?(node)
     add_offense(node.loc.name, message: format(MSG, name))
   end
 
   def constructor?(name) = name.start_with?("from_") || allowed?(name)
+
+  def builds?(node)
+    tail = node.body
+    tail = tail.children.last if tail&.begin_type?
+    tail&.send_type? && tail.method?(:new) && own?(tail.receiver, node)
+  end
+
+  def own?(receiver, node)
+    return true if receiver.nil? || receiver.self_type?
+    holder = node.each_ancestor(:class).first
+    receiver.const_type? && !holder.nil? && receiver.short_name == holder.identifier.short_name
+  end
 end

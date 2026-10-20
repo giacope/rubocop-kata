@@ -46,12 +46,14 @@ What the sections measure:
   common thing reading, and `Header`). Framework names moved to
   `ContractSuffixes` (not shown in `class_suffixes`, which counts the test
   suffixes).
-- **Corpora** (`eval/corpora.yml`): faraday `lib`, rubygems.org `app`+`lib`
-  with a bare kata config; hashira and kimera `lib` with their own config.
-  *Autocorrect safety* copies each tree, runs `rubocop -a` or `-A`, then
-  counts files that no longer parse, comment lines kept (all, YARD tags,
-  encoding magic), and faraday's 652 specs. rubygems.org's suite needs
-  PostgreSQL and is not run.
+- **Corpora** (`eval/corpora.yml`): faraday `lib`, Sequel `lib`, rubygems.org
+  `app`+`lib` with a bare kata config; hashira and kimera `lib` with their
+  own config. *Autocorrect safety* copies each tree, runs `rubocop -a` or
+  `-A`, then counts files that no longer parse, comment lines kept (all, YARD
+  tags, encoding magic), faraday's 652 specs and Sequel's 8,261 database-free
+  tests (the field test's case: `-a` once left Sequel unable to load; now its
+  suite stays green after `-a`, and fails after `-A`, which is unsafe by
+  definition). rubygems.org's suite needs PostgreSQL and is not run.
 - **MethodLength by CountAsOne** reports the length cop under three counting
   rules. With the limit at 10 the fold matters little (faraday 20 vs 22
   without any folding, rubygems.org 143 vs 203).
@@ -169,10 +171,16 @@ by the source instead of resetting it, the eval suite's corpus threads return
 their results instead of popping a shared queue into a shared hash, and its
 case loader no longer deletes a key from the case it was handed.
 
-The R15 snippet cases pin each cop's flagged and allowed shapes, and that
-`Kata/NoTypeCheck` is off unless enabled; a case's `enable: true` turns its cop
-on in that case's config. All 24 pass; across every gap 208 of 211 cases
-pass, the three failing being the ones listed above.
+The R15 snippet cases pin each cop's flagged and allowed shapes; a case's
+`enable: true` turns its cop on in that case's config. All 24 pass; across every
+gap 208 of 211 cases pass, the three failing being the ones listed above.
+
+The field test that followed (R16, `eval/cases/r16_field_test.yml`) turned
+`Kata/NoTypeCheck` on with a narrower reach: the 24 offenses above that tested
+Prism and Parser nodes, Minitest, Rails and Faraday types are checks against a
+type another library owns, which the cop now leaves alone, and a check against
+one of the project's own types is the kind polymorphism removes; R15 gained the
+foreign-type case. With the R16 cases, 233 of 236 pass, the same three failing.
 
 ## Why methods may run to 10 lines and names to two words
 

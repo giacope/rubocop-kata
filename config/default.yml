@@ -5,11 +5,21 @@ plugins:
   - rubocop-packaging
   - rubocop-thread_safety
 
+# A cop RuboCop adds in a later release stays off until kata lists it: a
+# `bundle update` must not add an autocorrect nobody reviewed to `rubocop -a`.
+# The pending cops kata wants are enabled one by one at the end of this file.
 AllCops:
-  NewCops: enable
+  NewCops: disable
   Exclude:
     - "vendor/**/*"
     - "db/*schema.rb"
+
+# A .jbuilder template is presentation, not an object: no Kata cop reads it.
+# A cop with its own Exclude list carries the same entry, since a cop's list
+# replaces the department's.
+Kata:
+  Exclude:
+    - "**/*.jbuilder"
 
 Kata/GoodClassName:
   Description: >-
@@ -34,7 +44,15 @@ Kata/GoodClassName:
     the word of one of the `FrameworkSuperclasses` is judged as that heir:
     `ScrubbingFormatterTest` passes, as `ScrubbingFormatter < Logger::Formatter`
     does, while `PaymentProcessorTest` is still a doer. A subject that names
-    the word without inheriting it is still flagged in its own file. `AllowedNames` match a whole name or a
+    the word without inheriting it is still flagged in its own file. A class
+    whose superclass is one of the `ContractSuperclasses` is named by a
+    contract: RuboCop resolves `Style/UseLanguageServerAliases` to the class
+    of that name, so a cop class is not judged. A class
+    whose superclass is one of the `EntitySuperclasses` (`ApplicationRecord`)
+    is a persisted record of a thing in the domain (`Manufacturer`,
+    `Teacher`), so the doer test does not apply to it; junk drawers and
+    crowded names still do. An unknown word ending in `-er` is a doer only
+    when its stem is a verb (`Chunker`), not a brand (`Instapaper`). `AllowedNames` match a whole name or a
     trailing segment: exception classes (`Error`), the domain roles a model
     represents rather than performs (`User`, `Owner`), words whose thing and
     doer readings are equally common in code (`Server`, `Container`), and
@@ -44,6 +62,7 @@ Kata/GoodClassName:
   VersionChanged: "0.11"
   Exclude:
     - "db/*migrate/**/*"
+    - "**/*.jbuilder"
   MaxWords: 2
   Suffixes:
     - Test
@@ -68,9 +87,16 @@ Kata/GoodClassName:
     - ActiveSupport::LogSubscriber
     - Logger
     - Logger::Formatter
+  EntitySuperclasses:
+    - ActiveRecord::Base
+    - ApplicationRecord
+  ContractSuperclasses:
+    - RuboCop::Cop::Base
+    - RuboCop::Cop::Cop
   AllowedNames: &type_names
     - Actor
     - Container
+    - Docker
     - Error
     - Header
     - Owner
@@ -181,6 +207,7 @@ Kata/NoComments:
     - "*.gemspec"
     - "Gemfile"
     - "**/Gemfile"
+    - "**/*.jbuilder"
 
 Kata/GoodMethodName:
   Description: >-
@@ -193,10 +220,14 @@ Kata/GoodMethodName:
     any length. Do not delete the underscore — Kata/RealWords catches the
     smash. `MaxWords: 1` restores the one-word discipline for a team that
     wants it. A Minitest `test_` method in a test class is a sentence, like
-    an RSpec description, and goes unpriced.
+    an RSpec description, and goes unpriced. A name a dispatcher dictates is
+    a contract, not a choice: `AllowedPatterns` holds those patterns, Prism's
+    `on_call_node_enter` listeners among them.
   Enabled: true
   VersionAdded: "0.5"
   VersionChanged: "0.11"
+  AllowedPatterns:
+    - "\\Aon_\\w+_node_(enter|leave)\\z"
   MaxWords: 2
   Pattern: "^[a-z][a-z0-9]{0,15}$"
   Prefixes:
@@ -537,6 +568,7 @@ Kata/IoDiscipline:
     - "**/Gemfile"
     - "gems.rb"
     - "**/*.gemfile"
+    - "**/*.jbuilder"
 
 Kata/ProsePlacement:
   Description: "Keep sentence-length strings in the presentation layer."
@@ -596,6 +628,7 @@ Kata/NoBooleanFlag:
     - "**/*_spec.rb"
     - "**/*_test.rb"
     - "db/*migrate/**/*"
+    - "**/*.jbuilder"
   AllowedMethods:
     - all?
     - any?
@@ -633,12 +666,18 @@ Kata/ConstructorDiscipline:
     assigning it: a Kernel conversion (`Array(items)`, `Integer(port)`), a
     `to_*` conversion, a defensive `dup`, and `freeze`. So is the object's own
     state that nothing could inject: a lock or a queue (`Mutex.new`), or an
-    empty collection (`Set.new`). A clock, a random number, a client, or a
-    sum is a dependency or a computation, and is flagged
-    (`@id = SecureRandom.uuid`).
+    empty collection (`Set.new`, `+""`, `{}.compare_by_identity`). A clock, a
+    random number, a client, or a sum is a dependency or a computation, and
+    is flagged (`@id = SecureRandom.uuid`); a parameter default is the seam
+    such a dependency comes in through (`def initialize(clock: Time)`), and
+    passes. A guard may raise, through `raise` or one of the project's
+    `RaisingMethods` (`UI.user_error!`).
   Enabled: true
   VersionAdded: "0.3"
   VersionChanged: "0.11"
+  RaisingMethods:
+    - fail
+    - raise
   AllowedMethods:
     - Array
     - Complex
@@ -667,12 +706,16 @@ Kata/ConstructorDiscipline:
   Exclude:
     - "spec/**/*"
     - "test/**/*"
+    - "**/*.jbuilder"
 
 Kata/NoClassMethodLogic:
   Description: >-
-    Classes construct; instances work. `AllowedNames` holds the constructors
-    (`build`, `parse`, `of`, `from`, `from_*`, `new`, `[]`), the hooks Ruby
-    calls by name (`included`, `inherited`, `method_added`), and the
+    Classes construct; instances work. A class method whose result is a new
+    instance of its class (`def self.from_legacy(row) = new(row.title)`) is a
+    constructor whatever its name. `AllowedNames` holds the constructor names
+    (`build`, `parse`, `of`, `from`, `from_*`, `new`, `[]`), the hooks and
+    protocol methods Ruby calls on a class by name (`included`, `inherited`,
+    `method_added`, `name`, `to_s`, `inspect`, `===`, `method_missing`), and the
     serialization protocols a framework calls on the class: a coder for
     ActiveRecord `serialize` or YAML answers `load`/`dump`, Marshal `_load`,
     the JSON additions `json_create`. A module declared with
@@ -685,7 +728,9 @@ Kata/NoClassMethodLogic:
     - "spec/**/*"
     - "test/**/*"
     - "db/*migrate/**/*"
+    - "**/*.jbuilder"
   AllowedNames:
+    - "==="
     - "[]"
     - _load
     - build
@@ -695,14 +740,19 @@ Kata/NoClassMethodLogic:
     - from
     - included
     - inherited
+    - inspect
     - json_create
     - load
     - method_added
+    - method_missing
+    - name
     - new
     - of
     - parse
     - prepended
+    - respond_to_missing?
     - singleton_method_added
+    - to_s
 
 Kata/NoHashAsObject:
   Description: >-
@@ -727,6 +777,7 @@ Kata/NoHashAsObject:
     - "spec/**/*"
     - "test/**/*"
     - "config/**/*"
+    - "**/*.jbuilder"
 
 Kata/ClockDiscipline:
   Description: "Read time from an injected clock, not the ambient one."
@@ -752,6 +803,7 @@ Kata/ClockDiscipline:
     - "**/Gemfile"
     - "gems.rb"
     - "**/*.gemfile"
+    - "**/*.jbuilder"
 
 Kata/EnvDiscipline:
   Description: "ENV belongs in the boot layer; pass configuration in."
@@ -777,6 +829,7 @@ Kata/EnvDiscipline:
     - "**/Gemfile"
     - "gems.rb"
     - "**/*.gemfile"
+    - "**/*.jbuilder"
 
 Kata/NoSetter:
   Description: >-
@@ -791,18 +844,23 @@ Kata/NoSetter:
     - "test/**/*"
     - "**/*_spec.rb"
     - "**/*_test.rb"
+    - "**/*.jbuilder"
 
 Kata/FrozenState:
   Description: >-
     An instance variable is assigned in `initialize` (or `initialize_copy`,
     or a helper only those call) and never again. Memoization is not a
     change of state: `@x ||= ...`, `@x = ... unless @x`, `@x = ... if
-    @x.nil?`, `@x = @x || ...` and `return @x if defined?(@x)` pass. Rails
-    hands a view its data through a controller's or mailer's instance
+    @x.nil?`, `@x = @x || ...` and `return @x if defined?(@x)` pass. A hook
+    a superclass's `initialize` calls (`setup`) is construction too: the cop
+    follows it when the superclass is in the same file, and
+    `ConstructorHooks` names the hooks of a superclass defined elsewhere.
+    Rails hands a view its data through a controller's or mailer's instance
     variables, so `app/controllers`, `app/mailers` and `app/helpers` are
     excluded.
   Enabled: true
   VersionAdded: "0.11"
+  ConstructorHooks: []
   Exclude:
     - "spec/**/*"
     - "test/**/*"
@@ -812,6 +870,7 @@ Kata/FrozenState:
     - "app/mailers/**/*"
     - "app/helpers/**/*"
     - "app/views/**/*"
+    - "**/*.jbuilder"
 
 Kata/NoOutputArgument:
   Description: >-
@@ -831,6 +890,7 @@ Kata/NoOutputArgument:
     - "test/**/*"
     - "**/*_spec.rb"
     - "**/*_test.rb"
+    - "**/*.jbuilder"
   AllowedNames:
     - buffer
     - env
@@ -885,7 +945,8 @@ Kata/CommandQuery:
     A method whose name ends in `?` answers a question and changes nothing:
     it assigns no instance variable and calls no `!` method on itself, its
     state or its parameters. Memoizing the answer (`@valid ||= ...`) is not a
-    change.
+    change, and neither is a guard whose only branch is a bang on a constant
+    (`UI.user_error!("...") unless key`): it raises, it does not mutate.
   Enabled: true
   VersionAdded: "0.11"
   Exclude:
@@ -893,6 +954,7 @@ Kata/CommandQuery:
     - "test/**/*"
     - "**/*_spec.rb"
     - "**/*_test.rb"
+    - "**/*.jbuilder"
 
 Kata/NoTypeCheck:
   Description: >-
@@ -901,14 +963,21 @@ Kata/NoTypeCheck:
     decide. The boot layer and the protocols that compare or convert values
     are exempt: `AllowedMethods` holds `==`, `eql?`, `<=>`, `===`, `coerce`
     and `respond_to_missing?`, whose contract is to accept any object and
-    check what it was handed. Off by default: on four codebases an
-    independent rater judged 1 of 25 sampled offenses actionable (see
-    eval/results). Most type checks in real code test a closed set of classes
-    another library owns (AST nodes) or validate input at a boundary, and the
-    call alone cannot tell those apart from the checks polymorphism would
-    remove.
-  Enabled: false
+    check what it was handed. Only the project's own types are judged: a
+    check against a class or module the project defines (in the file, or in
+    `OwnedPaths`), or a `respond_to?` probe for a method the project defines.
+    A check against a class another library owns (an AST node, `String`) is
+    the boundary where foreign data comes in, which polymorphism cannot
+    reach, and is left alone, even where the project reopens that class or
+    reuses its name inside a namespace; so are the conversion and iteration protocols
+    (`respond_to?(:to_h)`, `:each`, `:call`).
+  Enabled: true
   VersionAdded: "0.11"
+  VersionChanged: "0.11"
+  OwnedPaths:
+    - "app/**/*.rb"
+    - "lib/**/*.rb"
+    - "*/lib/**/*.rb"
   AllowedMethods:
     - "=="
     - "!="
@@ -937,6 +1006,7 @@ Kata/NoTypeCheck:
     - "Gemfile"
     - "**/Gemfile"
     - "gems.rb"
+    - "**/*.jbuilder"
 
 Kata/NoSingleton:
   Description: >-
@@ -968,6 +1038,7 @@ Kata/NoSingleton:
     - "test/**/*"
     - "**/*_spec.rb"
     - "**/*_test.rb"
+    - "**/*.jbuilder"
 
 Style/Documentation:
   Enabled: false
@@ -979,16 +1050,23 @@ Style/StringLiteralsInInterpolation:
   EnforcedStyle: double_quotes
 
 Style/ItBlockParameter:
+  Enabled: true
   EnforcedStyle: only_numbered_parameters
 
 Style/FormatStringToken:
   EnforcedStyle: unannotated
 
 Style/EndlessMethod:
+  Enabled: true
   EnforcedStyle: allow_single_line
 
+# `error` is a word; `e` is a clipping Kata/RealWords would reject. RuboCop
+# renames the variable inside the rescue clause only, so an `ensure` or a
+# later line that reads `e` breaks, and an outer `error` local is
+# overwritten (Sequel lost 350 tests to it). It reports; a person renames.
 Naming/RescuedExceptionsVariableName:
   PreferredName: error
+  AutoCorrect: false
 
 # Memoization caches are marked with a leading underscore (@_name), so lazy
 # state is visible at the read site; Kata/GoodVariableName knows the
@@ -1010,7 +1088,15 @@ Elegant/GoodVariableName:
 Layout/LineLength:
   Max: 120
 
+# `#: (String) -> void` is an RBS inline signature and `#$ type` a Steep
+# annotation; Kata/NoComments keeps both as tool directives, so the space
+# this cop would insert turns a signature into prose.
+Layout/LeadingCommentSpace:
+  AllowRBSInlineAnnotation: true
+  AllowSteepAnnotation: true
+
 Layout/LineEndStringConcatenationIndentation:
+  Enabled: true
   EnforcedStyle: indented
 
 Metrics/BlockLength:
@@ -1107,10 +1193,12 @@ Style/MethodCallWithArgsParentheses:
 # expect, so the cops that only fought its drift are on, each in the style
 # that agrees with Elegant/MonotonicIndents (a fixed two-space step). Run one
 # at a time with `rubocop -A` over faraday and rubygems.org, none loops or
-# leaves an offense behind. The four below stay off: each wants a blank line
+# leaves an offense behind. The five below stay off: each wants a blank line
 # where Elegant/NoEmptyLinesInBlocks or NoEmptyLinesInMethods forbids one,
 # and `rubocop -A` reports infinite loops on them (382 on rubygems.org for
-# the guard clause alone).
+# the guard clause alone; EmptyLineBetweenDefs loops wherever two defs sit
+# in a block or a method body, as `Class.new do`, `included do` and
+# `module_exec` bodies do).
 Layout/BlockAlignment:
   Enabled: true
   EnforcedStyleAlignWith: start_of_line
@@ -1162,6 +1250,9 @@ Layout/EmptyLinesAfterModuleInclusion:
 Layout/EmptyLineAfterGuardClause:
   Enabled: false
 
+Layout/EmptyLineBetweenDefs:
+  Enabled: false
+
 # --- An inline disable is the only escape short of excluding a whole file,
 # so it stays, priced: Kata/JustifiedDirective wants the reason after `--`,
 # and `rubocop-kata doctor` lists every one with its reason.
@@ -1191,9 +1282,17 @@ Elegant/ClassInModule:
   Enabled: false
 
 Kata/NoRedundantVariable:
-  Description: "A local assigned once and read once is inlined at its read."
+  Description: >-
+    A local assigned once and read once is inlined at its read when its name
+    says nothing its value does not: the value is a literal or a bare read,
+    the name is a letter or a generic word (`result`, `value`), or the
+    expression already spells it (`user = User.find(id)`). A name that adds
+    a word explains the value (`subtotal = [...].max`), as Clean Code asks of
+    an explanatory variable, and stays; so does a local whose inlining would
+    push its line past Layout/LineLength.
   Enabled: true
   VersionAdded: "0.10"
+  VersionChanged: "0.11"
 
 Kata/PairedBrackets:
   Description: "A bracket pairs on its line, or opens at the end of one and closes at the start of another."
@@ -1206,10 +1305,50 @@ Kata/ClassInModule:
     top level. A file directly in a Zeitwerk root (`app/models/account.rb`,
     `app/models/concerns/archivable.rb`) defines a top-level constant by
     design, so those are excluded; a subdirectory of a root is a namespace,
-    and Zeitwerk already demands the matching module.
+    and Zeitwerk already demands the matching module. Reopening one of the
+    `CoreClasses` (`class String`) is a monkey patch: wrapping it in a module
+    would define a new class, so the message asks for a refinement or a
+    decorator instead.
   Enabled: true
   VersionAdded: "0.10"
   VersionChanged: "0.11"
+  CoreClasses:
+    - Array
+    - BasicObject
+    - BigDecimal
+    - Class
+    - Complex
+    - Data
+    - Date
+    - DateTime
+    - Dir
+    - Exception
+    - FalseClass
+    - File
+    - Float
+    - Hash
+    - Integer
+    - IO
+    - MatchData
+    - Method
+    - Module
+    - NilClass
+    - Numeric
+    - Object
+    - OpenStruct
+    - Pathname
+    - Proc
+    - Range
+    - Rational
+    - Regexp
+    - Set
+    - StandardError
+    - String
+    - Struct
+    - Symbol
+    - Thread
+    - Time
+    - TrueClass
   Exclude:
     - "app/*/*.rb"
     - "app/*/concerns/*.rb"
@@ -1217,6 +1356,7 @@ Kata/ClassInModule:
     - "test/**/*"
     - "spec/**/*"
     - "db/*migrate/**/*"
+    - "**/*.jbuilder"
 
 # Rewrites reopened classes into modules, clashing with the primary
 # class definition at boot.
@@ -1226,6 +1366,7 @@ Style/StaticClass:
 # Deletes `print x` from `print x if cond` and leaves the modifier behind,
 # which does not parse.
 RSpec/Output:
+  Enabled: true
   AutoCorrect: false
 
 # Its message names a replacement that raises: Integer(x, 10) is only
@@ -1235,6 +1376,43 @@ Lint/NumberConversion:
 
 # Alphabetizing requires breaks load-order-dependent boot sequences.
 Style/RequireOrder:
+  Enabled: false
+
+# `Proc.new` -> `proc` calls Kernel#proc, which a BasicObject subclass does
+# not have (Sequel's migration reverser).
+Style/Proc:
+  SafeAutoCorrect: false
+
+# Each of these broke a Sequel or ruby-lsp file under plain `rubocop -a`:
+# the endless and compact rewrites drop the parentheses of
+# `def (@m.db).name() false end`; `lambda{|| 1}` becomes `->{|| 1}`;
+# `def name() super.merge(` loses its parentheses once Layout/LineLength has
+# split the line; Sequel's `dataset.bind(n: 1).call(:all)` is no
+# UnboundMethod; `Array === proxy` becomes `proxy.is_a?(Array)`, which a
+# delegating proxy answers for its target; and `Sequel.**(1)` builds SQL, so
+# dropping the `** 1` changes the query. They run under -A.
+Style/SingleLineMethods:
+  SafeAutoCorrect: false
+
+Style/EmptyMethod:
+  SafeAutoCorrect: false
+
+Style/CaseEquality:
+  SafeAutoCorrect: false
+
+Style/Lambda:
+  SafeAutoCorrect: false
+
+Style/DefWithParentheses:
+  SafeAutoCorrect: false
+
+Performance/BindCall:
+  SafeAutoCorrect: false
+
+# Raises FrozenError inspecting `require File.dirname(__FILE__) + "/x"` in a
+# file with the frozen-string-literal comment Style/FrozenStringLiteralComment
+# adds (rubocop-packaging 0.6.0).
+Packaging/RequireHardcodingLib:
   Enabled: false
 
 ThreadSafety/DirChdir:
@@ -1261,3 +1439,570 @@ Elegant/OneClassPerFile:
     - "test/**/*"
     - "spec/**/*"
 
+# --- Pending cops, reviewed against RuboCop 1.92 and the bundled extensions.
+# NewCops stays off (see AllCops), so each one kata wants is named here.
+
+Gemspec/AddRuntimeDependency:
+  Enabled: true
+
+Gemspec/AttributeAssignment:
+  Enabled: true
+
+Gemspec/DeprecatedAttributeAssignment:
+  Enabled: true
+
+Gemspec/DevelopmentDependencies:
+  Enabled: true
+
+Gemspec/RequireMFA:
+  Enabled: true
+
+Layout/LineContinuationLeadingSpace:
+  Enabled: true
+
+Layout/LineContinuationSpacing:
+  Enabled: true
+
+Layout/SpaceBeforeBrackets:
+  Enabled: true
+
+Lint/AmbiguousAssignment:
+  Enabled: true
+
+Lint/AmbiguousOperatorPrecedence:
+  Enabled: true
+
+Lint/AmbiguousRange:
+  Enabled: true
+
+Lint/ArgumentMismatch:
+  Enabled: true
+
+Lint/ArrayLiteralInRegexp:
+  Enabled: true
+
+Lint/ConstantOverwrittenInRescue:
+  Enabled: true
+
+Lint/ConstantReassignment:
+  Enabled: true
+
+Lint/CopDirectiveSyntax:
+  Enabled: true
+
+Lint/DataDefineOverride:
+  Enabled: true
+
+Lint/DeprecatedConstants:
+  Enabled: true
+
+Lint/DeprecatedReference:
+  Enabled: true
+
+Lint/DuplicateBranch:
+  Enabled: true
+
+Lint/DuplicateMagicComment:
+  Enabled: true
+
+Lint/DuplicateMatchPattern:
+  Enabled: true
+
+Lint/DuplicateRegexpCharacterClassElement:
+  Enabled: true
+
+Lint/DuplicateSetElement:
+  Enabled: true
+
+Lint/EmptyBlock:
+  Enabled: true
+
+Lint/EmptyInPattern:
+  Enabled: true
+
+Lint/HashNewWithKeywordArgumentsAsDefault:
+  Enabled: true
+
+Lint/IncompatibleIoSelectWithFiberScheduler:
+  Enabled: true
+
+Lint/ItWithoutArgumentsInBlock:
+  Enabled: true
+
+Lint/LambdaWithoutLiteralBlock:
+  Enabled: true
+
+Lint/LiteralAssignmentInCondition:
+  Enabled: true
+
+Lint/MisplacedMagicComment:
+  Enabled: true
+
+Lint/MixedCaseRange:
+  Enabled: true
+
+Lint/NameTypo:
+  Enabled: true
+
+Lint/NoReturnInBeginEndBlocks:
+  Enabled: true
+
+Lint/NonAtomicFileOperation:
+  Enabled: true
+
+Lint/NumberedParameterAssignment:
+  Enabled: true
+
+Lint/NumericOperationWithConstantResult:
+  Enabled: true
+
+Lint/OrAssignmentToConstant:
+  Enabled: true
+
+Lint/RedundantDirGlobSort:
+  Enabled: true
+
+Lint/RedundantRegexpQuantifiers:
+  Enabled: true
+
+Lint/RedundantTypeConversion:
+  Enabled: true
+
+Lint/RefinementImportMethods:
+  Enabled: true
+
+Lint/RequireRangeParentheses:
+  Enabled: true
+
+Lint/RequireRelativeSelfPath:
+  Enabled: true
+
+Lint/SharedMutableDefault:
+  Enabled: true
+
+Lint/SuperArgumentMismatch:
+  Enabled: true
+
+Lint/SuppressedExceptionInNumberConversion:
+  Enabled: true
+
+Lint/SymbolConversion:
+  Enabled: true
+
+Lint/ToEnumArguments:
+  Enabled: true
+
+Lint/TripleQuotes:
+  Enabled: true
+
+Lint/UnescapedBracketInRegexp:
+  Enabled: true
+
+Lint/UnexpectedBlockArity:
+  Enabled: true
+
+Lint/UnmodifiedReduceAccumulator:
+  Enabled: true
+
+Lint/UnreachablePatternBranch:
+  Enabled: true
+
+Lint/UselessConstantScoping:
+  Enabled: true
+
+Lint/UselessDefaultValueArgument:
+  Enabled: true
+
+Lint/UselessDefined:
+  Enabled: true
+
+Lint/UselessNumericOperation:
+  Enabled: true
+  SafeAutoCorrect: false
+
+Lint/UselessOr:
+  Enabled: true
+
+Lint/UselessRescue:
+  Enabled: true
+
+Lint/UselessRuby2Keywords:
+  Enabled: true
+
+Metrics/CollectionLiteralLength:
+  Enabled: true
+
+Naming/BlockForwarding:
+  Enabled: true
+
+Naming/PredicateMethod:
+  Enabled: true
+
+Performance/AncestorsInclude:
+  Enabled: true
+
+Performance/CollectionLiteralInLoop:
+  Enabled: true
+
+Performance/ConcurrentMonotonicTime:
+  Enabled: true
+
+Performance/ConstantRegexp:
+  Enabled: true
+
+Performance/MapCompact:
+  Enabled: true
+
+Performance/MapMethodChain:
+  Enabled: true
+
+Performance/MethodObjectAsBlock:
+  Enabled: true
+
+Performance/RedundantEqualityComparisonBlock:
+  Enabled: true
+
+Performance/RedundantSortBlock:
+  Enabled: true
+
+Performance/RedundantSplitRegexpArgument:
+  Enabled: true
+
+Performance/RedundantStringChars:
+  Enabled: true
+
+Performance/ReverseFirst:
+  Enabled: true
+
+Performance/SortReverse:
+  Enabled: true
+
+Performance/Squeeze:
+  Enabled: true
+
+Performance/StringBytesize:
+  Enabled: true
+
+Performance/StringIdentifierArgument:
+  Enabled: true
+
+Performance/StringInclude:
+  Enabled: true
+
+Performance/Sum:
+  Enabled: true
+
+Performance/ZipWithoutBlock:
+  Enabled: true
+
+RSpec/DiscardedMatcher:
+  Enabled: true
+
+RSpec/IncludeExamples:
+  Enabled: true
+
+RSpec/LeakyLocalVariable:
+  Enabled: true
+
+RSpec/MatchWithSimpleRegex:
+  Enabled: true
+
+Security/CompoundHash:
+  Enabled: true
+
+Security/IoMethods:
+  Enabled: true
+
+Style/AmbiguousEndlessMethodDefinition:
+  Enabled: true
+
+Style/ArgumentsForwarding:
+  Enabled: true
+
+Style/ArrayIntersect:
+  Enabled: true
+
+Style/ArrayIntersectWithSingleElement:
+  Enabled: true
+
+Style/BitwisePredicate:
+  Enabled: true
+
+Style/CollectionCompact:
+  Enabled: true
+
+Style/CollectionQuerying:
+  Enabled: true
+
+Style/CombinableDefined:
+  Enabled: true
+
+Style/ComparableBetween:
+  Enabled: true
+
+Style/ComparableClamp:
+  Enabled: true
+
+Style/ConcatArrayLiterals:
+  Enabled: true
+
+Style/DataInheritance:
+  Enabled: true
+
+Style/DigChain:
+  Enabled: true
+
+Style/DirEmpty:
+  Enabled: true
+
+Style/DirectiveScope:
+  Enabled: true
+
+Style/DocumentDynamicEvalDefinition:
+  Enabled: true
+
+# `(Missing = Class.new(Error)).name` becomes a `class` body, which is nil:
+# Sequel could not load after `rubocop -a`.
+Style/EmptyClassDefinition:
+  Enabled: true
+  SafeAutoCorrect: false
+
+Style/EmptyHeredoc:
+  Enabled: true
+
+Style/EmptyStringInsideInterpolation:
+  Enabled: true
+
+Style/EnvHome:
+  Enabled: true
+
+Style/ExactRegexpMatch:
+  Enabled: true
+
+Style/FetchEnvVar:
+  Enabled: true
+
+Style/FileEmpty:
+  Enabled: true
+
+Style/FileNull:
+  Enabled: true
+
+Style/FileOpen:
+  Enabled: true
+
+Style/FileRead:
+  Enabled: true
+
+Style/FileTouch:
+  Enabled: true
+
+Style/FileWrite:
+  Enabled: true
+
+Style/HashConversion:
+  Enabled: true
+
+Style/HashExcept:
+  Enabled: true
+
+Style/HashFetchChain:
+  Enabled: true
+
+Style/HashSlice:
+  Enabled: true
+
+Style/IfWithBooleanLiteralBranches:
+  Enabled: true
+
+Style/InPatternThen:
+  Enabled: true
+
+Style/ItAssignment:
+  Enabled: true
+
+Style/KeywordArgumentsMerging:
+  Enabled: true
+
+Style/MagicCommentFormat:
+  Enabled: true
+
+Style/MapCompactWithConditionalBlock:
+  Enabled: true
+
+Style/MapIntoArray:
+  Enabled: true
+
+Style/MapJoin:
+  Enabled: true
+
+Style/MapToHash:
+  Enabled: true
+
+Style/MapToSet:
+  Enabled: true
+
+Style/MinMaxComparison:
+  Enabled: true
+
+Style/ModuleMemberExistenceCheck:
+  Enabled: true
+
+Style/MultilineInPatternThen:
+  Enabled: true
+
+Style/NegatedIfElseCondition:
+  Enabled: true
+
+Style/NegativeArrayIndex:
+  Enabled: true
+
+Style/NestedFileDirname:
+  Enabled: true
+
+Style/NilLambda:
+  Enabled: true
+
+Style/NumberedParameters:
+  Enabled: true
+
+Style/NumberedParametersLimit:
+  Enabled: true
+
+Style/ObjectThen:
+  Enabled: true
+
+Style/OpenStructUse:
+  Enabled: true
+
+# `o.~(a: 1)` becomes `o ~(a: 1)`, which does not parse (a Sequel spec).
+Style/OperatorMethodCall:
+  Enabled: true
+  SafeAutoCorrect: false
+
+Style/PartitionInsteadOfDoubleSelect:
+  Enabled: true
+
+Style/PredicateWithKind:
+  Enabled: true
+
+Style/QuotedSymbols:
+  Enabled: true
+
+Style/ReduceToHash:
+  Enabled: true
+
+Style/RedundantArgument:
+  Enabled: true
+
+Style/RedundantArrayConstructor:
+  Enabled: true
+
+Style/RedundantArrayFlatten:
+  Enabled: true
+
+Style/RedundantConstantBase:
+  Enabled: true
+
+Style/RedundantCurrentDirectoryInPath:
+  Enabled: true
+
+Style/RedundantDoubleSplatHashBraces:
+  Enabled: true
+
+Style/RedundantEach:
+  Enabled: true
+
+Style/RedundantFilterChain:
+  Enabled: true
+
+Style/RedundantFormat:
+  Enabled: true
+
+Style/RedundantHeredocDelimiterQuotes:
+  Enabled: true
+
+Style/RedundantInitialize:
+  Enabled: true
+
+Style/RedundantInterpolationUnfreeze:
+  Enabled: true
+
+Style/RedundantLineContinuation:
+  Enabled: true
+
+Style/RedundantMinMaxBy:
+  Enabled: true
+
+Style/RedundantRegexpArgument:
+  Enabled: true
+
+Style/RedundantRegexpConstructor:
+  Enabled: true
+
+Style/RedundantSelfAssignmentBranch:
+  Enabled: true
+
+Style/RedundantStringEscape:
+  Enabled: true
+
+Style/ReturnNilInPredicateMethodDefinition:
+  Enabled: true
+
+Style/ReverseFind:
+  Enabled: true
+
+Style/SafeNavigationChainLength:
+  Enabled: true
+
+Style/SelectByKind:
+  Enabled: true
+
+Style/SelectByRange:
+  Enabled: true
+
+Style/SelectByRegexp:
+  Enabled: true
+
+Style/SendWithLiteralMethodName:
+  Enabled: true
+
+Style/SingleLineDoEndBlock:
+  Enabled: true
+
+Style/StringChars:
+  Enabled: true
+
+Style/SuperArguments:
+  Enabled: true
+
+Style/SuperWithArgsParentheses:
+  Enabled: true
+
+Style/SwapValues:
+  Enabled: true
+
+Style/TallyMethod:
+  Enabled: true
+
+Style/TimeNow:
+  Enabled: true
+
+Style/YAMLFileRead:
+  Enabled: true
+
+ThreadSafety/ActiveSupportCallbacks:
+  Enabled: true
+
+ThreadSafety/LazySynchronizationPrimitive:
+  Enabled: true
+
+# Raises on `x.remove_method.must_equal :y` in a spec; a suite is not
+# shared mutable state.
+ThreadSafety/MethodRedefinition:
+  Enabled: true
+  Exclude:
+    - "spec/**/*"
+    - "test/**/*"
+    - "**/*_spec.rb"
+    - "**/*_test.rb"

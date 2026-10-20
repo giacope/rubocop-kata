@@ -9,14 +9,14 @@ module RuboCop::Cop::Kata::TypeName
   def check(node)
     identifier = node.identifier
     name = subject(identifier.short_name.to_s)
-    return if allowed?(name)
+    return if allowed?(name) || contract?(node)
     complaint = complaint(name, node)
     add_offense(identifier, message: complaint) if complaint
   end
 
   def complaint(name, node)
     return format(self.class::BANNED_MSG, name) if banned?(name)
-    return doer(name, node.type) if doer?(name) && !heir?(name, node)
+    return doer(name, node.type) if doer?(name) && !heir?(name, node) && !record?(node)
     crowd(name)
   end
 
@@ -49,6 +49,19 @@ module RuboCop::Cop::Kata::TypeName
     tested = node.identifier.short_name.to_s
     return false unless strip(tested, list("Suffixes")) == name && tested != name
     list("FrameworkSuperclasses").any? { same_role?(it, name) }
+  end
+
+  def contract?(node)
+    parent = node.parent_class if node.class_type?
+    return false unless parent&.const_type?
+    scope = node.each_ancestor(:module, :class).map { it.identifier.const_name }.reverse
+    paths = (0..scope.size).map { [*scope.first(it), parent.const_name].join("::") }
+    paths.intersect?(list("ContractSuperclasses"))
+  end
+
+  def record?(node)
+    parent = node.parent_class if node.class_type?
+    parent&.const_type? && list("EntitySuperclasses").include?(parent.const_name)
   end
 
   def same_role?(parent, name) = parent.scan(SEGMENT).last == name.scan(SEGMENT).last

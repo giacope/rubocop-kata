@@ -28,9 +28,9 @@ RSpec.describe(RuboCop::Cop::Kata::NoOutputArgument, :config) do
         counts[word] = 0
         ^^^^^^^^^^^^^^^^ `[]=` changes the caller's `counts`; return a new value, or move the change to the object that owns it.
         counts[word] += 1
-        ^^^^^^^^^^^^ `[]` changes the caller's `counts`; return a new value, or move the change to the object that owns it.
+        ^^^^^^^^^^^^ `[]=` changes the caller's `counts`; return a new value, or move the change to the object that owns it.
         counts[word] ||= 1
-        ^^^^^^^^^^^^ `[]` changes the caller's `counts`; return a new value, or move the change to the object that owns it.
+        ^^^^^^^^^^^^ `[]=` changes the caller's `counts`; return a new value, or move the change to the object that owns it.
       end
     RUBY
   end

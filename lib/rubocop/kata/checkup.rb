@@ -6,7 +6,9 @@ class RuboCop::Kata::Checkup
   INERT = "%s:%d: `%s` is disabled by the configuration this project inherits; the entry does nothing."
   DEAD = "%s:%d: the directive names `%s`, which is not enabled here; the comment does nothing."
   UNREAD = "%s: not checked, %s."
-  BROKEN = "%s: does not parse; its directives were read only as far as the parser got."
+  BROKEN = "%s: does not parse as Ruby %s, the target version; its directives were read only as far as the parser got."
+  UNLOADED = "%s: the project's configuration does not load (%s); run doctor through the project's bundle, " \
+    "`bundle exec rubocop-kata doctor`."
   WAIVER = "%s:%d: disables `%s` — %s"
   BARE = "no reason given"
   TALLY = "%d dead entr%s"
@@ -20,13 +22,20 @@ class RuboCop::Kata::Checkup
   end
 
   def run
+    examine
+  rescue ::LoadError, RuboCop::Error => error
+    @io.puts(format(UNLOADED, @root, error.message.lines.first.to_s.strip))
+    2
+  end
+
+  private
+
+  def examine
     found = inert + dead
     clean = found.empty? && notes.empty?
     [*waivers, *notes, *found, clean ? "clean" : tally(found), *count].each { @io.puts(it) }
     clean ? 0 : 1
   end
-
-  private
 
   def tally(found)
     text = format(TALLY, found.size, found.one? ? "y" : "ies")
@@ -79,7 +88,7 @@ class RuboCop::Kata::Checkup
     @_notes ||=
       sources.filter_map do |path, source|
         next format(UNREAD, path, source) if source.is_a?(String)
-        format(BROKEN, path) unless source.valid_syntax?
+        format(BROKEN, path, config.target_ruby_version) unless source.valid_syntax?
       end
   end
 

@@ -7,14 +7,14 @@ class RuboCop::Cop::Kata::RealWords < RuboCop::Cop::Base
   MSG = "%s is not in the dictionary — restore the underscore between smashed words, spell the " \
     "abbreviation out, or add it to `Terms` if it is one domain term here."
   ABBREVIATION_MSG = "%s is an abbreviation; spell the word out."
-  CLIPPING_MSG = "%s is an abbreviation of `%s`; spell the word out."
+  CLIPPING_MSG = "%s is an abbreviation of %s; spell the word out."
   PLACEHOLDER_MSG = "%s is a placeholder; name what it holds."
   PLACEHOLDER = "placeholder"
   RESTRICT_ON_SEND = RuboCop::Cop::Kata::Minting::MINTERS
   SIGIL = /\A(@@|@|\$)/
   DERIVATIONS = [
     [/s\z/, ""], [/es\z/, ""], [/ies\z/, "y"],
-    [/able\z/, ""], [/able\z/, "e"], [/([b-df-hj-np-tv-z])\1able\z/, '\1'],
+    [/able\z/, ""], [/able\z/, "e"], [/iable\z/, "y"], [/([b-df-hj-np-tv-z])\1able\z/, '\1'],
     [/er\z/, ""], [/[eo]r\z/, "e"], [/ier\z/, "y"],
     [/([b-df-hj-np-tv-z])\1er\z/, '\1'], [/or\z/, ""], [/less\z/, ""]
   ].freeze
@@ -44,15 +44,19 @@ class RuboCop::Cop::Kata::RealWords < RuboCop::Cop::Base
     return format(MSG, label) unless banned?(segment)
     expansion = bases(segment).filter_map { RuboCop::Kata::Dictionary::CLIPPINGS[it] }.first
     return format(PLACEHOLDER_MSG, label) if expansion == PLACEHOLDER
-    expansion ? format(CLIPPING_MSG, label, expansion) : format(ABBREVIATION_MSG, label)
+    return format(ABBREVIATION_MSG, label) unless expansion
+    format(CLIPPING_MSG, label, expansion.split(", ").map { "`#{it}`" }.join(" or "))
   end
 
   def word?(segment)
     base = segment.sub(/\d+\z/, "")
     return true if base.length < 2 || listed?("Terms", segment)
-    [base, *PREFIXES.map { base.delete_prefix(it) }]
-      .flat_map { |form| [form, *DERIVATIONS.map { |pattern, stem| form.sub(pattern, stem) }] }
-      .any? { RuboCop::Kata::Dictionary::ENTRIES.include?(it) } && !banned?(segment)
+    forms(base).any? { RuboCop::Kata::Dictionary::ENTRIES.include?(it) } && !banned?(segment)
+  end
+
+  def forms(base)
+    roots = [base, *PREFIXES.map { base.delete_prefix(it) }]
+    2.times.reduce(roots) { |found, _| found | found.flat_map { |form| DERIVATIONS.map { form.sub(*it) } } }
   end
 
   def banned?(segment) = bases(segment).any? { listed?("BannedWords", it) || clipping?(it) }

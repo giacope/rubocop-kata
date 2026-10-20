@@ -10,6 +10,13 @@
   paths: [lib]
   fix: true
   test: "ruby -I{shims} -Ilib -S rspec --format progress --no-color"
+- name: sequel
+  url: https://github.com/jeremyevans/sequel.git
+  sha: eeb97e334f1a13d7301d065f226b725c68928d6b
+  config: bare
+  paths: [lib]
+  fix: true
+  test: "ruby spec/core_spec.rb && ruby spec/core_extensions_spec.rb && ruby spec/model_spec.rb && ruby spec/plugin_spec.rb"
 - name: rubygems.org
   url: https://github.com/rubygems/rubygems.org.git
   sha: be8fc6b7d005c30830d0efa5014091d3f1b2f479

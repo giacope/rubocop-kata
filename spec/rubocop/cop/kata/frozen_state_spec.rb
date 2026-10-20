@@ -167,4 +167,87 @@ RSpec.describe(RuboCop::Cop::Kata::FrozenState, :config) do
       end
     RUBY
   end
+
+  it "allows a hook the superclass's constructor calls, when the superclass is in the file" do
+    expect_no_offenses(<<~RUBY)
+      class Model
+        def initialize(raw)
+          @raw = raw
+          setup
+        end
+
+        def setup = nil
+      end
+
+      class Version < Model
+        def setup
+          @status = @raw.fetch("status")
+        end
+      end
+
+      class Draft < Version
+        def setup = @kind = :draft
+      end
+    RUBY
+  end
+
+  it "still flags the same hook name in a class that does not inherit it" do
+    expect_offense(<<~RUBY)
+      class Model
+        def initialize = setup
+        def setup = nil
+      end
+
+      class Other < Base
+        def setup = @status = :open
+                    ^^^^^^^ `@status` changes after construction; set state once in `initialize` and return a new object to change it.
+      end
+
+      class Loop < Loop
+        def setup = @status = :open
+                    ^^^^^^^ `@status` changes after construction; set state once in `initialize` and return a new object to change it.
+      end
+    RUBY
+  end
+
+  context "with a hook a superclass elsewhere calls" do
+    let(:cop_config) { { "ConstructorHooks" => %w[setup] } }
+
+    it "allows the hook it names" do
+      expect_no_offenses(<<~RUBY)
+        class Version < Spaceship::Base
+          def setup = @status = :open
+        end
+      RUBY
+    end
+  end
+
+  it "flags state set inside a method define_method mints, or through instance_variable_set" do
+    expect_offense(<<~'RUBY')
+      class Box
+        define_method(:resize) { |depth| @depth = depth }
+                                         ^^^^^^ `@depth` changes after construction; set state once in `initialize` and return a new object to change it.
+        def reset
+          instance_variable_set(:@depth, 0)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `@depth` changes after construction; set state once in `initialize` and return a new object to change it.
+        end
+        %i[width height].each do |side|
+          define_method(:"#{side}=") { |value| self.instance_variable_set(:"@#{side}", value) }
+                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `:"@#{side}"` changes after construction; set state once in `initialize` and return a new object to change it.
+        end
+      end
+    RUBY
+  end
+
+  it "allows instance_variable_set in a constructor, on a copy, or in a minted constructor" do
+    expect_no_offenses(<<~RUBY)
+      class Box
+        def initialize(depth) = instance_variable_set(:@depth, depth)
+        def with(depth) = dup.tap { it.instance_variable_set(:@depth, depth) }
+        define_method(:initialize_copy) { |other| @depth = other.depth }
+        define_method(:depth) { @_depth ||= 1 }
+        each { @seen = true }
+      end
+    RUBY
+  end
 end

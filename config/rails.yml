@@ -1,0 +1,32 @@
+# Applied on top of default.yml when the project root holds
+# config/application.rb (opt out with `rails: false` under the plugin, see
+# README). It names what Rails and its common gems dictate and the files they
+# generate; it relaxes no rule for code the application writes. Each list
+# here is added to the shipped one, not put in its place.
+
+# Hooks Rails, Devise and Turbo call by these names: a contract, not a choice.
+Kata/GoodMethodName:
+  AllowedNames:
+    - after_confirmation_path_for
+    - after_database_authentication
+    - after_inactive_sign_up_path_for
+    - after_omniauth_failure_path_for
+    - after_resetting_password_path_for
+    - after_sign_up_path_for
+    - after_update_path_for
+    - broadcast_target_default
+    - default_url_options
+    - devise_parameter_sanitizer
+    - human_attribute_name
+    - send_confirmation_instructions
+    - send_reset_password_instructions
+    - send_reset_password_instructions_notification
+    - signed_in_root_path
+    - will_save_change_to_email
+
+# `rails new` and the generators write these files; their comments are the
+# framework's guidance, not the application's prose.
+Kata/NoComments:
+  Exclude:
+    - "bin/**/*"
+    - "db/**/*"

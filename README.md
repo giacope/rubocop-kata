@@ -29,8 +29,10 @@ points one way, and the defaults followed:
 The study's items and ratings are in hashira, under
 `eval/results/fragmentation/`.
 
-- **One dependency.** Bundles rubocop-rspec, rubocop-performance, rubocop-elegant, rubocop-packaging, and rubocop-thread_safety behind a single gem.
-- **Opinionated defaults.** Methods up to 10 lines and bounded by complexity, classes under 100, 4 parameters max, 120-column lines, double quotes, `NewCops: enable`. See [config/default.yml](config/default.yml).
+- **One dependency.** Bundles rubocop-rspec, rubocop-performance, rubocop-elegant, rubocop-packaging, and rubocop-thread_safety behind a single gem. Each runs where it applies: packaging only in a gem, RSpec only where RSpec runs.
+- **Opinionated defaults.** Methods up to 10 lines and bounded by complexity, classes under 100, 4 parameters max, 120-column lines, double quotes, every pending cop kata reviewed. See [config/default.yml](config/default.yml).
+- **Safe autocorrect.** `rubocop -a` does not change what code does: kata keeps the corrections it has seen break real code (a class built inside an expression, a rescue variable read in `ensure`, an RBS signature) out of it.
+- **Rails out of the box.** In a Rails app kata knows the names Rails and its common gems dictate and the files the generators write, and relaxes nothing else.
 - **Twenty-five house cops.** Naming, dependency discipline, immutability, and data honesty in the Elegant Objects spirit — from `Kata/GoodClassName` to `Kata/FrozenState`.
 
 ```ruby
@@ -73,6 +75,33 @@ bundle exec rubocop
 
 That's it. The plugin loads the bundled extensions and the shared defaults, so your `.rubocop.yml` keeps only what's specific to your project. Requires Ruby >= 3.4 and RuboCop ~> 1.75 (1.75.1 or later).
 
+### What the plugin reads from the project
+
+Run from the project's root, the plugin looks at three things and shapes the
+configuration to match:
+
+- **A gem** (a `*.gemspec` in the root) gets rubocop-packaging; anything else
+  does not, since its cops are about how a gem is packaged.
+- **RSpec** (a `.rspec`, or `rspec-core` in `Gemfile.lock`) gets rubocop-rspec;
+  a Minitest suite, even one in `spec/`, does not.
+- **A Rails app** (`config/application.rb`) gets
+  [config/rails.yml](config/rails.yml) on top of the defaults: the method names
+  Rails, Devise and Turbo call by name (`default_url_options`,
+  `after_sign_up_path_for`, `broadcast_target_default`), and the generated
+  `bin/` and `db/` files kept out of `Kata/NoComments`. It relaxes no rule for
+  code the application writes: an association chain, a nil check, a query on a
+  model class or `Time.current` in a model are still offenses.
+
+Each choice can be made by hand:
+
+```yaml
+plugins:
+  - rubocop-kata:
+      rails: false      # or true; also packaging: and rspec:
+```
+
+A `.jbuilder` template is presentation, so no Kata cop reads it.
+
 ### The bundled rubocop-elegant
 
 Kata reported four rubocop-elegant defects upstream
@@ -88,30 +117,30 @@ both the oldest releases the gemspec allows and the newest.
 
 | Cop | Default | What it enforces |
 | --- | --- | --- |
-| `Kata/GoodClassName` | on | A class names one object that exists in the model: no doers (agent nouns, read from WordNet data), no junk drawers (`Service`, `Util`, `Data`), no packing several concepts into one name (`CustomerOrderPayment`). `CreditCard` is one concept; `Terms` holds those. A framework's suffix is a contract, its subject is not: `UsersController` is judged as `Users`, `ReportBuilderJob` as `ReportBuilder`, a helper's test as the helper (`InvoicesHelperTest` as `Invoices`). A class inherits the agent word of the superclass that chose it (`ActionHandler < Avo::Actions::ActionHandler`), and so does its test when that superclass is one of the `FrameworkSuperclasses` (`ScrubbingFormatterTest`, for a `Logger::Formatter`); `PaymentProcessorTest` is still a doer. `AllowedNames` holds exception classes and the domain roles a model represents (`User`, `Owner`). |
+| `Kata/GoodClassName` | on | A class names one object that exists in the model: no doers (agent nouns, read from WordNet data), no junk drawers (`Service`, `Util`, `Data`), no packing several concepts into one name (`CustomerOrderPayment`). `CreditCard` is one concept; `Terms` holds those. A framework's suffix is a contract, its subject is not: `UsersController` is judged as `Users`, `ReportBuilderJob` as `ReportBuilder`, a helper's test as the helper (`InvoicesHelperTest` as `Invoices`). A class inherits the agent word of the superclass that chose it (`ActionHandler < Avo::Actions::ActionHandler`), and so does its test when that superclass is one of the `FrameworkSuperclasses` (`ScrubbingFormatterTest`, for a `Logger::Formatter`); `PaymentProcessorTest` is still a doer. An unknown `-er` word is a doer only when its stem is a verb (`Chunker`, `Upserter`), not a brand (`Instapaper`). A class under one of the `EntitySuperclasses` (`ApplicationRecord`) is a record of a thing (`Manufacturer`, `Teacher`), and one under a `ContractSuperclasses` entry (`RuboCop::Cop::Base`) is named by a contract. `AllowedNames` holds exception classes and the domain roles a model represents (`User`, `Owner`). |
 | `Kata/GoodModuleName` | on | A module names a domain vocabulary (`Billing`, `AccessControl`), not an implementation category: no layer buckets (`Services`, `Helpers`, `Logic`), no vague shared namespaces (`Common`, `Shared`, `Core`), no doers. Rails helper modules (`InvoicesHelper`) are judged by their subject. |
-| `Kata/NoRedundantVariable` | on | A local assigned once and read once is inlined at its read, unless the move would cross a loop, a branch, or a side effect. Autocorrects, and keeps Ruby 3.1 shorthand intact. Fixed copy of `Elegant/NoRedundantVariable`. |
+| `Kata/NoRedundantVariable` | on | A local assigned once and read once is inlined at its read when its name says nothing its value does not: a literal or bare read, a letter or a generic word (`result`), or a name the expression already spells (`user = User.find(id)`). A name that adds a word is an explanatory variable and stays (`subtotal = [...].max`), as does a local whose inlining would pass the line limit, or cross a loop, a branch, or a side effect. Autocorrects, and keeps Ruby 3.1 shorthand intact. Fixed copy of `Elegant/NoRedundantVariable`. |
 | `Kata/PairedBrackets` | on | Every bracket pairs on its line, or opens at line end and closes at line start. Autocorrects without drifting the indent. Fixed copy of `Elegant/PairedBrackets`. |
-| `Kata/ClassInModule` | on | A class lives in a module, a class, or a compact namespace, never at the top level. A file directly in a Zeitwerk root (`app/models/account.rb`) is exempt: Rails resolves it as a top-level constant by design. Fixed copy of `Elegant/ClassInModule`; `Elegant/NoClassInModule`, which allowed only the compact form, is off. |
-| `Kata/NoComments` | on | No prose comments; say it in the code. Code cannot cite an external constraint, so a block citing a URL, an issue (`rails/rails#123`), an RFC or a CVE is kept, as are YARD-documented blocks (`AllowDocumentation`), magic comments and editor modelines, tool directives (RuboCop, Standard, Steep, RBS, reek, kimera, hashira…; `AllowedPatterns` for more), and licence headers. Deleting a comment loses what it said, so it corrects only under `rubocop -A`. |
-| `Kata/IoDiscipline` | on | No bare `puts`/`warn`/`pp`/`p` outside the test suite and the boot layer; write through an injected `@io` or an explicit receiver. |
+| `Kata/ClassInModule` | on | A class lives in a module, a class, or a compact namespace, never at the top level. A file directly in a Zeitwerk root (`app/models/account.rb`) is exempt: Rails resolves it as a top-level constant by design. Reopening a core class (`class String`) is a monkey patch, and the message asks for a refinement or a decorator. Fixed copy of `Elegant/ClassInModule`; `Elegant/NoClassInModule`, which allowed only the compact form, is off. |
+| `Kata/NoComments` | on | No prose comments; say it in the code. Code cannot cite an external constraint, so a block citing a URL, an issue (`rails/rails#123`), an RFC or a CVE is kept, as are YARD-documented blocks (`AllowDocumentation`), magic comments in any form Ruby reads (`# frozen-string-literal: true`) and editor modelines, tool directives (RuboCop, Standard, Steep, RBS, reek, kimera, hashira…; `AllowedPatterns` for more), and licence headers. Deleting a comment loses what it said, so it corrects only under `rubocop -A`. |
+| `Kata/IoDiscipline` | on | No bare `puts`/`warn`/`pp`/`p` outside the test suite and the boot layer; write through an injected `@io` or an explicit receiver. A `p` given a block or no argument is not `Kernel#p` (Phlex's `<p>`). |
 | `Kata/ProsePlacement` | off | Sentence-length strings belong in the presentation layer. Enable with an `Include`/`Exclude` matching your layering. |
-| `Kata/RealWords` | on | Every name segment is a word: English, an initialism, a technology's name, or the platform's own spelling (`env`, `params`, `attr`, `io`). `errorcount` (a smash) fails, and so does every clipping, whichever dictionary lists it: `args`, `opts`, `src`, `impl`, `str`, `req`, `conn`, with the word named in the message. `foo` is a placeholder. Tune via `Terms`/`BannedWords`/`AllowedNames`. |
-| `Kata/GoodMethodName` | on | At most two words per method name (`MaxWords`), not counting a role prefix (`after_fork`), a role suffix (`file_of`) or a reviewed `Terms` entry; three or more words describe a missing object. A name chaining actions (`validate_and_save`) is two methods in one. Names minted by `attr_*`, `define_method`, `alias_method` and `alias` count. A Minitest `test_` method in a test class goes unpriced. |
+| `Kata/RealWords` | on | Every name segment is a word: English, an initialism, a technology's name, or the platform's own spelling (`env`, `params`, `attr`, `io`). `errorcount` (a smash) fails, and so does every clipping, whichever dictionary lists it: `args`, `opts`, `src`, `impl`, `str`, `req`, `conn`, with the word named in the message (every word, for one like `dist`). `foo` is a placeholder. Tune via `Terms`/`BannedWords`/`AllowedNames`. |
+| `Kata/GoodMethodName` | on | At most two words per method name (`MaxWords`), not counting a role prefix (`after_fork`), a role suffix (`file_of`) or a reviewed `Terms` entry; three or more words describe a missing object. A name chaining actions (`validate_and_save`) is two methods in one. Names minted by `attr_*`, `define_method`, `alias_method` and `alias` count. A Minitest `test_` method in a test class goes unpriced. `AllowedPatterns` holds names a dispatcher dictates; Prism's `on_*_node_enter` listeners ship there. |
 | `Kata/GoodVariableName` | on | The same rule for locals, parameters, ivars, class variables, and globals; `_name` and `@_name` stay exempt. |
 | `Kata/BuilderNoun` | on | Builders named for what they return: `total`, not `calculate_total`. Tune via `BannedPrefixes`/`AllowedNames`. |
 | `Kata/NoBooleanFlag` | on | No positional boolean arguments, and no positional parameter defaulting to one; split the method or use a keyword. `AllowedMethods` holds the calls whose boolean is a protocol or a value (`respond_to?(name, true)`, `fetch(:ssl, false)`). |
-| `Kata/ConstructorDiscipline` | on | `initialize` assigns, raises, or freezes — never computes. Shaping an argument (`Array(x)`, `name.to_s`, `items.dup`) and the object's own lock or empty collection (`Mutex.new`, `Set.new`) are assignment; a clock, a random number or a client is a hidden dependency. |
-| `Kata/NoClassMethodLogic` | on | Class methods construct (`build`, `parse`, `of`, `from_*`, `new`, `[]`), answer a Ruby hook (`included`, `inherited`), or a serialization protocol (`load`/`dump`, `json_create`); instances do the work. A module of functions (`module_function`, `extend self`) is the same logic without a class, and is reported too. |
+| `Kata/ConstructorDiscipline` | on | `initialize` assigns, raises, or freezes — never computes. Shaping an argument (`Array(x)`, `name.to_s`, `items.dup`) and the object's own lock or empty collection (`Mutex.new`, `Set.new`) are assignment, and so are the object's own buffer and identity table (`+""`, `{}.compare_by_identity`); a clock, a random number or a client is a hidden dependency, and a parameter default is its seam. A guard may raise through the project's `RaisingMethods`. |
+| `Kata/NoClassMethodLogic` | on | Class methods construct (`build`, `parse`, `of`, `from_*`, `new`, `[]`, or any method whose result is a new instance of the class), answer a Ruby hook or protocol (`included`, `inherited`, `name`, `===`), or a serialization protocol (`load`/`dump`, `json_create`); instances do the work. A module of functions (`module_function`, `extend self`) is the same logic without a class, and is reported too. |
 | `Kata/NoHashAsObject` | on | A hash with `MaxKeys`+ keys (default 4) wants to be an object. Keyword arguments, a lookup table a constant names (its rows too), and the hash `to_h`/`as_json` return are exempt. |
 | `Kata/ClockDiscipline` | on | No ambient clock (`Time.now`, `Time.zone.now`, `Date.current`, `Time.new`, `Process.clock_gettime`); inject one. A parameter default is the seam: `def stamp(now: Time.now)`. |
 | `Kata/JustifiedDirective` | on | An inline `rubocop:disable` says why after `--` (`# rubocop:disable Kata/GoodClassName -- Avo resolves the handler by this name`), so a false positive costs one reviewed line, not a per-file `Exclude`. |
 | `Kata/EnvDiscipline` | on | `ENV` reads only in the boot layer (`config/`, `config.ru`, `db/seeds*`, `db/migrate/`, `lib/tasks/`, rake files, Gemfiles, `bin/`, `exe/`, `script/`) — or as a parameter default, which is the seam the cop asks for. |
-| `Kata/NoSetter` | on | No `attr_writer`, `attr_accessor` or `def name=`: an object takes its state in the constructor, and a change returns a new object. `[]=` is a collection's protocol and passes. |
-| `Kata/FrozenState` | on | An instance variable is assigned in `initialize` (or `initialize_copy`, or a helper only those call) and nowhere else. Memoization passes: `@x ||= ...`, `@x = ... unless @x`, `if @x.nil?`, `@x = @x \|\| ...`, `return @x if defined?(@x)`. Rails controllers, mailers and helpers, which hand views their data through ivars, are excluded. |
+| `Kata/NoSetter` | on | No `attr_writer`, `attr_accessor`, `def name=` or `define_method(:"#{name}=")`: an object takes its state in the constructor, and a change returns a new object. `[]=` is a collection's protocol and passes. |
+| `Kata/FrozenState` | on | An instance variable is assigned in `initialize` (or `initialize_copy`, or a helper only those call) and nowhere else. Memoization passes: `@x ||= ...`, `@x = ... unless @x`, `if @x.nil?`, `@x = @x \|\| ...`, `return @x if defined?(@x)`. A hook a superclass's constructor calls (`setup`) is construction too (`ConstructorHooks` for a superclass elsewhere), and state set in a `define_method` block or by `instance_variable_set` counts. Rails controllers, mailers and helpers, which hand views their data through ivars, are excluded. |
 | `Kata/NoOutputArgument` | on | A method does not change what it was handed: `list << x`, `options.delete(:k)`, `hash[k] = v` and the other `MutatingMethods` on a parameter. Splats (`*args`, `**options`) are fresh collections, a parameter reassigned first (`list = list.dup`) is a copy, and `AllowedNames` holds the sinks (`io`, `out`, `buffer`, Rack's `env`). |
-| `Kata/CommandQuery` | on | A `?` method answers and changes nothing: no ivar assignment (memoizing the answer passes) and no `!` call on itself, its state or its parameters. A bang whose value the query reads (`policy!(user, record).show?`) is a lookup that raises, and passes. |
-| `Kata/NoTypeCheck` | off | No `is_a?`, `kind_of?`, `instance_of?` or `respond_to?`; let polymorphism choose. `==`, `eql?`, `<=>`, `===`, `coerce` and `respond_to_missing?` bodies and the boot layer are exempt. Off: a blind rater judged 1 of 25 corpus offenses actionable, since most checks test classes another library owns (AST nodes) or validate input at a boundary. |
+| `Kata/CommandQuery` | on | A `?` method answers and changes nothing: no ivar assignment (memoizing the answer passes) and no `!` call on itself, its state or its parameters. A bang whose value the query reads (`policy!(user, record).show?`) is a lookup that raises, and so is a guard's bang on a constant (`UI.user_error!(...) unless key`); both pass. |
+| `Kata/NoTypeCheck` | on | No `is_a?`, `kind_of?`, `instance_of?` or `respond_to?` against the project's own types; let polymorphism choose. A type is the project's when a class or module of that name is defined in the file or under `OwnedPaths` (`app/`, `lib/`), and a `respond_to?` probe counts when the project defines the method. A check against a type another library owns is the boundary where foreign data comes in, and passes, as do the conversion and iteration protocols and the bodies of `==`, `eql?`, `<=>`, `===`, `coerce` and `respond_to_missing?`. |
 | `Kata/NoSingleton` | on | No `include Singleton`, and no class-level method caching an instance (`def self.instance = @instance ||= new`). A class-level cache of a value (`Set.new`, `Struct.new`; `AllowedConstructors`) passes. |
 
 ## Dead configuration
@@ -181,10 +210,15 @@ skills from — a project, `~/.claude/skills/`, or a plugin.
 Double-quoted strings, `Metrics/MethodLength: 10` (a wrapped call counts as
 one line) guarded by `Metrics/AbcSize: 17`, `CyclomaticComplexity: 7` and
 `PerceivedComplexity: 8`, two-word names, `Metrics/ClassLength: 100`, `Metrics/ParameterLists: 4`, 120-column lines,
-endless methods on one line, `rescue => error`, `NewCops: enable`, and inline
-disables only with a reason. The core Layout cops stay on, except the four that
-loop against Elegant's no-blank-lines rule. `rubocop -a` deletes no comment and
-renames no ivar. See [config/default.yml](config/default.yml).
+endless methods on one line, `rescue => error` (reported, not renamed), and inline
+disables only with a reason. `NewCops` stays off: the pending cops kata reviewed
+are listed one by one, so a RuboCop upgrade adds no autocorrect nobody has
+read. The core Layout cops stay on, except the five that loop against Elegant's
+no-blank-lines rule. `rubocop -a` deletes no comment, renames no ivar or rescue
+variable, and keeps RBS and Steep annotations; the corrections seen to break
+code on real codebases (`Style/EmptyClassDefinition` inside an expression,
+`Style/Proc` in a `BasicObject`) run only under `-A`. See
+[config/default.yml](config/default.yml).
 
 ## Measured
 
@@ -192,8 +226,7 @@ The six object-discipline cops (`NoSetter`, `FrozenState`, `NoOutputArgument`,
 `CommandQuery`, `NoTypeCheck`, `NoSingleton`) and `NoClassMethodLogic`'s module
 rule shipped with a blind precision check: an independent rater, who saw only
 the shuffled offenses and the codebases, labelled up to 25 per cop on faraday,
-rubygems.org, hashira and kimera. A cop is on by default only when at least one
-in three of its offenses is judged actionable:
+rubygems.org, hashira and kimera:
 
 | Cop | Offenses | Sampled | Actionable | Default |
 | --- | --- | --- | --- | --- |
@@ -201,12 +234,21 @@ in three of its offenses is judged actionable:
 | `Kata/FrozenState` | 93 | 25 | 18 (0.72) | on |
 | `Kata/NoOutputArgument` | 75 | 25 | 21 (0.84) | on |
 | `Kata/CommandQuery` | 10 | 10 | 10 (1.00) | on |
-| `Kata/NoTypeCheck` | 332 | 25 | 1 (0.04) | off |
+| `Kata/NoTypeCheck` | 332 | 25 | 1 (0.04) | on, own types only |
 | `Kata/NoSingleton` | 4 | 4 | 2 (0.50) | on |
 | `Kata/NoClassMethodLogic`, modules | 67 | 25 | 23 (0.92) | on |
 
 The per-corpus counts and every label are in
 [eval/results](eval/results/README.md#object-discipline-cops).
+
+Whether a cop is on is decided by the philosophy, not by that number. The
+rater asked whether a reviewer would ask for the change, which carries
+convention back in ("standard Rails", "idiomatic"). A cop is on when it reads
+the code correctly and its advice is what Elegant Objects asks for; where an
+offense was a misread, the cop changes. `NoTypeCheck` was off because most
+checks it reported tested a class another library owns, where polymorphism
+cannot reach; scoped to the project's own types, it reports only the checks
+polymorphism would remove.
 
 `eval/run --kata PATH` scores a checkout: labelled cases per cop under the
 shipped defaults, 400 labelled `-er`/`-or`/`-ar` names, the `rubocop-kata`
@@ -236,5 +278,5 @@ third-party data under their own terms:
   from [WordNet 3.0](https://wordnet.princeton.edu) by `script/wordnet`. WordNet 3.0
   Copyright 2006 by Princeton University, all rights reserved; its licence is
   reproduced in [data/WORDNET-LICENSE](data/WORDNET-LICENSE).
-- **`data/supplement.txt`** and **`data/clippings.txt`** — this project's own
-  additions, MIT.
+- **`data/supplement.txt`**, **`data/clippings.txt`** and **`data/actions.txt`** —
+  this project's own additions, MIT.
