@@ -138,7 +138,8 @@ RSpec.describe(RuboCop::Cop::Kata::NoTypeCheck, :config) do
     after { FileUtils.rm_rf(root) }
 
     it "knows the types and methods defined in OwnedPaths" do
-      found = offenses("x.is_a?(Billing::Invoice)\nx.is_a?(Draft)\nx.respond_to?(:settle)\nx.is_a?(Hash)\nx.is_a?(Shop::Cart)\n")
+      probes = %w[is_a?(Billing::Invoice) is_a?(Draft) respond_to?(:settle) is_a?(Hash) is_a?(Shop::Cart)]
+      found = offenses(probes.map { "x.#{it}\n" }.join)
       expect(found.map(&:line)).to(eq([1, 2, 3, 5]))
     end
   end
