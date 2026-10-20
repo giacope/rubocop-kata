@@ -51,7 +51,15 @@ class RuboCop::Cop::Kata::PairedBrackets < RuboCop::Cop::Base
   end
 
   def before(token, indent)
-    register(token) { it.replace(preceding(token), "\n#{indent}") }
+    bodies = heredocs.select { it.source_range.line == token.line }
+    return register(token) { it.replace(preceding(token), "\n#{indent}") } if bodies.empty?
+    return register(token) unless ends?(token)
+    register(token) { below(it, token, indent, bodies) }
+  end
+
+  def below(corrector, token, indent, bodies)
+    corrector.remove(preceding(token).join(token.pos))
+    corrector.insert_after(bodies.map { it.loc.heredoc_end }.max_by(&:end_pos), "\n#{indent}#{token.text}")
   end
 
   def nested(token, closer, found)
@@ -77,6 +85,8 @@ class RuboCop::Cop::Kata::PairedBrackets < RuboCop::Cop::Base
       node.heredoc? ? node.loc.heredoc_body.join(node.loc.heredoc_end) : node.source_range.adjust(begin_pos: 1)
     end
   end
+
+  def heredocs = Array(processed_source.ast&.each_node(:str, :dstr, :xstr)).select(&:heredoc?)
 
   def trailing(token)
     edge = token.pos.end

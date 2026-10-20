@@ -43,6 +43,41 @@ RSpec.describe(RuboCop::Kata::Plugin) do
     end
   end
 
+  it "switches on no cop a later RuboCop adds, and leaves none it ships pending" do
+    effective do |config|
+      pending = config.to_h.keys.select { it.include?("/") && config.for_cop(it)["Enabled"] == "pending" }
+      expect([config.for_all_cops["NewCops"], pending]).to(eq(["disable", []]))
+    end
+  end
+
+  it "reports rescue variables to rename without renaming half their readers" do
+    effective do |config|
+      expect(config.for_cop("Naming/RescuedExceptionsVariableName").slice("PreferredName", "AutoCorrect"))
+        .to(eq("PreferredName" => "error", "AutoCorrect" => false))
+    end
+  end
+
+  it "keeps the corrections it knows to break code out of rubocop -a" do
+    effective do |config|
+      unsafe = %w[Style/EmptyClassDefinition Style/Proc].map { config.for_cop(it)["SafeAutoCorrect"] }
+      expect(unsafe).to(eq([false, false]))
+    end
+  end
+
+  it "leaves type annotations alone, as Kata/NoComments promises" do
+    effective do |config|
+      expect(config.for_cop("Layout/LeadingCommentSpace").slice("AllowRBSInlineAnnotation", "AllowSteepAnnotation"))
+        .to(eq("AllowRBSInlineAnnotation" => true, "AllowSteepAnnotation" => true))
+    end
+  end
+
+  it "switches off the layout and packaging cops that loop or crash" do
+    effective do |config|
+      expect(%w[Layout/EmptyLineBetweenDefs Packaging/RequireHardcodingLib].map { config.cop_enabled?(it) })
+        .to(eq([false, false]))
+    end
+  end
+
   it "leaves a top-level class in a Zeitwerk root to Rails, and nowhere else" do
     paths = %w[
       app/models/account.rb app/models/concerns/archivable.rb app/jobs/sweep_job.rb

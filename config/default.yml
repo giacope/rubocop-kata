@@ -5,8 +5,11 @@ plugins:
   - rubocop-packaging
   - rubocop-thread_safety
 
+# A cop RuboCop adds in a later release stays off until kata lists it: a
+# `bundle update` must not add an autocorrect nobody reviewed to `rubocop -a`.
+# The pending cops kata wants are enabled one by one at the end of this file.
 AllCops:
-  NewCops: enable
+  NewCops: disable
   Exclude:
     - "vendor/**/*"
     - "db/*schema.rb"
@@ -979,16 +982,23 @@ Style/StringLiteralsInInterpolation:
   EnforcedStyle: double_quotes
 
 Style/ItBlockParameter:
+  Enabled: true
   EnforcedStyle: only_numbered_parameters
 
 Style/FormatStringToken:
   EnforcedStyle: unannotated
 
 Style/EndlessMethod:
+  Enabled: true
   EnforcedStyle: allow_single_line
 
+# `error` is a word; `e` is a clipping Kata/RealWords would reject. RuboCop
+# renames the variable inside the rescue clause only, so an `ensure` or a
+# later line that reads `e` breaks, and an outer `error` local is
+# overwritten (Sequel lost 350 tests to it). It reports; a person renames.
 Naming/RescuedExceptionsVariableName:
   PreferredName: error
+  AutoCorrect: false
 
 # Memoization caches are marked with a leading underscore (@_name), so lazy
 # state is visible at the read site; Kata/GoodVariableName knows the
@@ -1010,7 +1020,15 @@ Elegant/GoodVariableName:
 Layout/LineLength:
   Max: 120
 
+# `#: (String) -> void` is an RBS inline signature and `#$ type` a Steep
+# annotation; Kata/NoComments keeps both as tool directives, so the space
+# this cop would insert turns a signature into prose.
+Layout/LeadingCommentSpace:
+  AllowRBSInlineAnnotation: true
+  AllowSteepAnnotation: true
+
 Layout/LineEndStringConcatenationIndentation:
+  Enabled: true
   EnforcedStyle: indented
 
 Metrics/BlockLength:
@@ -1107,10 +1125,12 @@ Style/MethodCallWithArgsParentheses:
 # expect, so the cops that only fought its drift are on, each in the style
 # that agrees with Elegant/MonotonicIndents (a fixed two-space step). Run one
 # at a time with `rubocop -A` over faraday and rubygems.org, none loops or
-# leaves an offense behind. The four below stay off: each wants a blank line
+# leaves an offense behind. The five below stay off: each wants a blank line
 # where Elegant/NoEmptyLinesInBlocks or NoEmptyLinesInMethods forbids one,
 # and `rubocop -A` reports infinite loops on them (382 on rubygems.org for
-# the guard clause alone).
+# the guard clause alone; EmptyLineBetweenDefs loops wherever two defs sit
+# in a block or a method body, as `Class.new do`, `included do` and
+# `module_exec` bodies do).
 Layout/BlockAlignment:
   Enabled: true
   EnforcedStyleAlignWith: start_of_line
@@ -1160,6 +1180,9 @@ Layout/EmptyLinesAfterModuleInclusion:
   Enabled: false
 
 Layout/EmptyLineAfterGuardClause:
+  Enabled: false
+
+Layout/EmptyLineBetweenDefs:
   Enabled: false
 
 # --- An inline disable is the only escape short of excluding a whole file,
@@ -1226,6 +1249,7 @@ Style/StaticClass:
 # Deletes `print x` from `print x if cond` and leaves the modifier behind,
 # which does not parse.
 RSpec/Output:
+  Enabled: true
   AutoCorrect: false
 
 # Its message names a replacement that raises: Integer(x, 10) is only
@@ -1235,6 +1259,17 @@ Lint/NumberConversion:
 
 # Alphabetizing requires breaks load-order-dependent boot sequences.
 Style/RequireOrder:
+  Enabled: false
+
+# `Proc.new` -> `proc` calls Kernel#proc, which a BasicObject subclass does
+# not have (Sequel's migration reverser).
+Style/Proc:
+  SafeAutoCorrect: false
+
+# Raises FrozenError inspecting `require File.dirname(__FILE__) + "/x"` in a
+# file with the frozen-string-literal comment Style/FrozenStringLiteralComment
+# adds (rubocop-packaging 0.6.0).
+Packaging/RequireHardcodingLib:
   Enabled: false
 
 ThreadSafety/DirChdir:
@@ -1261,3 +1296,564 @@ Elegant/OneClassPerFile:
     - "test/**/*"
     - "spec/**/*"
 
+# --- Pending cops, reviewed against RuboCop 1.92 and the bundled extensions.
+# NewCops stays off (see AllCops), so each one kata wants is named here.
+
+Gemspec/AddRuntimeDependency:
+  Enabled: true
+
+Gemspec/AttributeAssignment:
+  Enabled: true
+
+Gemspec/DeprecatedAttributeAssignment:
+  Enabled: true
+
+Gemspec/DevelopmentDependencies:
+  Enabled: true
+
+Gemspec/RequireMFA:
+  Enabled: true
+
+Layout/LineContinuationLeadingSpace:
+  Enabled: true
+
+Layout/LineContinuationSpacing:
+  Enabled: true
+
+Layout/SpaceBeforeBrackets:
+  Enabled: true
+
+Lint/AmbiguousAssignment:
+  Enabled: true
+
+Lint/AmbiguousOperatorPrecedence:
+  Enabled: true
+
+Lint/AmbiguousRange:
+  Enabled: true
+
+Lint/ArgumentMismatch:
+  Enabled: true
+
+Lint/ArrayLiteralInRegexp:
+  Enabled: true
+
+Lint/ConstantOverwrittenInRescue:
+  Enabled: true
+
+Lint/ConstantReassignment:
+  Enabled: true
+
+Lint/DataDefineOverride:
+  Enabled: true
+
+Lint/DeprecatedConstants:
+  Enabled: true
+
+Lint/DeprecatedReference:
+  Enabled: true
+
+Lint/DuplicateBranch:
+  Enabled: true
+
+Lint/DuplicateMagicComment:
+  Enabled: true
+
+Lint/DuplicateMatchPattern:
+  Enabled: true
+
+Lint/DuplicateRegexpCharacterClassElement:
+  Enabled: true
+
+Lint/DuplicateSetElement:
+  Enabled: true
+
+Lint/EmptyBlock:
+  Enabled: true
+
+Lint/EmptyInPattern:
+  Enabled: true
+
+Lint/HashNewWithKeywordArgumentsAsDefault:
+  Enabled: true
+
+Lint/IncompatibleIoSelectWithFiberScheduler:
+  Enabled: true
+
+Lint/ItWithoutArgumentsInBlock:
+  Enabled: true
+
+Lint/LambdaWithoutLiteralBlock:
+  Enabled: true
+
+Lint/LiteralAssignmentInCondition:
+  Enabled: true
+
+Lint/MisplacedMagicComment:
+  Enabled: true
+
+Lint/MixedCaseRange:
+  Enabled: true
+
+Lint/NameTypo:
+  Enabled: true
+
+Lint/NoReturnInBeginEndBlocks:
+  Enabled: true
+
+Lint/NonAtomicFileOperation:
+  Enabled: true
+
+Lint/NumberedParameterAssignment:
+  Enabled: true
+
+Lint/NumericOperationWithConstantResult:
+  Enabled: true
+
+Lint/OrAssignmentToConstant:
+  Enabled: true
+
+Lint/RedundantDirGlobSort:
+  Enabled: true
+
+Lint/RedundantRegexpQuantifiers:
+  Enabled: true
+
+Lint/RedundantTypeConversion:
+  Enabled: true
+
+Lint/RefinementImportMethods:
+  Enabled: true
+
+Lint/RequireRangeParentheses:
+  Enabled: true
+
+Lint/RequireRelativeSelfPath:
+  Enabled: true
+
+Lint/SharedMutableDefault:
+  Enabled: true
+
+Lint/SuperArgumentMismatch:
+  Enabled: true
+
+Lint/SuppressedExceptionInNumberConversion:
+  Enabled: true
+
+Lint/SymbolConversion:
+  Enabled: true
+
+Lint/ToEnumArguments:
+  Enabled: true
+
+Lint/TripleQuotes:
+  Enabled: true
+
+Lint/UnescapedBracketInRegexp:
+  Enabled: true
+
+Lint/UnexpectedBlockArity:
+  Enabled: true
+
+Lint/UnmodifiedReduceAccumulator:
+  Enabled: true
+
+Lint/UnreachablePatternBranch:
+  Enabled: true
+
+Lint/UselessConstantScoping:
+  Enabled: true
+
+Lint/UselessDefaultValueArgument:
+  Enabled: true
+
+Lint/UselessDefined:
+  Enabled: true
+
+Lint/UselessNumericOperation:
+  Enabled: true
+
+Lint/UselessOr:
+  Enabled: true
+
+Lint/UselessRescue:
+  Enabled: true
+
+Lint/UselessRuby2Keywords:
+  Enabled: true
+
+Metrics/CollectionLiteralLength:
+  Enabled: true
+
+Naming/BlockForwarding:
+  Enabled: true
+
+Naming/PredicateMethod:
+  Enabled: true
+
+Performance/AncestorsInclude:
+  Enabled: true
+
+Performance/CollectionLiteralInLoop:
+  Enabled: true
+
+Performance/ConcurrentMonotonicTime:
+  Enabled: true
+
+Performance/ConstantRegexp:
+  Enabled: true
+
+Performance/MapCompact:
+  Enabled: true
+
+Performance/MapMethodChain:
+  Enabled: true
+
+Performance/MethodObjectAsBlock:
+  Enabled: true
+
+Performance/RedundantEqualityComparisonBlock:
+  Enabled: true
+
+Performance/RedundantSortBlock:
+  Enabled: true
+
+Performance/RedundantSplitRegexpArgument:
+  Enabled: true
+
+Performance/RedundantStringChars:
+  Enabled: true
+
+Performance/ReverseFirst:
+  Enabled: true
+
+Performance/SortReverse:
+  Enabled: true
+
+Performance/Squeeze:
+  Enabled: true
+
+Performance/StringBytesize:
+  Enabled: true
+
+Performance/StringIdentifierArgument:
+  Enabled: true
+
+Performance/StringInclude:
+  Enabled: true
+
+Performance/Sum:
+  Enabled: true
+
+Performance/ZipWithoutBlock:
+  Enabled: true
+
+RSpec/DiscardedMatcher:
+  Enabled: true
+
+RSpec/IncludeExamples:
+  Enabled: true
+
+RSpec/LeakyLocalVariable:
+  Enabled: true
+
+RSpec/MatchWithSimpleRegex:
+  Enabled: true
+
+Security/CompoundHash:
+  Enabled: true
+
+Security/IoMethods:
+  Enabled: true
+
+Style/AmbiguousEndlessMethodDefinition:
+  Enabled: true
+
+Style/ArgumentsForwarding:
+  Enabled: true
+
+Style/ArrayIntersect:
+  Enabled: true
+
+Style/ArrayIntersectWithSingleElement:
+  Enabled: true
+
+Style/BitwisePredicate:
+  Enabled: true
+
+Style/CollectionCompact:
+  Enabled: true
+
+Style/CollectionQuerying:
+  Enabled: true
+
+Style/CombinableDefined:
+  Enabled: true
+
+Style/ComparableBetween:
+  Enabled: true
+
+Style/ComparableClamp:
+  Enabled: true
+
+Style/ConcatArrayLiterals:
+  Enabled: true
+
+Style/DataInheritance:
+  Enabled: true
+
+Style/DigChain:
+  Enabled: true
+
+Style/DirEmpty:
+  Enabled: true
+
+Style/DirectiveScope:
+  Enabled: true
+
+Style/DocumentDynamicEvalDefinition:
+  Enabled: true
+
+# `(Missing = Class.new(Error)).name` becomes a `class` body, which is nil:
+# Sequel could not load after `rubocop -a`.
+Style/EmptyClassDefinition:
+  Enabled: true
+  SafeAutoCorrect: false
+
+Style/EmptyHeredoc:
+  Enabled: true
+
+Style/EmptyStringInsideInterpolation:
+  Enabled: true
+
+Style/EnvHome:
+  Enabled: true
+
+Style/ExactRegexpMatch:
+  Enabled: true
+
+Style/FetchEnvVar:
+  Enabled: true
+
+Style/FileEmpty:
+  Enabled: true
+
+Style/FileNull:
+  Enabled: true
+
+Style/FileOpen:
+  Enabled: true
+
+Style/FileRead:
+  Enabled: true
+
+Style/FileTouch:
+  Enabled: true
+
+Style/FileWrite:
+  Enabled: true
+
+Style/HashConversion:
+  Enabled: true
+
+Style/HashExcept:
+  Enabled: true
+
+Style/HashFetchChain:
+  Enabled: true
+
+Style/HashSlice:
+  Enabled: true
+
+Style/IfWithBooleanLiteralBranches:
+  Enabled: true
+
+Style/InPatternThen:
+  Enabled: true
+
+Style/ItAssignment:
+  Enabled: true
+
+Style/KeywordArgumentsMerging:
+  Enabled: true
+
+Style/MagicCommentFormat:
+  Enabled: true
+
+Style/MapCompactWithConditionalBlock:
+  Enabled: true
+
+Style/MapIntoArray:
+  Enabled: true
+
+Style/MapJoin:
+  Enabled: true
+
+Style/MapToHash:
+  Enabled: true
+
+Style/MapToSet:
+  Enabled: true
+
+Style/MinMaxComparison:
+  Enabled: true
+
+Style/ModuleMemberExistenceCheck:
+  Enabled: true
+
+Style/MultilineInPatternThen:
+  Enabled: true
+
+Style/NegatedIfElseCondition:
+  Enabled: true
+
+Style/NegativeArrayIndex:
+  Enabled: true
+
+Style/NestedFileDirname:
+  Enabled: true
+
+Style/NilLambda:
+  Enabled: true
+
+Style/NumberedParameters:
+  Enabled: true
+
+Style/NumberedParametersLimit:
+  Enabled: true
+
+Style/ObjectThen:
+  Enabled: true
+
+Style/OpenStructUse:
+  Enabled: true
+
+Style/OperatorMethodCall:
+  Enabled: true
+
+Style/PartitionInsteadOfDoubleSelect:
+  Enabled: true
+
+Style/PredicateWithKind:
+  Enabled: true
+
+Style/QuotedSymbols:
+  Enabled: true
+
+Style/ReduceToHash:
+  Enabled: true
+
+Style/RedundantArgument:
+  Enabled: true
+
+Style/RedundantArrayConstructor:
+  Enabled: true
+
+Style/RedundantArrayFlatten:
+  Enabled: true
+
+Style/RedundantConstantBase:
+  Enabled: true
+
+Style/RedundantCurrentDirectoryInPath:
+  Enabled: true
+
+Style/RedundantDoubleSplatHashBraces:
+  Enabled: true
+
+Style/RedundantEach:
+  Enabled: true
+
+Style/RedundantFilterChain:
+  Enabled: true
+
+Style/RedundantFormat:
+  Enabled: true
+
+Style/RedundantHeredocDelimiterQuotes:
+  Enabled: true
+
+Style/RedundantInitialize:
+  Enabled: true
+
+Style/RedundantInterpolationUnfreeze:
+  Enabled: true
+
+Style/RedundantLineContinuation:
+  Enabled: true
+
+Style/RedundantMinMaxBy:
+  Enabled: true
+
+Style/RedundantRegexpArgument:
+  Enabled: true
+
+Style/RedundantRegexpConstructor:
+  Enabled: true
+
+Style/RedundantSelfAssignmentBranch:
+  Enabled: true
+
+Style/RedundantStringEscape:
+  Enabled: true
+
+Style/ReturnNilInPredicateMethodDefinition:
+  Enabled: true
+
+Style/ReverseFind:
+  Enabled: true
+
+Style/SafeNavigationChainLength:
+  Enabled: true
+
+Style/SelectByKind:
+  Enabled: true
+
+Style/SelectByRange:
+  Enabled: true
+
+Style/SelectByRegexp:
+  Enabled: true
+
+Style/SendWithLiteralMethodName:
+  Enabled: true
+
+Style/SingleLineDoEndBlock:
+  Enabled: true
+
+Style/StringChars:
+  Enabled: true
+
+Style/SuperArguments:
+  Enabled: true
+
+Style/SuperWithArgsParentheses:
+  Enabled: true
+
+Style/SwapValues:
+  Enabled: true
+
+Style/TallyMethod:
+  Enabled: true
+
+Style/TimeNow:
+  Enabled: true
+
+Style/YAMLFileRead:
+  Enabled: true
+
+ThreadSafety/ActiveSupportCallbacks:
+  Enabled: true
+
+ThreadSafety/LazySynchronizationPrimitive:
+  Enabled: true
+
+# Raises on `x.remove_method.must_equal :y` in a spec; a suite is not
+# shared mutable state.
+ThreadSafety/MethodRedefinition:
+  Enabled: true
+  Exclude:
+    - "spec/**/*"
+    - "test/**/*"
+    - "**/*_spec.rb"
+    - "**/*_test.rb"

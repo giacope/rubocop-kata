@@ -77,6 +77,26 @@ RSpec.describe(RuboCop::Cop::Kata::NoComments, :config) do
     RUBY
   end
 
+  it "keeps a magic comment in any case, with dashes or underscores, as Ruby reads it" do
+    expect_no_offenses(<<~RUBY)
+      # frozen-string-literal: true
+      # Shareable-Constant-Value: literal
+      # WARN_INDENT: false
+      # warn-past-scope: true
+      # rbs-inline: enabled
+      # frozen_string_literal : true
+      TABLE = { a: [1] }
+    RUBY
+  end
+
+  it "flags prose that only mentions a magic word" do
+    expect_offense(<<~RUBY)
+      # frozen string literals are fast
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Say it in the code: rename it, extract it, or name the constant.
+      TABLE = { a: [1] }
+    RUBY
+  end
+
   it "keeps the directives RDoc and YARD read" do
     expect_no_offenses(<<~RUBY)
       # :stopdoc:
