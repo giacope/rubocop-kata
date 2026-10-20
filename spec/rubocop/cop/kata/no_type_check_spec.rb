@@ -38,6 +38,48 @@ RSpec.describe(RuboCop::Cop::Kata::NoTypeCheck, :config) do
     RUBY
   end
 
+  it "leaves a class Ruby defines, even where the project reopens it or reuses its name in a namespace" do
+    expect_no_offenses(<<~RUBY)
+      class String
+        def shout = upcase
+      end
+      module Types
+        class Hash; end
+      end
+      def render(value) = value.is_a?(String) || value.is_a?(::Hash)
+    RUBY
+  end
+
+  it "counts each name of a compact definition as the project's own" do
+    expect_offense(<<~RUBY)
+      class Billing::Amount
+        def same?(value) = value.is_a?(Billing::Amount)
+                                 ^^^^^ `is_a?` asks an object what it is; tell it what to do, and let polymorphism choose.
+      end
+    RUBY
+  end
+
+  it "leaves a library's class that shares its last name with one of the project's own" do
+    expect_no_offenses(<<~RUBY)
+      class AuthenticationError < StandardError; end
+      def retry?(error) = !error.is_a?(Koala::Facebook::AuthenticationError)
+    RUBY
+  end
+
+  it "reads a constant under a namespace it cannot name without asking Ruby for it" do
+    expect_no_offenses("def render(value) = value.is_a?(value.class::Missing)\n")
+  end
+
+  it "flags the project's own type that shares a name with one Ruby defines, written with its namespace" do
+    expect_offense(<<~RUBY)
+      module Types
+        class String; end
+      end
+      def render(value) = value.is_a?(Types::String)
+                                ^^^^^ `is_a?` asks an object what it is; tell it what to do, and let polymorphism choose.
+    RUBY
+  end
+
   it "leaves the conversion and iteration protocols, even where the project defines them" do
     expect_no_offenses(<<~RUBY)
       class Card
@@ -90,13 +132,14 @@ RSpec.describe(RuboCop::Cop::Kata::NoTypeCheck, :config) do
       FileUtils.mkdir_p(File.join(root, "lib", "billing"))
       invoice = "module Billing\n  class Invoice\n    def settle = nil\n  end\n  Draft = Struct.new(:id)\nend\n"
       File.write(File.join(root, "lib", "billing", "invoice.rb"), invoice)
+      File.write(File.join(root, "lib", "billing", "cart.rb"), "class Shop::Cart\nend\n")
     end
 
     after { FileUtils.rm_rf(root) }
 
     it "knows the types and methods defined in OwnedPaths" do
-      found = offenses("x.is_a?(Billing::Invoice)\nx.is_a?(Draft)\nx.respond_to?(:settle)\nx.is_a?(Hash)\n")
-      expect(found.map(&:line)).to(eq([1, 2, 3]))
+      found = offenses("x.is_a?(Billing::Invoice)\nx.is_a?(Draft)\nx.respond_to?(:settle)\nx.is_a?(Hash)\nx.is_a?(Shop::Cart)\n")
+      expect(found.map(&:line)).to(eq([1, 2, 3, 5]))
     end
   end
 end

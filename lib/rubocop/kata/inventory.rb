@@ -20,7 +20,7 @@ class RuboCop::Kata::Inventory
 
   private
 
-  def types = @_types ||= scan { |text| text.scan(DEFINITION) + text.scan(ASSIGNMENT) }.map { it.split("::").last }
+  def types = @_types ||= scan { it.scan(DEFINITION) + it.scan(ASSIGNMENT) }.flat_map { it.split("::") }.to_set
 
   def messages = @_messages ||= scan { it.scan(METHOD) }
 

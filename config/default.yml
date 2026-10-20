@@ -968,7 +968,8 @@ Kata/NoTypeCheck:
     `OwnedPaths`), or a `respond_to?` probe for a method the project defines.
     A check against a class another library owns (an AST node, `String`) is
     the boundary where foreign data comes in, which polymorphism cannot
-    reach, and is left alone; so are the conversion and iteration protocols
+    reach, and is left alone, even where the project reopens that class or
+    reuses its name inside a namespace; so are the conversion and iteration protocols
     (`respond_to?(:to_h)`, `:each`, `:call`).
   Enabled: true
   VersionAdded: "0.11"
