@@ -52,4 +52,30 @@ RSpec.describe(RuboCop::Cop::Kata::NoSetter, :config) do
       klass.attr_writer :balance
     RUBY
   end
+
+  it "flags a setter minted by define_method, with a literal or an interpolated name" do
+    expect_offense(<<~'RUBY')
+      class Box
+        %i[width height].each do |side|
+          define_method(:"#{side}=") { |value| instance_variable_set(:"@#{side}", value) }
+                        ^^^^^^^^^^^ `:"#{side}="` is a setter; take the value in the constructor and return a new object to change it.
+        end
+        define_method(:depth=) { |value| @depth = value }
+                      ^^^^^^^ `:depth=` is a setter; take the value in the constructor and return a new object to change it.
+        define_method("label=") { |value| @label = value }
+                      ^^^^^^^^ `"label="` is a setter; take the value in the constructor and return a new object to change it.
+      end
+    RUBY
+  end
+
+  it "leaves define_method minting a reader, an element writer, or another object's method" do
+    expect_no_offenses(<<~'RUBY')
+      class Box
+        define_method(:depth) { @depth }
+        define_method(:"#{name}_count") { 0 }
+        define_method(:[]=) { |key, value| @entries.store(key, value) }
+        other.define_method(:depth=) { |value| value }
+      end
+    RUBY
+  end
 end

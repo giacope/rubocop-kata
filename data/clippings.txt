@@ -42,20 +42,20 @@ del delete
 delim delimiter
 delims delimiters
 deps dependencies
-desc description
+desc description, descending
 dest destination
-dev development
+dev development, device
 devel development
 diags diagnostics
 dict dictionary
 dicts dictionaries
 disp display
-dist distance
+dist distance, distribution
 dst destination
 err error
 expr expression
 exprs expressions
-ext extension
+ext extension, external
 exts extensions
 fn function
 freq frequency
@@ -93,10 +93,10 @@ rect rectangle
 repo repository
 repos repositories
 req request
-res result
+res result, response, resource
 resp response
 ret result
-sec second
+sec second, section, security
 sigs signatures
 src source
 srv server

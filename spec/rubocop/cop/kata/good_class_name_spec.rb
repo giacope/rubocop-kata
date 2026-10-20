@@ -169,6 +169,21 @@ RSpec.describe(RuboCop::Cop::Kata::GoodClassName, :config) do
       RUBY
     end
 
+    it "reads a persisted record as the thing it records, whatever its name" do
+      expect_offense(<<~RUBY)
+        class Manufacturer < ApplicationRecord
+        end
+        class Teacher < ActiveRecord::Base
+        end
+        class Teacher < Person
+              ^^^^^^^ `Teacher` names a doer; name the class for the thing it is, not the work it does.
+        end
+        class OrderService < ApplicationRecord
+              ^^^^^^^^^^^^ `OrderService` is a junk drawer; it hides the concept the code is missing.
+        end
+      RUBY
+    end
+
     it "still flags genuine doers" do
       expect_offense(<<~RUBY)
         class RateLimiter
@@ -429,12 +444,18 @@ RSpec.describe(RuboCop::Cop::Kata::GoodClassName, :config) do
       RUBY
     end
 
-    it "reads a coinage as a doer, and a known word whose stem is no verb as none" do
+    it "reads a coinage as a doer only when its stem is a verb, as the configuration says" do
       expect_offense(<<~RUBY)
         class Differ
         end
         class Zorper
-              ^^^^^^ `Zorper` names a doer; name the class for the thing it is, not the work it does.
+        end
+        class Instapaper
+        end
+        class Kickstarter
+        end
+        class Chunker
+              ^^^^^^^ `Chunker` names a doer; name the class for the thing it is, not the work it does.
         end
       RUBY
     end

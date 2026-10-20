@@ -16,7 +16,7 @@ module RuboCop::Cop::Kata::TypeName
 
   def complaint(name, node)
     return format(self.class::BANNED_MSG, name) if banned?(name)
-    return doer(name, node.type) if doer?(name) && !heir?(name, node)
+    return doer(name, node.type) if doer?(name) && !heir?(name, node) && !record?(node)
     crowd(name)
   end
 
@@ -49,6 +49,11 @@ module RuboCop::Cop::Kata::TypeName
     tested = node.identifier.short_name.to_s
     return false unless strip(tested, list("Suffixes")) == name && tested != name
     list("FrameworkSuperclasses").any? { same_role?(it, name) }
+  end
+
+  def record?(node)
+    parent = node.parent_class if node.class_type?
+    parent&.const_type? && list("EntitySuperclasses").include?(parent.const_name)
   end
 
   def same_role?(parent, name) = parent.scan(SEGMENT).last == name.scan(SEGMENT).last

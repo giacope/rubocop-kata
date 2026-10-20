@@ -16,7 +16,7 @@ class RuboCop::Kata::Agency
   def doer?
     return true if RuboCop::Kata::Dictionary::AGENTS.include?(@word)
     return false if RuboCop::Kata::Dictionary::THINGS.include?(@word) || !SUFFIX.match?(@word)
-    verbal? || !RuboCop::Kata::Dictionary::ENTRIES.include?(@word)
+    verbal?
   end
 
   def stems = ENDINGS.filter_map { |ending, stem| @word.sub(ending, stem) if ending.match?(@word) }.uniq

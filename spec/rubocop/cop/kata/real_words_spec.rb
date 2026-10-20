@@ -75,6 +75,26 @@ RSpec.describe(RuboCop::Cop::Kata::RealWords, :config) do
     RUBY
   end
 
+  it "names every reading of a clipping that stands for more than one word" do
+    expect_offense(<<~RUBY)
+      dist = 1
+      ^^^^ `dist` is an abbreviation of `distance` or `distribution`; spell the word out.
+    RUBY
+  end
+
+  it "follows a word through two derivations: a plural agent noun, a -y adjective" do
+    expect_no_offenses(<<~RUBY)
+      matchers = satisfiable = verifiable = 1
+    RUBY
+  end
+
+  it "knows the initialisms and technology names large codebases name" do
+    expect_no_offenses(<<~RUBY)
+      graphql = imap = hmac = ai = llm = sso = 1
+      decrypt = rollup = omniauth = openai = js = apk = 2
+    RUBY
+  end
+
   it "names a placeholder for what it is" do
     expect_offense(<<~RUBY)
       foo = 1

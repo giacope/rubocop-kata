@@ -24,7 +24,12 @@ class RuboCop::Cop::Kata::CommandQuery < RuboCop::Cop::Base
 
   def command?(call, inputs)
     name = call.method_name.to_s
-    name.end_with?("!") && name != "!" && owned?(call.receiver, inputs) && !lookup?(call)
+    name.end_with?("!") && name != "!" && owned?(call.receiver, inputs) && !lookup?(call) && !raising?(call)
+  end
+
+  def raising?(call)
+    holder = call.parent
+    call.receiver&.const_type? && holder&.if_type? && holder.branches.compact.all? { it.equal?(call) }
   end
 
   def lookup?(call)

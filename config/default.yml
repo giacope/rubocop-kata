@@ -37,7 +37,12 @@ Kata/GoodClassName:
     the word of one of the `FrameworkSuperclasses` is judged as that heir:
     `ScrubbingFormatterTest` passes, as `ScrubbingFormatter < Logger::Formatter`
     does, while `PaymentProcessorTest` is still a doer. A subject that names
-    the word without inheriting it is still flagged in its own file. `AllowedNames` match a whole name or a
+    the word without inheriting it is still flagged in its own file. A class
+    whose superclass is one of the `EntitySuperclasses` (`ApplicationRecord`)
+    is a persisted record of a thing in the domain (`Manufacturer`,
+    `Teacher`), so the doer test does not apply to it; junk drawers and
+    crowded names still do. An unknown word ending in `-er` is a doer only
+    when its stem is a verb (`Chunker`), not a brand (`Instapaper`). `AllowedNames` match a whole name or a
     trailing segment: exception classes (`Error`), the domain roles a model
     represents rather than performs (`User`, `Owner`), words whose thing and
     doer readings are equally common in code (`Server`, `Container`), and
@@ -71,9 +76,13 @@ Kata/GoodClassName:
     - ActiveSupport::LogSubscriber
     - Logger
     - Logger::Formatter
+  EntitySuperclasses:
+    - ActiveRecord::Base
+    - ApplicationRecord
   AllowedNames: &type_names
     - Actor
     - Container
+    - Docker
     - Error
     - Header
     - Owner
@@ -636,12 +645,16 @@ Kata/ConstructorDiscipline:
     assigning it: a Kernel conversion (`Array(items)`, `Integer(port)`), a
     `to_*` conversion, a defensive `dup`, and `freeze`. So is the object's own
     state that nothing could inject: a lock or a queue (`Mutex.new`), or an
-    empty collection (`Set.new`). A clock, a random number, a client, or a
-    sum is a dependency or a computation, and is flagged
-    (`@id = SecureRandom.uuid`).
+    empty collection (`Set.new`, `+""`, `{}.compare_by_identity`). A clock, a
+    random number, a client, or a sum is a dependency or a computation, and
+    is flagged (`@id = SecureRandom.uuid`). A guard may raise, through
+    `raise` or one of the project's `RaisingMethods` (`UI.user_error!`).
   Enabled: true
   VersionAdded: "0.3"
   VersionChanged: "0.11"
+  RaisingMethods:
+    - fail
+    - raise
   AllowedMethods:
     - Array
     - Complex
@@ -673,9 +686,12 @@ Kata/ConstructorDiscipline:
 
 Kata/NoClassMethodLogic:
   Description: >-
-    Classes construct; instances work. `AllowedNames` holds the constructors
-    (`build`, `parse`, `of`, `from`, `from_*`, `new`, `[]`), the hooks Ruby
-    calls by name (`included`, `inherited`, `method_added`), and the
+    Classes construct; instances work. A class method whose result is a new
+    instance of its class (`def self.from_legacy(row) = new(row.title)`) is a
+    constructor whatever its name. `AllowedNames` holds the constructor names
+    (`build`, `parse`, `of`, `from`, `from_*`, `new`, `[]`), the hooks and
+    protocol methods Ruby calls on a class by name (`included`, `inherited`,
+    `method_added`, `name`, `to_s`, `inspect`, `===`, `method_missing`), and the
     serialization protocols a framework calls on the class: a coder for
     ActiveRecord `serialize` or YAML answers `load`/`dump`, Marshal `_load`,
     the JSON additions `json_create`. A module declared with
@@ -689,6 +705,7 @@ Kata/NoClassMethodLogic:
     - "test/**/*"
     - "db/*migrate/**/*"
   AllowedNames:
+    - "==="
     - "[]"
     - _load
     - build
@@ -698,14 +715,19 @@ Kata/NoClassMethodLogic:
     - from
     - included
     - inherited
+    - inspect
     - json_create
     - load
     - method_added
+    - method_missing
+    - name
     - new
     - of
     - parse
     - prepended
+    - respond_to_missing?
     - singleton_method_added
+    - to_s
 
 Kata/NoHashAsObject:
   Description: >-
@@ -800,12 +822,16 @@ Kata/FrozenState:
     An instance variable is assigned in `initialize` (or `initialize_copy`,
     or a helper only those call) and never again. Memoization is not a
     change of state: `@x ||= ...`, `@x = ... unless @x`, `@x = ... if
-    @x.nil?`, `@x = @x || ...` and `return @x if defined?(@x)` pass. Rails
-    hands a view its data through a controller's or mailer's instance
+    @x.nil?`, `@x = @x || ...` and `return @x if defined?(@x)` pass. A hook
+    a superclass's `initialize` calls (`setup`) is construction too: the cop
+    follows it when the superclass is in the same file, and
+    `ConstructorHooks` names the hooks of a superclass defined elsewhere.
+    Rails hands a view its data through a controller's or mailer's instance
     variables, so `app/controllers`, `app/mailers` and `app/helpers` are
     excluded.
   Enabled: true
   VersionAdded: "0.11"
+  ConstructorHooks: []
   Exclude:
     - "spec/**/*"
     - "test/**/*"
@@ -888,7 +914,8 @@ Kata/CommandQuery:
     A method whose name ends in `?` answers a question and changes nothing:
     it assigns no instance variable and calls no `!` method on itself, its
     state or its parameters. Memoizing the answer (`@valid ||= ...`) is not a
-    change.
+    change, and neither is a guard whose only branch is a bang on a constant
+    (`UI.user_error!("...") unless key`): it raises, it does not mutate.
   Enabled: true
   VersionAdded: "0.11"
   Exclude:
@@ -1229,10 +1256,50 @@ Kata/ClassInModule:
     top level. A file directly in a Zeitwerk root (`app/models/account.rb`,
     `app/models/concerns/archivable.rb`) defines a top-level constant by
     design, so those are excluded; a subdirectory of a root is a namespace,
-    and Zeitwerk already demands the matching module.
+    and Zeitwerk already demands the matching module. Reopening one of the
+    `CoreClasses` (`class String`) is a monkey patch: wrapping it in a module
+    would define a new class, so the message asks for a refinement or a
+    decorator instead.
   Enabled: true
   VersionAdded: "0.10"
   VersionChanged: "0.11"
+  CoreClasses:
+    - Array
+    - BasicObject
+    - BigDecimal
+    - Class
+    - Complex
+    - Data
+    - Date
+    - DateTime
+    - Dir
+    - Exception
+    - FalseClass
+    - File
+    - Float
+    - Hash
+    - Integer
+    - IO
+    - MatchData
+    - Method
+    - Module
+    - NilClass
+    - Numeric
+    - Object
+    - OpenStruct
+    - Pathname
+    - Proc
+    - Range
+    - Rational
+    - Regexp
+    - Set
+    - StandardError
+    - String
+    - Struct
+    - Symbol
+    - Thread
+    - Time
+    - TrueClass
   Exclude:
     - "app/*/*.rb"
     - "app/*/concerns/*.rb"

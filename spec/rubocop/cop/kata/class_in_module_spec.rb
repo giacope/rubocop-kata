@@ -35,4 +35,18 @@ RSpec.describe(RuboCop::Cop::Kata::ClassInModule) do
     expect(offenses("class ::Foo\nend").first.message)
       .to(end_with(": Class ::Foo must be defined inside a module, not globally"))
   end
+
+  context "with core classes listed" do
+    let(:cop) { described_class.new(RuboCop::Config.new("Kata/ClassInModule" => { "CoreClasses" => %w[String] })) }
+
+    it "asks for a refinement or a decorator when a file reopens a core class" do
+      advice = "Reopening `String` patches it for every caller; use a refinement (`refine String`) or a decorator"
+      expect(offenses("class String\n  def shout = upcase\nend").first.message).to(include(advice))
+    end
+
+    it "keeps the namespace advice for a class that only shares the name, or defines it anew" do
+      messages = offenses("class Strings\nend\nclass String < Base\nend").map { it.message[/Class .*/] }
+      expect(messages).to(eq(%w[Strings String].map { "Class #{it} must be defined inside a module, not globally" }))
+    end
+  end
 end

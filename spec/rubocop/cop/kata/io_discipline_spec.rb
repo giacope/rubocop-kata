@@ -37,6 +37,23 @@ RSpec.describe(RuboCop::Cop::Kata::IoDiscipline, :config) do
     RUBY
   end
 
+  it "leaves a p that cannot be Kernel#p: one given a block, or no argument" do
+    expect_no_offenses(<<~RUBY)
+      p(class: "empty") { "No senders" }
+      p { "text" }
+      where { { p[:owner] => 1 } }
+    RUBY
+  end
+
+  it "still flags p printing a value" do
+    expect_offense(<<~RUBY)
+      p(value)
+      ^^^^^^^^ Write through the injected `@io`, not bare `p`.
+      p value, other
+      ^^^^^^^^^^^^^^ Write through the injected `@io`, not bare `p`.
+    RUBY
+  end
+
   context "with the shipped defaults" do
     let(:root) { File.expand_path("../../../..", __dir__) }
     let(:shipped) { YAML.load_file(File.join(root, "config/default.yml"), aliases: true).slice("Kata/IoDiscipline") }

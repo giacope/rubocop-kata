@@ -107,6 +107,29 @@ RSpec.describe(RuboCop::Cop::Kata::ConstructorDiscipline, :config) do
       RUBY
     end
 
+    it "allows the object's own empty buffer and identity table" do
+      expect_no_offenses(<<~RUBY)
+        def initialize(names)
+          @text = +""
+          @frozen = -"sep"
+          @seen = {}.compare_by_identity
+          @memo = Hash.new { |hash, key| hash[key] = key.to_s }.compare_by_identity
+          @names = names
+        end
+      RUBY
+    end
+
+    it "still flags a buffer built from what was passed in" do
+      expect_offense(<<~RUBY)
+        def initialize(name, table)
+          @text = +name
+                  ^^^^^ A constructor assigns; it does not compute. Move `+@` out of `initialize`.
+          @seen = table.compare_by_identity
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^ A constructor assigns; it does not compute. Move `compare_by_identity` out of `initialize`.
+        end
+      RUBY
+    end
+
     it "still flags a hidden dependency or a computation" do
       expect_offense(<<~RUBY)
         def initialize(items, url)
@@ -120,6 +143,29 @@ RSpec.describe(RuboCop::Cop::Kata::ConstructorDiscipline, :config) do
                          ^^^^^^^^^^^^^^^ A constructor assigns; it does not compute. Move `map` out of `initialize`.
           @size = String.instance_method(:size)
                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ A constructor assigns; it does not compute. Move `instance_method` out of `initialize`.
+        end
+      RUBY
+    end
+  end
+
+  context "with a project's raising helper" do
+    let(:cop_config) { { "RaisingMethods" => %w[raise user_error!] } }
+
+    it "allows a guard that raises through it" do
+      expect_no_offenses(<<~RUBY)
+        def initialize(path)
+          UI.user_error!("missing \#{path.inspect}") unless File.exist?(path)
+          @path = path
+        end
+      RUBY
+    end
+
+    it "still flags a guard whose branch only logs" do
+      expect_offense(<<~RUBY)
+        def initialize(path)
+          UI.important("missing") unless path
+          ^^^^^^^^^^^^^^^^^^^^^^^ A constructor assigns; it does not compute. Move `important` out of `initialize`.
+          @path = path
         end
       RUBY
     end
