@@ -1,11 +1,8 @@
 # Applied on top of default.yml when the project root holds
 # config/application.rb (opt out with `rails: false` under the plugin, see
 # README). It names what Rails and its common gems dictate and the files they
-# generate; it relaxes no rule for code the application writes.
-inherit_mode:
-  merge:
-    - Exclude
-    - AllowedNames
+# generate; it relaxes no rule for code the application writes. Each list
+# here is added to the shipped one, not put in its place.
 
 # Hooks Rails, Devise and Turbo call by these names: a contract, not a choice.
 Kata/GoodMethodName:

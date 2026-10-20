@@ -7,7 +7,7 @@
   graphql-ruby, YARD, ruby-lsp). Plain `rubocop -a` no longer changes what
   code does; it left Sequel unable to load and failing 350 of its 8,261
   tests, and corrupted ruby-lsp's 1,986 RBS signatures:
-  - `NewCops` is `disable`, and the 183 pending cops kata wants are listed
+  - `NewCops` is `disable`, and the 184 pending cops kata wants are listed
     one by one: a RuboCop upgrade adds no autocorrect nobody reviewed.
     `Style/EmptyClassDefinition` (which turned `(E = Class.new(Error)).name`
     into a nil class body) and `Style/Proc` (`proc` in a `BasicObject`) run
@@ -68,7 +68,10 @@
     rubocop-rspec only where RSpec runs, and a Rails app gets
     `config/rails.yml` (the names Rails, Devise and Turbo dictate, and
     generated `bin/` and `db/` out of `Kata/NoComments`). Plugin options
-    `rails:`, `packaging:` and `rspec:` overrule the detection.
+    `rails:`, `packaging:` and `rspec:` overrule the detection. The profile
+    is written as one file: RuboCop checks a file a plugin's configuration
+    inherits against the cops it knows, and the oldest release kata supports
+    knows fewer cops than kata lists.
   - Kata cops skip `.jbuilder` templates.
 - Known upstream: `Naming/RescuedExceptionsVariableName` raises on
   `x = begin ... rescue => e ... end.size` whether or not it may correct, since

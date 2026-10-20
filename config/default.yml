@@ -1460,6 +1460,9 @@ Lint/ConstantOverwrittenInRescue:
 Lint/ConstantReassignment:
   Enabled: true
 
+Lint/CopDirectiveSyntax:
+  Enabled: true
+
 Lint/DataDefineOverride:
   Enabled: true
 

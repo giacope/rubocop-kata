@@ -57,7 +57,17 @@ RSpec.describe(RuboCop::Kata::Profile) do
   it "writes the overlay where RuboCop can load it, and hands back the same file" do
     shelved(["config/application.rb", ""]) do |profile, shelf|
       first = profile.path
-      expect([YAML.load_file(first), profile.path, Dir.children(shelf).size]).to(eq([profile.overlay, first, 1]))
+      expect([YAML.load_file(first, aliases: true)["RSpec"], profile.path, Dir.children(shelf).size])
+        .to(eq([{ "Enabled" => false }, first, 1]))
+    end
+  end
+
+  it "resolves the inheritance itself, since RuboCop checks an inherited file against the cops it knows" do
+    shelved(["config/application.rb", ""]) do |profile, _|
+      written = YAML.load_file(profile.path, aliases: true)
+      names = written.dig("Kata/GoodMethodName", "AllowedNames")
+      expect([written.key?("inherit_from"), names & %w[active_for_authentication default_url_options]])
+        .to(eq([false, %w[active_for_authentication default_url_options]]))
     end
   end
 
@@ -71,7 +81,7 @@ RSpec.describe(RuboCop::Kata::Profile) do
   it "rewrites an overlay a crash cut short" do
     shelved(["config/application.rb", ""]) do |profile, _|
       File.write(profile.path, "inherit_from:")
-      expect(YAML.load_file(profile.path)).to(eq(profile.overlay))
+      expect(YAML.load_file(profile.path, aliases: true)).to(include("Packaging" => { "Enabled" => false }))
     end
   end
 
@@ -79,6 +89,6 @@ RSpec.describe(RuboCop::Kata::Profile) do
     setting = YAML.load_file(rails)
     names = setting.dig("Kata/GoodMethodName", "AllowedNames")
     expect([setting.keys, names.include?("default_url_options"), setting.dig("Kata/NoComments", "Exclude")])
-      .to(eq([%w[inherit_mode Kata/GoodMethodName Kata/NoComments], true, %w[bin/**/* db/**/*]]))
+      .to(eq([%w[Kata/GoodMethodName Kata/NoComments], true, %w[bin/**/* db/**/*]]))
   end
 end

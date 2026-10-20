@@ -28,7 +28,8 @@ RSpec.describe(RuboCop::Kata::Plugin) do
 
   it "hands its options to the profile, so a project can ask for the Rails setting" do
     path = described_class.new("rails" => true).rules(LintRoller::Context.new(engine: :rubocop)).value
-    expect(YAML.load_file(path)["inherit_from"]).to(include(RuboCop::Kata::Profile::RAILS))
+    names = YAML.load_file(path, aliases: true).dig("Kata/GoodMethodName", "AllowedNames")
+    expect(names).to(include("default_url_options"))
   end
 
   it "leaves every cop it tunes switched on, unless it switches one off itself" do

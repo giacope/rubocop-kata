@@ -22,7 +22,10 @@ class RuboCop::Cop::Kata::NoRedundantVariable < RuboCop::Cop::Base
 
   def audit(body)
     singles = RuboCop::Kata::Variable::Ledger.new(body).pairs
-    plain = singles.reject { |assign, read| RuboCop::Kata::Variable::Label.new(assign).explains? || long?(assign, read) }
+    plain =
+      singles.reject do |assign, read|
+        RuboCop::Kata::Variable::Label.new(assign).explains? || long?(assign, read)
+      end
     movable = plain.select { |assign, read| movable?(assign, read, singles) }
     gap = RuboCop::Kata::Variable::Gap.new(singles, movable)
     plain.each { |assign, read| register(assign, read, movable) unless gap.crossed?(assign) }
