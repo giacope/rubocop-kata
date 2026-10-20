@@ -11,7 +11,11 @@
     one by one: a RuboCop upgrade adds no autocorrect nobody reviewed.
     `Style/EmptyClassDefinition` (which turned `(E = Class.new(Error)).name`
     into a nil class body) and `Style/Proc` (`proc` in a `BasicObject`) run
-    under `-A` only.
+    under `-A` only, as do five corrections that broke Sequel's spec files:
+    `Style/SingleLineMethods` (`def (@m.db).name() false end`), `Style/Lambda`
+    (`lambda{|| 1}`), `Style/DefWithParentheses` (once `Layout/LineLength`
+    has split the line), `Style/OperatorMethodCall` (`o.~(a: 1)`) and
+    `Performance/BindCall` (Sequel's `dataset.bind(...).call(...)`).
   - `Naming/RescuedExceptionsVariableName` keeps `PreferredName: error` but
     reports only: RuboCop renamed the variable inside the rescue clause and
     left `ensure` and later lines on the old name.

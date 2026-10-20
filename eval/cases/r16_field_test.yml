@@ -238,3 +238,58 @@
     class Hover
       def on_constant_path_node_enter(node) = node
     end
+- id: singleton-def-on-an-expression-survives-safe-autocorrect
+  cop: Style/SingleLineMethods
+  expect: offense
+  correct: safe
+  only: true
+  keeps: ["  def (database.pool).size() 0 end"]
+  source: |
+    # frozen_string_literal: true
+
+    def stub(database)
+      def (database.pool).size() 0 end
+    end
+- id: lambda-with-empty-pipes-survives-safe-autocorrect
+  cop: Style/Lambda
+  expect: offense
+  correct: safe
+  only: true
+  keeps: ["HANDLER = lambda { || 1 }"]
+  source: |
+    # frozen_string_literal: true
+
+    HANDLER = lambda { || 1 }
+- id: def-parentheses-before-a-body-on-the-same-line-survive-safe-autocorrect
+  cop: Style/DefWithParentheses
+  expect: offense
+  correct: safe
+  only: true
+  keeps: ["def variables() super.merge("]
+  source: |
+    # frozen_string_literal: true
+
+    def variables() super.merge(
+      a: 1
+    )
+    end
+- id: unary-operator-called-with-arguments-survives-safe-autocorrect
+  cop: Style/OperatorMethodCall
+  expect: offense
+  correct: safe
+  only: true
+  keeps: ["FILTER = proc { |o| o.~(a: 1) }"]
+  source: |
+    # frozen_string_literal: true
+
+    FILTER = proc { |o| o.~(a: 1) }
+- id: dataset-bind-survives-safe-autocorrect
+  cop: Performance/BindCall
+  expect: offense
+  correct: safe
+  only: true
+  keeps: ["ROWS = dataset.bind(n: 10).call(:all)"]
+  source: |
+    # frozen_string_literal: true
+
+    ROWS = dataset.bind(n: 10).call(:all)

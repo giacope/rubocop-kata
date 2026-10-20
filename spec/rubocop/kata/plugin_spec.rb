@@ -65,8 +65,11 @@ RSpec.describe(RuboCop::Kata::Plugin) do
 
   it "keeps the corrections it knows to break code out of rubocop -a" do
     effective do |config|
-      unsafe = %w[Style/EmptyClassDefinition Style/Proc].map { config.for_cop(it)["SafeAutoCorrect"] }
-      expect(unsafe).to(eq([false, false]))
+      cops = %w[
+        Style/EmptyClassDefinition Style/Proc Style/SingleLineMethods Style/Lambda Style/DefWithParentheses
+        Style/OperatorMethodCall Performance/BindCall
+      ]
+      expect(cops.reject { config.for_cop(it)["SafeAutoCorrect"] == false }).to(be_empty)
     end
   end
 

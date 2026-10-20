@@ -1382,6 +1382,23 @@ Style/RequireOrder:
 Style/Proc:
   SafeAutoCorrect: false
 
+# Each of these broke a Sequel spec file under plain `rubocop -a`: the
+# endless rewrite drops the parentheses of `def (@m.db).name() false end`;
+# `lambda{|| 1}` becomes `->{|| 1}`; `def name() super.merge(` loses its
+# parentheses once Layout/LineLength has split the line; and Sequel's
+# `dataset.bind(n: 1).call(:all)` is no UnboundMethod. They run under -A.
+Style/SingleLineMethods:
+  SafeAutoCorrect: false
+
+Style/Lambda:
+  SafeAutoCorrect: false
+
+Style/DefWithParentheses:
+  SafeAutoCorrect: false
+
+Performance/BindCall:
+  SafeAutoCorrect: false
+
 # Raises FrozenError inspecting `require File.dirname(__FILE__) + "/x"` in a
 # file with the frozen-string-literal comment Style/FrozenStringLiteralComment
 # adds (rubocop-packaging 0.6.0).
@@ -1847,8 +1864,10 @@ Style/ObjectThen:
 Style/OpenStructUse:
   Enabled: true
 
+# `o.~(a: 1)` becomes `o ~(a: 1)`, which does not parse (a Sequel spec).
 Style/OperatorMethodCall:
   Enabled: true
+  SafeAutoCorrect: false
 
 Style/PartitionInsteadOfDoubleSelect:
   Enabled: true
