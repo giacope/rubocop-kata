@@ -1383,12 +1383,21 @@ Style/RequireOrder:
 Style/Proc:
   SafeAutoCorrect: false
 
-# Each of these broke a Sequel spec file under plain `rubocop -a`: the
-# endless rewrite drops the parentheses of `def (@m.db).name() false end`;
-# `lambda{|| 1}` becomes `->{|| 1}`; `def name() super.merge(` loses its
-# parentheses once Layout/LineLength has split the line; and Sequel's
-# `dataset.bind(n: 1).call(:all)` is no UnboundMethod. They run under -A.
+# Each of these broke a Sequel or ruby-lsp file under plain `rubocop -a`:
+# the endless and compact rewrites drop the parentheses of
+# `def (@m.db).name() false end`; `lambda{|| 1}` becomes `->{|| 1}`;
+# `def name() super.merge(` loses its parentheses once Layout/LineLength has
+# split the line; Sequel's `dataset.bind(n: 1).call(:all)` is no
+# UnboundMethod; `Array === proxy` becomes `proxy.is_a?(Array)`, which a
+# delegating proxy answers for its target; and `Sequel.**(1)` builds SQL, so
+# dropping the `** 1` changes the query. They run under -A.
 Style/SingleLineMethods:
+  SafeAutoCorrect: false
+
+Style/EmptyMethod:
+  SafeAutoCorrect: false
+
+Style/CaseEquality:
   SafeAutoCorrect: false
 
 Style/Lambda:
@@ -1609,6 +1618,7 @@ Lint/UselessDefined:
 
 Lint/UselessNumericOperation:
   Enabled: true
+  SafeAutoCorrect: false
 
 Lint/UselessOr:
   Enabled: true

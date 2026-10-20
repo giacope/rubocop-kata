@@ -67,7 +67,7 @@ RSpec.describe(RuboCop::Kata::Plugin) do
     effective do |config|
       cops = %w[
         Style/EmptyClassDefinition Style/Proc Style/SingleLineMethods Style/Lambda Style/DefWithParentheses
-        Style/OperatorMethodCall Performance/BindCall
+        Style/OperatorMethodCall Performance/BindCall Style/EmptyMethod Style/CaseEquality Lint/UselessNumericOperation
       ]
       expect(cops.reject { config.for_cop(it)["SafeAutoCorrect"] == false }).to(be_empty)
     end

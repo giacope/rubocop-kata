@@ -293,3 +293,35 @@
     # frozen_string_literal: true
 
     ROWS = dataset.bind(n: 10).call(:all)
+- id: empty-singleton-def-on-an-expression-survives-safe-autocorrect
+  cop: Style/EmptyMethod
+  expect: offense
+  correct: safe
+  only: true
+  keeps: ["def (a = nil).bar"]
+  source: |
+    # frozen_string_literal: true
+
+    def (a = nil).bar
+    end
+- id: case-equality-on-a-proxy-survives-safe-autocorrect
+  cop: Style/CaseEquality
+  expect: offense
+  correct: safe
+  only: true
+  keeps: ["ARRAYISH = Array === PROXY"]
+  source: |
+    # frozen_string_literal: true
+
+    PROXY = Object.new
+    ARRAYISH = Array === PROXY
+- id: power-of-one-in-a-dsl-survives-safe-autocorrect
+  cop: Lint/UselessNumericOperation
+  expect: offense
+  correct: safe
+  only: true
+  keeps: ["POWER = Sequel.**(1)"]
+  source: |
+    # frozen_string_literal: true
+
+    POWER = Sequel.**(1)
