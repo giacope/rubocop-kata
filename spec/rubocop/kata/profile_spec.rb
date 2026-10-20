@@ -71,6 +71,21 @@ RSpec.describe(RuboCop::Kata::Profile) do
     end
   end
 
+  it "switches off each cop of a department it leaves out, since a cop enabled by name outlives its department" do
+    shelved(["shelf.gemspec", ""]) do |profile, _|
+      written = YAML.load_file(profile.path, aliases: true)
+      cops = %w[RSpec RSpec/Output RSpec/LeakyLocalVariable Packaging/RequireHardcodingLib]
+      expect(cops.map { written.dig(it, "Enabled") }).to(eq([false, false, false, false]))
+    end
+  end
+
+  it "leaves the cops of the departments it keeps as shipped" do
+    shelved([".rspec", ""]) do |profile, _|
+      written = YAML.load_file(profile.path, aliases: true)
+      expect(%w[Packaging RSpec/Output].map { written.dig(it, "Enabled") }).to(eq([false, true]))
+    end
+  end
+
   it "leaves an overlay already written alone" do
     shelved(["config/application.rb", ""]) do |profile, _|
       File.utime(Time.at(0), Time.at(0), profile.path)

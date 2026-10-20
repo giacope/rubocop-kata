@@ -20,7 +20,7 @@ class RuboCop::Kata::Profile
   def path
     layer = overlay
     return BASE if layer == { "inherit_from" => [BASE] }
-    text = YAML.dump(standalone(layer))
+    text = YAML.dump(silenced(standalone(layer), layer))
     target = File.join(@shelf, "rubocop-kata-#{Digest::SHA256.hexdigest(text)[0, 16]}.yml")
     publish(target, text) unless File.file?(target) && File.read(target) == text
     target
@@ -40,6 +40,11 @@ class RuboCop::Kata::Profile
     [*files, layer.except("inherit_from")].reduce do |lower, upper|
       lower.merge(upper) { |_, low, high| low.merge(high) { |_, old, new| old | new } }
     end
+  end
+
+  def silenced(merged, layer)
+    departments = layer.select { |_, value| value == { "Enabled" => false } }.keys
+    merged.to_h { |key, value| [key, departments.include?(key[%r{\A[^/]+}]) ? value.merge("Enabled" => false) : value] }
   end
 
   def publish(target, text)
