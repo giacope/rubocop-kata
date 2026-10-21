@@ -103,8 +103,8 @@ RSpec.describe(RuboCop::Kata::Checkup) do
   end
 
   it "keeps quiet about a directive naming a cop that runs on the file" do
-    source = "# frozen_string_literal: true\n\n# rubocop:disable Kata/GoodClassName\nclass Fetcher\nend\n" \
-      "# rubocop:enable Kata/GoodClassName\n"
+    source = "# frozen_string_literal: true\n\n# rubocop:disable Kata/GoodClassName -- Avo resolves it\n" \
+      "class Fetcher\nend\n# rubocop:enable Kata/GoodClassName\n"
     project("", source) { |root| expect(report(root).first).to(include("\nclean\n")) }
   end
 
@@ -175,14 +175,20 @@ RSpec.describe(RuboCop::Kata::Checkup) do
     end
   end
 
-  it "lists every inline disable with its reason, and counts the bare ones" do
+  it "says to rename a cop RuboCop renamed in the configuration" do
+    project("Lint/StringConversionInInterpolation:\n  Enabled: true\n", "VALUE = 1\n") do |root|
+      expect(report(root)).to(match([include("rename it in .rubocop.yml"), 2]))
+    end
+  end
+
+  it "lists every inline disable with its reason, and fails on the bare ones" do
     source = "# frozen_string_literal: true\n\n# rubocop:disable Kata/GoodClassName -- Avo resolves it by name\n" \
       "class Fetcher\nend\n# rubocop:enable Kata/GoodClassName\nVALUE = 1 # rubocop:disable Style/MutableConstant\n"
     listed = [
       "sample.rb:3: disables `Kata/GoodClassName` — Avo resolves it by name",
       "sample.rb:7: disables `Style/MutableConstant` — no reason given",
-      "clean\n2 inline disables, 1 without a reason\n"
+      "0 dead entries\n2 inline disables, 1 without a reason\n"
     ]
-    project("", source) { |root| expect(report(root)).to(match([include(*listed), 0])) }
+    project("", source) { |root| expect(report(root)).to(match([include(*listed), 1])) }
   end
 end

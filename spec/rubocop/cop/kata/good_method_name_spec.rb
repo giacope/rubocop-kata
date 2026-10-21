@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "tmpdir"
+
 RSpec.describe(RuboCop::Cop::Kata::GoodMethodName, :config) do
   let(:defaults) { YAML.load_file("config/default.yml", aliases: true).fetch("Kata/GoodMethodName") }
   let(:cop_config) { defaults.merge("Terms" => [], "AllowedNames" => []) }
@@ -337,5 +339,49 @@ RSpec.describe(RuboCop::Cop::Kata::GoodMethodName, :config) do
       self.define_method(:user_home_page) { "x" }
                          ^^^^^^^^^^^^^^^ #{offense("user_home_page")}
     RUBY
+  end
+
+  context "with joint words and the atomic vocabulary" do
+    let(:ruby_version) { 3.4 }
+    let(:cop_config) do
+      { "MaxWords" => 2, "Prefixes" => %w[on], "AllowedNames" => %w[compare_and_set get_and_set] }
+    end
+
+    it "reads a joint only between two words, after the role prefix" do
+      expect_offense(<<~RUBY)
+        class Cell
+          def then(value) = value
+          def or(other) = other
+          def on_and(node) = node
+          def compare_and_set(old, new) = [old, new]
+          def save_and_close = nil
+              ^^^^^^^^^^^^^^ `save_and_close` chains actions with `and`; each action wants its own method.
+        end
+      RUBY
+    end
+  end
+
+  context "with the project's other files" do
+    include TabledCop
+
+    let(:root) { Dir.mktmpdir("kata-names") }
+    let(:cop) do
+      shipped = { "Kata/GoodMethodName" => { "OwnedPaths" => ["lib/**/*.rb"], "MaxWords" => 2 } }
+      described_class.new(RuboCop::Config.new(shipped, File.join(root, ".rubocop.yml")))
+    end
+
+    before do
+      FileUtils.mkdir_p(File.join(root, "lib"))
+      base = "module Shelf\n  class Fetcher\n    def check_required_files = nil\n  end\nend\n"
+      File.write(File.join(root, "lib", "fetcher.rb"), base)
+    end
+
+    after { FileUtils.rm_rf(root) }
+
+    it "reports a name once, where it was chosen, not in each override" do
+      source = "module Shelf\n  class Npm < Fetcher\n    def check_required_files = 1\n    " \
+        "def fetch_lock_files = 2\n  end\nend\n"
+      expect(offenses(source).map(&:line)).to(eq([4]))
+    end
   end
 end

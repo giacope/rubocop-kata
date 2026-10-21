@@ -51,7 +51,8 @@ class RuboCop::Cop::Kata::RealWords < RuboCop::Cop::Base
   def word?(segment)
     base = segment.sub(/\d+\z/, "")
     return true if base.length < 2 || listed?("Terms", segment)
-    forms(base).any? { RuboCop::Kata::Dictionary::ENTRIES.include?(it) } && !banned?(segment)
+    entries = RuboCop::Kata::Dictionary::ENTRIES
+    (entries.include?(segment) || forms(base).any? { entries.include?(it) }) && !banned?(segment)
   end
 
   def forms(base)

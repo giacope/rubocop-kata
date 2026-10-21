@@ -30,6 +30,8 @@ class RuboCop::Kata::Lineage
     found
   end
 
+  def defines?(owner, method) = @records[owner]&.dig(:methods)&.key?(method) || false
+
   def constructed(name, hooks) = @memo[[name, hooks]] ||= closure(family(name), CONSTRUCTORS | hooks)
 
   private

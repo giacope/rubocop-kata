@@ -8,6 +8,11 @@ class RuboCop::Cop::Kata::GoodVariableName < RuboCop::Cop::Base
     "if `%s` is one domain concept here, add it to `Terms`."
 
   SIGIL = /\A(@@|@|\$)/
+  PREDEFINED = %i[
+    $VERBOSE $DEBUG $0 $PROGRAM_NAME $stdout $stderr $stdin $LOAD_PATH $LOADED_FEATURES $FILENAME $FIELD_SEPARATOR
+    $OUTPUT_FIELD_SEPARATOR $INPUT_RECORD_SEPARATOR $OUTPUT_RECORD_SEPARATOR $PROCESS_ID $CHILD_STATUS $SAFE $KCODE
+    $-w $-v $-d $-0 $-F $-I $-a $-i $-l $-p $, $/ $\\ $; $:
+  ].freeze
 
   def on_lvasgn(node) = check(node, node.name)
 
@@ -15,7 +20,7 @@ class RuboCop::Cop::Kata::GoodVariableName < RuboCop::Cop::Base
 
   def on_cvasgn(node) = check(node, node.name)
 
-  def on_gvasgn(node) = check(node, node.name)
+  def on_gvasgn(node) = (check(node, node.name) unless PREDEFINED.include?(node.name))
 
   def on_arg(node) = check(node, node.name)
 

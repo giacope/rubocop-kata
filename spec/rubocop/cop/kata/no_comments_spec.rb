@@ -109,7 +109,48 @@ RSpec.describe(RuboCop::Cop::Kata::NoComments, :config) do
     expect_offense(<<~RUBY)
       # frozen string literals are fast
       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Say it in the code: rename it, extract it, or name the constant.
-      TABLE = { a: [1] }
+      puts(1)
+    RUBY
+  end
+
+  it "attaches documentation to the next public definition, across sig, a decorator and RDoc's blank line" do
+    expect_offense(<<~RUBY)
+      class Sizes
+        extend T::Sig
+
+        # Returns the size as text.
+        sig { params(bytes: Integer).returns(String) }
+        def text(bytes) = bytes.to_s
+
+        ##
+        # Prepends the source.
+
+        def prepend(source) = [source]
+
+        # The largest size it formats.
+        LIMIT = 1024
+
+        # The bytes it was built with.
+        attr_reader :bytes
+
+        # Builds the reader for each unit.
+        define_method(:kibi) { 1 }
+
+        # Returns the size in mebibytes.
+        memoize
+        def mebi = 2
+
+        # A table only this class reads.
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Say it in the code: rename it, extract it, or name the constant.
+        UNITS = %w[KiB MiB].freeze
+        private_constant :UNITS
+
+        private
+
+        # The cache it fills.
+        ^^^^^^^^^^^^^^^^^^^^^ Say it in the code: rename it, extract it, or name the constant.
+        attr_reader :cache
+      end
     RUBY
   end
 

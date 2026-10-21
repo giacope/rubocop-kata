@@ -15,10 +15,12 @@ module RuboCop
 end
 
 require_relative "rubocop/kata/waiver"
+require_relative "rubocop/kata/waivers"
 require_relative "rubocop/kata/public_api"
 require_relative "rubocop/cop/kata/roster"
 require_relative "rubocop/cop/kata/minting"
 require_relative "rubocop/cop/kata/memoization"
+require_relative "rubocop/cop/kata/ancestry"
 require_relative "rubocop/cop/kata/verbatim"
 require_relative "rubocop/cop/kata/builder_noun"
 require_relative "rubocop/cop/kata/class_in_module"

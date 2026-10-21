@@ -3,6 +3,7 @@
 class RuboCop::Cop::Kata::FrozenState < RuboCop::Cop::Base
   include RuboCop::Cop::Kata::Memoization
   include RuboCop::Cop::Kata::Roster
+  include RuboCop::Cop::Kata::Ancestry
 
   MSG = "`%s` changes after construction; set state once in `initialize` and return a new object to change it."
   CONSTRUCTORS = %i[initialize initialize_copy initialize_dup initialize_clone].freeze
@@ -89,11 +90,6 @@ class RuboCop::Cop::Kata::FrozenState < RuboCop::Cop::Base
   def constructed?(scope, name)
     return false unless scope.type?(:class, :module)
     project.constructed(RuboCop::Kata::Nesting.new(scope).qualified, hooks(scope).sort).include?(name)
-  end
-
-  def project
-    @_project ||= RuboCop::Kata::Inventory.of(config.base_dir_for_path_parameters, list("OwnedPaths")).lineage
-      .merge(RuboCop::Kata::Lineage.parse(processed_source.raw_source))
   end
 
   def lineage(scope)

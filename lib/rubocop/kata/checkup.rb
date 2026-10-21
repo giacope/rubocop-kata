@@ -9,13 +9,10 @@ class RuboCop::Kata::Checkup
   RENAMED = "%s:%d: the directive names `%s`, which RuboCop renamed to `%s`; the comment does nothing."
   UNREAD = "%s: not checked, %s."
   BROKEN = "%s: does not parse as Ruby %s, the target version; its directives were read only as far as the parser got."
-  UNLOADED = "%s: the project's configuration does not load (%s); run doctor through the project's bundle, " \
-    "`bundle exec rubocop-kata doctor`."
-  WAIVER = "%s:%d: disables `%s` — %s"
-  BARE = "no reason given"
+  UNLOADED = "%s: the project's configuration does not load (%s); %s."
+  BUNDLED = "run doctor through the project's bundle, `bundle exec rubocop-kata doctor`"
   TALLY = "%d dead entr%s"
   SKIPPED = ", %d file%s not fully checked"
-  WAIVERS = "%d inline disable%s, %d without a reason"
   KEY = %r{\A([A-Z]\w*/\w+):}
 
   def initialize(root, io: $stdout)
@@ -26,7 +23,8 @@ class RuboCop::Kata::Checkup
   def run
     examine
   rescue ::LoadError, RuboCop::Error => error
-    @io.puts(format(UNLOADED, @root, error.message.lines.first.to_s.strip))
+    cause = error.message.lines.first.to_s.strip
+    @io.puts(format(UNLOADED, @root, cause, cause.include?("renamed to") ? "rename it in .rubocop.yml" : BUNDLED))
     2
   end
 
@@ -34,17 +32,17 @@ class RuboCop::Kata::Checkup
 
   def examine
     found = inert + dead
-    clean = found.empty? && notes.empty?
-    [*waivers, *notes, *found, clean ? "clean" : tally(found), *count].each { @io.puts(it) }
+    clean = clean?(found)
+    [*waivers.lines, *notes, *found, clean ? "clean" : tally(found), *waivers.tally].each { @io.puts(it) }
     clean ? 0 : 1
   end
+
+  def clean?(found) = found.empty? && notes.empty? && waivers.bare.zero?
 
   def tally(found)
     text = format(TALLY, found.size, found.one? ? "y" : "ies")
     notes.empty? ? text : text + format(SKIPPED, notes.size, plural(notes))
   end
-
-  def count = waived.empty? ? [] : [format(WAIVERS, waived.size, plural(waived), waived.count { it.last.empty? })]
 
   def plural(list) = list.one? ? "" : "s"
 
@@ -100,17 +98,7 @@ class RuboCop::Kata::Checkup
       end
   end
 
-  def waivers
-    waived.map { |path, line, cops, reason| format(WAIVER, path, line, cops, reason.empty? ? BARE : reason) }
-  end
-
-  def waived
-    @_waived ||=
-      parsed.flat_map do |path, source|
-        source.comments.map { RuboCop::Kata::Waiver.new(it) }.select(&:disabling?)
-          .map { [path, it.line, it.cops.join("`, `"), it.reason] }
-      end
-  end
+  def waivers = @_waivers ||= RuboCop::Kata::Waivers.new(parsed)
 
   def parsed = sources.reject { |_, source| source.is_a?(String) }
 

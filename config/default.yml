@@ -236,6 +236,10 @@ Kata/GoodMethodName:
     a contract, not a choice: `AllowedPatterns` holds those patterns, Prism's
     `on_call_node_enter` listeners among them.
   Enabled: true
+  OwnedPaths:
+    - "app/**/*.rb"
+    - "lib/**/*.rb"
+    - "*/lib/**/*.rb"
   VersionAdded: "0.5"
   VersionChanged: "0.11"
   AllowedPatterns:
@@ -362,6 +366,15 @@ Kata/GoodMethodName:
     - time_zone
     - user_agent
   AllowedNames:
+    - add_and_get
+    - compare_and_set
+    - compare_and_swap
+    - decrement_and_get
+    - get_and_add
+    - get_and_set
+    - get_and_update
+    - increment_and_get
+    - update_and_get
     - active_for_authentication
     - after_sign_in_path_for
     - after_sign_out_path_for
@@ -789,7 +802,8 @@ Kata/NoHashAsObject:
   VersionAdded: "0.3"
   VersionChanged: "0.11"
   MaxKeys: 4
-  TableMethods: []
+  TableMethods:
+    - metadata=
   AllowedMethods:
     - as_json
     - attributes

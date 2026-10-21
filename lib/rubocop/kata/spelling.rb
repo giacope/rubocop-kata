@@ -13,7 +13,9 @@ class RuboCop::Kata::Spelling
     [/ogue(s)?\z/, 'og\1'],
     [/mme(s)?\z/, 'm\1'],
     [/ae/, "e"],
-    [/oe/, "e"]
+    [/oe/, "e"],
+    [/artefact/, "artifact"],
+    [/dependant/, "dependent"]
   ].freeze
 
   def initialize(form)

@@ -129,4 +129,12 @@ RSpec.describe(RuboCop::Cop::Kata::NoHashAsObject, :config) do
       RUBY
     end
   end
+
+  it "reads a braced hash passed last as a hash, and only bare keywords as call syntax" do
+    expect_offense(<<~RUBY)
+      jobs.push({ id: 1, name: "a", cores: 2, ram: 4 })
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ 4 keys travelling together are an object without a name.
+      jobs.push(id: 1, name: "a", cores: 2, ram: 4)
+    RUBY
+  end
 end

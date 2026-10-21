@@ -15,7 +15,7 @@ class RuboCop::Cop::Kata::NoHashAsObject < RuboCop::Cop::Base
 
   def kwargs?(node)
     holder = node.parent
-    CALLS.include?(holder&.type) && (!node.braces? || node.equal?(holder.last_argument))
+    CALLS.include?(holder&.type) && !node.braces?
   end
 
   def table?(node)
