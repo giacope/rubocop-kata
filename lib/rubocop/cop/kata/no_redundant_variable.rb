@@ -39,8 +39,7 @@ class RuboCop::Cop::Kata::NoRedundantVariable < RuboCop::Cop::Base
   def width(inlining)
     range = inlining.range
     line = range.source_line
-    joined = "#{line[0, range.column]}#{inlining.text}#{line[range.last_column..]}".lines
-    [joined.first, joined.last].map { it.chomp.length }.max
+    "#{line[0, range.column]}#{inlining.text}#{line[range.last_column..]}".length
   end
 
   def register(assign, read, movable)
@@ -61,12 +60,10 @@ class RuboCop::Cop::Kata::NoRedundantVariable < RuboCop::Cop::Base
   end
 
   def movable?(assign, read, singles)
-    solo?(assign) && !heredoc?(assign) && !swallows?(assign, singles) && faithful?(assign, read)
+    solo?(assign) && !swallows?(assign, singles) && faithful?(assign, read)
   end
 
   def faithful?(assign, read) = RuboCop::Kata::Variable::Inlining.new(assign.expression, read).faithful?
-
-  def heredoc?(assign) = assign.each_descendant(:str, :dstr, :xstr).any?(&:heredoc?)
 
   def solo?(assign)
     range = assign.source_range

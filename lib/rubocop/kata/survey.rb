@@ -7,6 +7,10 @@ class RuboCop::Kata::Survey
   RSPEC = %w[rspec rspec-core rspec-rails].freeze
   SORBET = %w[sorbet sorbet-runtime sorbet-static].freeze
   ENGINE = /<\s*(::)?Rails::Engine\b|^\s*isolate_namespace\b/
+  APPLICATION = File.join("config", "application.rb")
+  NAMESPACE = /^\s*module\s+([A-Z]\w*)/
+  DEFINITION = /^\s*(?:class|module)\s+([A-Z][\w:]*)/
+  PARSER = /\.add_(?:runtime_)?dependency[\s(]*["'](?:parser|rubocop|rubocop-ast|unparser)["']/
   SIGIL = /^#\s*typed:\s*\w/
   DESCRIBE = /^\s*RSpec\.describe\b/
   GRAMMARS = %w[rl y racc treetop rex].freeze
@@ -19,10 +23,16 @@ class RuboCop::Kata::Survey
   end
 
   def rails?
-    File.file?(File.join(@root, "config", "application.rb")) || sources("lib/**/*.rb").any? { ENGINE.match?(read(it)) }
+    File.file?(File.join(@root, APPLICATION)) || sources("lib/**/*.rb").any? { ENGINE.match?(read(it)) }
   end
 
   def packaged? = Dir.glob(GEMSPECS, base: @root).any?
+
+  def parser? = Dir.glob(GEMSPECS, base: @root).any? { PARSER.match?(read(File.join(@root, it))) }
+
+  def names = [*gems, *application].flat_map { it.split(/[-_.]/) }.uniq
+
+  def constants = sources(*LIBRARY).flat_map { read(it).scan(DEFINITION) }.flatten.flat_map { it.split("::") }.uniq
 
   def rspec?
     return true if File.file?(File.join(@root, ".rspec")) || uses?(RSPEC)
@@ -38,6 +48,14 @@ class RuboCop::Kata::Survey
   end
 
   private
+
+  def gems = Dir.glob(GEMSPECS, base: @root).map { File.basename(it, ".gemspec") }
+
+  def application
+    path = File.join(@root, APPLICATION)
+    return [] unless File.file?(path)
+    read(path).scan(NAMESPACE).flatten.first(1).map { it.gsub(/([a-z\d])([A-Z])/, '\1_\2').downcase }
+  end
 
   def uses?(gems)
     names = gems.join("|")

@@ -6,6 +6,7 @@ RSpec.describe(RuboCop::Cop::Kata::RealWords, :config) do
     {
       "BannedWords" => YAML.load_file("config/default.yml", aliases: true).fetch("Kata/RealWords").fetch("BannedWords"),
       "Terms" => %w[],
+      "Vocabulary" => %w[],
       "AllowedNames" => %w[]
     }
   end
@@ -111,7 +112,7 @@ RSpec.describe(RuboCop::Cop::Kata::RealWords, :config) do
   end
 
   context "with the shipped defaults" do
-    let(:cop_config) { RuboCop::ConfigLoader.default_configuration.for_cop("Kata/RealWords") }
+    let(:cop_config) { RuboCop::ConfigLoader.default_configuration.for_cop("Kata/RealWords").merge("Vocabulary" => []) }
 
     it "allows the conversion protocol Ruby calls by name" do
       expect_no_offenses(<<~RUBY)
@@ -369,6 +370,23 @@ RSpec.describe(RuboCop::Cop::Kata::RealWords, :config) do
   it "knows en-GB nouns, networking and mail initialisms, and the words the corpus showed" do
     expect_no_offenses(<<~RUBY)
       def deliver(artefact, dependants, tcp, ipv6, cpu, dkim, bcc, jitter, uptime, heatmap, stylesheet) = nil
+    RUBY
+  end
+
+  context "with the project's vocabulary" do
+    let(:cop_config) { { "Terms" => [], "Vocabulary" => %w[kata lvasgn str], "AllowedNames" => [] } }
+
+    it "takes the project's name and the parser's node types for words" do
+      expect_no_offenses(<<~RUBY)
+        def on_lvasgn(node) = node
+        kata = str = 1
+      RUBY
+    end
+  end
+
+  it "leaves a method that calls super to its ancestor's name" do
+    expect_no_offenses(<<~RUBY)
+      def visit_begin_node(node) = endpoint(node) { super }
     RUBY
   end
 end

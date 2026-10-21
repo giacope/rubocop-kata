@@ -75,6 +75,7 @@ heic
 held
 helo
 hmac
+hotspot
 html
 http
 https
@@ -95,6 +96,7 @@ jitter
 jobseeker
 js
 json
+jsonl
 jwt
 keepalive
 kerb
@@ -119,6 +121,7 @@ multiline
 mx
 nameserver
 namespace
+ndjson
 nginx
 oauth
 offline
@@ -146,6 +149,7 @@ refactor
 rollup
 runtime
 saml
+sarif
 sceptic
 scheduler
 screenshot
@@ -184,6 +188,7 @@ url
 utf
 uuid
 validator
+vendored
 vpc
 webauthn
 webhook

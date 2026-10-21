@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class RuboCop::Kata::Variable::Label
-  PLAIN = %i[int float rational complex str sym true false nil regexp lvar ivar cvar gvar const self].freeze
+  PLAIN = %i[int float rational complex str sym true false nil lvar ivar cvar gvar const self].freeze
   GENERIC = %w[result results value values data out output item thing object].freeze
   VARIABLES = %i[lvar ivar cvar gvar].freeze
 
@@ -13,12 +13,15 @@ class RuboCop::Kata::Variable::Label
   def explains?
     value = @assign.expression
     value = RuboCop::Kata::Annotation.new(value).value if @sorbet
+    return true if spread?(value)
     return false if PLAIN.include?(value.type)
     said = told(value)
     @assign.name.to_s.split("_").any? { |word| meaningful?(word) && !said.include?(word) }
   end
 
   private
+
+  def spread?(value) = value.multiline? || value.each_node(:str, :dstr, :xstr).any?(&:heredoc?)
 
   def meaningful?(word) = word.sub(/\d+\z/, "").length > 1 && !GENERIC.include?(word)
 

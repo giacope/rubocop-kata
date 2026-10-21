@@ -617,13 +617,22 @@ Kata/RealWords:
     `AllowedNames` exempts names a protocol dictates (`to_str`). English is
     English: British, Canadian and Australian spellings (`organisation`,
     `colour`, `offence`, `labelled`, `metre`) are words; `Spelling: en-US`
-    accepts American spelling only.
+    accepts American spelling only. The project's own name is its
+    vocabulary: kata fills `Vocabulary` with the segments of its gemspec
+    names and Rails application module (`kata` in rubocop-kata), and, for a
+    gem that depends on parser, rubocop-ast, rubocop or unparser, with the
+    parser's node types (`lvasgn`, `dstr`, `kwoptarg`, `str`, `arg`).
   Enabled: true
   VersionAdded: "0.5"
   VersionChanged: "0.11"
   Spelling: any
   BannedWords: []
   Terms: []
+  Vocabulary: []
+  OwnedPaths:
+    - "app/**/*.rb"
+    - "lib/**/*.rb"
+    - "*/lib/**/*.rb"
   AllowedNames:
     - to_ary
     - to_int
@@ -631,10 +640,19 @@ Kata/RealWords:
     - to_sym
 
 Kata/BuilderNoun:
-  Description: "Builders are named for what they return; verbs are for side effects."
+  Description: >-
+    Builders are named for what they return; verbs are for side effects. A
+    method that calls `super` overrides its ancestor's name, and a stand-in
+    for a message the project's code sends but never defines
+    (`get_callbacks` in a spec double of ActiveSupport) answers to the name
+    the caller chose.
   Enabled: true
   VersionAdded: "0.3"
-  VersionChanged: "0.7"
+  VersionChanged: "0.11"
+  OwnedPaths:
+    - "app/**/*.rb"
+    - "lib/**/*.rb"
+    - "*/lib/**/*.rb"
   BannedPrefixes:
     - get
     - calculate
@@ -822,10 +840,13 @@ Kata/NoHashAsObject:
     - "**/*.jbuilder"
 
 Kata/ClockDiscipline:
-  Description: "Read time from an injected clock, not the ambient one."
+  Description: >-
+    Read time from an injected clock, not the ambient one. A parameter
+    default is the seam, and code outside every class, module and method is a
+    script's boot layer.
   Enabled: true
   VersionAdded: "0.3"
-  VersionChanged: "0.8"
+  VersionChanged: "0.11"
   Exclude:
     - "spec/**/*"
     - "test/**/*"
@@ -848,10 +869,13 @@ Kata/ClockDiscipline:
     - "**/*.jbuilder"
 
 Kata/EnvDiscipline:
-  Description: "ENV belongs in the boot layer; pass configuration in."
+  Description: >-
+    ENV belongs in the boot layer; pass configuration in. A parameter default
+    is the seam, and code outside every class, module and method is a
+    script's boot layer.
   Enabled: true
   VersionAdded: "0.3"
-  VersionChanged: "0.8"
+  VersionChanged: "0.11"
   Exclude:
     - "spec/**/*"
     - "test/**/*"
@@ -1128,8 +1152,14 @@ Style/ItBlockParameter:
   Enabled: true
   EnforcedStyle: only_numbered_parameters
 
+# RuboCop's spec helpers read `%{name}` as their own template (`expect_offense`
+# fills it from keyword arguments); it is not a format string.
 Style/FormatStringToken:
   EnforcedStyle: unannotated
+  AllowedMethods:
+    - expect_offense
+    - expect_correction
+    - expect_no_offenses
 
 Style/EndlessMethod:
   Enabled: true
@@ -1393,9 +1423,10 @@ Kata/NoRedundantVariable:
     the name is a letter or a generic word (`result`, `value`), or the
     expression already spells it (`user = User.find(id)`). A name that adds
     a word explains the value (`subtotal = [...].max`), as Clean Code asks of
-    an explanatory variable, and stays; so does a local whose inlining would
-    push its line past Layout/LineLength (for a multi-line value, the first
-    or last line it lands on).
+    an explanatory variable, and stays. A value that spans several lines (a
+    heredoc's too) is a step with a name, and so is a regexp under a name
+    that says what it matches; both stay, and so does a local whose inlining
+    would push its line past Layout/LineLength.
   Enabled: true
   Sorbet: false
   VersionAdded: "0.10"
@@ -1541,6 +1572,29 @@ ThreadSafety/DirChdir:
   Exclude:
     - "spec/**/*"
     - "test/**/*"
+
+# A suite is not shared mutable state: a fixture class keeps what a test sets
+# on it, as ThreadSafety/MethodRedefinition and DirChdir already allow.
+ThreadSafety/ClassInstanceVariable:
+  Exclude:
+    - "spec/**/*"
+    - "test/**/*"
+    - "**/*_spec.rb"
+    - "**/*_test.rb"
+
+ThreadSafety/ClassAndModuleAttributes:
+  Exclude:
+    - "spec/**/*"
+    - "test/**/*"
+    - "**/*_spec.rb"
+    - "**/*_test.rb"
+
+ThreadSafety/MutableClassInstanceVariable:
+  Exclude:
+    - "spec/**/*"
+    - "test/**/*"
+    - "**/*_spec.rb"
+    - "**/*_test.rb"
 
 # --- With Kata/ClassInModule it left only `class A::B`, whose lexical scope
 # skips `A`; a module, a class and a compact namespace all name a namespace.

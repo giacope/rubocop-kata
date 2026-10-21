@@ -19,6 +19,11 @@ RSpec.describe(RuboCop::Kata::Plan, :restore_configuration) do
     end
   end
 
+  def reads(*keys)
+    methods = keys.map { "def setting#{it.downcase}\n  ENV.fetch(\"#{it}\", nil)\nend\n" }
+    "# frozen_string_literal: true\n\n#{methods.join}"
+  end
+
   def report(root)
     io = StringIO.new
     described_class.new(root, io: io).run.then { [io.string, it] }
@@ -69,7 +74,7 @@ RSpec.describe(RuboCop::Kata::Plan, :restore_configuration) do
   end
 
   it "says why structure comes first" do
-    project("# frozen_string_literal: true\n\nENV.fetch(\"A\", nil)\n") do |root|
+    project(reads("A")) do |root|
       expect(report(root).first).to(include("mint the names `naming` then prices"))
     end
   end
@@ -81,8 +86,8 @@ RSpec.describe(RuboCop::Kata::Plan, :restore_configuration) do
   end
 
   it "names the file carrying the most of the stage it picked" do
-    thin = "# frozen_string_literal: true\n\nENV.fetch(\"A\", nil)\n"
-    thick = "# frozen_string_literal: true\n\nENV.fetch(\"A\", nil)\nENV.fetch(\"B\", nil)\n"
+    thin = reads("A")
+    thick = reads("A", "B")
     project(thin, thick) { |root| expect(report(root).first).to(include("densest: sample1.rb (2)")) }
   end
 
@@ -99,8 +104,8 @@ RSpec.describe(RuboCop::Kata::Plan, :restore_configuration) do
   end
 
   it "counts offenses and files in the plural" do
-    thin = "# frozen_string_literal: true\n\nENV.fetch(\"A\", nil)\n"
-    thick = "# frozen_string_literal: true\n\nENV.fetch(\"A\", nil)\nENV.fetch(\"B\", nil)\n"
+    thin = reads("A")
+    thick = reads("A", "B")
     project(thin, thick) { |root| expect(report(root).first).to(include("next: structure — 3 offenses in 2 files;")) }
   end
 
@@ -111,8 +116,7 @@ RSpec.describe(RuboCop::Kata::Plan, :restore_configuration) do
   end
 
   it "lists a stage's cops busiest first" do
-    source = "# frozen_string_literal: true\n\nENV.fetch(\"A\", nil)\nENV.fetch(\"B\", nil)\n" \
-      "def initialize\n  @at = Time.now\nend\n"
+    source = "#{reads("A", "B")}def initialize\n  @at = Time.now\nend\n"
     project(source) do |root|
       expect(report(root).first).to(match(%r{^structure\s+\d+\s+Kata/EnvDiscipline 2, }))
     end

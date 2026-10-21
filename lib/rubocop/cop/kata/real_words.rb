@@ -3,6 +3,7 @@
 class RuboCop::Cop::Kata::RealWords < RuboCop::Cop::Base
   include RuboCop::Cop::Kata::Roster
   include RuboCop::Cop::Kata::Minting
+  include RuboCop::Cop::Kata::Contract
 
   MSG = "%s is not in the dictionary — restore the underscore between smashed words, spell the " \
     "abbreviation out, or add it to `Terms` if it is one domain term here."
@@ -22,7 +23,10 @@ class RuboCop::Cop::Kata::RealWords < RuboCop::Cop::Base
   PREFIXES = %w[un re non sub].freeze
   NAMED = %i[ivasgn cvasgn gvasgn arg optarg kwarg kwoptarg restarg kwrestarg blockarg].freeze
 
-  def on_def(node) = mint(node.loc.name, node.method_name)
+  def on_def(node)
+    name = node.method_name
+    mint(node.loc.name, name) unless inherited?(node) || foreign?(name)
+  end
 
   alias on_defs on_def
 
@@ -50,7 +54,7 @@ class RuboCop::Cop::Kata::RealWords < RuboCop::Cop::Base
 
   def word?(segment)
     base = segment.sub(/\d+\z/, "")
-    return true if base.length < 2 || listed?("Terms", segment)
+    return true if base.length < 2 || listed?("Terms", segment) || listed?("Vocabulary", segment)
     entries = RuboCop::Kata::Dictionary::ENTRIES
     (entries.include?(segment) || forms(base).any? { entries.include?(it) }) && !banned?(segment)
   end

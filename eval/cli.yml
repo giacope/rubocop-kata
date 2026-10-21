@@ -85,3 +85,22 @@
   expect:
     status: [0]
     stdout: ["clean"]
+- id: plan-takes-the-gem-name-and-node-types-for-words
+  gap: R19
+  command: plan
+  files:
+    .rubocop.yml: "plugins:\n  - rubocop-kata\n\nAllCops:\n  TargetRubyVersion: 3.4\n"
+    rubocop-shelf.gemspec: "Gem::Specification.new { it.add_dependency(\"rubocop\", \">= 1\") }\n"
+    lib/shelf.rb: "# frozen_string_literal: true\n\nmodule Shelf\n  def self.on_lvasgn(node) = [node, :false]\n\n  def self.shelf(dstr, kwoptarg) = [dstr, kwoptarg]\nend\n"
+  expect:
+    stdout_absent: ["Kata/RealWords", "Lint/BooleanSymbol"]
+- id: plan-still-reads-node-types-as-clippings-without-the-parser
+  gap: R19
+  command: plan
+  files:
+    .rubocop.yml: "plugins:\n  - rubocop-kata\n\nAllCops:\n  TargetRubyVersion: 3.4\n"
+    shelf.gemspec: "Gem::Specification.new { it.add_development_dependency(\"rubocop\") }\n"
+    lib/shelf.rb: "# frozen_string_literal: true\n\nmodule Shelf\n  def self.on_lvasgn(node) = [node, :false]\nend\n"
+  expect:
+    status: [1]
+    stdout: ["Kata/RealWords", "Lint/BooleanSymbol"]

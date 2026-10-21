@@ -53,6 +53,8 @@ class Assay::Snippets
   def grow(label, group)
     root = File.join(@work, label)
     FileUtils.rm_rf(root)
+    FileUtils.mkdir_p(root)
+    File.write(File.join(root, ".rubocop.yml"), CONFIG)
     group.each { plant(root, it) }
     root
   end

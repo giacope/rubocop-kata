@@ -137,8 +137,7 @@ RSpec.describe(RuboCop::Cop::Kata::NoRedundantVariable) do
       ["def foo\n  x = 1\n  qux(x)\n  def self.bar\n    x = 2\n    baz(x)\n  end\nend", 2],
       "assignment_after_a_parenthesised_condition_assignment" =>
       ["def foo\n  if (x = bar)\n    1\n  end\n  x = 2\n  baz(x)\nend", 1],
-      "multi_line_assignment" => ["def foo\n  x = [\n    1\n  ]\n  baz(x)\nend", 1],
-      "heredoc_assignment" => ["def foo\n  sql = <<~SQL\n    x\n  SQL\n  run(sql)\nend", 1],
+      "regexp_under_a_name_that_says_nothing" => ["def foo(text)\n  x = /\\A\\d+\\z/\n  text.match?(x)\nend", 1],
       "safe_navigation_into_a_receiver" => ["def foo\n  x = a&.b\n  x.to_s\nend", 1]
     }, corrections: {
       "send_call_inlines_unwrapped" =>
@@ -199,10 +198,6 @@ RSpec.describe(RuboCop::Cop::Kata::NoRedundantVariable) do
       ["def foo\n  x = { a: 1 }\n  x\nend", "def foo\n  { a: 1 }\nend"],
       "hash_into_pair_value_inlines_unwrapped" =>
       ["def foo\n  x = { a: 1 }\n  bar(key: x)\nend", "def foo\n  bar(key: { a: 1 })\nend"],
-      "multi_line_assignment_is_left_alone" => [
-        "def foo\n  x = [\n    1\n  ]\n  baz(x)\nend",
-        "def foo\n  x = [\n    1\n  ]\n  baz(x)\nend"
-    ],
       "bare_read_inside_another_redundant_assignment_inlines_the_inner_one" =>
       ["def foo\n  a = one\n  b = a\n  bar(b)\nend", "def foo\n  b = one\n  bar(b)\nend"],
       "safe_navigation_into_a_receiver_is_left_alone" =>
@@ -291,19 +286,21 @@ RSpec.describe(RuboCop::Cop::Kata::NoRedundantVariable) do
   end
 
   # apply-for-teacher-training and steep: an `if`/`else` and a `fetch` with a
-  # block were inlined into an argument list, because a multi-line value
-  # skipped the width check.
-  it "measures the lines a multi-line value would change, first and last" do
-    value = "items.fetch(:key) do\n    1\n  end"
-    narrow = "def foo\n  x = #{value}\n  render(x)\nend"
-    opening = "def foo\n  x = #{value}\n  render(#{"2" * 90}, x)\nend"
-    closing = "def foo\n  x = build(\n    #{"3" * 100})\n  render(x, #{"2" * 20})\nend"
-    expect([narrow, opening, closing].map { offenses(it).size }).to(eq([1, 0, 0]))
+  # block were inlined into an argument list. A value that spans several lines
+  # is a step with a name (D5), whatever the name says.
+  it "keeps a local whose value spans several lines, a heredoc's included" do
+    sources = [
+      "def foo\n  x = items.fetch(:key) do\n    1\n  end\n  render(x)\nend",
+      "def foo\n  x = [\n    1\n  ]\n  baz(x)\nend",
+      "def foo\n  x = build(\n    1)\n  render(x)\nend",
+      "def foo\n  sql = <<~SQL\n    x\n  SQL\n  run(sql)\nend"
+    ]
+    expect(sources.flat_map { offenses(it) }).to(be_empty)
   end
 
-  it "leaves the unchanged middle of a multi-line value out of the width" do
-    source = "def foo\n  x = items.fetch(:key) do\n    #{"1" * 130}\n  end\n  render(x)\nend"
-    expect(offenses(source).size).to(eq(1))
+  # A regexp is the least readable literal there is: its name says what it matches.
+  it "keeps a local that names a regexp" do
+    expect(offenses("def foo(text)\n  digits = /\\A\\d+\\z/\n  text.match?(digits)\nend")).to(be_empty)
   end
 
   context "with the line limit switched off" do
