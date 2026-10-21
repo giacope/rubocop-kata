@@ -24,7 +24,7 @@ class RuboCop::Kata::Profile
     layer = overlay
     text = YAML.dump(silenced(standalone(layer), layer))
     target = File.join(@shelf, "rubocop-kata-#{Digest::SHA256.hexdigest(text)[0, 16]}.yml")
-    publish(target, text) unless File.file?(target) && File.read(target) == text
+    publish(target, text) unless File.file?(target) && File.read(target, encoding: Encoding::UTF_8) == text
     target
   end
 

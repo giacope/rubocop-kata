@@ -31,7 +31,7 @@ The study's items and ratings are in hashira, under
 
 - **One dependency.** Bundles rubocop-rspec, rubocop-performance, rubocop-elegant, rubocop-packaging, and rubocop-thread_safety behind a single gem. Each runs where it applies: packaging only in a gem, RSpec only where RSpec runs.
 - **Opinionated defaults.** Methods up to 10 lines and bounded by complexity, classes under 100, 4 parameters max, 120-column lines, double quotes, every pending cop kata reviewed. See [config/default.yml](config/default.yml).
-- **Safe autocorrect, by allowlist.** `rubocop -a` runs only the corrections kata's corpora have run under a green test suite (Sequel, rouge, steep); [data/autocorrect.txt](data/autocorrect.txt) lists them, and every other correction waits for `rubocop -A`. A correction that swaps a name for its "equivalent" (`sprintf` → `format`, `yield_self` → `then`, `TRUE` → `true`) is `-A` by policy: the project may define the name it swaps in.
+- **Safe autocorrect, by structure.** `rubocop -a` runs a correction only when it changes layout (whitespace, line breaks, indentation, comment layout), delimiters or quotes — never the content of a string, heredoc or regexp — or swaps syntax for an exact equivalent that resolves no name or method the project could define, flips no receiver of `==`, merges or splits no condition, and moves, duplicates or drops no expression. [data/autocorrect.txt](data/autocorrect.txt) files each one under `layout`, `delimiter` or `equivalent` with its reason; every other correction waits for `rubocop -A`. So `rescue => e` is not rewritten to a `StandardError` the project may define, a guard clause is not hoisted past a `fail` the class may define, and a local is not inlined. The guarantee is Ruby's semantics, not the text other tools read: a gemspec that greps `version.rb` for single quotes is the reason `Style/StringLiterals` leaves version files alone.
 - **Rails out of the box.** In a Rails app kata knows the names Rails and its common gems dictate and the files the generators write, and relaxes nothing else.
 - **Twenty-seven house cops.** Naming, dependency discipline, immutability, and data honesty in the Elegant Objects spirit — from `Kata/GoodClassName` to `Kata/FrozenState`.
 
@@ -227,13 +227,14 @@ endless methods on one line, `rescue => error` (reported, not renamed), and inli
 disables only with a reason. `NewCops` stays off: the pending cops kata reviewed
 are listed one by one, so a RuboCop upgrade adds no autocorrect nobody has
 read. The core Layout cops stay on, except the five that loop against the
-no-blank-lines rule. `rubocop -a` is an allowlist: a correction runs under it
-only when kata's eval corpora have run it with their test suites staying green
-([data/autocorrect.txt](data/autocorrect.txt); `script/autocorrect` writes
-[config/autocorrect.yml](config/autocorrect.yml) from it, and `eval/run`
-names the listed corrections no green suite ran). So `-a` deletes no comment,
-renames no ivar or rescue variable, swaps no name for one the project may
-define, and keeps RBS and Steep annotations; everything else is `-A`. See
+no-blank-lines rule. `rubocop -a` is an allowlist admitted by structure, not by
+evidence: a suite that stays green proves a correction safe on the code it met,
+not on the next codebase ([data/autocorrect.txt](data/autocorrect.txt);
+`script/autocorrect` writes [config/autocorrect.yml](config/autocorrect.yml)
+from it, and `eval/run` runs the corpora's suites to find bugs in what the rule
+admits). So `-a` deletes no comment, renames no ivar or rescue variable, swaps
+no name for one the project may define, moves no expression, and keeps RBS and
+Steep annotations; everything else is `-A`. See
 [config/default.yml](config/default.yml).
 
 ## Measured

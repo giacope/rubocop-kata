@@ -163,7 +163,8 @@ RSpec.describe(RuboCop::Kata::Profile) do
   end
 
   context "with the autocorrect allowlist" do
-    let(:allowed) { File.readlines("data/autocorrect.txt", chomp: true) }
+    let(:entries) { File.readlines("data/autocorrect.txt", chomp: true).map { it.split(" ", 3) } }
+    let(:allowed) { entries.map(&:first) }
     let(:held) { YAML.load_file("config/autocorrect.yml") }
 
     def shipped
@@ -176,6 +177,22 @@ RSpec.describe(RuboCop::Kata::Profile) do
 
     it "lists each correction once, in order" do
       expect(allowed).to(eq(allowed.uniq.sort))
+    end
+
+    it "files every correction under layout, delimiter or equivalent, with a reason" do
+      unfiled = entries.reject { |_, kind, reason| %w[layout delimiter equivalent].include?(kind) && reason.to_s.size > 10 }
+      expect(unfiled).to(be_empty)
+    end
+
+    it "leaves the corrections that resolve a name, move an expression or split a condition to -A" do
+      moved = %w[
+        Style/RescueStandardError Style/GuardClause Style/SoleNestedConditional Style/StderrPuts
+        Style/ParenthesesAroundCondition Lint/ImplicitStringConcatenation Naming/BinaryOperatorParameterName
+        Style/ParallelAssignment Style/MultipleComparison Lint/UnifiedInteger Style/ItBlockParameter
+        Style/NilComparison Style/ExplicitBlockArgument Style/RedundantCondition Style/FetchEnvVar
+        Kata/NoRedundantVariable
+      ]
+      expect(moved & allowed).to(be_empty)
     end
 
     it "never holds back a correction it allows" do

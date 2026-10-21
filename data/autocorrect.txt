@@ -1,185 +1,157 @@
-Kata/NoEmptyLinesInBlocks
-Kata/NoEmptyLinesInMethods
-Kata/NoRedundantVariable
-Kata/PairedBrackets
-Layout/AccessModifierIndentation
-Layout/ArgumentAlignment
-Layout/ArrayAlignment
-Layout/AssignmentIndentation
-Layout/BeginEndAlignment
-Layout/BlockAlignment
-Layout/BlockEndNewline
-Layout/CaseIndentation
-Layout/ClosingHeredocIndentation
-Layout/ClosingParenthesisIndentation
-Layout/CommentIndentation
-Layout/ConditionPosition
-Layout/DefEndAlignment
-Layout/DotPosition
-Layout/ElseAlignment
-Layout/EmptyComment
-Layout/EmptyLineAfterMagicComment
-Layout/EmptyLines
-Layout/EmptyLinesAroundArguments
-Layout/EmptyLinesAroundBlockBody
-Layout/EmptyLinesAroundClassBody
-Layout/EmptyLinesAroundExceptionHandlingKeywords
-Layout/EmptyLinesAroundMethodBody
-Layout/EmptyLinesAroundModuleBody
-Layout/EndAlignment
-Layout/ExtraSpacing
-Layout/FirstHashElementIndentation
-Layout/HashAlignment
-Layout/HeredocIndentation
-Layout/IndentationConsistency
-Layout/IndentationWidth
-Layout/LeadingCommentSpace
-Layout/LineEndStringConcatenationIndentation
-Layout/LineLength
-Layout/MultilineArrayBraceLayout
-Layout/MultilineAssignmentLayout
-Layout/MultilineBlockLayout
-Layout/MultilineHashBraceLayout
-Layout/MultilineMethodCallBraceLayout
-Layout/MultilineMethodCallIndentation
-Layout/MultilineMethodDefinitionBraceLayout
-Layout/MultilineOperationIndentation
-Layout/ParameterAlignment
-Layout/RedundantLineBreak
-Layout/RescueEnsureAlignment
-Layout/SpaceAfterColon
-Layout/SpaceAfterComma
-Layout/SpaceAfterNot
-Layout/SpaceAfterSemicolon
-Layout/SpaceAroundBlockParameters
-Layout/SpaceAroundEqualsInParameterDefault
-Layout/SpaceAroundKeyword
-Layout/SpaceAroundOperators
-Layout/SpaceBeforeBlockBraces
-Layout/SpaceBeforeBrackets
-Layout/SpaceBeforeComma
-Layout/SpaceBeforeFirstArg
-Layout/SpaceInLambdaLiteral
-Layout/SpaceInsideArrayLiteralBrackets
-Layout/SpaceInsideArrayPercentLiteral
-Layout/SpaceInsideBlockBraces
-Layout/SpaceInsideHashLiteralBraces
-Layout/SpaceInsideParens
-Layout/SpaceInsidePercentLiteralDelimiters
-Layout/SpaceInsideReferenceBrackets
-Layout/SpaceInsideStringInterpolation
-Layout/TrailingEmptyLines
-Layout/TrailingWhitespace
-Lint/AmbiguousOperatorPrecedence
-Lint/DeprecatedOpenSSLConstant
-Lint/DuplicateSetElement
-Lint/ImplicitStringConcatenation
-Lint/RedundantRequireStatement
-Lint/RedundantStringCoercion
-Lint/RedundantTypeConversion
-Lint/SymbolConversion
-Lint/TripleQuotes
-Lint/UnifiedInteger
-Lint/UnusedBlockArgument
-Lint/UnusedMethodArgument
-Lint/UselessAccessModifier
-Lint/UselessAssignment
-Lint/Void
-Naming/BinaryOperatorParameterName
-Naming/BlockForwarding
-Naming/HeredocDelimiterCase
-Performance/ConstantRegexp
-Performance/RedundantMatch
-Performance/RedundantSplitRegexpArgument
-Performance/RegexpMatch
-Performance/StringReplacement
-Style/AccessorGrouping
-Style/Alias
-Style/ArgumentsForwarding
-Style/BlockDelimiters
-Style/CharacterLiteral
-Style/ClassCheck
-Style/ColonMethodCall
-Style/CommentAnnotation
-Style/ConditionalAssignment
-Style/EachWithObject
-Style/EmptyBlockParameter
-Style/EmptyCaseCondition
-Style/EmptyElse
-Style/EmptyStringInsideInterpolation
-Style/Encoding
-Style/ExactRegexpMatch
-Style/ExpandPathArguments
-Style/ExplicitBlockArgument
-Style/FetchEnvVar
-Style/FileWrite
-Style/GuardClause
-Style/HashSyntax
-Style/IfInsideElse
-Style/IfWithSemicolon
-Style/ItBlockParameter
-Style/KeywordParametersOrder
-Style/MagicCommentFormat
-Style/MethodCallWithoutArgsParentheses
-Style/MultilineIfModifier
-Style/MultilineTernaryOperator
-Style/MultipleComparison
-Style/NegatedIf
-Style/NegatedIfElseCondition
-Style/NegatedWhile
-Style/NestedTernaryOperator
-Style/Next
-Style/NilComparison
-Style/NonNilCheck
-Style/Not
-Style/NumericLiteralPrefix
-Style/NumericLiterals
-Style/OneLineConditional
-Style/OrAssignment
-Style/ParallelAssignment
-Style/ParenthesesAroundCondition
-Style/PercentLiteralDelimiters
-Style/PerlBackrefs
-Style/QuotedSymbols
-Style/RedundantAssignment
-Style/RedundantBegin
-Style/RedundantCondition
-Style/RedundantConditional
-Style/RedundantConstantBase
-Style/RedundantFileExtensionInRequire
-Style/RedundantFreeze
-Style/RedundantInterpolationUnfreeze
-Style/RedundantLineContinuation
-Style/RedundantParentheses
-Style/RedundantPercentQ
-Style/RedundantRegexpArgument
-Style/RedundantRegexpCharacterClass
-Style/RedundantRegexpEscape
-Style/RedundantReturn
-Style/RedundantSelf
-Style/RedundantSelfAssignmentBranch
-Style/RegexpLiteral
-Style/RescueModifier
-Style/RescueStandardError
-Style/SelfAssignment
-Style/Semicolon
-Style/SoleNestedConditional
-Style/StderrPuts
-Style/StringLiterals
-Style/StringLiteralsInInterpolation
-Style/SuperArguments
-Style/SuperWithArgsParentheses
-Style/SymbolArray
-Style/SymbolLiteral
-Style/TernaryParentheses
-Style/TrailingCommaInArguments
-Style/TrailingCommaInArrayLiteral
-Style/TrailingCommaInHashLiteral
-Style/TrailingUnderscoreVariable
-Style/TrivialAccessors
-Style/UnlessElse
-Style/UnpackFirst
-Style/VariableInterpolation
-Style/WhileUntilDo
-Style/WhileUntilModifier
-Style/WordArray
+Kata/NoEmptyLinesInBlocks layout deletes blank lines between statements, never inside a string or heredoc
+Kata/NoEmptyLinesInMethods layout deletes blank lines between statements, never inside a string or heredoc
+Kata/PairedBrackets layout moves line breaks around brackets
+Layout/AccessModifierIndentation layout re-indents the access modifier line
+Layout/ArgumentAlignment layout re-indents continuation arguments
+Layout/ArrayAlignment layout re-indents continuation elements
+Layout/AssignmentIndentation layout re-indents the right-hand side
+Layout/BeginEndAlignment layout re-indents end
+Layout/BlockAlignment layout re-indents a block's end
+Layout/BlockEndNewline layout moves a block's end to its own line
+Layout/CaseIndentation layout re-indents when/in
+Layout/ClosingHeredocIndentation layout re-indents a heredoc's closing delimiter; the body is untouched
+Layout/ClosingParenthesisIndentation layout re-indents a closing parenthesis
+Layout/CommentIndentation layout re-indents a comment
+Layout/ConditionPosition layout joins the condition to its keyword's line
+Layout/DefEndAlignment layout re-indents a def's end
+Layout/DotPosition layout moves the dot of a chained call across the line break
+Layout/ElseAlignment layout re-indents else/elsif
+Layout/EmptyComment layout deletes a comment line with no text
+Layout/EmptyLineAfterMagicComment layout adds a blank line after the magic comments
+Layout/EmptyLines layout collapses consecutive blank lines
+Layout/EmptyLinesAroundArguments layout deletes blank lines between arguments
+Layout/EmptyLinesAroundBeginBody layout deletes blank lines at the edges of a begin body
+Layout/EmptyLinesAroundBlockBody layout deletes blank lines at the edges of a block body
+Layout/EmptyLinesAroundClassBody layout deletes blank lines at the edges of a class body
+Layout/EmptyLinesAroundExceptionHandlingKeywords layout deletes blank lines around rescue/ensure
+Layout/EmptyLinesAroundMethodBody layout deletes blank lines at the edges of a method body
+Layout/EmptyLinesAroundModuleBody layout deletes blank lines at the edges of a module body
+Layout/EndAlignment layout re-indents end
+Layout/ExtraSpacing layout deletes runs of spaces between tokens
+Layout/FirstArgumentIndentation layout re-indents the first argument
+Layout/FirstArrayElementIndentation layout re-indents the first element
+Layout/FirstHashElementIndentation layout re-indents the first pair
+Layout/FirstParameterIndentation layout re-indents the first parameter
+Layout/HashAlignment layout aligns keys and values with spaces
+Layout/HeredocIndentation layout re-indents a heredoc body as <<~, which strips the same indentation, so the string is unchanged
+Layout/IndentationConsistency layout re-indents statements
+Layout/IndentationStyle layout turns indentation tabs into spaces outside string literals
+Layout/IndentationWidth layout re-indents a body
+Layout/InitialIndentation layout deletes indentation before the first line of code
+Layout/LeadingCommentSpace layout adds the space after #
+Layout/LeadingEmptyLines layout deletes blank lines before the first line of code
+Layout/LineContinuationLeadingSpace layout moves a space across adjacent literals joined by a backslash, so the joined string is unchanged
+Layout/LineContinuationSpacing layout sets the spaces before a line-continuation backslash
+Layout/LineEndStringConcatenationIndentation layout re-indents a continued string
+Layout/LineLength layout breaks a long line after a comma or bracket
+Layout/MultilineArrayBraceLayout layout moves a closing bracket across a line break
+Layout/MultilineAssignmentLayout layout moves the right-hand side across a line break
+Layout/MultilineBlockLayout layout moves block parameters and body across line breaks
+Layout/MultilineHashBraceLayout layout moves a closing brace across a line break
+Layout/MultilineMethodCallBraceLayout layout moves a closing parenthesis across a line break
+Layout/MultilineMethodCallIndentation layout re-indents a continued call chain
+Layout/MultilineMethodDefinitionBraceLayout layout moves a closing parenthesis across a line break
+Layout/MultilineOperationIndentation layout re-indents a continued operation
+Layout/ParameterAlignment layout re-indents continuation parameters
+Layout/RedundantLineBreak layout joins an expression that fits on one line
+Layout/RescueEnsureAlignment layout re-indents rescue/ensure
+Layout/SpaceAfterColon layout adds a space after a colon
+Layout/SpaceAfterComma layout adds a space after a comma
+Layout/SpaceAfterMethodName layout deletes the space between a def's name and its parenthesis
+Layout/SpaceAfterNot layout deletes the space after !
+Layout/SpaceAfterSemicolon layout adds a space after a semicolon
+Layout/SpaceAroundBlockParameters layout sets spaces inside block pipes
+Layout/SpaceAroundEqualsInParameterDefault layout sets spaces around a default's =
+Layout/SpaceAroundKeyword layout sets spaces around keywords
+Layout/SpaceAroundMethodCallOperator layout deletes spaces around . and ::
+Layout/SpaceAroundOperators layout sets spaces around binary operators
+Layout/SpaceBeforeBlockBraces layout sets the space before a block brace
+Layout/SpaceBeforeBrackets layout deletes the space before [] on a call that already parses as []
+Layout/SpaceBeforeComma layout deletes the space before a comma
+Layout/SpaceBeforeComment layout adds a space before a trailing comment
+Layout/SpaceBeforeFirstArg layout sets the space before an unparenthesised first argument
+Layout/SpaceBeforeSemicolon layout deletes the space before a semicolon
+Layout/SpaceInLambdaLiteral layout sets the space after ->
+Layout/SpaceInsideArrayLiteralBrackets layout sets spaces inside array brackets
+Layout/SpaceInsideArrayPercentLiteral layout collapses the separators of %w/%i
+Layout/SpaceInsideBlockBraces layout sets spaces inside block braces
+Layout/SpaceInsideHashLiteralBraces layout sets spaces inside hash braces
+Layout/SpaceInsideParens layout deletes spaces inside parentheses
+Layout/SpaceInsidePercentLiteralDelimiters layout deletes the separators at the edges of %w/%i/%x
+Layout/SpaceInsideRangeLiteral layout deletes spaces around .. and ...
+Layout/SpaceInsideReferenceBrackets layout sets spaces inside []
+Layout/SpaceInsideStringInterpolation layout sets spaces inside #{}, around code, not text
+Layout/TrailingEmptyLines layout sets the blank lines at the end of the file
+Layout/TrailingWhitespace layout deletes trailing spaces; in a heredoc it keeps them as #{'  '}, so the string is unchanged
+Lint/AmbiguousOperator delimiter parenthesises the arguments the parser already gives a splat or block-pass
+Lint/AmbiguousOperatorPrecedence delimiter parenthesises the operation that already binds tighter
+Lint/AmbiguousRange delimiter parenthesises a range boundary that already binds tighter
+Lint/AssignmentInCondition delimiter parenthesises an assignment used as a condition
+Lint/RedundantStringCoercion equivalent drops .to_s inside interpolation, which calls to_s itself
+Lint/SymbolConversion equivalent writes a symbol literal without quotes, or in place of .to_sym on a string literal
+Lint/TripleQuotes delimiter drops the empty strings of """x""", which Ruby concatenates away
+Lint/UnusedBlockArgument equivalent prefixes a block parameter no code reads with _
+Lint/UnusedMethodArgument equivalent prefixes a positional parameter no code reads with _; keywords are left
+Naming/BlockForwarding equivalent forwards the block anonymously (&) where it is only passed on
+Naming/HeredocDelimiterCase delimiter upcases a heredoc delimiter
+Style/ArgumentsForwarding equivalent forwards arguments anonymously (*, **, &, ...) where they are only passed on
+Style/BlockDelimiters delimiter swaps do/end and braces where the block binds to the same call
+Style/CharacterLiteral delimiter writes ?a as "a"
+Style/ColonMethodCall delimiter writes Foo::bar as Foo.bar, the same call
+Style/CommentAnnotation layout formats a TODO/FIXME keyword in a comment
+Style/CommentedKeyword layout moves a comment off the line of class/def/end
+Style/EmptyBlockParameter delimiter drops empty block pipes
+Style/EmptyCaseCondition equivalent writes a subjectless case as if/elsif with the same conditions in the same order
+Style/EmptyElse equivalent drops an else that holds nothing or nil, the value if/case already give
+Style/EmptyStringInsideInterpolation equivalent writes "#{c ? x : ''}" as "#{x if c}", which interpolates the same text
+Style/Encoding layout deletes a utf-8 encoding comment, Ruby's default
+Style/HashSyntax delimiter writes :a => as a:, and {a: a} as {a:}
+Style/IfInsideElse equivalent writes else-if as elsif
+Style/IfWithSemicolon equivalent writes if c; a else b end as a ternary
+Style/LambdaCall equivalent writes x.() as x.call, the call it stands for
+Style/MagicCommentFormat layout formats a magic comment
+Style/MethodCallWithoutArgsParentheses delimiter drops empty call parentheses where no local shadows the name
+Style/MultilineIfModifier equivalent writes a multi-line modifier if as an if block
+Style/MultilineTernaryOperator equivalent writes a multi-line ternary as if/else
+Style/NestedTernaryOperator equivalent writes a nested ternary as if/elsif
+Style/Next equivalent writes a block's wrapping if as next unless, with the same condition
+Style/Not equivalent writes not x as !x, the same call
+Style/NumericLiteralPrefix delimiter writes an octal or hex prefix in lowercase
+Style/NumericLiterals delimiter adds underscores to a long integer
+Style/OneLineConditional equivalent writes a one-line if/then/else as a ternary
+Style/OrAssignment equivalent writes x = x || y and x = y unless x as x ||= y
+Style/PercentLiteralDelimiters delimiter swaps the delimiters of a percent literal
+Style/PerlBackrefs equivalent writes $1 as Regexp.last_match(1) (::Regexp inside a namespace), the same frame-local match
+Style/QuotedSymbols delimiter swaps a quoted symbol's quotes
+Style/RedundantAssignment equivalent drops the local that a method assigns and then returns
+Style/RedundantBegin delimiter drops a begin/end that groups nothing
+Style/RedundantFreeze equivalent drops .freeze on a literal that is already frozen
+Style/RedundantHeredocDelimiterQuotes delimiter drops the quotes of a heredoc delimiter whose body has no interpolation or escape
+Style/RedundantInterpolationUnfreeze equivalent drops +@ on an interpolated string, which is already unfrozen
+Style/RedundantLineContinuation layout drops a backslash where the line continues anyway
+Style/RedundantParentheses delimiter drops parentheses that group nothing
+Style/RedundantPercentQ delimiter writes %q()/%Q() as quotes
+Style/RedundantReturn equivalent drops return on a method's last expression
+Style/RedundantSelf equivalent drops self. where no local shadows the method
+Style/RedundantSelfAssignmentBranch equivalent drops the branch that assigns a variable to itself
+Style/RegexpLiteral delimiter swaps // and %r{}
+Style/RescueModifier equivalent writes a rescue modifier as begin/rescue, which rescues the same errors
+Style/SelfAssignment equivalent writes x = x + y as x += y
+Style/Semicolon layout turns a statement-separating semicolon into a line break
+Style/StabbyLambdaParentheses delimiter sets the parentheses around a stabby lambda's parameters
+Style/StringLiterals delimiter swaps quotes where no escape or interpolation changes
+Style/StringLiteralsInInterpolation delimiter swaps quotes inside interpolation
+Style/SuperArguments equivalent writes super(a, b) as super where those are the method's own parameters
+Style/SuperWithArgsParentheses delimiter parenthesises super's arguments
+Style/SymbolArray delimiter writes an array of symbols as %i[]
+Style/SymbolLiteral delimiter drops the quotes of :"sym"
+Style/TernaryParentheses delimiter sets parentheses around a ternary's condition
+Style/TrailingCommaInArguments delimiter sets the trailing comma of a multi-line call
+Style/TrailingCommaInArrayLiteral delimiter sets the trailing comma of a multi-line array
+Style/TrailingCommaInHashLiteral delimiter sets the trailing comma of a multi-line hash
+Style/TrailingUnderscoreVariable equivalent drops a trailing _ from a multiple assignment
+Style/UnlessElse equivalent writes unless/else as if/else with the branches swapped
+Style/VariableInterpolation delimiter writes "#$x" as "#{$x}"
+Style/WhileUntilDo layout drops do after while/until
+Style/WhileUntilModifier equivalent writes a one-statement while/until as a modifier
+Style/WordArray delimiter writes an array of words as %w[]

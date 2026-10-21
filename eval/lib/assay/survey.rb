@@ -46,7 +46,7 @@ class Assay::Survey
 
   def allowlist
     proven = names.flat_map { proven(it) }
-    idle = File.readlines(ALLOWLIST, chomp: true) - proven
+    idle = File.readlines(ALLOWLIST, chomp: true).map { it.split(" ", 2).first } - proven
     section("Allowlisted corrections no green suite ran this time", %w[Cop], idle.zip)
   end
 

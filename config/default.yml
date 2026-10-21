@@ -7,10 +7,11 @@ plugins:
 
 # A cop RuboCop adds in a later release stays off until kata lists it: a
 # `bundle update` must not add an autocorrect nobody reviewed to `rubocop -a`.
-# config/autocorrect.yml, layered on top, holds back every correction no
-# corpus suite has run green (see data/autocorrect.txt); the
+# config/autocorrect.yml, layered on top, holds back every correction that is
+# not structural (see data/autocorrect.txt: layout, delimiters, or an exact
+# equivalent that resolves no name the project could define); the
 # `SafeAutoCorrect: false` entries in this file name the ones seen to break
-# code, and stay -A whatever a corpus shows.
+# code, and stay -A whatever the rule says.
 # The pending cops kata wants are enabled one by one at the end of this file.
 AllCops:
   NewCops: disable
@@ -1063,8 +1064,13 @@ Kata/NoSingleton:
 Style/Documentation:
   Enabled: false
 
+# A gemspec, Gemfile or Rakefile often reads VERSION with a regexp written for
+# the quotes the file has (concurrent-ruby's `[/'(.+)'/, 1] or raise`), so
+# requoting a version file breaks the build, not the program.
 Style/StringLiterals:
   EnforcedStyle: double_quotes
+  Exclude:
+    - "**/version.rb"
 
 Style/StringLiteralsInInterpolation:
   EnforcedStyle: double_quotes

@@ -1,6 +1,7 @@
 # Written by script/autocorrect from data/autocorrect.txt; edit the list, not
-# this file. `rubocop -a` applies a correction only when kata's corpora ran it
-# under a green test suite; every other correction waits for `rubocop -A`.
+# this file. `rubocop -a` applies a correction only when it changes layout or
+# delimiters, or swaps syntax for an exact equivalent that resolves no name the
+# project could define; every other correction waits for `rubocop -A`.
 # Run it under the oldest and the newest RuboCop the gemspec allows: it adds
 # to the entries already shipped.
 Bundler/InsecureProtocolSource:
@@ -27,6 +28,8 @@ Gemspec/RequireMFA:
   SafeAutoCorrect: false
 Kata/NoComments:
   SafeAutoCorrect: false
+Kata/NoRedundantVariable:
+  SafeAutoCorrect: false
 Layout/ClassStructure:
   SafeAutoCorrect: false
 Layout/EmptyLineAfterGuardClause:
@@ -41,12 +44,6 @@ Layout/EmptyLinesAroundAccessModifier:
   SafeAutoCorrect: false
 Layout/EmptyLinesAroundAttributeAccessor:
   SafeAutoCorrect: false
-Layout/EmptyLinesAroundBeginBody:
-  SafeAutoCorrect: false
-Layout/FirstArgumentIndentation:
-  SafeAutoCorrect: false
-Layout/FirstArrayElementIndentation:
-  SafeAutoCorrect: false
 Layout/FirstArrayElementLineBreak:
   SafeAutoCorrect: false
 Layout/FirstHashElementLineBreak:
@@ -55,19 +52,7 @@ Layout/FirstMethodArgumentLineBreak:
   SafeAutoCorrect: false
 Layout/FirstMethodParameterLineBreak:
   SafeAutoCorrect: false
-Layout/FirstParameterIndentation:
-  SafeAutoCorrect: false
 Layout/HeredocArgumentClosingParenthesis:
-  SafeAutoCorrect: false
-Layout/IndentationStyle:
-  SafeAutoCorrect: false
-Layout/InitialIndentation:
-  SafeAutoCorrect: false
-Layout/LeadingEmptyLines:
-  SafeAutoCorrect: false
-Layout/LineContinuationLeadingSpace:
-  SafeAutoCorrect: false
-Layout/LineContinuationSpacing:
   SafeAutoCorrect: false
 Layout/MultilineArrayLineBreaks:
   SafeAutoCorrect: false
@@ -79,27 +64,11 @@ Layout/MultilineMethodParameterLineBreaks:
   SafeAutoCorrect: false
 Layout/SingleLineBlockChain:
   SafeAutoCorrect: false
-Layout/SpaceAfterMethodName:
-  SafeAutoCorrect: false
-Layout/SpaceAroundMethodCallOperator:
-  SafeAutoCorrect: false
-Layout/SpaceBeforeComment:
-  SafeAutoCorrect: false
-Layout/SpaceBeforeSemicolon:
-  SafeAutoCorrect: false
-Layout/SpaceInsideRangeLiteral:
-  SafeAutoCorrect: false
 Lint/AmbiguousBlockAssociation:
-  SafeAutoCorrect: false
-Lint/AmbiguousOperator:
-  SafeAutoCorrect: false
-Lint/AmbiguousRange:
   SafeAutoCorrect: false
 Lint/AmbiguousRegexpLiteral:
   SafeAutoCorrect: false
 Lint/ArrayLiteralInRegexp:
-  SafeAutoCorrect: false
-Lint/AssignmentInCondition:
   SafeAutoCorrect: false
 Lint/BigDecimalNew:
   SafeAutoCorrect: false
@@ -113,6 +82,8 @@ Lint/DeprecatedClassMethods:
   SafeAutoCorrect: false
 Lint/DeprecatedConstants:
   SafeAutoCorrect: false
+Lint/DeprecatedOpenSSLConstant:
+  SafeAutoCorrect: false
 Lint/DisjunctiveAssignmentInConstructor:
   SafeAutoCorrect: false
 Lint/DuplicateMagicComment:
@@ -120,6 +91,8 @@ Lint/DuplicateMagicComment:
 Lint/DuplicateRegexpCharacterClassElement:
   SafeAutoCorrect: false
 Lint/DuplicateRequire:
+  SafeAutoCorrect: false
+Lint/DuplicateSetElement:
   SafeAutoCorrect: false
 Lint/ElseLayout:
   SafeAutoCorrect: false
@@ -136,6 +109,8 @@ Lint/HashNewWithKeywordArgumentsAsDefault:
 Lint/HeredocMethodCallPosition:
   SafeAutoCorrect: false
 Lint/IdentityComparison:
+  SafeAutoCorrect: false
+Lint/ImplicitStringConcatenation:
   SafeAutoCorrect: false
 Lint/IncompatibleIoSelectWithFiberScheduler:
   SafeAutoCorrect: false
@@ -185,9 +160,13 @@ Lint/RedundantDirGlobSort:
   SafeAutoCorrect: false
 Lint/RedundantRegexpQuantifiers:
   SafeAutoCorrect: false
+Lint/RedundantRequireStatement:
+  SafeAutoCorrect: false
 Lint/RedundantSafeNavigation:
   SafeAutoCorrect: false
 Lint/RedundantSplatExpansion:
+  SafeAutoCorrect: false
+Lint/RedundantTypeConversion:
   SafeAutoCorrect: false
 Lint/RedundantWithIndex:
   SafeAutoCorrect: false
@@ -221,7 +200,13 @@ Lint/TrailingCommaInAttributeDeclaration:
   SafeAutoCorrect: false
 Lint/UnescapedBracketInRegexp:
   SafeAutoCorrect: false
+Lint/UnifiedInteger:
+  SafeAutoCorrect: false
 Lint/UriRegexp:
+  SafeAutoCorrect: false
+Lint/UselessAccessModifier:
+  SafeAutoCorrect: false
+Lint/UselessAssignment:
   SafeAutoCorrect: false
 Lint/UselessDefaultValueArgument:
   SafeAutoCorrect: false
@@ -235,7 +220,11 @@ Lint/UselessSetterCall:
   SafeAutoCorrect: false
 Lint/UselessTimes:
   SafeAutoCorrect: false
+Lint/Void:
+  SafeAutoCorrect: false
 Migration/DepartmentName:
+  SafeAutoCorrect: false
+Naming/BinaryOperatorParameterName:
   SafeAutoCorrect: false
 Naming/InclusiveLanguage:
   SafeAutoCorrect: false
@@ -269,6 +258,8 @@ Performance/CompareWithBlock:
   SafeAutoCorrect: false
 Performance/ConcurrentMonotonicTime:
   SafeAutoCorrect: false
+Performance/ConstantRegexp:
+  SafeAutoCorrect: false
 Performance/Count:
   SafeAutoCorrect: false
 Performance/DeletePrefix:
@@ -295,11 +286,17 @@ Performance/RedundantBlockCall:
   SafeAutoCorrect: false
 Performance/RedundantEqualityComparisonBlock:
   SafeAutoCorrect: false
+Performance/RedundantMatch:
+  SafeAutoCorrect: false
 Performance/RedundantMerge:
   SafeAutoCorrect: false
 Performance/RedundantSortBlock:
   SafeAutoCorrect: false
+Performance/RedundantSplitRegexpArgument:
+  SafeAutoCorrect: false
 Performance/RedundantStringChars:
+  SafeAutoCorrect: false
+Performance/RegexpMatch:
   SafeAutoCorrect: false
 Performance/ReverseEach:
   SafeAutoCorrect: false
@@ -318,6 +315,8 @@ Performance/StringBytesize:
 Performance/StringIdentifierArgument:
   SafeAutoCorrect: false
 Performance/StringInclude:
+  SafeAutoCorrect: false
+Performance/StringReplacement:
   SafeAutoCorrect: false
 Performance/Sum:
   SafeAutoCorrect: false
@@ -461,6 +460,10 @@ Security/YAMLLoad:
   SafeAutoCorrect: false
 Style/AccessModifierDeclarations:
   SafeAutoCorrect: false
+Style/AccessorGrouping:
+  SafeAutoCorrect: false
+Style/Alias:
+  SafeAutoCorrect: false
 Style/AmbiguousEndlessMethodDefinition:
   SafeAutoCorrect: false
 Style/AndOr:
@@ -491,6 +494,8 @@ Style/CaseLikeIf:
   SafeAutoCorrect: false
 Style/ClassAndModuleChildren:
   SafeAutoCorrect: false
+Style/ClassCheck:
+  SafeAutoCorrect: false
 Style/ClassEqualityComparison:
   SafeAutoCorrect: false
 Style/ClassMethods:
@@ -511,13 +516,13 @@ Style/CombinableLoops:
   SafeAutoCorrect: false
 Style/CommandLiteral:
   SafeAutoCorrect: false
-Style/CommentedKeyword:
-  SafeAutoCorrect: false
 Style/ComparableBetween:
   SafeAutoCorrect: false
 Style/ComparableClamp:
   SafeAutoCorrect: false
 Style/ConcatArrayLiterals:
+  SafeAutoCorrect: false
+Style/ConditionalAssignment:
   SafeAutoCorrect: false
 Style/Copyright:
   SafeAutoCorrect: false
@@ -543,6 +548,8 @@ Style/DoubleNegation:
   SafeAutoCorrect: false
 Style/EachForSimpleLoop:
   SafeAutoCorrect: false
+Style/EachWithObject:
+  SafeAutoCorrect: false
 Style/EmptyClassDefinition:
   SafeAutoCorrect: false
 Style/EmptyHeredoc:
@@ -563,6 +570,14 @@ Style/EvalWithLocation:
   SafeAutoCorrect: false
 Style/EvenOdd:
   SafeAutoCorrect: false
+Style/ExactRegexpMatch:
+  SafeAutoCorrect: false
+Style/ExpandPathArguments:
+  SafeAutoCorrect: false
+Style/ExplicitBlockArgument:
+  SafeAutoCorrect: false
+Style/FetchEnvVar:
+  SafeAutoCorrect: false
 Style/FileEmpty:
   SafeAutoCorrect: false
 Style/FileNull:
@@ -570,6 +585,8 @@ Style/FileNull:
 Style/FileRead:
   SafeAutoCorrect: false
 Style/FileTouch:
+  SafeAutoCorrect: false
+Style/FileWrite:
   SafeAutoCorrect: false
 Style/FloatDivision:
   SafeAutoCorrect: false
@@ -582,6 +599,8 @@ Style/FormatStringToken:
 Style/FrozenStringLiteralComment:
   SafeAutoCorrect: false
 Style/GlobalStdStream:
+  SafeAutoCorrect: false
+Style/GuardClause:
   SafeAutoCorrect: false
 Style/HashAsLastArrayItem:
   SafeAutoCorrect: false
@@ -617,11 +636,13 @@ Style/InverseMethods:
   SafeAutoCorrect: false
 Style/InvertibleUnlessCondition:
   SafeAutoCorrect: false
+Style/ItBlockParameter:
+  SafeAutoCorrect: false
 Style/KeywordArgumentsMerging:
   SafeAutoCorrect: false
-Style/Lambda:
+Style/KeywordParametersOrder:
   SafeAutoCorrect: false
-Style/LambdaCall:
+Style/Lambda:
   SafeAutoCorrect: false
 Style/LineEndConcatenation:
   SafeAutoCorrect: false
@@ -661,9 +682,17 @@ Style/MultilineMethodSignature:
   SafeAutoCorrect: false
 Style/MultilineWhenThen:
   SafeAutoCorrect: false
+Style/MultipleComparison:
+  SafeAutoCorrect: false
 Style/MutableConstant:
   SafeAutoCorrect: false
+Style/NegatedIf:
+  SafeAutoCorrect: false
+Style/NegatedIfElseCondition:
+  SafeAutoCorrect: false
 Style/NegatedUnless:
+  SafeAutoCorrect: false
+Style/NegatedWhile:
   SafeAutoCorrect: false
 Style/NegativeArrayIndex:
   SafeAutoCorrect: false
@@ -673,13 +702,21 @@ Style/NestedModifier:
   SafeAutoCorrect: false
 Style/NestedParenthesizedCalls:
   SafeAutoCorrect: false
+Style/NilComparison:
+  SafeAutoCorrect: false
 Style/NilLambda:
+  SafeAutoCorrect: false
+Style/NonNilCheck:
   SafeAutoCorrect: false
 Style/NumericPredicate:
   SafeAutoCorrect: false
 Style/ObjectThen:
   SafeAutoCorrect: false
 Style/OperatorMethodCall:
+  SafeAutoCorrect: false
+Style/ParallelAssignment:
+  SafeAutoCorrect: false
+Style/ParenthesesAroundCondition:
   SafeAutoCorrect: false
 Style/PartitionInsteadOfDoubleSelect:
   SafeAutoCorrect: false
@@ -705,6 +742,12 @@ Style/RedundantArrayFlatten:
   SafeAutoCorrect: false
 Style/RedundantCapitalW:
   SafeAutoCorrect: false
+Style/RedundantCondition:
+  SafeAutoCorrect: false
+Style/RedundantConditional:
+  SafeAutoCorrect: false
+Style/RedundantConstantBase:
+  SafeAutoCorrect: false
 Style/RedundantCurrentDirectoryInPath:
   SafeAutoCorrect: false
 Style/RedundantDoubleSplatHashBraces:
@@ -715,11 +758,11 @@ Style/RedundantException:
   SafeAutoCorrect: false
 Style/RedundantFetchBlock:
   SafeAutoCorrect: false
+Style/RedundantFileExtensionInRequire:
+  SafeAutoCorrect: false
 Style/RedundantFilterChain:
   SafeAutoCorrect: false
 Style/RedundantFormat:
-  SafeAutoCorrect: false
-Style/RedundantHeredocDelimiterQuotes:
   SafeAutoCorrect: false
 Style/RedundantInitialize:
   SafeAutoCorrect: false
@@ -727,7 +770,13 @@ Style/RedundantInterpolation:
   SafeAutoCorrect: false
 Style/RedundantMinMaxBy:
   SafeAutoCorrect: false
+Style/RedundantRegexpArgument:
+  SafeAutoCorrect: false
+Style/RedundantRegexpCharacterClass:
+  SafeAutoCorrect: false
 Style/RedundantRegexpConstructor:
+  SafeAutoCorrect: false
+Style/RedundantRegexpEscape:
   SafeAutoCorrect: false
 Style/RedundantSelfAssignment:
   SafeAutoCorrect: false
@@ -740,6 +789,8 @@ Style/RedundantStringEscape:
 Style/RedundantStructKeywordInit:
   SafeAutoCorrect: false
 Style/RequireOrder:
+  SafeAutoCorrect: false
+Style/RescueStandardError:
   SafeAutoCorrect: false
 Style/ReturnNil:
   SafeAutoCorrect: false
@@ -771,11 +822,13 @@ Style/SingleLineMethods:
   SafeAutoCorrect: false
 Style/SlicingWithRange:
   SafeAutoCorrect: false
+Style/SoleNestedConditional:
+  SafeAutoCorrect: false
 Style/SpecialGlobalVars:
   SafeAutoCorrect: false
-Style/StabbyLambdaParentheses:
-  SafeAutoCorrect: false
 Style/StaticClass:
+  SafeAutoCorrect: false
+Style/StderrPuts:
   SafeAutoCorrect: false
 Style/StringChars:
   SafeAutoCorrect: false
@@ -806,6 +859,10 @@ Style/TrailingBodyOnModule:
 Style/TrailingCommaInBlockArgs:
   SafeAutoCorrect: false
 Style/TrailingMethodEndStatement:
+  SafeAutoCorrect: false
+Style/TrivialAccessors:
+  SafeAutoCorrect: false
+Style/UnpackFirst:
   SafeAutoCorrect: false
 Style/WhenThen:
   SafeAutoCorrect: false
