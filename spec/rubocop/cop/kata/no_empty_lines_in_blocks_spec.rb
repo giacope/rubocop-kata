@@ -115,4 +115,8 @@ RSpec.describe(RuboCop::Cop::Kata::NoEmptyLinesInBlocks, :config) do
       end
     RUBY
   end
+
+  it "leaves a file with no code alone" do
+    expect_no_offenses("# frozen_string_literal: true\n")
+  end
 end

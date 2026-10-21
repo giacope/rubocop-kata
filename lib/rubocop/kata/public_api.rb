@@ -4,7 +4,6 @@ class RuboCop::Kata::PublicApi
   DEFINITIONS = %i[class module def defs].freeze
   METHODS = %i[def defs].freeze
   HIDDEN = %i[private protected private_class_method].freeze
-  SCOPES = %i[private protected public module_function].freeze
   OPEN = %i[public module_function].freeze
 
   def initialize(ast)
@@ -29,5 +28,5 @@ class RuboCop::Kata::PublicApi
     marker.nil? || OPEN.include?(marker.method_name)
   end
 
-  def scope?(node) = node.send_type? && node.receiver.nil? && !node.arguments? && SCOPES.include?(node.method_name)
+  def scope?(node) = node.send_type? && node.bare_access_modifier?
 end

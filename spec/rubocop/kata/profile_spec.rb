@@ -128,10 +128,10 @@ RSpec.describe(RuboCop::Kata::Profile) do
 
   it "lets an upper layer's setting win, and adds an upper layer's list to the lower one" do
     profile = described_class.new(Dir.tmpdir, {})
-    lower = { "Cop" => { "Enabled" => true, "Max" => 10, "Exclude" => %w[a] }, "plugins" => %w[x] }
-    upper = { "Cop" => { "Enabled" => false, "Max" => 12, "Exclude" => %w[b] }, "plugins" => %w[y] }
+    lower = { "Cop" => { "Enabled" => true, "Max" => 10, "Exclude" => %w[a] }, "plugins" => %w[x], "Old" => {} }
+    upper = { "Cop" => { "Enabled" => false, "Max" => 12, "Exclude" => %w[b] }, "plugins" => "y", "Old" => nil }
     expect(profile.__send__(:layered, lower, upper))
-      .to(eq({ "Cop" => { "Enabled" => false, "Max" => 12, "Exclude" => %w[a b] }, "plugins" => %w[x y] }))
+      .to(eq({ "Cop" => { "Enabled" => false, "Max" => 12, "Exclude" => %w[a b] }, "plugins" => "y", "Old" => nil }))
   end
 
   it "leaves an overlay already written alone" do

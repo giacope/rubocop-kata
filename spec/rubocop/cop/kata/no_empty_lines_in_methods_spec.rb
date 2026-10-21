@@ -86,6 +86,22 @@ RSpec.describe(RuboCop::Cop::Kata::NoEmptyLinesInMethods, :config) do
     RUBY
   end
 
+  it "keeps the blank line of a heredoc Ruby reads as one string" do
+    expect_no_offenses(<<~RUBY)
+      def body
+        <<-TEXT
+          Hello,
+
+          Bye
+        TEXT
+      end
+    RUBY
+  end
+
+  it "leaves a file with no code alone" do
+    expect_no_offenses("# frozen_string_literal: true\n")
+  end
+
   it "leaves a method with no body, or a one-line body, alone" do
     expect_no_offenses(<<~RUBY)
       def none; end

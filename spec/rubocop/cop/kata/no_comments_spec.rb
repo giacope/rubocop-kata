@@ -279,6 +279,13 @@ RSpec.describe(RuboCop::Cop::Kata::NoComments, :config) do
           # Totals the credits.
           memoize def credits = []
 
+          private def helper = 1
+
+          private :helper
+
+          # Still public after a private def and a private name.
+          def count = 0
+
           class << self
             # Parses an invoice from CSV.
             def parse(text) = new(text.lines)

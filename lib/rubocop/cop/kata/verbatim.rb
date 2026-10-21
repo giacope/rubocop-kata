@@ -11,7 +11,7 @@ module RuboCop::Cop::Kata::Verbatim
 
   def spanned(node)
     return heredoc(node) if node.heredoc?
-    node.first_line < node.last_line ? ((node.first_line + 1)..node.last_line) : []
+    (node.first_line + 1)..node.last_line
   end
 
   def heredoc(node)

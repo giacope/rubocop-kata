@@ -20,5 +20,5 @@ class RuboCop::Kata::Spelling
     @form = form
   end
 
-  def american = VARIANTS.filter_map { |pattern, swap| @form.sub(pattern, swap) if pattern.match?(@form) }
+  def american = VARIANTS.map { |pattern, swap| @form.sub(pattern, swap) }
 end
