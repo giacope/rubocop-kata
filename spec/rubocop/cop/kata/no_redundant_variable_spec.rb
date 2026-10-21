@@ -71,13 +71,19 @@ RSpec.describe(RuboCop::Cop::Kata::NoRedundantVariable) do
       "assigned_inside_begin_block_read_after" =>
       "def foo\n  begin\n    x = compute\n    1\n  end\n  bar(x)\nend",
       "parameter_reset_after_its_read_in_a_loop" =>
-      "def fold(prepend = 0)\n  until words.empty?\n    limit = 78 - prepend\n    lines << limit\n    prepend = 0\n  end\nend",
+      "def fold(prepend = 0)\n  until words.empty?\n    limit = 78 - prepend\n    lines << limit\n    " \
+        "prepend = 0\n  end\nend",
       "parameter_reassigned_then_read" => "def foo(limit)\n  limit = 10\n  bar(limit)\nend",
-      "keyword_parameter_reassigned_then_read" => "def foo(limit:)\n  limit = 10\n  bar(limit)\nend",
-      "block_parameter_reassigned_then_read" => "def foo\n  items.map do |item|\n    item = 2\n    bar(item)\n  end\nend",
-      "read_before_its_only_assignment" => "def foo(s)\n  /(?<x>.)/ =~ s\n  bar(x)\n  x = 2\nend",
-      "read_as_a_safe_navigation_argument" => "def foo(box)\n  value = compute\n  box&.push(value)\nend",
-      "read_as_an_argument_past_a_safe_navigation" => "def foo(box)\n  value = compute\n  box&.first.push(value)\nend",
+      "keyword_parameter_reassigned_then_read" =>
+      "def foo(limit:)\n  limit = 10\n  bar(limit)\nend",
+      "block_parameter_reassigned_then_read" =>
+      "def foo\n  items.map do |item|\n    item = 2\n    bar(item)\n  end\nend",
+      "read_before_its_only_assignment" =>
+      "def foo(s)\n  /(?<x>.)/ =~ s\n  bar(x)\n  x = 2\nend",
+      "read_as_a_safe_navigation_argument" =>
+      "def foo(box)\n  value = compute\n  box&.push(value)\nend",
+      "read_as_an_argument_past_a_safe_navigation" =>
+      "def foo(box)\n  value = compute\n  box&.first.push(value)\nend",
       "read_as_an_or_assignment_value" => "def foo\n  value = compute\n  @cache ||= value\nend",
       "read_as_an_and_assignment_value" => "def foo\n  value = compute\n  @cache &&= value\nend"
     }, violations: {
