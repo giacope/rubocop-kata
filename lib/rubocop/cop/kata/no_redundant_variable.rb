@@ -22,14 +22,13 @@ class RuboCop::Cop::Kata::NoRedundantVariable < RuboCop::Cop::Base
 
   def audit(body, parameters)
     singles = RuboCop::Kata::Variable::Ledger.new(body, parameters).pairs
-    plain =
-      singles.reject do |assign, read|
-        RuboCop::Kata::Variable::Label.new(assign).explains? || long?(assign, read)
-      end
+    plain = singles.reject { |assign, read| explains?(assign) || long?(assign, read) }
     movable = plain.select { |assign, read| movable?(assign, read, singles) }
     gap = RuboCop::Kata::Variable::Gap.new(singles, movable)
     plain.each { |assign, read| register(assign, read, movable) unless gap.crossed?(assign) }
   end
+
+  def explains?(assign) = RuboCop::Kata::Variable::Label.new(assign, sorbet: cop_config["Sorbet"] == true).explains?
 
   def long?(assign, read)
     limit = config.for_cop("Layout/LineLength")

@@ -163,4 +163,13 @@ RSpec.describe(RuboCop::Cop::Kata::NoClassMethodLogic, :config) do
       RUBY
     end
   end
+
+  it "asks for a constant when a class method only returns a literal" do
+    expect_offense(<<~RUBY)
+      class Wizard
+        def self.steps = %i[name email confirm]
+                 ^^^^^ `steps` only returns a literal; make it a constant.
+      end
+    RUBY
+  end
 end

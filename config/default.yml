@@ -17,6 +17,7 @@ AllCops:
   NewCops: disable
   Exclude:
     - "vendor/**/*"
+    - "**/vendor/**/*"
     - "db/*schema.rb"
 
 # A .jbuilder template is presentation, not an object: no Kata cop reads it.
@@ -688,6 +689,7 @@ Kata/ConstructorDiscipline:
     passes. A guard may raise, through `raise` or one of the project's
     `RaisingMethods` (`UI.user_error!`).
   Enabled: true
+  Sorbet: false
   VersionAdded: "0.3"
   VersionChanged: "0.11"
   RaisingMethods:
@@ -765,6 +767,9 @@ Kata/NoClassMethodLogic:
     - of
     - parse
     - prepended
+    - ransackable_associations
+    - ransackable_attributes
+    - ransackable_scopes
     - respond_to_missing?
     - singleton_method_added
     - to_s
@@ -780,6 +785,7 @@ Kata/NoHashAsObject:
     `to_h` or `as_json` the object already has a name, and the protocol asks
     for a hash.
   Enabled: true
+  Sorbet: false
   VersionAdded: "0.3"
   VersionChanged: "0.11"
   MaxKeys: 4
@@ -872,14 +878,28 @@ Kata/FrozenState:
     change of state: `@x ||= ...`, `@x = ... unless @x`, `@x = ... if
     @x.nil?`, `@x = @x || ...` and `return @x if defined?(@x)` pass. A hook
     a superclass's `initialize` calls (`setup`) is construction too: the cop
-    follows it when the superclass is in the same file, and
-    `ConstructorHooks` names the hooks of a superclass defined elsewhere.
+    follows the methods any `initialize` calls, transitively, through the
+    class's superclasses, subclasses and mixins anywhere under `OwnedPaths`
+    (liquid's `Tag#initialize` → `ParserSwitching` → `If#strict_parse`,
+    concurrent-ruby's `IVar#initialize` → `Promise#ns_initialize`), and
+    `ConstructorHooks` names the hooks a framework calls after `new`; an
+    entry `Owner#hook` holds only for a class descending from `Owner`
+    (Arbre's components are built by `build`). Changing what an instance
+    variable holds is changing state too: `@items << item`, `@index[key] =
+    value` and the other `MutatingMethods` of Kata/NoOutputArgument, outside
+    construction, are offenses; a keyed cache (`@cache[key] ||= value`) is
+    memoization.
     Rails hands a view its data through a controller's or mailer's instance
     variables, so `app/controllers`, `app/mailers` and `app/helpers` are
     excluded.
   Enabled: true
+  Sorbet: false
   VersionAdded: "0.11"
   ConstructorHooks: []
+  OwnedPaths:
+    - "app/**/*.rb"
+    - "lib/**/*.rb"
+    - "*/lib/**/*.rb"
   Exclude:
     - "spec/**/*"
     - "test/**/*"
@@ -986,15 +1006,27 @@ Kata/NoTypeCheck:
     check against a class or module the project defines (in the file, or in
     `OwnedPaths`; a constant assigned `Class.new`, `Module.new`, `Struct.new`
     or `Data.define` counts), or a `respond_to?` probe for a method the
-    project defines.
+    project defines. A type ladder in any spelling is the same question:
+    `case x when Circle`, `case x in Circle`, `Circle === x`,
+    `x.class == Circle` and `x.class.name == "Circle"`.
+    A name is resolved as Ruby resolves it, through the lexical nesting, and
+    is the project's only when the project defines that fully qualified name
+    with a body: `ActiveJob::Base` is not the project's because it reopens
+    `module ActiveJob` around its own adapter, or names another class `Base`.
+    The project's own definitions win over the core inventory, so a project
+    that is a default gem (rubygems' `Gem::Source`) is judged on its own
+    namespace, while reopening a core class (`class String`) is not owning it.
     A check against a class another library owns (an AST node, `String`) is
     the boundary where foreign data comes in, which polymorphism cannot
-    reach, and is left alone, even where the project reopens that class or
-    reuses its name inside a namespace; so are the conversion and iteration protocols
-    (`respond_to?(:to_h)`, `:each`, `:call`).
+    reach, and is left alone; so are the conversion and iteration protocols
+    (`respond_to?(:to_h)`, `:each`, `:call`) and any `respond_to?` probe of
+    a method a public class of `Protocols` answers: Ruby's core and standard
+    library, and Rails' frameworks in the Rails profile (data/protocols).
   Enabled: true
   VersionAdded: "0.11"
   VersionChanged: "0.11"
+  Protocols:
+    - ruby
   OwnedPaths:
     - "app/**/*.rb"
     - "lib/**/*.rb"
@@ -1348,6 +1380,7 @@ Kata/NoRedundantVariable:
     push its line past Layout/LineLength (for a multi-line value, the first
     or last line it lands on).
   Enabled: true
+  Sorbet: false
   VersionAdded: "0.10"
   VersionChanged: "0.11"
 

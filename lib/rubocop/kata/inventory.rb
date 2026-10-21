@@ -1,8 +1,6 @@
 # frozen_string_literal: true
 
 class RuboCop::Kata::Inventory
-  DEFINITION = /^[ \t]*(?:class|module)[ \t]+(?:::)?((?:[A-Z]\w*::)*[A-Z]\w*)/
-  ASSIGNMENT = /^[ \t]*((?:[A-Z]\w*::)*[A-Z]\w*)[ \t]*=\s*(?:Class\.new|Module\.new|Struct\.new|Data\.define)\b/
   METHOD = /^[ \t]*def[ \t]+(?:self\.)?([a-z_]\w*[?!]?)/
 
   SHELVES = Hash.new { |shelves, key| shelves[key] = new(*key) }
@@ -14,19 +12,24 @@ class RuboCop::Kata::Inventory
     @patterns = patterns
   end
 
-  def type?(name) = types.include?(name.to_s.split("::").last)
+  def type?(name) = types.include?(name.to_s)
 
   def message?(name) = messages.include?(name.to_s)
 
-  private
-
-  def types = @_types ||= scan { it.scan(DEFINITION) + it.scan(ASSIGNMENT) }.flat_map { it.split("::") }.to_set
-
-  def messages = @_messages ||= scan { it.scan(METHOD) }
-
-  def scan(&)
-    files.flat_map { |path| yield(File.read(path, encoding: Encoding::UTF_8).scrub).flatten }.to_set
+  def lineage
+    @_lineage ||= texts.map { RuboCop::Kata::Lineage.parse(it) }.reduce(RuboCop::Kata::Lineage.new({}), :merge)
   end
 
-  def files = @patterns.flat_map { Dir.glob(it, base: @root).map { |path| File.join(@root, path) } }.uniq
+  private
+
+  def types
+    @_types ||= texts.each_with_object(Set.new) { |text, found| found.merge(RuboCop::Kata::Definitions.new(text).names) }
+  end
+
+  def messages = @_messages ||= texts.flat_map { it.scan(METHOD) }.flatten.to_set
+
+  def texts
+    @_texts ||= @patterns.flat_map { Dir.glob(it, base: @root) }.uniq
+      .map { File.read(File.join(@root, it), encoding: Encoding::UTF_8).scrub }
+  end
 end

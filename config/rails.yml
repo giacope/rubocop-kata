@@ -5,8 +5,12 @@
 # no rule for code the application writes. Each list here is added to the
 # shipped one, not put in its place.
 
-# Hooks Rails, Devise, Turbo and Pundit call by these names: a contract, not
-# a choice. Pundit asks a policy for `permitted_attributes_for_<action>`.
+# Hooks Rails, Devise, Turbo, Pundit and InheritedResources call by these
+# names: a contract, not a choice. Pundit asks a policy for
+# `permitted_attributes_for_<action>`; ActionController calls
+# `append_info_to_payload` and `handle_unverified_request`; a Devise::Mailer
+# sends `reset_password_instructions`; InheritedResources (ActiveAdmin) builds
+# its scope through `begin_of_association_chain` and its siblings.
 Kata/GoodMethodName:
   AllowedPatterns:
     - "\\Apermitted_attributes_for_\\w+\\z"
@@ -18,10 +22,19 @@ Kata/GoodMethodName:
     - after_resetting_password_path_for
     - after_sign_up_path_for
     - after_update_path_for
+    - append_info_to_payload
+    - apply_authorization_scope
+    - begin_of_association_chain
     - broadcast_target_default
     - default_url_options
     - devise_parameter_sanitizer
+    - end_of_association_chain
+    - find_for_authentication
+    - find_for_database_authentication
+    - handle_unverified_request
     - human_attribute_name
+    - method_for_association_chain
+    - reset_password_instructions
     - send_confirmation_instructions
     - send_reset_password_instructions
     - send_reset_password_instructions_notification
@@ -40,3 +53,21 @@ Kata/NoComments:
 Kata/NoHashAsObject:
   TableMethods:
     - enum
+
+# A `respond_to?` probe of a name Rails' public classes answer
+# (`respond_to?(:lease_connection)`, `:klass`, `:primary_key`) asks which
+# framework version or object it holds, not which of the project's types.
+Kata/NoTypeCheck:
+  Protocols:
+    - rails
+
+# Devise finds a user through these class methods, by name.
+Kata/NoClassMethodLogic:
+  AllowedNames:
+    - find_for_authentication
+    - find_for_database_authentication
+
+# Arbre (ActiveAdmin) builds a component by calling `build` after `new`.
+Kata/FrozenState:
+  ConstructorHooks:
+    - "Arbre#build"

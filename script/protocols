@@ -1,0 +1,43 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require "rbconfig"
+require "bundled_gems"
+
+TARGET = File.expand_path("../data/protocols", __dir__)
+NAME = /\A[a-z_][a-z0-9_]*[?!=]?\z/
+PROBE = <<~RUBY
+  libraries = ARGV
+  libraries.each { |library| begin; require library; rescue Exception; end }
+  scope = ENV.fetch("SCOPE", "")
+  modules = ObjectSpace.each_object(Module).select do |held|
+    name = begin; held.name; rescue Exception; nil; end
+    name && (scope.empty? || name.start_with?(*scope.split(",")))
+  end
+  names = modules.flat_map do |held|
+    held.public_instance_methods(false) + (held.singleton_class.public_instance_methods(false) rescue [])
+  end
+  puts names.map(&:to_s).uniq
+RUBY
+
+collect =
+  lambda do |libraries, scope = ""|
+    IO.popen({ "SCOPE" => scope }, [RbConfig.ruby, "-e", PROBE, *libraries], err: File::NULL, &:read).split
+  end
+publish =
+  lambda do |name, found|
+    path = File.join(TARGET, "#{name}.txt")
+    shipped = File.file?(path) ? File.readlines(path, chomp: true) : []
+    File.write(path, "#{(shipped | found).grep(NAME).sort.join("\n")}\n")
+  end
+
+shelves = RbConfig::CONFIG.values_at("rubylibdir", "rubyarchdir")
+filed = shelves.flat_map { |shelf| Dir.children(shelf).map { it.sub(/\.(rb|#{RbConfig::CONFIG["DLEXT"]})\z/o, "") } }
+gems = Gem::Specification.select(&:default_gem?).map(&:name) + Gem::BUNDLED_GEMS::SINCE.keys
+libraries = (filed + gems).grep(/\A[a-z][a-z0-9_]*\z/).uniq - %w[debug profile profiler tracer]
+ruby = collect.call(libraries)
+publish.call("ruby", ruby)
+frameworks = %w[active_support/all active_model active_record action_controller action_dispatch action_view]
+eager = "ActiveSupport,ActiveModel,ActiveRecord,ActionController,ActionDispatch,AbstractController,ActionView"
+rails = collect.call([*frameworks, "#{__dir__}/eager_rails.rb"], eager) - ruby
+publish.call("rails", rails)

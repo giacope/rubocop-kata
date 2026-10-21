@@ -118,4 +118,15 @@ RSpec.describe(RuboCop::Cop::Kata::NoHashAsObject, :config) do
       RUBY
     end
   end
+
+  context "with Sorbet" do
+    let(:cop_config) { { "MaxKeys" => 4, "Sorbet" => true } }
+
+    it "reads a table a constant names through T.let" do
+      expect_no_offenses(<<~RUBY)
+        TYPED = T.let([{ name: "a", email: "b", age: 1, role: :admin }].freeze, T::Array[T::Hash[Symbol, T.untyped]])
+        CODES = T.let({ find: /a/, link: /b/, copy: /c/, lock: /d/ }.freeze, T::Hash[Symbol, Regexp])
+      RUBY
+    end
+  end
 end

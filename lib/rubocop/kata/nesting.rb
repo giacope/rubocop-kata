@@ -1,0 +1,20 @@
+# frozen_string_literal: true
+
+class RuboCop::Kata::Nesting
+  def initialize(node)
+    @node = node
+  end
+
+  def names
+    scopes = @node.each_ancestor(:class, :module).to_a.reverse
+    scopes.each_with_object([]) { |scope, found| found << joined(found.last, scope.identifier) }.reverse
+  end
+
+  def qualified = joined(names.first, @node.identifier)
+
+  private
+
+  def joined(outer, identifier)
+    outer.nil? || identifier.absolute? ? identifier.const_name : "#{outer}::#{identifier.const_name}"
+  end
+end

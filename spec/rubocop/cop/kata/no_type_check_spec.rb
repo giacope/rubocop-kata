@@ -137,7 +137,8 @@ RSpec.describe(RuboCop::Cop::Kata::NoTypeCheck, :config) do
       class Money; end
       value.nil?
       value.empty?
-      Money === value
+      Symbol === value
+      value.class == String
       value.is_a?(kind)
       value.respond_to?(name)
       value.is_a?
@@ -156,6 +157,114 @@ RSpec.describe(RuboCop::Cop::Kata::NoTypeCheck, :config) do
                                                          ^^^^^ `is_a?` asks an object what it is; tell it what to do, and let polymorphism choose.
       end
     RUBY
+  end
+
+  it "reads every spelling of a type ladder over the project's own classes" do
+    expect_offense(<<~RUBY)
+      module Shapes
+        class Circle; end
+        class Square; end
+
+        def self.area(shape)
+          case shape
+          ^^^^ `case … when` asks an object what it is; tell it what to do, and let polymorphism choose.
+          when Circle then 1
+          when Square then 2
+          end
+        end
+
+        def self.side(shape)
+          case shape
+          ^^^^ `case … in` asks an object what it is; tell it what to do, and let polymorphism choose.
+          in Square(size:) then size
+          in Integer then shape
+          end
+        end
+
+        def self.round?(shape) = Circle === shape || shape.class == Circle || Square == shape.class
+                                        ^^^ `===` asks an object what it is; tell it what to do, and let polymorphism choose.
+                                                                 ^^ `class ==` asks an object what it is; tell it what to do, and let polymorphism choose.
+                                                                                     ^^ `class ==` asks an object what it is; tell it what to do, and let polymorphism choose.
+
+        def self.named?(shape) = shape.class.name == "Circle" || shape.class.name != "Tag"
+                                                  ^^ `class.name ==` asks an object what it is; tell it what to do, and let polymorphism choose.
+      end
+    RUBY
+  end
+
+  it "leaves a ladder over foreign classes and a subjectless case alone" do
+    expect_no_offenses(<<~RUBY)
+      class Circle; end
+      def kind(value)
+        case value
+        when String, Integer then :scalar
+        end
+      end
+      def pick(flag)
+        case
+        when flag then Circle
+        end
+      end
+      def named?(value) = value.class.name == "String" || value.name == "Circle"
+      def ==(other) = other.class == Circle
+    RUBY
+  end
+
+  it "resolves a name through the lexical nesting, as Ruby does" do
+    expect_offense(<<~RUBY)
+      module Shelf
+        class Base; end
+
+        class Item
+          def same?(other) = other.is_a?(Base)
+                                   ^^^^^ `is_a?` asks an object what it is; tell it what to do, and let polymorphism choose.
+        end
+      end
+      module ActiveJob
+        module QueueAdapters
+          class ShelfAdapter; end
+        end
+      end
+      module Rack
+        class Shelf::Request; end
+      end
+      def boundary(job, env) = job.is_a?(ActiveJob::Base) || env.is_a?(Rack::Request) || job.is_a?(Base)
+    RUBY
+  end
+
+  it "judges a project's own class under a core namespace, but not a reopened core class" do
+    expect_offense(<<~RUBY)
+      module Gem
+        class Source
+          def update = nil
+        end
+
+        class SourceList
+          def add(other) = other.is_a?(Gem::Source) || other.is_a?(Source)
+                                 ^^^^^ `is_a?` asks an object what it is; tell it what to do, and let polymorphism choose.
+                                                             ^^^^^ `is_a?` asks an object what it is; tell it what to do, and let polymorphism choose.
+        end
+      end
+      class String
+        def shout = upcase
+      end
+      def text?(value) = value.is_a?(String)
+    RUBY
+  end
+
+  context "with the shipped protocol inventories" do
+    let(:cop_config) { { "AllowedMethods" => [], "OwnedPaths" => [], "Protocols" => %w[ruby rails] } }
+
+    it "reads a probe of a name Ruby's or Rails' public classes answer as a protocol" do
+      expect_offense(<<~RUBY)
+        def warn(text) = text
+        def lease_connection = nil
+        def settle = nil
+        def log(logger) = logger.respond_to?(:warn) && logger.respond_to?(:lease_connection)
+        def pay(bill) = bill.respond_to?(:settle)
+                             ^^^^^^^^^^^ `respond_to?` asks an object what it is; tell it what to do, and let polymorphism choose.
+      RUBY
+    end
   end
 
   it "leaves probes for IO and reflection protocols, even where the project defines the method" do
@@ -192,7 +301,8 @@ RSpec.describe(RuboCop::Cop::Kata::NoTypeCheck, :config) do
 
     it "knows the types and methods defined in OwnedPaths" do
       probes = %w[
-        is_a?(Billing::Invoice) is_a?(Draft) respond_to?(:settle) is_a?(Hash) is_a?(Shop::Cart) is_a?(Refund)
+        is_a?(Billing::Invoice) is_a?(Billing::Draft) respond_to?(:settle) is_a?(Hash) is_a?(Shop::Cart)
+        is_a?(Billing::Refund) is_a?(Draft)
       ]
       found = offenses(probes.map { "x.#{it}\n" }.join)
       expect(found.map(&:line)).to(eq([1, 2, 3, 5, 6]))
