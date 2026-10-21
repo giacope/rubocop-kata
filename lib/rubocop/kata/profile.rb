@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "digest"
-require "pathname"
 require "tmpdir"
 require "yaml"
 
@@ -12,17 +11,14 @@ class RuboCop::Kata::Profile
   AUTOCORRECT = File.join(SHELF, "autocorrect.yml")
   LOCKS = %w[Gemfile.lock gems.locked].freeze
   RSPEC = /^ {4}rspec-core \(/
-  MARKERS = %w[Gemfile gems.rb *.gemspec config/application.rb].freeze
   GEMSPECS = %w[*.gemspec */*.gemspec].freeze
   ENGINE = /<\s*(::)?Rails::Engine\b|^\s*isolate_namespace\b/
 
-  def initialize(start, options, shelf: Dir.tmpdir)
-    @start = start
+  def initialize(root, options, shelf: Dir.tmpdir)
+    @root = root
     @options = options
     @shelf = shelf
   end
-
-  def root = @_root ||= Pathname(@start).expand_path.ascend.map(&:to_s).find { marked?(it) } || @start
 
   def path
     layer = overlay
@@ -52,8 +48,6 @@ class RuboCop::Kata::Profile
     lower.merge(upper) { |_, low, high| layered(low, high) }
   end
 
-  def marked?(dir) = MARKERS.any? { Dir.glob(it, base: dir).any? }
-
   def silenced(merged, layer)
     departments = layer.select { |_, value| value == { "Enabled" => false } }.keys
     merged.to_h { |key, value| [key, departments.include?(key[%r{\A[^/]+}]) ? value.merge("Enabled" => false) : value] }
@@ -65,16 +59,16 @@ class RuboCop::Kata::Profile
     File.rename(draft, target)
   end
 
-  def rails? = chosen("rails") { File.file?(File.join(root, "config", "application.rb")) || engine? }
+  def rails? = chosen("rails") { File.file?(File.join(@root, "config", "application.rb")) || engine? }
 
-  def engine? = Dir.glob("lib/**/engine.rb", base: root).any? { ENGINE.match?(File.read(File.join(root, it))) }
+  def engine? = Dir.glob("lib/**/engine.rb", base: @root).any? { ENGINE.match?(File.read(File.join(@root, it))) }
 
-  def packaged? = chosen("packaging") { Dir.glob(GEMSPECS, base: root).any? }
+  def packaged? = chosen("packaging") { Dir.glob(GEMSPECS, base: @root).any? }
 
-  def specified? = chosen("rspec") { File.file?(File.join(root, ".rspec")) || RSPEC.match?(lockfile) }
+  def specified? = chosen("rspec") { File.file?(File.join(@root, ".rspec")) || RSPEC.match?(lockfile) }
 
   def lockfile
-    found = LOCKS.map { File.join(root, it) }.find { File.file?(it) }
+    found = LOCKS.map { File.join(@root, it) }.find { File.file?(it) }
     found ? File.read(found) : ""
   end
 

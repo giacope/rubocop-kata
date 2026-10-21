@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 module RuboCop::Cop::Kata::Verbatim
+  include RuboCop::Cop::RangeHelp
+
   LITERALS = %i[str dstr xstr].freeze
 
   private
@@ -21,12 +23,6 @@ module RuboCop::Cop::Kata::Verbatim
 
   def register(number)
     target = processed_source.buffer.line_range(number)
-    add_offense(target) { |corrector| corrector.remove(whole(target)) }
-  end
-
-  def whole(target)
-    finish = target.end_pos
-    finish += 1 if processed_source.buffer.source[finish] == "\n"
-    target.with(end_pos: finish)
+    add_offense(target) { |corrector| corrector.remove(range_by_whole_lines(target, include_final_newline: true)) }
   end
 end

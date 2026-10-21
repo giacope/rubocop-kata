@@ -70,13 +70,14 @@ RSpec.describe(RuboCop::Kata::Profile) do
   # gemspec in the directory it was started from.
   it "reads the project from its root when started in a subdirectory" do
     project(["config/application.rb", ""], ["Gemfile", ""], ["app/models/user.rb", ""]) do |root|
-      profile = described_class.new(File.join(root, "app", "models"), {})
-      expect([profile.root, profile.overlay["inherit_from"]]).to(eq([File.realpath(root), [base, autocorrect, rails]]))
+      found = RuboCop::Kata::ProjectRoot.new(File.join(root, "app", "models")).path
+      expect([found, described_class.new(found, {}).overlay["inherit_from"]])
+        .to(eq([File.realpath(root), [base, autocorrect, rails]]))
     end
   end
 
   it "stays where it was started when no directory above marks a project" do
-    project(["notes.txt", ""]) { |root| expect(described_class.new(root, {}).root).to(eq(root)) }
+    project(["notes.txt", ""]) { |root| expect(RuboCop::Kata::ProjectRoot.new(root).path).to(eq(root)) }
   end
 
   it "lets the plugin's options overrule what it detects" do

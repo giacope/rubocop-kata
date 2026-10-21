@@ -2,6 +2,7 @@
 
 class RuboCop::Cop::Kata::NoComments < RuboCop::Cop::Base
   extend RuboCop::Cop::AutoCorrector
+  include RuboCop::Cop::RangeHelp
 
   MSG = "Say it in the code: rename it, extract it, or name the constant."
 
@@ -87,11 +88,7 @@ class RuboCop::Cop::Kata::NoComments < RuboCop::Cop::Base
 
   def alone?(range) = range.source_line[0, range.column].strip.empty?
 
-  def line(range)
-    finish = range.end_pos
-    finish += 1 if processed_source.buffer.source[finish] == "\n"
-    range.with(begin_pos: range.begin_pos - range.column, end_pos: finish)
-  end
+  def line(range) = range_by_whole_lines(range, include_final_newline: true)
 
   def trailing(range)
     range.with(begin_pos: range.begin_pos - range.source_line[0, range.column][/\s*\z/].length)
