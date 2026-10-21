@@ -13,15 +13,15 @@ class RuboCop::Cop::Kata::NoRedundantVariable < RuboCop::Cop::Base
 
   def on_def(node)
     body = node.body
-    audit(body) if body
+    audit(body, node.arguments.each_node(*RuboCop::Kata::Variable::Ledger::PARAMETERS).to_a) if body
   end
 
   alias on_defs on_def
 
   private
 
-  def audit(body)
-    singles = RuboCop::Kata::Variable::Ledger.new(body).pairs
+  def audit(body, parameters)
+    singles = RuboCop::Kata::Variable::Ledger.new(body, parameters).pairs
     plain =
       singles.reject do |assign, read|
         RuboCop::Kata::Variable::Label.new(assign).explains? || long?(assign, read)

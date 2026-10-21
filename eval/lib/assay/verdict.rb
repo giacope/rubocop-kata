@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "prism"
+
 class Assay::Verdict
   def initialize(item, offenses, text)
     @item = item
@@ -31,7 +33,11 @@ class Assay::Verdict
   def survival
     return [] unless @item["correct"]
     return ["the corrected file is missing"] if @text.nil?
-    [*lost, *shape]
+    [*lost, *shape, *broken]
+  end
+
+  def broken
+    "the corrected file does not parse" if Prism.parse(@item.fetch("source")).success? && !Prism.parse(@text).success?
   end
 
   def lost

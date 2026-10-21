@@ -69,9 +69,21 @@ RSpec.describe(RuboCop::Cop::Kata::NoRedundantVariable) do
       "read_inside_rescue_of_pure_begin" =>
       "def foo\n  x = compute\n  begin\n    1\n  rescue\n    bar(x)\n  end\nend",
       "assigned_inside_begin_block_read_after" =>
-      "def foo\n  begin\n    x = compute\n    1\n  end\n  bar(x)\nend"
+      "def foo\n  begin\n    x = compute\n    1\n  end\n  bar(x)\nend",
+      "parameter_reset_after_its_read_in_a_loop" =>
+      "def fold(prepend = 0)\n  until words.empty?\n    limit = 78 - prepend\n    lines << limit\n    prepend = 0\n  end\nend",
+      "parameter_reassigned_then_read" => "def foo(limit)\n  limit = 10\n  bar(limit)\nend",
+      "keyword_parameter_reassigned_then_read" => "def foo(limit:)\n  limit = 10\n  bar(limit)\nend",
+      "block_parameter_reassigned_then_read" => "def foo\n  items.map do |item|\n    item = 2\n    bar(item)\n  end\nend",
+      "read_before_its_only_assignment" => "def foo(s)\n  /(?<x>.)/ =~ s\n  bar(x)\n  x = 2\nend",
+      "read_as_a_safe_navigation_argument" => "def foo(box)\n  value = compute\n  box&.push(value)\nend",
+      "read_as_an_argument_past_a_safe_navigation" => "def foo(box)\n  value = compute\n  box&.first.push(value)\nend",
+      "read_as_an_or_assignment_value" => "def foo\n  value = compute\n  @cache ||= value\nend",
+      "read_as_an_and_assignment_value" => "def foo\n  value = compute\n  @cache &&= value\nend"
     }, violations: {
       "simple_inlinable" => ["def foo\n  x = bar\n  baz(x)\nend", 1],
+      "inlinable_as_a_safe_navigation_receiver" => ["def foo\n  x = bar\n  x&.baz\nend", 1],
+      "inlinable_as_an_argument_of_a_plain_call" => ["def foo(box)\n  x = bar\n  box.push(x)\nend", 1],
       "class_method_inlinable" => ["def self.foo\n  x = bar\n  baz(x)\nend", 1],
       "inlinable_inside_block" =>
       ["def foo\n  arr.each do |e|\n    y = e.bar\n    baz(y)\n  end\nend", 1],

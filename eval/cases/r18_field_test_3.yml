@@ -1,0 +1,327 @@
+# What the third field test, on thirty more MIT codebases, found: each case is
+# the shape a codebase misread or an autocorrect broke. `rubocop -a` broke
+# liquid, rack, mail and rubygems; each of those corrections is now -A.
+- id: bare-rescue-in-a-namespace-with-its-own-standard-error-is-kept
+  cop: Style/RescueStandardError
+  expect: offense
+  correct: safe
+  keeps: ["    rescue => exc"]
+  source: |
+    # frozen_string_literal: true
+
+    module Liquid
+      StandardError = Class.new(::StandardError)
+
+      class BlockBody
+        def render_node(node)
+          node.render
+        rescue => exc
+          exc.message
+        end
+      end
+    end
+- id: else-branch-calling-the-class-own-fail-is-not-hoisted
+  cop: Style/GuardClause
+  expect: offense
+  correct: safe
+  keeps: ["      if File.file?(path)", "        fail(404, \"File not found: #{path}\")"]
+  source: |
+    # frozen_string_literal: true
+
+    module Rack
+      class Files
+        def get(path)
+          if File.file?(path)
+            serving(path)
+          else
+            fail(404, "File not found: #{path}")
+          end
+        end
+
+        def fail(status, body) = [status, body]
+
+        def serving(path) = [200, path]
+      end
+    end
+- id: nested-condition-after-a-paren-less-call-is-not-merged
+  cop: Style/SoleNestedConditional
+  expect: offense
+  correct: safe
+  keeps: ["      if body.respond_to? :force_encoding and body.respond_to? :valid_encoding?"]
+  source: |
+    # frozen_string_literal: true
+
+    module Mail
+      class AttachmentsList
+        def encoding(body)
+          if body.respond_to? :force_encoding and body.respond_to? :valid_encoding?
+            if not body.valid_encoding?
+              return "binary"
+            end
+          end
+          "text"
+        end
+      end
+    end
+- id: parameter-reset-at-the-end-of-a-loop-is-not-inlined
+  cop: Kata/NoRedundantVariable
+  expect: clean
+  correct: all
+  only: true
+  keeps: ["        limit = 78 - prepend", "        prepend = 0"]
+  source: |
+    # frozen_string_literal: true
+
+    module Mail
+      class UnstructuredField
+        def fold(words, prepend = 0)
+          lines = []
+          until words.empty?
+            limit = 78 - prepend
+            lines << [words.shift, limit]
+            prepend = 0
+          end
+          lines
+        end
+      end
+    end
+- id: parameter-reset-at-the-end-of-a-loop-survives-safe-autocorrect
+  cop: Kata/NoRedundantVariable
+  expect: clean
+  correct: safe
+  keeps: ["        limit = 78 - prepend", "        prepend = 0", "    def fold(words, prepend = 0)"]
+  source: |
+    # frozen_string_literal: true
+
+    module Mail
+      class UnstructuredField
+        def fold(words, prepend = 0)
+          lines = []
+          until words.empty?
+            limit = 78 - prepend
+            lines << [words.shift, limit]
+            prepend = 0
+          end
+          lines
+        end
+      end
+    end
+- id: stderr-puts-in-a-logger-with-its-own-warn-is-kept
+  cop: Style/StderrPuts
+  expect: offense
+  correct: safe
+  keeps: ["      $stderr.puts \"INFO: #{block.call}\""]
+  source: |
+    # frozen_string_literal: true
+
+    module PubGrub
+      class StderrLogger
+        def info(&block)
+          $stderr.puts "INFO: #{block.call}"
+        end
+
+        def warn(&block)
+          $stderr.puts "WARN: #{block.call}"
+        end
+      end
+    end
+- id: multi-statement-loop-condition-keeps-its-parentheses
+  cop: Style/Semicolon
+  expect: offense
+  correct: safe
+  keeps: ["        path = parent"]
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      module Paths
+        def self.root(path)
+          until (parent, base = File.split(path); parent == path or parent == ".")
+            path = parent
+          end
+          [path, base]
+        end
+      end
+    end
+- id: version-file-keeps-the-quotes-a-gemspec-greps-for
+  cop: Style/StringLiterals
+  expect: clean
+  correct: safe
+  path: lib/shelf/version.rb
+  keeps: ["  VERSION = '1.3.8'"]
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      VERSION = '1.3.8'
+    end
+- id: numbered-parameter-beside-an-it-local-is-not-renamed
+  cop: Style/ItBlockParameter
+  expect: offense
+  correct: safe
+  keeps: ["    items.map { _1 + it }.sum"]
+  source: |
+    # frozen_string_literal: true
+
+    class Ledger
+      def bump(items)
+        it = 10
+        items.map { _1 + it }.sum
+      end
+    end
+- id: stderr-puts-beside-an-own-warn-is-kept
+  cop: Style/StderrPuts
+  expect: offense
+  correct: safe
+  keeps: ["    $stderr.puts(text)"]
+  source: |
+    # frozen_string_literal: true
+
+    class Console
+      def warn(text) = text
+
+      def alert(text)
+        $stderr.puts(text)
+      end
+    end
+- id: adjacent-literals-before-a-call-are-not-joined-with-plus
+  cop: Lint/ImplicitStringConcatenation
+  expect: offense
+  correct: safe
+  keeps: ["    \"ab\" \"cd\".upcase"]
+  source: |
+    # frozen_string_literal: true
+
+    class Shout
+      def text
+        "ab" "cd".upcase
+      end
+    end
+- id: operator-parameter-is-not-renamed-onto-a-local
+  cop: Naming/BinaryOperatorParameterName
+  expect: offense
+  correct: safe
+  keeps: ["  def +(o)"]
+  source: |
+    # frozen_string_literal: true
+
+    class Money
+      def initialize(cents)
+        @cents = cents
+      end
+
+      def +(o)
+        other = 100
+        Money.new(@cents + o.cents + other)
+      end
+    end
+- id: local-read-under-safe-navigation-or-or-assignment-is-not-inlined
+  cop: Kata/NoRedundantVariable
+  expect: clean
+  correct: all
+  only: true
+  keeps: ["    box&.push(value)", "    @value ||= value"]
+  source: |
+    # frozen_string_literal: true
+
+    class Store
+      def fetch
+        value = compute
+        @value ||= value
+      end
+
+      def peek(box)
+        value = compute
+        box&.push(value)
+      end
+    end
+- id: parallel-assignment-whose-value-is-returned-is-kept
+  cop: Style/ParallelAssignment
+  expect: offense
+  correct: safe
+  keeps: ["    @left, @right = 1, 2"]
+  source: |
+    # frozen_string_literal: true
+
+    class Pair
+      def reset
+        @left, @right = 1, 2
+      end
+    end
+- id: nil-comparison-on-a-basic-object-is-kept
+  cop: Style/NilComparison
+  expect: offense
+  correct: safe
+  keeps: ["    value == nil"]
+  source: |
+    # frozen_string_literal: true
+
+    class Check
+      def empty?(value)
+        value == nil
+      end
+    end
+- id: yielding-block-is-not-turned-into-a-block-argument
+  cop: Style/ExplicitBlockArgument
+  expect: offense
+  correct: safe
+  keeps: ["    @items.each { |item| yield item }"]
+  source: |
+    # frozen_string_literal: true
+
+    class Bag
+      def initialize
+        @items = [1]
+      end
+
+      def each_item
+        @items.each { |item| yield item }
+      end
+    end
+- id: comparisons-with-a-custom-equality-are-not-flipped
+  cop: Style/MultipleComparison
+  expect: offense
+  correct: safe
+  keeps: ["    kind == :json || kind == :xml"]
+  source: |
+    # frozen_string_literal: true
+
+    class Gate
+      def open?(kind)
+        kind == :json || kind == :xml
+      end
+    end
+- id: own-fixnum-constant-is-not-replaced-by-integer
+  cop: Lint/UnifiedInteger
+  expect: offense
+  correct: safe
+  keeps: ["      Fixnum"]
+  source: |
+    # frozen_string_literal: true
+
+    module Types
+      Fixnum = :custom
+
+      class Check
+        def kind
+          Fixnum
+        end
+      end
+    end
+- id: side-effecting-condition-is-not-collapsed
+  cop: Style/RedundantCondition
+  expect: offense
+  correct: safe
+  keeps: ["    @items.shift ? @items.shift : :none"]
+  source: |
+    # frozen_string_literal: true
+
+    class Line
+      def initialize
+        @items = [1, 2]
+      end
+
+      def next_item
+        @items.shift ? @items.shift : :none
+      end
+    end
