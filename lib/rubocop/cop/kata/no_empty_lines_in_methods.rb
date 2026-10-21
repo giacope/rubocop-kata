@@ -10,28 +10,10 @@ class RuboCop::Cop::Kata::NoEmptyLinesInMethods < RuboCop::Cop::Base
 
   MSG = "Empty line inside method body is not allowed"
 
-  def on_def(node)
-    body = node.body
-    return if body.nil? || body.single_line?
-    (body.first_line..body.last_line).each { register(it) if blank?(it) }
-  end
-
-  alias on_defs on_def
-
-  private
-
-  def blank?(number) = !kept.include?(number) && processed_source.lines[number - 1].strip.empty?
-
-  def kept = @_kept ||= verbatim
-
-  def register(number)
-    target = processed_source.buffer.line_range(number)
-    add_offense(target) { |corrector| corrector.remove(whole(target)) }
-  end
-
-  def whole(target)
-    finish = target.end_pos
-    finish += 1 if processed_source.buffer.source[finish] == "\n"
-    target.with(end_pos: finish)
+  def on_new_investigation
+    ast = processed_source.ast
+    return unless ast
+    bodies = ast.each_node(:def, :defs).filter_map(&:body).reject(&:single_line?)
+    report(bodies.flat_map { (it.first_line..it.last_line).to_a }.to_set - verbatim(ast))
   end
 end

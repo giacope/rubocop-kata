@@ -5,19 +5,6 @@ RSpec.describe(RuboCop::Cop::Kata::NoComments, :config) do
 
   let(:ruby_version) { 3.4 }
 
-  it "flags a docblock above a class, and removes the line" do
-    expect_offense(<<~RUBY)
-      # Why this class exists.
-      ^^^^^^^^^^^^^^^^^^^^^^^^ Say it in the code: rename it, extract it, or name the constant.
-      class Invoice
-      end
-    RUBY
-    expect_correction(<<~RUBY)
-      class Invoice
-      end
-    RUBY
-  end
-
   it "flags a comment inside a method body" do
     expect_offense(<<~RUBY)
       def total
@@ -43,16 +30,45 @@ RSpec.describe(RuboCop::Cop::Kata::NoComments, :config) do
     RUBY
   end
 
-  it "flags every line of a multi-line block" do
+  # rails: 51,198 offenses, one per line of each block.
+  it "flags a multi-line block once, and removes every line of it" do
     expect_offense(<<~RUBY)
       # First line.
       ^^^^^^^^^^^^^ Say it in the code: rename it, extract it, or name the constant.
       # Second line.
-      ^^^^^^^^^^^^^^ Say it in the code: rename it, extract it, or name the constant.
       def total = lines.sum
     RUBY
     expect_correction(<<~RUBY)
       def total = lines.sum
+    RUBY
+  end
+
+  it "counts trailing comments on neighbouring lines one by one, apart from a block" do
+    expect_offense(<<~RUBY)
+      # Above.
+      ^^^^^^^^ Say it in the code: rename it, extract it, or name the constant.
+      total = 1 # first
+                ^^^^^^^ Say it in the code: rename it, extract it, or name the constant.
+      count = 2 # second
+                ^^^^^^^^ Say it in the code: rename it, extract it, or name the constant.
+    RUBY
+  end
+
+  it "flags the prose of a block around a directive it keeps" do
+    expect_offense(<<~RUBY)
+      def total
+        # Before.
+        ^^^^^^^^^ Say it in the code: rename it, extract it, or name the constant.
+        # rubocop:disable Metrics/AbcSize
+        # After.
+        lines.sum
+      end
+    RUBY
+    expect_correction(<<~RUBY)
+      def total
+        # rubocop:disable Metrics/AbcSize
+        lines.sum
+      end
     RUBY
   end
 
@@ -111,6 +127,19 @@ RSpec.describe(RuboCop::Cop::Kata::NoComments, :config) do
 
   context "with documentation priced, for an application" do
     let(:cop_config) { { "AllowDocumentation" => false } }
+
+    it "flags a docblock above a class, and removes the line" do
+      expect_offense(<<~RUBY)
+        # Why this class exists.
+        ^^^^^^^^^^^^^^^^^^^^^^^^ Say it in the code: rename it, extract it, or name the constant.
+        class Invoice
+        end
+      RUBY
+      expect_correction(<<~RUBY)
+        class Invoice
+        end
+      RUBY
+    end
 
     it "flags YARD tags, which are prose for a reader" do
       expect_offense(<<~RUBY)
@@ -224,7 +253,99 @@ RSpec.describe(RuboCop::Cop::Kata::NoComments, :config) do
   context "with documentation allowed, for a gem that publishes its API" do
     let(:cop_config) { { "AllowDocumentation" => true } }
 
-    it "keeps a block that carries a YARD tag whole, and only that block" do
+    # rails: RDoc and Markdown above public methods were priced as prose,
+    # because only YARD tags marked a block as documentation.
+    it "keeps a block of any markup directly above a public class, module or method" do
+      expect_no_offenses(<<~RUBY)
+        # Holds the lines of one invoice.
+        class Invoice
+          # Totals the +billable+ lines.
+          def total = lines.sum
+
+          # Builds an *empty* invoice.
+          def self.blank = new([])
+
+          # Raised when a line is negative.
+          module Errors
+          end
+
+          protected
+
+          public
+
+          # Counts the lines, back in public.
+          def size = lines.size
+
+          # Totals the credits.
+          memoize def credits = []
+
+          class << self
+            # Parses an invoice from CSV.
+            def parse(text) = new(text.lines)
+          end
+        end
+      RUBY
+    end
+
+    it "flags a block above a private or protected method, inside a body, or apart by a blank line" do
+      expect_offense(<<~RUBY)
+        # Loose.
+        ^^^^^^^^ Say it in the code: rename it, extract it, or name the constant.
+
+        class Invoice
+          def total
+            # Adds them up.
+            ^^^^^^^^^^^^^^^ Say it in the code: rename it, extract it, or name the constant.
+            lines.sum
+          end
+
+          # Hidden at once.
+          ^^^^^^^^^^^^^^^^^ Say it in the code: rename it, extract it, or name the constant.
+          private def refunds = []
+
+          # Fresh per call.
+          ^^^^^^^^^^^^^^^^^ Say it in the code: rename it, extract it, or name the constant.
+          private_class_method def self.blank = new
+
+          private
+
+          # Kept for the importer.
+          ^^^^^^^^^^^^^^^^^^^^^^^^ Say it in the code: rename it, extract it, or name the constant.
+          def lines = []
+
+          class << self
+            private
+
+            # Parses one row.
+            ^^^^^^^^^^^^^^^^^ Say it in the code: rename it, extract it, or name the constant.
+            def row(text) = text
+          end
+        end
+      RUBY
+    end
+
+    it "flags a block above a top-level method, which is private to Object" do
+      expect_offense(<<~RUBY)
+        # Runs the import.
+        ^^^^^^^^^^^^^^^^^^ Say it in the code: rename it, extract it, or name the constant.
+        def import = 1
+        # Prints the totals.
+        ^^^^^^^^^^^^^^^^^^^^ Say it in the code: rename it, extract it, or name the constant.
+        def report = 2
+      RUBY
+    end
+
+    it "flags a trailing comment on the line above a public method" do
+      expect_offense(<<~RUBY)
+        class Invoice
+          attr_reader :lines # the lines
+                             ^^^^^^^^^^^ Say it in the code: rename it, extract it, or name the constant.
+          def total = lines.sum
+        end
+      RUBY
+    end
+
+    it "keeps a block that carries a YARD tag whole, wherever it stands, and only that block" do
       expect_offense(<<~RUBY)
         # Totals the billable lines.
         #
@@ -270,7 +391,6 @@ RSpec.describe(RuboCop::Cop::Kata::NoComments, :config) do
       # Why this file exists.
       ^^^^^^^^^^^^^^^^^^^^^^^ Say it in the code: rename it, extract it, or name the constant.
       # And what it does.
-      ^^^^^^^^^^^^^^^^^^^ Say it in the code: rename it, extract it, or name the constant.
       def total = lines.sum
     RUBY
     expect_correction(<<~RUBY)

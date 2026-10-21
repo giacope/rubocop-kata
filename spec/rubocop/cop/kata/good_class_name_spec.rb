@@ -11,6 +11,32 @@ RSpec.describe(RuboCop::Cop::Kata::GoodClassName, :config) do
     RUBY
   end
 
+  # CocoaPods: `Installer` was flagged in each of the 54 files that reopen it
+  # only to nest a class inside.
+  it "judges a class where it is defined, not in each file that reopens it as a namespace" do
+    expect_offense(<<~RUBY)
+      class Installer
+        class Analyzer
+              ^^^^^^^^ `Analyzer` names a doer; name the class for the thing it is, not the work it does.
+        end
+        module Helpers
+        end
+      end
+      class Installer
+            ^^^^^^^^^ `Installer` names a doer; name the class for the thing it is, not the work it does.
+        def install; end
+      end
+      class Installer < Base
+            ^^^^^^^^^ `Installer` names a doer; name the class for the thing it is, not the work it does.
+        class Context
+        end
+      end
+      class Installer
+            ^^^^^^^^^ `Installer` names a doer; name the class for the thing it is, not the work it does.
+      end
+    RUBY
+  end
+
   it "leaves modules to Kata/GoodModuleName" do
     expect_no_offenses(<<~RUBY)
       module Resolver

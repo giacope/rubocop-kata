@@ -7,5 +7,15 @@ class RuboCop::Cop::Kata::GoodClassName < RuboCop::Cop::Base
   CROWD_MSG = "`%s` packs %d concepts into one name; a class names one object that exists " \
     "in the model — or, if `%s` reads as one concept here, add it to `Terms`."
 
-  def on_class(node) = check(node)
+  def on_class(node)
+    check(node) unless wrapper?(node)
+  end
+
+  private
+
+  def wrapper?(node)
+    body = node.body
+    return false if node.parent_class || body.nil?
+    (body.begin_type? ? body.children : [body]).all? { it.class_type? || it.module_type? }
+  end
 end

@@ -56,10 +56,12 @@ Kata/GoodClassName:
     trailing segment: exception classes (`Error`), the domain roles a model
     represents rather than performs (`User`, `Owner`), words whose thing and
     doer readings are equally common in code (`Server`, `Container`), and
-    `Header`, which WordNet derives from the verb `head`.
+    `Header`, which WordNet derives from the verb `head`. A class is judged
+    where it is defined: a reopen with no superclass whose body holds only
+    nested classes and modules is a namespace wrapper, not a definition.
   Enabled: true
   VersionAdded: "0.9"
-  VersionChanged: "0.11"
+  VersionChanged: "0.12"
   Exclude:
     - "db/*migrate/**/*"
     - "**/*.jbuilder"
@@ -186,15 +188,19 @@ Kata/NoComments:
     reek `:reek:`, kimera, hashira, RubyMine `language=`), RDoc and YARD
     directives, licence headers, every comment block that cites a URL, an
     issue or pull request (`rails/rails#123`, `#123`), an RFC or a CVE, and
-    every block carrying a YARD tag: a gem's API documentation is product, not
-    prose (`AllowDocumentation: false` to price it too). `AllowedPatterns`
-    adds the directives of tools it does not know. Removing a comment loses
-    what it said, so the correction is unsafe: `rubocop -A` applies it,
-    `rubocop -a` does not. `config/` is excluded: its comments are the
-    framework's generated guidance.
+    public API documentation: a block directly above a public class, module
+    or method, in any markup (RDoc, Markdown, YARD), and any block carrying a
+    YARD tag. A published API's documentation is product, not prose
+    (`AllowDocumentation: false` to price it too); a block inside a method
+    body, above a private or protected method, or above a top-level method
+    is prose. One block of consecutive full-line comments is one offense.
+    `AllowedPatterns` adds the directives of tools it does not know. Removing
+    a comment loses what it said, so the correction is unsafe: `rubocop -A`
+    applies it, `rubocop -a` does not. `config/` is excluded: its comments
+    are the framework's generated guidance.
   Enabled: true
   VersionAdded: "0.1"
-  VersionChanged: "0.11"
+  VersionChanged: "0.12"
   SafeAutoCorrect: false
   AllowDocumentation: true
   AllowCitations: true
