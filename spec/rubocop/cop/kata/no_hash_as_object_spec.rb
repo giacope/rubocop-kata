@@ -137,4 +137,11 @@ RSpec.describe(RuboCop::Cop::Kata::NoHashAsObject, :config) do
       jobs.push(id: 1, name: "a", cores: 2, ram: 4)
     RUBY
   end
+
+  it "reads T.let as a call where the project does not use Sorbet" do
+    expect_offense(<<~RUBY)
+      CODES = T.let({ find: /a/, link: /b/, copy: /c/, lock: /d/ }, T::Hash[Symbol, Regexp])
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ 4 keys travelling together are an object without a name.
+    RUBY
+  end
 end

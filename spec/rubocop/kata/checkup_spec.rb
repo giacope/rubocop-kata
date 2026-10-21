@@ -175,6 +175,13 @@ RSpec.describe(RuboCop::Kata::Checkup) do
     end
   end
 
+  it "counts a single inline disable" do
+    source = "# frozen_string_literal: true\n\nVALUE = 1 # rubocop:disable Style/MutableConstant -- read only\n"
+    project("", source) do |root|
+      expect(report(root).first).to(include("clean\n1 inline disable, 0 without a reason\n"))
+    end
+  end
+
   it "says to rename a cop RuboCop renamed in the configuration" do
     project("Lint/StringConversionInInterpolation:\n  Enabled: true\n", "VALUE = 1\n") do |root|
       expect(report(root)).to(match([include("rename it in .rubocop.yml"), 2]))

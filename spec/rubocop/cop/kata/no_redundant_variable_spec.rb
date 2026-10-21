@@ -85,6 +85,7 @@ RSpec.describe(RuboCop::Cop::Kata::NoRedundantVariable) do
       "read_as_an_argument_past_a_safe_navigation" =>
       "def foo(box)\n  value = compute\n  box&.first.push(value)\nend",
       "read_as_an_or_assignment_value" => "def foo\n  value = compute\n  @cache ||= value\nend",
+      "read_inside_branch_of_a_pure_condition" => "def foo(flag)\n  x = compute\n  bar(x) if flag\nend",
       "read_as_an_and_assignment_value" => "def foo\n  value = compute\n  @cache &&= value\nend"
     }, violations: {
       "simple_inlinable" => ["def foo\n  x = bar\n  baz(x)\nend", 1],
@@ -330,5 +331,17 @@ RSpec.describe(RuboCop::Cop::Kata::NoRedundantVariable) do
     arguments = (1..20).map { "a#{it}" }.join(", ")
     source = ["def foo", *assignments, "  sink(#{arguments})", "end"].join("\n")
     expect(Timeout.timeout(2) { offenses(source).size }).to(eq(20))
+  end
+
+  context "with Sorbet" do
+    let(:cop) { described_class.new(RuboCop::Config.new("Kata/NoRedundantVariable" => { "Sorbet" => true })) }
+
+    it "judges the value a T.let wraps, not the annotation" do
+      expect(offenses("def foo\n  string = T.let(fetch, String)\n  bar(string)\nend")).to(be_empty)
+    end
+  end
+
+  it "reads a T.let as the call it is where the project does not use Sorbet" do
+    expect(offenses("def foo\n  string = T.let(fetch, String)\n  bar(string)\nend").size).to(eq(1))
   end
 end

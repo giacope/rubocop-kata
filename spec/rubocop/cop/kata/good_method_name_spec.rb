@@ -372,14 +372,16 @@ RSpec.describe(RuboCop::Cop::Kata::GoodMethodName, :config) do
 
     before do
       FileUtils.mkdir_p(File.join(root, "lib"))
-      base = "module Shelf\n  class Fetcher\n    def check_required_files = nil\n  end\nend\n"
+      base = "module Shelf\n  class Fetcher\n    def check_required_files = nil\n" \
+        "    def self.fetch_lock_files = nil\n  end\nend\n"
       File.write(File.join(root, "lib", "fetcher.rb"), base)
+      File.write(File.join(root, "lib", "npm.rb"), "module Shelf\n  class Npm < Fetcher\n  end\nend\n")
     end
 
     after { FileUtils.rm_rf(root) }
 
     it "reports a name once, where it was chosen, not in each override" do
-      source = "module Shelf\n  class Npm < Fetcher\n    def check_required_files = 1\n    " \
+      source = "module Shelf\n  class Npm\n    def check_required_files = 1\n    " \
         "def fetch_lock_files = 2\n  end\nend\n"
       expect(offenses(source).map(&:line)).to(eq([4]))
     end

@@ -151,6 +151,19 @@ RSpec.describe(RuboCop::Cop::Kata::NoComments, :config) do
         ^^^^^^^^^^^^^^^^^^^^^ Say it in the code: rename it, extract it, or name the constant.
         attr_reader :cache
       end
+
+      module Hooks
+        # Runs when a class includes it.
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Say it in the code: rename it, extract it, or name the constant.
+        included do
+          nil
+        end
+      end
+
+      class Limit
+        # The highest value.
+        MAX = 9
+      end
     RUBY
   end
 

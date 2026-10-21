@@ -7,7 +7,6 @@ class RuboCop::Cop::Kata::FrozenState < RuboCop::Cop::Base
 
   MSG = "`%s` changes after construction; set state once in `initialize` and return a new object to change it."
   CONSTRUCTORS = %i[initialize initialize_copy initialize_dup initialize_clone].freeze
-  WRITES = %i[op_asgn or_asgn and_asgn].freeze
   LOOKUPS = %i[key? include? has_key? member? []].freeze
 
   def_node_matcher :minted, "(any_block (send {nil? self} :define_method ${sym str dsym} ...) ...)"
@@ -39,10 +38,9 @@ class RuboCop::Cop::Kata::FrozenState < RuboCop::Cop::Base
   def cached?(node) = node.ivasgn_type? && (memoized?(node) || declared?(node))
 
   def declared?(node)
-    value = node.expression
-    return false unless cop_config["Sorbet"] == true && value&.send_type?
-    typed = RuboCop::Kata::Annotation.new(value)
-    typed.wrapper? && typed.value.ivar_type? && typed.value.children.first == node.children.first
+    return false unless cop_config["Sorbet"] == true
+    typed = RuboCop::Kata::Annotation.new(node.expression)
+    typed.wrapper? && typed.value == s(:ivar, node.children.first)
   end
 
   def class_level?(method)
@@ -50,9 +48,7 @@ class RuboCop::Cop::Kata::FrozenState < RuboCop::Cop::Base
   end
 
   def mutation?(node)
-    name = node.method_name
-    return false if name == :[] || (WRITES.include?(node.parent&.type) && node.parent.children.first.equal?(node))
-    mutating?(name) && !stored?(node)
+    mutating?(node.method_name) && !stored?(node)
   end
 
   def mutating?(name)
@@ -77,9 +73,8 @@ class RuboCop::Cop::Kata::FrozenState < RuboCop::Cop::Base
 
   def hooks(scope)
     names = list("ConstructorHooks")
-    plain = names.reject { it.include?("#") }
-    return plain unless scope&.type?(:class, :module)
-    plain + names.filter_map { qualified_hook(it, scope) }
+    return names unless scope&.type?(:class, :module)
+    names + names.select { it.include?("#") }.map { qualified_hook(it, scope) }.compact
   end
 
   def qualified_hook(entry, scope)

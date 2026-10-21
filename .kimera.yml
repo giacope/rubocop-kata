@@ -8,7 +8,7 @@ jobs: 4
 max_survivors: 0
 max_errors: 0
 fail_on_no_coverage: false
-max_ignored: 4
+max_ignored: 5
 ignore:
 - file: lib/rubocop/kata/variable/boundary.rb
   line: 18
@@ -37,3 +37,10 @@ ignore:
     mutated receiver is a separate lvar node that either sits inside that value
     (ending later) or after a separator, so it can never begin at the offset
     where the assignment ends
+- file: lib/rubocop/kata/variable/ledger.rb
+  line: 32
+  label: ">= => >"
+  reason: >-
+    the read and the assignment are distinct nodes, and a read cannot begin at
+    the offset where the assignment's value ends (the two are separated by a
+    newline, a semicolon or an operator), so the two comparisons never differ

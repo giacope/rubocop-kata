@@ -31,7 +31,7 @@ class RuboCop::Kata::Kinship
     path = node.constant_path.slice
     name = path.start_with?("::") || scope.empty? ? path.delete_prefix("::") : "#{scope.last}::#{path}"
     parent = node.superclass if node.is_a?(Prism::ClassNode)
-    [[name, :method, nil], *([[name, :parent, parent.slice, scope]] if parent), *inner(node, [*scope, name], nil)]
+    [[name, :method, nil], *written(parent, node).map { [name, :parent, it, scope] }, *inner(node, [*scope, name], nil)]
   end
 
   def defined(node, scope)
@@ -40,15 +40,14 @@ class RuboCop::Kata::Kinship
   end
 
   def call(node, scope, method)
-    return [] if scope.empty?
-    mixin = method.nil? && node.receiver.nil? && RuboCop::Kata::Lineage::MIXINS.include?(node.name)
-    return mixins(node, scope) if mixin
-    return [] unless method && RuboCop::Kata::Lineage::CALLERS.any? { node.receiver.is_a?(it) }
+    return [] unless RuboCop::Kata::Lineage::CALLERS.any? { node.receiver.is_a?(it) }
     [[scope.last, :method, method, node.name.to_s]]
   end
 
-  def mixins(node, scope)
-    modules = Array(node.arguments&.arguments).select { it.respond_to?(:full_name) }
-    modules.map { [scope.last, :parent, it.slice, scope[0..-2]] }
+  def written(parent, node) = [*parent&.slice, *Array(node.body&.body).flat_map { mixed(it) }]
+
+  def mixed(statement)
+    return [] unless statement.is_a?(Prism::CallNode) && RuboCop::Kata::Lineage::MIXINS.include?(statement.name)
+    Array(statement.arguments&.arguments).filter_map { it.slice if it.respond_to?(:full_name) }
   end
 end

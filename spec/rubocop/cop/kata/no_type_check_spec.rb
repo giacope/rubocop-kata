@@ -206,6 +206,13 @@ RSpec.describe(RuboCop::Cop::Kata::NoTypeCheck, :config) do
         end
       end
       def named?(value) = value.class.name == "String" || value.name == "Circle"
+      module Shelf
+        def self.open = nil
+      end
+      def remote?(value) = case value
+                           in Shelf::Remote then true
+                           in Integer then false
+                           end
       def ==(other) = other.class == Circle
     RUBY
   end
@@ -229,6 +236,10 @@ RSpec.describe(RuboCop::Cop::Kata::NoTypeCheck, :config) do
         class Shelf::Request; end
       end
       def boundary(job, env) = job.is_a?(ActiveJob::Base) || env.is_a?(Rack::Request) || job.is_a?(Base)
+      def rack?(env) = env.is_a?(Rack) || env.is_a?(ActiveJob)
+      module Shelf
+        def self.top?(item) = item.is_a?(::Base)
+      end
     RUBY
   end
 

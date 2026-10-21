@@ -272,6 +272,14 @@ RSpec.describe(RuboCop::Cop::Kata::FrozenState, :config) do
           end
 
           def fetch(key) = @cache[key] ||= key.to_s
+
+          def remember(key)
+            @index[key] = true unless @index.key?(key)
+            @index[key] = false unless @cache.key?(key)
+            ^^^^^^^^^^^^^^^^^^^ `@index` changes after construction; set state once in `initialize` and return a new object to change it.
+            @index[key] = nil unless @index.frozen?
+            ^^^^^^^^^^^^^^^^^ `@index` changes after construction; set state once in `initialize` and return a new object to change it.
+          end
           def count = @items.size
           def drop(item) = @items.delete(item).then { @items }
                            ^^^^^^^^^^^^^^^^^^^ `@items` changes after construction; set state once in `initialize` and return a new object to change it.
@@ -293,6 +301,10 @@ RSpec.describe(RuboCop::Cop::Kata::FrozenState, :config) do
 
           def reset = @token = T.let(nil, T.nilable(String))
                       ^^^^^^ `@token` changes after construction; set state once in `initialize` and return a new object to change it.
+          def again = @token = @token
+                      ^^^^^^ `@token` changes after construction; set state once in `initialize` and return a new object to change it.
+          def limit = @limit = T::Limit
+                      ^^^^^^ `@limit` changes after construction; set state once in `initialize` and return a new object to change it.
         end
       RUBY
     end
@@ -315,6 +327,11 @@ RSpec.describe(RuboCop::Cop::Kata::FrozenState, :config) do
             def build(title) = @title = title
                                ^^^^^^ `@title` changes after construction; set state once in `initialize` and return a new object to change it.
           end
+
+          Widget = Class.new(Arbre::Component) do
+            def build(title) = @title = title
+                               ^^^^^^ `@title` changes after construction; set state once in `initialize` and return a new object to change it.
+          end
         end
       RUBY
     end
@@ -331,8 +348,8 @@ RSpec.describe(RuboCop::Cop::Kata::FrozenState, :config) do
 
     before do
       FileUtils.mkdir_p(File.join(root, "lib"))
-      switching = "module Shelf\n  module Switching\n    def parse_with_mode(markup) = strict_parse(markup)\n  " \
-        "end\nend\n"
+      switching = "module Shelf\n  module Switching\n    def parse_with_mode(markup) = [strict_parse(markup), " \
+        "@log.lax_parse(markup)]\n  end\nend\n"
       tag = "module Shelf\n  class Tag\n    include Switching\n\n    " \
         "def initialize(markup) = parse_with_mode(markup)\n  end\nend\n"
       File.write(File.join(root, "lib", "switching.rb"), switching)
@@ -344,13 +361,37 @@ RSpec.describe(RuboCop::Cop::Kata::FrozenState, :config) do
     it "follows a constructor helper through a mixin and a superclass in other files" do
       source = <<~RUBY
         module Shelf
-          class If < Tag
+          class If < ::Shelf::Tag
             def strict_parse(markup) = @markup = markup
             def render = @rendered = true
+            def lax_parse(markup) = @lax = markup
           end
         end
       RUBY
-      expect(offenses(source).map(&:line)).to(eq([4]))
+      expect(offenses(source).map(&:line)).to(eq([4, 5]))
+    end
+  end
+
+  context "without Sorbet" do
+    it "reads a T.let of the variable itself as an assignment" do
+      expect_offense(<<~RUBY)
+        class Client
+          def token = @token = T.let(@token, T.nilable(String))
+                      ^^^^^^ `@token` changes after construction; set state once in `initialize` and return a new object to change it.
+        end
+      RUBY
+    end
+  end
+
+  context "with a hook a framework calls inside a block-built class" do
+    let(:cop_config) { { "ConstructorHooks" => ["setup"] } }
+
+    it "takes the hook for construction" do
+      expect_no_offenses(<<~RUBY)
+        Point = Struct.new(:x) do
+          def setup = @ready = true
+        end
+      RUBY
     end
   end
 end

@@ -38,8 +38,7 @@ class RuboCop::Cop::Kata::NoHashAsObject < RuboCop::Cop::Base
 
   def annotated?(value)
     holder = value.parent
-    cop_config["Sorbet"] == true && holder&.send_type? && RuboCop::Kata::Annotation.new(holder).wrapper? &&
-      holder.first_argument.equal?(value)
+    cop_config["Sorbet"] == true && RuboCop::Kata::Annotation.new(holder).wrapped(holder).equal?(value)
   end
 
   def protocol?(node)

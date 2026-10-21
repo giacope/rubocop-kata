@@ -169,6 +169,8 @@ RSpec.describe(RuboCop::Cop::Kata::NoClassMethodLogic, :config) do
       class Wizard
         def self.steps = %i[name email confirm]
                  ^^^^^ `steps` only returns a literal; make it a constant.
+        def self.limit = LIMIT
+                 ^^^^^ `limit` puts logic on the class; classes construct, instances work.
       end
     RUBY
   end
