@@ -86,14 +86,14 @@ RSpec.describe(RuboCop::Cop::Kata::NoEmptyLinesInMethods, :config) do
     RUBY
   end
 
-  it "keeps the blank line of a heredoc Ruby reads as one string" do
+  it "keeps a blank line that opens a heredoc's body" do
     expect_no_offenses(<<~RUBY)
       def body
-        <<-TEXT
-          Hello,
+        text = <<~TEXT
 
-          Bye
+          Hello,
         TEXT
+        text.strip
       end
     RUBY
   end
