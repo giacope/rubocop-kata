@@ -158,3 +158,10 @@
         text.match?(x)
       end
     end
+- id: runner-run-answers-a-boolean-by-contract
+  cop: Naming/PredicateMethod
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    Minitest.singleton_class.prepend(Module.new { def run(*) = true })

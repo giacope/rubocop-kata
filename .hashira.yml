@@ -1,0 +1,3 @@
+# Every kind on but change_coupling, which reads history: the commits that
+# grew the cop list and the plan stages together stay in it.
+checks: { all: true, change_coupling: false }

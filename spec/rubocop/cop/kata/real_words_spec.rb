@@ -386,7 +386,28 @@ RSpec.describe(RuboCop::Cop::Kata::RealWords, :config) do
 
   it "leaves a method that calls super to its ancestor's name" do
     expect_no_offenses(<<~RUBY)
-      def visit_begin_node(node) = endpoint(node) { super }
+      def visit_dstr(node) = endpoint(node) { super }
     RUBY
+  end
+
+  context "with the project's library" do
+    include TabledCop
+
+    let(:root) { Dir.mktmpdir("kata-words") }
+    let(:cop) do
+      shipped = { "Kata/RealWords" => { "Vocabulary" => [], "OwnedPaths" => ["lib/**/*.rb"] } }
+      described_class.new(RuboCop::Config.new(shipped, File.join(root, ".rubocop.yml")))
+    end
+
+    before do
+      FileUtils.mkdir_p(File.join(root, "lib"))
+      File.write(File.join(root, "lib", "walk.rb"), "class Walk\n  def visit(node) = node.dstr_parts\nend\n")
+    end
+
+    after { FileUtils.rm_rf(root) }
+
+    it "leaves a stand-in for a message the project sends but never defines to the caller's name" do
+      expect(offenses("def dstr_parts = 1\ndef dstr_count = 2\n").map(&:line)).to(eq([2]))
+    end
   end
 end

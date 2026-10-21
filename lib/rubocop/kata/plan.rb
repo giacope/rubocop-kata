@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "json"
+require "rbconfig"
 require "tempfile"
 
 class RuboCop::Kata::Plan
@@ -27,6 +28,7 @@ class RuboCop::Kata::Plan
   NOTES = { "structure" => MINTS }.freeze
   DENSE = "densest: %s (%d)"
   CLEAN = "clean"
+  LAUNCH = 'require "rubocop"; exit(RuboCop::CLI.new.run(ARGV))'
 
   def initialize(root, io: $stdout)
     @root = root
@@ -88,11 +90,10 @@ class RuboCop::Kata::Plan
 
   def report
     @_report ||=
-      Dir.chdir(@root) do
-        Tempfile.create("rubocop-kata-plan") do |sink|
-          RuboCop::CLI.new.run(["--format", "json", "--out", sink.path, "--plugin", "rubocop-kata", "."])
-          JSON.parse(File.read(sink.path, encoding: Encoding::UTF_8))
-        end
+      Tempfile.create("rubocop-kata-plan") do |sink|
+        arguments = ["--format", "json", "--out", sink.path, "--plugin", "rubocop-kata", "."]
+        system(RbConfig.ruby, "-e", LAUNCH, "--", *arguments, chdir: @root)
+        JSON.parse(File.read(sink.path, encoding: Encoding::UTF_8))
       end
   end
 end

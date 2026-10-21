@@ -31,7 +31,6 @@ class RuboCop::Cop::Kata::NoComments < RuboCop::Cop::Base
   RDOC_OPENER = "##"
   DECORATORS = %i[memoize memo_wise].freeze
 
-  # hashira:disable-next-line fragmentation -- blind raters preferred its named kept categories to the merge
   def on_new_investigation
     runs = blocks
     kept = notice + documented(runs) + cited(runs)

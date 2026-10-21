@@ -13,7 +13,7 @@ class RuboCop::Cop::Kata::NoRedundantVariable < RuboCop::Cop::Base
 
   def on_def(node)
     body = node.body
-    audit(body, node.arguments.each_node(*RuboCop::Kata::Variable::Ledger::PARAMETERS).to_a) if body
+    audit(body, node.arguments.each_node(*RuboCop::Kata::Variable::Census::PARAMETERS).to_a) if body
   end
 
   alias on_defs on_def
@@ -21,7 +21,7 @@ class RuboCop::Cop::Kata::NoRedundantVariable < RuboCop::Cop::Base
   private
 
   def audit(body, parameters)
-    singles = RuboCop::Kata::Variable::Ledger.new(body, parameters).pairs
+    singles = RuboCop::Kata::Variable::Ledger.new(RuboCop::Kata::Variable::Census.new(body, parameters)).pairs
     plain = singles.reject { |assign, read| explains?(assign) || long?(assign, read) }
     movable = plain.select { |assign, read| movable?(assign, read, singles) }
     gap = RuboCop::Kata::Variable::Gap.new(singles, movable)
