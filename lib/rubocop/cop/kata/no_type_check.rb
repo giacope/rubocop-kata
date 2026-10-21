@@ -12,35 +12,75 @@ class RuboCop::Cop::Kata::NoTypeCheck < RuboCop::Cop::Base
       name|superclass|ancestors|arity|parameters
     )\z
   /x
+  PROBES = %i[is_a? kind_of? instance_of?].freeze
+  EQUALITIES = %i[== != eql? equal?].freeze
 
-  RESTRICT_ON_SEND = %i[is_a? kind_of? instance_of? respond_to?].freeze
+  RESTRICT_ON_SEND = [*PROBES, :respond_to?, :===, *EQUALITIES].freeze
+
+  def_node_matcher :class_of?, "(send _ :class)"
+  def_node_matcher :class_name?, "(send (send _ :class) :name)"
 
   def on_send(node)
-    method = node.each_ancestor(:def, :defs).first
-    return if method && listed?("AllowedMethods", method.method_name.to_s)
-    add_offense(node.loc.selector, message: format(MSG, node.method_name)) if owned?(node.first_argument, node)
+    label = probe(node)
+    report(node, node.loc.selector, label) if label
+  end
+
+  def on_case(node)
+    tested = node.when_branches.flat_map(&:conditions)
+    report(node, node.loc.keyword, "case … when") if node.condition && tested.any? { own?(it) }
+  end
+
+  def on_case_match(node)
+    tested =
+      node.in_pattern_branches.flat_map do |branch|
+        branch.pattern.each_node(:const).reject do
+          it.parent&.const_type?
+        end
+      end
+    report(node, node.loc.keyword, "case … in") if tested.any? { own?(it) }
   end
 
   private
 
-  def owned?(probe, node)
-    return false if probe.nil?
-    return probe.sym_type? && message?(probe.value.to_s) if node.method?(:respond_to?)
-    probe.const_type? && own_type?(probe.const_name)
+  def report(node, range, label)
+    method = node.each_ancestor(:def, :defs).first
+    add_offense(range, message: format(MSG, label)) unless method && listed?("AllowedMethods", method.method_name.to_s)
   end
 
-  def own_type?(name)
-    segments = name.split("::")
-    !RuboCop::Kata::Dictionary::CORE.include?(segments.first) && segments.values_at(0, -1).all? { type?(it) }
+  def probe(node)
+    name = node.method_name
+    return equality(node) if EQUALITIES.include?(name)
+    name if probed?(node, name)
   end
 
-  def type?(name) = local_types.include?(name) || inventory.type?(name)
+  def probed?(node, name)
+    probe = node.first_argument
+    return own?(probe) if PROBES.include?(name)
+    return own?(node.receiver) if name == :===
+    probe&.sym_type? && message?(probe.value.to_s)
+  end
 
-  def message?(name) = !PROTOCOL.match?(name) && (local_messages.include?(name) || inventory.message?(name))
+  def equality(node)
+    sides = [node.receiver, node.first_argument]
+    return "class #{node.method_name}" if sides.any? { class_of?(it) } && sides.any? { own?(it) }
+    named = sides.find { it&.str_type? }
+    "class.name #{node.method_name}" if named && sides.any? { class_name?(it) } && own_name?(named.value, named)
+  end
 
-  def local_types = RuboCop::Kata::Declared.new(processed_source.ast).types
+  def own?(probe) = probe&.const_type? && own_name?(probe.const_name, probe, absolute: probe.absolute?)
 
-  def local_messages = processed_source.ast.each_node(:def, :defs).map { it.method_name.to_s }
+  def own_name?(name, node, absolute: false)
+    candidates = absolute ? [name] : [*RuboCop::Kata::Nesting.new(node).names.map { "#{it}::#{name}" }, name]
+    core = RuboCop::Kata::Dictionary::CORE
+    candidates.any? { !core.include?(it) && (local_types.include?(it) || inventory.type?(it)) }
+  end
+
+  def message?(name)
+    return false if PROTOCOL.match?(name) || RuboCop::Kata::Protocols.new(list("Protocols")).include?(name)
+    processed_source.ast.each_node(:def, :defs).any? { it.method?(name.to_sym) } || inventory.message?(name)
+  end
+
+  def local_types = @_local_types ||= RuboCop::Kata::Definitions.new(processed_source.raw_source).names
 
   def inventory = RuboCop::Kata::Inventory.of(config.base_dir_for_path_parameters, list("OwnedPaths"))
 end

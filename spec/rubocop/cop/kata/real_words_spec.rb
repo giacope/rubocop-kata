@@ -365,4 +365,10 @@ RSpec.describe(RuboCop::Cop::Kata::RealWords, :config) do
       RUBY
     end
   end
+
+  it "knows en-GB nouns, networking and mail initialisms, and the words the corpus showed" do
+    expect_no_offenses(<<~RUBY)
+      def deliver(artefact, dependants, tcp, ipv6, cpu, dkim, bcc, jitter, uptime, heatmap, stylesheet) = nil
+    RUBY
+  end
 end

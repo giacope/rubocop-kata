@@ -15,7 +15,7 @@ class RuboCop::Cop::Kata::GoodClassName < RuboCop::Cop::Base
 
   def wrapper?(node)
     body = node.body
-    return false if node.parent_class || body.nil?
+    return false if body.nil?
     (body.begin_type? ? body.children : [body]).all? { it.class_type? || it.module_type? }
   end
 end

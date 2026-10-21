@@ -17,7 +17,7 @@ class RuboCop::Cop::Kata::ConstructorDiscipline < RuboCop::Cop::Base
 
   def judge(send, root)
     name = send.method_name
-    return if allowed?(send) || exempt?(send, root)
+    return if allowed?(send) || exempt?(send, root) || typing?(send)
     add_offense(send, message: format(MSG, name))
   end
 
@@ -41,6 +41,8 @@ class RuboCop::Cop::Kata::ConstructorDiscipline < RuboCop::Cop::Base
   def exempt?(send, root)
     send.each_ancestor.take_while { !it.equal?(root) }.any? { deferred?(it) || raised?(it) || guard?(it) }
   end
+
+  def typing?(send) = cop_config["Sorbet"] == true && RuboCop::Kata::Annotation.new(send).typing?
 
   def deferred?(node) = node.any_block_type? && (node.lambda_or_proc? || state?(node.send_node))
 

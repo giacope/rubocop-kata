@@ -8,12 +8,8 @@ class RuboCop::Kata::Profile
   SHELF = File.expand_path("../../../config", __dir__)
   BASE = File.join(SHELF, "default.yml")
   RAILS = File.join(SHELF, "rails.yml")
+  SORBET = File.join(SHELF, "sorbet.yml")
   AUTOCORRECT = File.join(SHELF, "autocorrect.yml")
-  LOCKS = %w[Gemfile.lock gems.locked].freeze
-  RSPEC = /^ {4}rspec-core \(/
-  GEMSPECS = %w[*.gemspec */*.gemspec].freeze
-  ENGINE = /<\s*(::)?Rails::Engine\b|^\s*isolate_namespace\b/
-
   def initialize(root, options, shelf: Dir.tmpdir)
     @root = root
     @options = options
@@ -24,14 +20,18 @@ class RuboCop::Kata::Profile
     layer = overlay
     text = YAML.dump(silenced(standalone(layer), layer))
     target = File.join(@shelf, "rubocop-kata-#{Digest::SHA256.hexdigest(text)[0, 16]}.yml")
-    publish(target, text) unless File.file?(target) && File.read(target) == text
+    publish(target, text) unless File.file?(target) && File.read(target, encoding: Encoding::UTF_8) == text
     target
   end
 
   def overlay
-    layer = { "inherit_from" => [BASE, AUTOCORRECT, *(RAILS if rails?)] }
-    layer["Packaging"] = { "Enabled" => false } unless packaged?
-    layer["RSpec"] = { "Enabled" => false } unless specified?
+    survey = RuboCop::Kata::Survey.new(@root)
+    layer = { "inherit_from" => [BASE, AUTOCORRECT, *(RAILS if chosen("rails") { survey.rails? }), *sorbet(survey)] }
+    { "Packaging" => :packaged?, "RSpec" => :rspec? }.each do |department, found|
+      layer[department] = { "Enabled" => false } unless chosen(department.downcase) { survey.public_send(found) }
+    end
+    skipped = survey.generated
+    layer["AllCops"] = { "Exclude" => skipped } unless skipped.empty?
     layer
   end
 
@@ -59,18 +59,7 @@ class RuboCop::Kata::Profile
     File.rename(draft, target)
   end
 
-  def rails? = chosen("rails") { File.file?(File.join(@root, "config", "application.rb")) || engine? }
-
-  def engine? = Dir.glob("lib/**/engine.rb", base: @root).any? { ENGINE.match?(File.read(File.join(@root, it))) }
-
-  def packaged? = chosen("packaging") { Dir.glob(GEMSPECS, base: @root).any? }
-
-  def specified? = chosen("rspec") { File.file?(File.join(@root, ".rspec")) || RSPEC.match?(lockfile) }
-
-  def lockfile
-    found = LOCKS.map { File.join(@root, it) }.find { File.file?(it) }
-    found ? File.read(found) : ""
-  end
+  def sorbet(survey) = chosen("sorbet") { survey.sorbet? } ? [SORBET] : []
 
   def chosen(key)
     choice = @options[key]

@@ -181,4 +181,13 @@ RSpec.describe(RuboCop::Cop::Kata::GoodVariableName, :config) do
       RUBY
     end
   end
+
+  it "leaves Ruby's predefined globals alone" do
+    expect_no_offenses(<<~RUBY)
+      $VERBOSE = nil
+      $PROGRAM_NAME = "worker"
+      $0 = "worker"
+      $stdout = StringIO.new
+    RUBY
+  end
 end

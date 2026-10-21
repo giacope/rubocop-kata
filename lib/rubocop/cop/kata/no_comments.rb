@@ -28,6 +28,8 @@ class RuboCop::Cop::Kata::NoComments < RuboCop::Cop::Base
   }xi
   NOTICE = /^#\s*(copyright\b|\(c\)\s*\d|spdx-|licen[sc]ed under\b|licen[sc]e:|all rights reserved)/i
   SHEBANG = /\A#!/
+  RDOC_OPENER = "##"
+  DECORATORS = %i[memoize memo_wise].freeze
 
   # hashira:disable-next-line fragmentation -- blind raters preferred its named kept categories to the merge
   def on_new_investigation
@@ -51,10 +53,31 @@ class RuboCop::Cop::Kata::NoComments < RuboCop::Cop::Base
   def documented(runs)
     return [] unless cop_config["AllowDocumentation"]
     entries = RuboCop::Kata::PublicApi.new(processed_source.ast).lines
-    kept(runs, TAG) | runs.select { heading?(it.last, entries) }.flatten
+    skips = decorations
+    kept(runs, TAG) | runs.select { heading?(it, entries, skips) }.flatten
   end
 
-  def heading?(comment, entries) = entries.include?(comment.loc.line + 1) && alone?(comment.source_range)
+  def heading?(block, entries, skips)
+    return false unless alone?(block.last.source_range)
+    line = block.last.loc.line + 1
+    line += 1 if gap?(block, line)
+    line = skips[line] + 1 while skips.key?(line)
+    entries.include?(line)
+  end
+
+  def gap?(block, line) = block.first.text.strip == RDOC_OPENER && processed_source.lines[line - 1].to_s.strip.empty?
+
+  def decorations
+    ast = processed_source.ast
+    return {} unless ast
+    signatures = ast.each_node(:block).select { it.send_node.receiver.nil? && it.send_node.method?(:sig) }
+    decorators = ast.each_node(:send).select { decorator?(it) }
+    (signatures + decorators).to_h { [it.first_line, it.last_line] }
+  end
+
+  def decorator?(call)
+    call.receiver.nil? && DECORATORS.include?(call.method_name) && call.arguments.none?(&:any_def_type?)
+  end
 
   def cited(runs) = cop_config["AllowCitations"] ? kept(runs, CITATION) : []
 

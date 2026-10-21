@@ -9,8 +9,9 @@ ALLOWLIST = File.expand_path("../data/autocorrect.txt", __dir__)
 TARGET = File.expand_path("../config/autocorrect.yml", __dir__)
 HEADER = <<~YAML
   # Written by script/autocorrect from data/autocorrect.txt; edit the list, not
-  # this file. `rubocop -a` applies a correction only when kata's corpora ran it
-  # under a green test suite; every other correction waits for `rubocop -A`.
+  # this file. `rubocop -a` applies a correction only when it changes layout or
+  # delimiters, or swaps syntax for an exact equivalent that resolves no name the
+  # project could define; every other correction waits for `rubocop -A`.
   # Run it under the oldest and the newest RuboCop the gemspec allows: it adds
   # to the entries already shipped.
 YAML
@@ -18,7 +19,7 @@ YAML
 PLUGINS.each { require it }
 require "rubocop-kata"
 
-allowed = File.readlines(ALLOWLIST, chomp: true)
+allowed = File.readlines(ALLOWLIST, chomp: true).map { it.split(" ", 2).first }
 shipped = File.file?(TARGET) ? YAML.load_file(TARGET).keys : []
 correcting = RuboCop::Cop::Registry.global.cops.select(&:support_autocorrect?).map(&:cop_name)
 unsafe = (shipped | correcting).sort - allowed

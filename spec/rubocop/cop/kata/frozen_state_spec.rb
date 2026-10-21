@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "tmpdir"
+
 RSpec.describe(RuboCop::Cop::Kata::FrozenState, :config) do
   let(:ruby_version) { 3.4 }
 
@@ -249,5 +251,147 @@ RSpec.describe(RuboCop::Cop::Kata::FrozenState, :config) do
         each { @seen = true }
       end
     RUBY
+  end
+
+  context "with the content of an instance variable" do
+    let(:other_cops) { { "Kata/NoOutputArgument" => { "MutatingMethods" => %w[<< []= push delete] } } }
+
+    it "flags changing what an instance variable holds after construction" do
+      expect_offense(<<~RUBY)
+        class Basket
+          def initialize
+            @items = []
+            @items << :seed
+          end
+
+          def add(item)
+            @items << item
+            ^^^^^^^^^^^^^^ `@items` changes after construction; set state once in `initialize` and return a new object to change it.
+            @index[item] = true
+            ^^^^^^^^^^^^^^^^^^^ `@index` changes after construction; set state once in `initialize` and return a new object to change it.
+          end
+
+          def fetch(key) = @cache[key] ||= key.to_s
+
+          def remember(key)
+            @index[key] = true unless @index.key?(key)
+            @index[key] = false unless @cache.key?(key)
+            ^^^^^^^^^^^^^^^^^^^ `@index` changes after construction; set state once in `initialize` and return a new object to change it.
+            @index[key] = nil unless @index.frozen?
+            ^^^^^^^^^^^^^^^^^ `@index` changes after construction; set state once in `initialize` and return a new object to change it.
+          end
+          def count = @items.size
+          def drop(item) = @items.delete(item).then { @items }
+                           ^^^^^^^^^^^^^^^^^^^ `@items` changes after construction; set state once in `initialize` and return a new object to change it.
+        end
+      RUBY
+    end
+  end
+
+  context "with Sorbet" do
+    let(:cop_config) { { "Sorbet" => true } }
+
+    it "reads a T.let of the variable itself as its declaration, not a change" do
+      expect_offense(<<~RUBY)
+        class Client
+          def token
+            @token = T.let(@token, T.nilable(String))
+            @token ||= fetch
+          end
+
+          def reset = @token = T.let(nil, T.nilable(String))
+                      ^^^^^^ `@token` changes after construction; set state once in `initialize` and return a new object to change it.
+          def again = @token = @token
+                      ^^^^^^ `@token` changes after construction; set state once in `initialize` and return a new object to change it.
+          def limit = @limit = T::Limit
+                      ^^^^^^ `@limit` changes after construction; set state once in `initialize` and return a new object to change it.
+        end
+      RUBY
+    end
+  end
+
+  context "with an Arbre component" do
+    let(:cop_config) { { "ConstructorHooks" => ["Arbre#build"] } }
+
+    it "takes build for construction only in a class descending from Arbre" do
+      expect_offense(<<~RUBY)
+        module Admin
+          class Component < Arbre::Component
+          end
+
+          class Panel < Component
+            def build(title) = @title = title
+          end
+
+          class Report
+            def build(title) = @title = title
+                               ^^^^^^ `@title` changes after construction; set state once in `initialize` and return a new object to change it.
+          end
+
+          Widget = Class.new(Arbre::Component) do
+            def build(title) = @title = title
+                               ^^^^^^ `@title` changes after construction; set state once in `initialize` and return a new object to change it.
+          end
+        end
+      RUBY
+    end
+  end
+
+  context "with the project's other files" do
+    include TabledCop
+
+    let(:root) { Dir.mktmpdir("kata-frozen") }
+    let(:cop) do
+      shipped = { "Kata/FrozenState" => { "OwnedPaths" => ["lib/**/*.rb"] } }
+      described_class.new(RuboCop::Config.new(shipped, File.join(root, ".rubocop.yml")))
+    end
+
+    before do
+      FileUtils.mkdir_p(File.join(root, "lib"))
+      switching = "module Shelf\n  module Switching\n    def parse_with_mode(markup) = [strict_parse(markup), " \
+        "@log.lax_parse(markup)]\n  end\nend\n"
+      tag = "module Shelf\n  class Tag\n    include Switching\n\n    " \
+        "def initialize(markup) = parse_with_mode(markup)\n  end\nend\n"
+      File.write(File.join(root, "lib", "switching.rb"), switching)
+      File.write(File.join(root, "lib", "tag.rb"), tag)
+    end
+
+    after { FileUtils.rm_rf(root) }
+
+    it "follows a constructor helper through a mixin and a superclass in other files" do
+      source = <<~RUBY
+        module Shelf
+          class If < ::Shelf::Tag
+            def strict_parse(markup) = @markup = markup
+            def render = @rendered = true
+            def lax_parse(markup) = @lax = markup
+          end
+        end
+      RUBY
+      expect(offenses(source).map(&:line)).to(eq([4, 5]))
+    end
+  end
+
+  context "without Sorbet" do
+    it "reads a T.let of the variable itself as an assignment" do
+      expect_offense(<<~RUBY)
+        class Client
+          def token = @token = T.let(@token, T.nilable(String))
+                      ^^^^^^ `@token` changes after construction; set state once in `initialize` and return a new object to change it.
+        end
+      RUBY
+    end
+  end
+
+  context "with a hook a framework calls inside a block-built class" do
+    let(:cop_config) { { "ConstructorHooks" => ["setup"] } }
+
+    it "takes the hook for construction" do
+      expect_no_offenses(<<~RUBY)
+        Point = Struct.new(:x) do
+          def setup = @ready = true
+        end
+      RUBY
+    end
   end
 end

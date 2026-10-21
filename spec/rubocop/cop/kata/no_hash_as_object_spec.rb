@@ -118,4 +118,30 @@ RSpec.describe(RuboCop::Cop::Kata::NoHashAsObject, :config) do
       RUBY
     end
   end
+
+  context "with Sorbet" do
+    let(:cop_config) { { "MaxKeys" => 4, "Sorbet" => true } }
+
+    it "reads a table a constant names through T.let" do
+      expect_no_offenses(<<~RUBY)
+        TYPED = T.let([{ name: "a", email: "b", age: 1, role: :admin }].freeze, T::Array[T::Hash[Symbol, T.untyped]])
+        CODES = T.let({ find: /a/, link: /b/, copy: /c/, lock: /d/ }.freeze, T::Hash[Symbol, Regexp])
+      RUBY
+    end
+  end
+
+  it "reads a braced hash passed last as a hash, and only bare keywords as call syntax" do
+    expect_offense(<<~RUBY)
+      jobs.push({ id: 1, name: "a", cores: 2, ram: 4 })
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ 4 keys travelling together are an object without a name.
+      jobs.push(id: 1, name: "a", cores: 2, ram: 4)
+    RUBY
+  end
+
+  it "reads T.let as a call where the project does not use Sorbet" do
+    expect_offense(<<~RUBY)
+      CODES = T.let({ find: /a/, link: /b/, copy: /c/, lock: /d/ }, T::Hash[Symbol, Regexp])
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ 4 keys travelling together are an object without a name.
+    RUBY
+  end
 end

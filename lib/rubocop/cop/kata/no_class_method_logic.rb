@@ -4,6 +4,8 @@ class RuboCop::Cop::Kata::NoClassMethodLogic < RuboCop::Cop::Base
   include RuboCop::Cop::Kata::Roster
 
   MSG = "`%s` puts logic on the class; classes construct, instances work."
+  LITERAL = "`%s` only returns a literal; make it a constant."
+  LITERALS = %i[str dstr sym dsym int float array hash true false nil regexp irange erange].freeze
   BAG = "`%s` turns the module into a bag of functions; give the logic an object that holds its data."
 
   RESTRICT_ON_SEND = %i[module_function extend].freeze
@@ -26,8 +28,10 @@ class RuboCop::Cop::Kata::NoClassMethodLogic < RuboCop::Cop::Base
   def check(node)
     name = node.method_name.to_s
     return if constructor?(name) || builds?(node)
-    add_offense(node.loc.name, message: format(MSG, name))
+    add_offense(node.loc.name, message: format(literal?(node.body) ? LITERAL : MSG, name))
   end
+
+  def literal?(body) = LITERALS.include?(body&.type) && body.each_node(:send, :lvar, :ivar).none?
 
   def constructor?(name) = name.start_with?("from_") || allowed?(name)
 

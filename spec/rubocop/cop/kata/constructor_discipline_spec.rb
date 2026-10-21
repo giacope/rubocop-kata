@@ -189,4 +189,29 @@ RSpec.describe(RuboCop::Cop::Kata::ConstructorDiscipline, :config) do
       end
     RUBY
   end
+
+  context "with Sorbet" do
+    let(:cop_config) { { "Sorbet" => true } }
+
+    it "reads a T.let as the value it declares, and type expressions as types" do
+      expect_offense(<<~RUBY)
+        def initialize(token, hosts, client)
+          @client = T.let(client, Dependabot::Clients::Bitbucket)
+          @token = T.let(token, T.nilable(String))
+          @hosts = T.let(hosts, T::Array[String])
+          @lines = T.let(@io.readlines, T::Array[String])
+                         ^^^^^^^^^^^^^ A constructor assigns; it does not compute. Move `readlines` out of `initialize`.
+        end
+      RUBY
+    end
+  end
+
+  it "reads T.let as a call where the project does not use Sorbet" do
+    expect_offense(<<~RUBY)
+      def initialize(token)
+        @token = T.let(token, String)
+                 ^^^^^^^^^^^^^^^^^^^^ A constructor assigns; it does not compute. Move `let` out of `initialize`.
+      end
+    RUBY
+  end
 end

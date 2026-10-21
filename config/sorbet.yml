@@ -1,0 +1,17 @@
+# Applied on top of default.yml when the project uses Sorbet: `sorbet` or
+# `sorbet-runtime` in a Gemfile, lockfile or gemspec (at the root or one
+# directory down), or a `# typed:` sigil in its first library files (opt out
+# with `sorbet: false` under the plugin). `T.let(x, Type)`, `T.cast`,
+# `T.must`, `T.unsafe` and `T.bind` read as `x`, and `T.nilable(...)`,
+# `T::Array[...]` are type expressions, not calls.
+Kata/ConstructorDiscipline:
+  Sorbet: true
+
+Kata/NoHashAsObject:
+  Sorbet: true
+
+Kata/NoRedundantVariable:
+  Sorbet: true
+
+Kata/FrozenState:
+  Sorbet: true

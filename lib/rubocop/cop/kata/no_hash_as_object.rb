@@ -15,11 +15,11 @@ class RuboCop::Cop::Kata::NoHashAsObject < RuboCop::Cop::Base
 
   def kwargs?(node)
     holder = node.parent
-    CALLS.include?(holder&.type) && (!node.braces? || node.equal?(holder.last_argument))
+    CALLS.include?(holder&.type) && !node.braces?
   end
 
   def table?(node)
-    value = freezing?(node.parent) ? node.parent : node
+    value = enclosing(node)
     holder = value.parent
     return table?(holder.parent) if holder&.pair_type? && holder.value.equal?(value)
     return table?(holder) if holder&.array_type?
@@ -28,7 +28,18 @@ class RuboCop::Cop::Kata::NoHashAsObject < RuboCop::Cop::Base
 
   def mapping?(holder) = holder&.send_type? && listed?("TableMethods", holder.method_name.to_s)
 
+  def enclosing(node)
+    value = node
+    value = value.parent while freezing?(value.parent) || annotated?(value)
+    value
+  end
+
   def freezing?(node) = node&.send_type? && node.method?(:freeze)
+
+  def annotated?(value)
+    holder = value.parent
+    cop_config["Sorbet"] == true && RuboCop::Kata::Annotation.new(holder).wrapped(holder).equal?(value)
+  end
 
   def protocol?(node)
     method = node.each_ancestor(:def, :defs).first

@@ -5,12 +5,14 @@ class RuboCop::Kata::Variable::Label
   GENERIC = %w[result results value values data out output item thing object].freeze
   VARIABLES = %i[lvar ivar cvar gvar].freeze
 
-  def initialize(assign)
+  def initialize(assign, sorbet:)
     @assign = assign
+    @sorbet = sorbet
   end
 
   def explains?
     value = @assign.expression
+    value = RuboCop::Kata::Annotation.new(value).value if @sorbet
     return false if PLAIN.include?(value.type)
     said = told(value)
     @assign.name.to_s.split("_").any? { |word| meaningful?(word) && !said.include?(word) }

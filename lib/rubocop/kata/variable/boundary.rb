@@ -6,7 +6,7 @@
 
 class RuboCop::Kata::Variable::Boundary
   LOOPS = %i[block numblock while until while_post until_post for].freeze
-  FIRSTS = %i[if case case_match and or].freeze
+  FIRSTS = %i[if case case_match and or or_asgn and_asgn].freeze
   HOISTS = %i[rescue resbody ensure].freeze
 
   def initialize(assign, read)
@@ -29,6 +29,13 @@ class RuboCop::Kata::Variable::Boundary
   def blocks?(child, parent)
     type = parent.type
     return true if LOOPS.include?(type) || HOISTS.include?(type)
+    return !parent.receiver.equal?(child) && guarded?(parent) if parent.call_type?
     FIRSTS.include?(type) && !parent.children.first.equal?(child)
+  end
+
+  def guarded?(call)
+    link = call
+    link = link.receiver while link&.send_type?
+    link&.csend_type?
   end
 end

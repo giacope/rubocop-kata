@@ -27,7 +27,6 @@ RSpec.describe(RuboCop::Cop::Kata::GoodClassName, :config) do
         def install; end
       end
       class Installer < Base
-            ^^^^^^^^^ `Installer` names a doer; name the class for the thing it is, not the work it does.
         class Context
         end
       end

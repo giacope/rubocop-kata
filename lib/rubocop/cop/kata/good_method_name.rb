@@ -3,6 +3,7 @@
 class RuboCop::Cop::Kata::GoodMethodName < RuboCop::Cop::Base
   include RuboCop::Cop::Kata::Wording
   include RuboCop::Cop::Kata::Minting
+  include RuboCop::Cop::Kata::Ancestry
 
   MSG = "`%s` strings %d words together, past the %d a name carries: a concept is missing, or the " \
     "method belongs on the object the words describe. Say it in fewer, move it, give a role a " \
@@ -15,7 +16,8 @@ class RuboCop::Cop::Kata::GoodMethodName < RuboCop::Cop::Base
   def on_def(node)
     klass = node.each_ancestor(:class).first
     suite = klass && [klass.identifier, klass.parent_class].compact.any? { SUITE.match?(it.source) }
-    check(node.loc.name, node.method_name) unless node.method_name.start_with?("test_") && suite
+    return if (node.method_name.start_with?("test_") && suite) || override?(node)
+    check(node.loc.name, node.method_name)
   end
 
   def on_defs(node) = check(node.loc.name, node.method_name)
@@ -28,7 +30,15 @@ class RuboCop::Cop::Kata::GoodMethodName < RuboCop::Cop::Base
     text = name.to_s
     return unless text.match?(/\A[a-z_]/)
     stem = text.sub(/[?!=]\z/, "").sub(/\A_+/, "")
-    joint = (stem.split("_") & JOINTS).first
+    words = core(stem.split("_"))
+    joint = words[1...-1].to_a.find { JOINTS.include?(it) }
     judge(range, name, stem) { format(CHAIN_MSG, name, joint) if joint }
+  end
+
+  def override?(node)
+    scope = node.each_ancestor(:class, :module).first
+    return false unless scope
+    name = node.method_name.to_s
+    project.ancestors(RuboCop::Kata::Nesting.new(scope).qualified).drop(1).any? { project.defines?(it, name) }
   end
 end
