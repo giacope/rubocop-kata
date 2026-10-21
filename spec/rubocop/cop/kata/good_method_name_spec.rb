@@ -372,8 +372,8 @@ RSpec.describe(RuboCop::Cop::Kata::GoodMethodName, :config) do
 
     before do
       FileUtils.mkdir_p(File.join(root, "lib"))
-      base = "module Shelf\n  class Fetcher\n    def check_required_files = nil\n" \
-        "    def self.fetch_lock_files = nil\n  end\nend\n"
+      base = "module Shelf\n  class Fetcher\n    def check_required_files = nil\n    " \
+        "def self.fetch_lock_files = nil\n  end\nend\n"
       File.write(File.join(root, "lib", "fetcher.rb"), base)
       File.write(File.join(root, "lib", "npm.rb"), "module Shelf\n  class Npm < Fetcher\n  end\nend\n")
     end

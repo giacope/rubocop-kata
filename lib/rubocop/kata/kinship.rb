@@ -48,6 +48,6 @@ class RuboCop::Kata::Kinship
 
   def mixed(statement)
     return [] unless statement.is_a?(Prism::CallNode) && RuboCop::Kata::Lineage::MIXINS.include?(statement.name)
-    Array(statement.arguments&.arguments).filter_map { it.slice if it.respond_to?(:full_name) }
+    Array(statement.arguments&.arguments).map(&:slice)
   end
 end
