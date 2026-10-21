@@ -2,6 +2,7 @@
 
 class RuboCop::Cop::Kata::NoComments < RuboCop::Cop::Base
   extend RuboCop::Cop::AutoCorrector
+  include RuboCop::Cop::RangeHelp
 
   MSG = "Say it in the code: rename it, extract it, or name the constant."
 
@@ -30,8 +31,12 @@ class RuboCop::Cop::Kata::NoComments < RuboCop::Cop::Base
 
   # hashira:disable-next-line fragmentation -- blind raters preferred its named kept categories to the merge
   def on_new_investigation
-    kept = notice + documented + cited
-    processed_source.comments.each { register(it) unless exempt?(it) || kept.include?(it) }
+    runs = blocks
+    kept = notice + documented(runs) + cited(runs)
+    runs.each do |block|
+      prose = block.reject { exempt?(it) || kept.include?(it) }
+      register(prose) unless prose.empty?
+    end
   end
 
   private
@@ -43,14 +48,22 @@ class RuboCop::Cop::Kata::NoComments < RuboCop::Cop::Base
 
   def patterns = Array(cop_config["AllowedPatterns"]).map { Regexp.new(it) }
 
-  def documented = cop_config["AllowDocumentation"] ? kept(TAG) : []
+  def documented(runs)
+    return [] unless cop_config["AllowDocumentation"]
+    entries = RuboCop::Kata::PublicApi.new(processed_source.ast).lines
+    kept(runs, TAG) | runs.select { heading?(it.last, entries) }.flatten
+  end
 
-  def cited = cop_config["AllowCitations"] ? kept(CITATION) : []
+  def heading?(comment, entries) = entries.include?(comment.loc.line + 1) && alone?(comment.source_range)
 
-  def kept(pattern) = blocks.select { |block| block.any? { pattern.match?(it.text) } }.flatten
+  def cited(runs) = cop_config["AllowCitations"] ? kept(runs, CITATION) : []
 
-  def blocks
-    processed_source.comments.slice_when { |above, below| below.loc.line != above.loc.line + 1 }
+  def kept(runs, pattern) = runs.select { |block| block.any? { pattern.match?(it.text) } }.flatten
+
+  def blocks = processed_source.comments.slice_when { |above, below| !run?(above, below) }.to_a
+
+  def run?(above, below)
+    below.loc.line == above.loc.line + 1 && [above, below].all? { alone?(it.source_range) }
   end
 
   def notice
@@ -63,8 +76,9 @@ class RuboCop::Cop::Kata::NoComments < RuboCop::Cop::Base
     processed_source.comments.take_while { it.source_range.line < first }
   end
 
-  def register(comment)
-    add_offense(comment) { |corrector| corrector.remove(removal(comment)) }
+  def register(prose)
+    span = prose.first.source_range.join(prose.last.source_range)
+    add_offense(span) { |corrector| prose.each { corrector.remove(removal(it)) } }
   end
 
   def removal(comment)
@@ -74,11 +88,7 @@ class RuboCop::Cop::Kata::NoComments < RuboCop::Cop::Base
 
   def alone?(range) = range.source_line[0, range.column].strip.empty?
 
-  def line(range)
-    finish = range.end_pos
-    finish += 1 if processed_source.buffer.source[finish] == "\n"
-    range.with(begin_pos: range.begin_pos - range.column, end_pos: finish)
-  end
+  def line(range) = range_by_whole_lines(range, include_final_newline: true)
 
   def trailing(range)
     range.with(begin_pos: range.begin_pos - range.source_line[0, range.column][/\s*\z/].length)

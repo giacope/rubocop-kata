@@ -1,0 +1,19 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require "rbconfig"
+require "bundled_gems"
+
+TARGET = File.expand_path("../data/core.txt", __dir__)
+PROBE = "before = Object.constants; begin; require ARGV[0]; rescue Exception; end; puts Object.constants - before"
+
+shelves = RbConfig::CONFIG.values_at("rubylibdir", "rubyarchdir")
+filed = shelves.flat_map { |shelf| Dir.children(shelf).map { it.sub(/\.(rb|#{RbConfig::CONFIG["DLEXT"]})\z/o, "") } }
+gems = Gem::Specification.select(&:default_gem?).map(&:name) + Gem::BUNDLED_GEMS::SINCE.keys
+libraries = (filed + gems).grep(/\A[a-z][a-z0-9_]*\z/).uniq
+found = Object.constants.map(&:to_s)
+libraries.each do |library|
+  found.concat(IO.popen([RbConfig.ruby, "-e", PROBE, library], err: File::NULL, &:read).split)
+end
+shipped = File.file?(TARGET) ? File.readlines(TARGET, chomp: true) : []
+File.write(TARGET, "#{(shipped | found).grep(/\A[A-Z]\w*\z/).sort.join("\n")}\n")

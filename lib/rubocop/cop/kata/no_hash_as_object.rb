@@ -22,8 +22,11 @@ class RuboCop::Cop::Kata::NoHashAsObject < RuboCop::Cop::Base
     value = freezing?(node.parent) ? node.parent : node
     holder = value.parent
     return table?(holder.parent) if holder&.pair_type? && holder.value.equal?(value)
-    holder&.casgn_type?
+    return table?(holder) if holder&.array_type?
+    holder&.casgn_type? || mapping?(holder)
   end
+
+  def mapping?(holder) = holder&.send_type? && listed?("TableMethods", holder.method_name.to_s)
 
   def freezing?(node) = node&.send_type? && node.method?(:freeze)
 

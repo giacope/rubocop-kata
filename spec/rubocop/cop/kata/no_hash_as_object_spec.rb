@@ -45,6 +45,28 @@ RSpec.describe(RuboCop::Cop::Kata::NoHashAsObject, :config) do
     RUBY
   end
 
+  it "allows the rows of an array table a constant names, frozen or not" do
+    expect_no_offenses(<<~RUBY)
+      FLAVORS = [
+        { id: "t1.micro", name: "Micro", cores: 1, ram: 613 },
+        { id: "m1.small", name: "Small", cores: 1, ram: 1740 }
+      ].freeze
+      Sizes::ROWS = [[{ id: 1, name: "a", cores: 1, ram: 2 }]]
+    RUBY
+  end
+
+  context "with TableMethods" do
+    let(:cop_config) { { "MaxKeys" => 4, "TableMethods" => ["enum"] } }
+
+    it "allows the value table such a call takes, and nothing else" do
+      expect_offense(<<~RUBY)
+        enum :status, { draft: 0, sent: 1, paid: 2, void: 3 }, prefix: true
+        build({ name: "a", email: "b", age: 1, role: :admin }, &block)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ 4 keys travelling together are an object without a name.
+      RUBY
+    end
+  end
+
   it "allows the rows of a table a constant names, frozen or not" do
     expect_no_offenses(<<~RUBY)
       LABELS = {

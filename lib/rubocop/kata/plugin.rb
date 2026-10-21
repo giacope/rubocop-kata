@@ -6,7 +6,7 @@ class RuboCop::Kata::Plugin < LintRoller::Plugin
   def about
     LintRoller::About.new(
       name: "rubocop-kata", version: RuboCop::Kata::VERSION, homepage: "https://github.com/giacope/rubocop-kata",
-      description: "Practiced forms for Ruby: opinionated defaults and nineteen house cops."
+      description: "Practiced forms for Ruby: opinionated defaults and twenty-seven house cops."
     )
   end
 
@@ -16,7 +16,7 @@ class RuboCop::Kata::Plugin < LintRoller::Plugin
     LintRoller::Rules.new(
       type: :path,
       config_format: :rubocop,
-      value: Pathname.new(RuboCop::Kata::Profile.new(Dir.pwd, @config).path)
+      value: Pathname.new(RuboCop::Kata::Profile.new(RuboCop::Kata::ProjectRoot.new(Dir.pwd).path, @config).path)
     )
   end
 end

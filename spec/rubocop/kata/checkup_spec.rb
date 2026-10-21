@@ -45,6 +45,19 @@ RSpec.describe(RuboCop::Kata::Checkup) do
     end
   end
 
+  # CocoaPods: a renamed cop read as "not enabled here", which hid the fix.
+  it "names the cop a directive's renamed cop became" do
+    source = "# frozen_string_literal: true\n\n# rubocop:disable Lint/StringConversionInInterpolation, Kata/Nothing\n"
+    expected = [
+      "sample.rb:3: the directive names `Lint/StringConversionInInterpolation`, which RuboCop renamed to " \
+        "`Lint/RedundantStringCoercion`; the comment does nothing.",
+      "sample.rb:3: the directive names `Kata/Nothing`, which is not enabled here; the comment does nothing."
+    ]
+    project("", source) do |root|
+      expect(report(root).first.lines.grep(/directive/).map { it.strip.delete_prefix("#{root}/") }).to(eq(expected))
+    end
+  end
+
   it "reports directives for enabled cops excluded from the file" do
     config = "Kata/GoodClassName:\n  Exclude:\n    - sample.rb\n"
     source = "# frozen_string_literal: true\n\n# rubocop:disable Kata/GoodClassName\n"

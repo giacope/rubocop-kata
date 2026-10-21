@@ -25,11 +25,17 @@ class Assay::Corpus
   def test(dir)
     return unless @spec["test"]
     outcome = @shell.run("sh", "-c", @spec.fetch("test").gsub("{shims}", SHIMS), dir: dir)
-    examples, failed = outcome.stdout.scan(/(\d+) examples?, (\d+) failures?/).last&.map(&:to_i)
-    { "status" => outcome.status, "examples" => examples, "failures" => failed }
+    { "status" => outcome.status }.merge(counts(outcome.stdout))
   end
 
   private
+
+  def counts(output)
+    examples, failed = output.scan(/(\d+) examples?, (\d+) failures?/).last&.map(&:to_i)
+    runs = output.scan(/(\d+) runs, \d+ assertions, (\d+) failures, (\d+) errors/).last&.map(&:to_i)
+    return { "examples" => examples, "failures" => failed } unless runs
+    { "examples" => runs.first, "failures" => runs.drop(1).sum }
+  end
 
   def fixes
     return {} unless @spec["fix"]

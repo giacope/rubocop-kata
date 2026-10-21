@@ -15,10 +15,10 @@ class Assay::Repair
     outcome = @corpus.bundle.rubocop(
       @flag, "--format", "json", "--out", REPORT, "--cache", "false", *@corpus.paths, dir: @dir
     )
-    {
-      "corrected" => corrected, "comments_before" => before, "comments_after" => census.to_h,
-      "unparsable" => census.broken, "failures" => failures(outcome), "test" => @corpus.test(@dir)
-    }.compact
+    tally.merge(
+      "comments_before" => before, "comments_after" => census.to_h, "unparsable" => census.broken,
+      "failures" => failures(outcome), "test" => @corpus.test(@dir)
+    ).compact
   end
 
   private
@@ -27,9 +27,15 @@ class Assay::Repair
 
   def census = Assay::Census.new(@dir, @corpus.paths)
 
-  def corrected
+  def tally
+    cops = fixed
+    { "corrected" => cops.size, "corrected_cops" => cops.uniq.sort }
+  end
+
+  def fixed
     path = File.join(@dir, REPORT)
-    return 0 unless File.file?(path)
-    JSON.parse(File.read(path)).fetch("files").sum { |file| file["offenses"].count { it["corrected"] } }
+    return [] unless File.file?(path)
+    JSON.parse(File.read(path)).fetch("files").flat_map { |file| file["offenses"].select { it["corrected"] } }
+      .map { it["cop_name"] }
   end
 end

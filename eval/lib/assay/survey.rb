@@ -7,8 +7,9 @@ class Assay::Survey
   FOLDS = %w[kata without_method_call raw].freeze
   SAFETY = ["Corpus", "Mode", "Unparsable", "Comments kept", "YARD kept", "Encoding kept", "Test failures"].freeze
   KINDS = [nil, "yard", "encoding"].freeze
+  ALLOWLIST = File.join(Assay::ROOT, "..", "data", "autocorrect.txt")
 
-  def to_a = [corpora, safety, lengths, *movement, *drift]
+  def to_a = [corpora, safety, allowlist, lengths, *movement, *drift]
 
   private
 
@@ -41,6 +42,19 @@ class Assay::Survey
   def share(row, kind)
     path = kind ? ["kinds", kind] : ["comments"]
     "#{row["comments_after"].dig(*path).to_i}/#{row["comments_before"].dig(*path).to_i}"
+  end
+
+  def allowlist
+    proven = names.flat_map { proven(it) }
+    idle = File.readlines(ALLOWLIST, chomp: true) - proven
+    section("Allowlisted corrections no green suite ran this time", %w[Cop], idle.zip)
+  end
+
+  def proven(name)
+    run = @after.dig("corpora", name, "safe") || {}
+    failures = run.dig("test", "failures")
+    return [] unless failures && failures <= @after.dig("corpora", name, "pristine_test", "failures").to_i
+    run.fetch("corrected_cops", [])
   end
 
   def lengths

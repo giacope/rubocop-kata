@@ -271,6 +271,22 @@ RSpec.describe(RuboCop::Cop::Kata::NoRedundantVariable) do
     expect([offenses(at_limit).size, offenses(past_limit).size]).to(eq([1, 0]))
   end
 
+  # apply-for-teacher-training and steep: an `if`/`else` and a `fetch` with a
+  # block were inlined into an argument list, because a multi-line value
+  # skipped the width check.
+  it "measures the lines a multi-line value would change, first and last" do
+    value = "items.fetch(:key) do\n    1\n  end"
+    narrow = "def foo\n  x = #{value}\n  render(x)\nend"
+    opening = "def foo\n  x = #{value}\n  render(#{"2" * 90}, x)\nend"
+    closing = "def foo\n  x = build(\n    #{"3" * 100})\n  render(x, #{"2" * 20})\nend"
+    expect([narrow, opening, closing].map { offenses(it).size }).to(eq([1, 0, 0]))
+  end
+
+  it "leaves the unchanged middle of a multi-line value out of the width" do
+    source = "def foo\n  x = items.fetch(:key) do\n    #{"1" * 130}\n  end\n  render(x)\nend"
+    expect(offenses(source).size).to(eq(1))
+  end
+
   context "with the line limit switched off" do
     let(:cop) do
       described_class.new(RuboCop::Config.new("Layout/LineLength" => { "Enabled" => false }))

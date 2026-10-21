@@ -1,0 +1,25 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require "rubocop"
+require "yaml"
+
+PLUGINS = %w[rubocop-elegant rubocop-rspec rubocop-performance rubocop-packaging rubocop-thread_safety].freeze
+ALLOWLIST = File.expand_path("../data/autocorrect.txt", __dir__)
+TARGET = File.expand_path("../config/autocorrect.yml", __dir__)
+HEADER = <<~YAML
+  # Written by script/autocorrect from data/autocorrect.txt; edit the list, not
+  # this file. `rubocop -a` applies a correction only when kata's corpora ran it
+  # under a green test suite; every other correction waits for `rubocop -A`.
+  # Run it under the oldest and the newest RuboCop the gemspec allows: it adds
+  # to the entries already shipped.
+YAML
+
+PLUGINS.each { require it }
+require "rubocop-kata"
+
+allowed = File.readlines(ALLOWLIST, chomp: true)
+shipped = File.file?(TARGET) ? YAML.load_file(TARGET).keys : []
+correcting = RuboCop::Cop::Registry.global.cops.select(&:support_autocorrect?).map(&:cop_name)
+unsafe = (shipped | correcting).sort - allowed
+File.write(TARGET, HEADER + unsafe.to_h { [it, { "SafeAutoCorrect" => false }] }.to_yaml.delete_prefix("---\n"))

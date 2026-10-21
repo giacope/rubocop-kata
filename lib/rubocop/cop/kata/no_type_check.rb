@@ -4,7 +4,14 @@ class RuboCop::Cop::Kata::NoTypeCheck < RuboCop::Cop::Base
   include RuboCop::Cop::Kata::Roster
 
   MSG = "`%s` asks an object what it is; tell it what to do, and let polymorphism choose."
-  PROTOCOL = /\A(to_\w+|each|call|hash|eql\?|inspect|coerce|<=>|==|===|\[\])\z/
+  PROTOCOL = /
+    \A(
+      to_\w+|each\w*|call|hash|eql\?|inspect|coerce|<=>|==|===|\[\]=?|<<|
+      read|readpartial|write|rewind|close|closed\?|flush|seek|pos|eof\?|gets|getc|path|
+      size|length|empty\?|keys|key\?|fetch|include\?|match\??|
+      name|superclass|ancestors|arity|parameters
+    )\z
+  /x
 
   RESTRICT_ON_SEND = %i[is_a? kind_of? instance_of? respond_to?].freeze
 
@@ -22,7 +29,10 @@ class RuboCop::Cop::Kata::NoTypeCheck < RuboCop::Cop::Base
     probe.const_type? && own_type?(probe.const_name)
   end
 
-  def own_type?(name) = !Object.const_defined?(name) && name.split("::").values_at(0, -1).all? { type?(it) }
+  def own_type?(name)
+    segments = name.split("::")
+    !RuboCop::Kata::Dictionary::CORE.include?(segments.first) && segments.values_at(0, -1).all? { type?(it) }
+  end
 
   def type?(name) = local_types.include?(name) || inventory.type?(name)
 

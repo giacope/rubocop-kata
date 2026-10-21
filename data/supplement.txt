@@ -1,9 +1,12 @@
 accessor
+acl
 admin
 ai
+aluminium
 api
 apk
 app
+arn
 async
 autocorrect
 avif
@@ -18,6 +21,7 @@ boolean
 bot
 callback
 changelog
+cheque
 classify
 cli
 config
@@ -37,6 +41,7 @@ diff
 dns
 docx
 download
+draught
 dsl
 email
 endpoint
@@ -51,6 +56,7 @@ github
 gitlab
 glyph
 graphql
+grey
 gui
 gzip
 heard
@@ -61,6 +67,7 @@ html
 http
 https
 i18n
+iam
 imap
 initializer
 inline
@@ -69,13 +76,16 @@ internet
 iterator
 itunes
 ivar
+jewellery
 js
 json
 jwt
+kerb
 keyword
 l10n
 llm
 logout
+manoeuvre
 max
 memoization
 memoize
@@ -84,6 +94,7 @@ mfa
 middleware
 min
 mixin
+mould
 mp4
 multiline
 namespace
@@ -98,10 +109,12 @@ otp
 paid
 payload
 pdf
+plough
 plugin
 postgresql
 proc
 pwa
+pyjamas
 qr
 queueing
 readme
@@ -109,6 +122,8 @@ redis
 refactor
 rollup
 runtime
+saml
+sceptic
 scheduler
 screenshot
 serializer
@@ -119,6 +134,7 @@ sql
 sqlite
 ssl
 sso
+storey
 svg
 timeout
 timestamp
@@ -129,12 +145,15 @@ totp
 ttl
 tui
 tuple
+tyre
+uk
 unshift
 uri
 url
 utf
 uuid
 validator
+vpc
 webauthn
 webhook
 webm
