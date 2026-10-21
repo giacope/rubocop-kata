@@ -40,7 +40,8 @@ class RuboCop::Kata::Survey
   private
 
   def uses?(gems)
-    pattern = /["'](#{gems.join("|")})["']|^ {4}(#{gems.join("|")}) \(/
+    names = gems.join("|")
+    pattern = /["'](#{names})["']|^ {4}(#{names}) \(/
     Dir.glob(MANIFESTS, base: @root).any? { pattern.match?(read(File.join(@root, it))) }
   end
 

@@ -32,10 +32,7 @@ class RuboCop::Kata::Definitions
     factory?(node.value) ? [qualified(path, scope)] : []
   end
 
-  def qualified(path, scope)
-    return path.delete_prefix("::") if path.start_with?("::") || scope.nil?
-    "#{scope}::#{path}"
-  end
+  def qualified(path, scope) = path.start_with?("::") ? path.delete_prefix("::") : [*scope, path].join("::")
 
   def wrapper?(node)
     body = node.body&.body

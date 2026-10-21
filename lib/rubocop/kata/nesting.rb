@@ -15,6 +15,6 @@ class RuboCop::Kata::Nesting
   private
 
   def joined(outer, identifier)
-    outer.nil? || identifier.absolute? ? identifier.const_name : "#{outer}::#{identifier.const_name}"
+    identifier.absolute? ? identifier.const_name : [*outer, identifier.const_name].join("::")
   end
 end
