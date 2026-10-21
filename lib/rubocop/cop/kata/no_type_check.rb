@@ -71,7 +71,8 @@ class RuboCop::Cop::Kata::NoTypeCheck < RuboCop::Cop::Base
 
   def own_name?(name, node, absolute: false)
     candidates = absolute ? [name] : [*RuboCop::Kata::Nesting.new(node).names.map { "#{it}::#{name}" }, name]
-    candidates.any? { !RuboCop::Kata::Dictionary::CORE.include?(it) && (local_types.include?(it) || inventory.type?(it)) }
+    core = RuboCop::Kata::Dictionary::CORE
+    candidates.any? { !core.include?(it) && (local_types.include?(it) || inventory.type?(it)) }
   end
 
   def message?(name)

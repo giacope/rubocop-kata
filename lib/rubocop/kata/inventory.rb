@@ -23,8 +23,10 @@ class RuboCop::Kata::Inventory
   private
 
   def types
-    @_types ||= texts.each_with_object(Set.new) { |text, found| found.merge(RuboCop::Kata::Definitions.new(text).names) }
+    @_types ||= texts.each_with_object(Set.new) { |text, found| found.merge(definitions(text)) }
   end
+
+  def definitions(text) = RuboCop::Kata::Definitions.new(text).names
 
   def messages = @_messages ||= texts.flat_map { it.scan(METHOD) }.flatten.to_set
 

@@ -84,7 +84,8 @@ class RuboCop::Cop::Kata::FrozenState < RuboCop::Cop::Base
 
   def qualified_hook(entry, scope)
     owner, hook = entry.split("#", 2)
-    hook if project.ancestors(RuboCop::Kata::Nesting.new(scope).qualified).any? { it == owner || it.start_with?("#{owner}::") }
+    ancestors = project.ancestors(RuboCop::Kata::Nesting.new(scope).qualified)
+    hook if ancestors.any? { it == owner || it.start_with?("#{owner}::") }
   end
 
   def constructed?(scope, name)

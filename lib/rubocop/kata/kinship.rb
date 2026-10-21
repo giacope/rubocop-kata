@@ -41,7 +41,8 @@ class RuboCop::Kata::Kinship
 
   def call(node, scope, method)
     return [] if scope.empty?
-    return mixins(node, scope) if method.nil? && node.receiver.nil? && RuboCop::Kata::Lineage::MIXINS.include?(node.name)
+    mixin = method.nil? && node.receiver.nil? && RuboCop::Kata::Lineage::MIXINS.include?(node.name)
+    return mixins(node, scope) if mixin
     return [] unless method && RuboCop::Kata::Lineage::CALLERS.any? { node.receiver.is_a?(it) }
     [[scope.last, :method, method, node.name.to_s]]
   end
