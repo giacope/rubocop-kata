@@ -1,0 +1,859 @@
+# Written by script/autocorrect from data/autocorrect.txt; edit the list, not
+# this file. `rubocop -a` applies a correction only when kata's corpora ran it
+# under a green test suite; every other correction waits for `rubocop -A`.
+# Run it under the oldest and the newest RuboCop the gemspec allows: it adds
+# to the entries already shipped.
+Bundler/InsecureProtocolSource:
+  SafeAutoCorrect: false
+Bundler/OrderedGems:
+  SafeAutoCorrect: false
+Elegant/NoComments:
+  SafeAutoCorrect: false
+Elegant/NoEmptyLinesInBlocks:
+  SafeAutoCorrect: false
+Elegant/NoEmptyLinesInMethods:
+  SafeAutoCorrect: false
+Elegant/NoRedundantVariable:
+  SafeAutoCorrect: false
+Elegant/PairedBrackets:
+  SafeAutoCorrect: false
+Gemspec/AddRuntimeDependency:
+  SafeAutoCorrect: false
+Gemspec/DeprecatedAttributeAssignment:
+  SafeAutoCorrect: false
+Gemspec/OrderedDependencies:
+  SafeAutoCorrect: false
+Gemspec/RequireMFA:
+  SafeAutoCorrect: false
+Kata/NoComments:
+  SafeAutoCorrect: false
+Layout/ClassStructure:
+  SafeAutoCorrect: false
+Layout/DefEndAlignment:
+  SafeAutoCorrect: false
+Layout/EmptyLineAfterGuardClause:
+  SafeAutoCorrect: false
+Layout/EmptyLineAfterMultilineCondition:
+  SafeAutoCorrect: false
+Layout/EmptyLineBetweenDefs:
+  SafeAutoCorrect: false
+Layout/EmptyLinesAfterModuleInclusion:
+  SafeAutoCorrect: false
+Layout/EmptyLinesAroundAccessModifier:
+  SafeAutoCorrect: false
+Layout/EmptyLinesAroundAttributeAccessor:
+  SafeAutoCorrect: false
+Layout/EmptyLinesAroundBeginBody:
+  SafeAutoCorrect: false
+Layout/EmptyLinesAroundExceptionHandlingKeywords:
+  SafeAutoCorrect: false
+Layout/FirstArgumentIndentation:
+  SafeAutoCorrect: false
+Layout/FirstArrayElementIndentation:
+  SafeAutoCorrect: false
+Layout/FirstArrayElementLineBreak:
+  SafeAutoCorrect: false
+Layout/FirstHashElementLineBreak:
+  SafeAutoCorrect: false
+Layout/FirstMethodArgumentLineBreak:
+  SafeAutoCorrect: false
+Layout/FirstMethodParameterLineBreak:
+  SafeAutoCorrect: false
+Layout/FirstParameterIndentation:
+  SafeAutoCorrect: false
+Layout/HeredocArgumentClosingParenthesis:
+  SafeAutoCorrect: false
+Layout/IndentationStyle:
+  SafeAutoCorrect: false
+Layout/InitialIndentation:
+  SafeAutoCorrect: false
+Layout/LeadingEmptyLines:
+  SafeAutoCorrect: false
+Layout/LineContinuationLeadingSpace:
+  SafeAutoCorrect: false
+Layout/LineContinuationSpacing:
+  SafeAutoCorrect: false
+Layout/MultilineArrayLineBreaks:
+  SafeAutoCorrect: false
+Layout/MultilineHashKeyLineBreaks:
+  SafeAutoCorrect: false
+Layout/MultilineMethodArgumentLineBreaks:
+  SafeAutoCorrect: false
+Layout/MultilineMethodDefinitionBraceLayout:
+  SafeAutoCorrect: false
+Layout/MultilineMethodParameterLineBreaks:
+  SafeAutoCorrect: false
+Layout/ParameterAlignment:
+  SafeAutoCorrect: false
+Layout/SingleLineBlockChain:
+  SafeAutoCorrect: false
+Layout/SpaceAfterColon:
+  SafeAutoCorrect: false
+Layout/SpaceAfterMethodName:
+  SafeAutoCorrect: false
+Layout/SpaceAroundBlockParameters:
+  SafeAutoCorrect: false
+Layout/SpaceAroundMethodCallOperator:
+  SafeAutoCorrect: false
+Layout/SpaceBeforeComment:
+  SafeAutoCorrect: false
+Layout/SpaceBeforeSemicolon:
+  SafeAutoCorrect: false
+Layout/SpaceInLambdaLiteral:
+  SafeAutoCorrect: false
+Layout/SpaceInsideRangeLiteral:
+  SafeAutoCorrect: false
+Layout/SpaceInsideReferenceBrackets:
+  SafeAutoCorrect: false
+Layout/SpaceInsideStringInterpolation:
+  SafeAutoCorrect: false
+Lint/AmbiguousBlockAssociation:
+  SafeAutoCorrect: false
+Lint/AmbiguousOperator:
+  SafeAutoCorrect: false
+Lint/AmbiguousRange:
+  SafeAutoCorrect: false
+Lint/AmbiguousRegexpLiteral:
+  SafeAutoCorrect: false
+Lint/ArrayLiteralInRegexp:
+  SafeAutoCorrect: false
+Lint/AssignmentInCondition:
+  SafeAutoCorrect: false
+Lint/BigDecimalNew:
+  SafeAutoCorrect: false
+Lint/BooleanSymbol:
+  SafeAutoCorrect: false
+Lint/ConstantOverwrittenInRescue:
+  SafeAutoCorrect: false
+Lint/CopDirectiveSyntax:
+  SafeAutoCorrect: false
+Lint/DeprecatedClassMethods:
+  SafeAutoCorrect: false
+Lint/DeprecatedConstants:
+  SafeAutoCorrect: false
+Lint/DisjunctiveAssignmentInConstructor:
+  SafeAutoCorrect: false
+Lint/DuplicateMagicComment:
+  SafeAutoCorrect: false
+Lint/DuplicateRegexpCharacterClassElement:
+  SafeAutoCorrect: false
+Lint/DuplicateRequire:
+  SafeAutoCorrect: false
+Lint/ElseLayout:
+  SafeAutoCorrect: false
+Lint/EmptyConditionalBody:
+  SafeAutoCorrect: false
+Lint/EmptyEnsure:
+  SafeAutoCorrect: false
+Lint/EmptyInterpolation:
+  SafeAutoCorrect: false
+Lint/ErbNewArguments:
+  SafeAutoCorrect: false
+Lint/HashNewWithKeywordArgumentsAsDefault:
+  SafeAutoCorrect: false
+Lint/HeredocMethodCallPosition:
+  SafeAutoCorrect: false
+Lint/IdentityComparison:
+  SafeAutoCorrect: false
+Lint/ImplicitStringConcatenation:
+  SafeAutoCorrect: false
+Lint/IncompatibleIoSelectWithFiberScheduler:
+  SafeAutoCorrect: false
+Lint/InheritException:
+  SafeAutoCorrect: false
+Lint/InterpolationCheck:
+  SafeAutoCorrect: false
+Lint/LambdaWithoutLiteralBlock:
+  SafeAutoCorrect: false
+Lint/LiteralAsCondition:
+  SafeAutoCorrect: false
+Lint/LiteralInInterpolation:
+  SafeAutoCorrect: false
+Lint/Loop:
+  SafeAutoCorrect: false
+Lint/MisplacedMagicComment:
+  SafeAutoCorrect: false
+Lint/MixedCaseRange:
+  SafeAutoCorrect: false
+Lint/MultipleComparison:
+  SafeAutoCorrect: false
+Lint/NonAtomicFileOperation:
+  SafeAutoCorrect: false
+Lint/NonDeterministicRequireOrder:
+  SafeAutoCorrect: false
+Lint/NumberConversion:
+  SafeAutoCorrect: false
+Lint/NumericOperationWithConstantResult:
+  SafeAutoCorrect: false
+Lint/OrAssignmentToConstant:
+  SafeAutoCorrect: false
+Lint/OrderedMagicComments:
+  SafeAutoCorrect: false
+Lint/ParenthesesAsGroupedExpression:
+  SafeAutoCorrect: false
+Lint/PercentStringArray:
+  SafeAutoCorrect: false
+Lint/PercentSymbolArray:
+  SafeAutoCorrect: false
+Lint/RaiseException:
+  SafeAutoCorrect: false
+Lint/RedundantCopDisableDirective:
+  SafeAutoCorrect: false
+Lint/RedundantCopEnableDirective:
+  SafeAutoCorrect: false
+Lint/RedundantDirGlobSort:
+  SafeAutoCorrect: false
+Lint/RedundantRegexpQuantifiers:
+  SafeAutoCorrect: false
+Lint/RedundantSafeNavigation:
+  SafeAutoCorrect: false
+Lint/RedundantSplatExpansion:
+  SafeAutoCorrect: false
+Lint/RedundantWithIndex:
+  SafeAutoCorrect: false
+Lint/RedundantWithObject:
+  SafeAutoCorrect: false
+Lint/RefinementImportMethods:
+  SafeAutoCorrect: false
+Lint/RegexpAsCondition:
+  SafeAutoCorrect: false
+Lint/RequireRelativeSelfPath:
+  SafeAutoCorrect: false
+Lint/RescueType:
+  SafeAutoCorrect: false
+Lint/SafeNavigationChain:
+  SafeAutoCorrect: false
+Lint/SafeNavigationConsistency:
+  SafeAutoCorrect: false
+Lint/SafeNavigationWithEmpty:
+  SafeAutoCorrect: false
+Lint/ScriptPermission:
+  SafeAutoCorrect: false
+Lint/SendWithMixinArgument:
+  SafeAutoCorrect: false
+Lint/SuppressedExceptionInNumberConversion:
+  SafeAutoCorrect: false
+Lint/ToJSON:
+  SafeAutoCorrect: false
+Lint/TopLevelReturnWithArgument:
+  SafeAutoCorrect: false
+Lint/TrailingCommaInAttributeDeclaration:
+  SafeAutoCorrect: false
+Lint/TripleQuotes:
+  SafeAutoCorrect: false
+Lint/UnescapedBracketInRegexp:
+  SafeAutoCorrect: false
+Lint/UriRegexp:
+  SafeAutoCorrect: false
+Lint/UselessDefaultValueArgument:
+  SafeAutoCorrect: false
+Lint/UselessMethodDefinition:
+  SafeAutoCorrect: false
+Lint/UselessNumericOperation:
+  SafeAutoCorrect: false
+Lint/UselessOr:
+  SafeAutoCorrect: false
+Lint/UselessSetterCall:
+  SafeAutoCorrect: false
+Lint/UselessTimes:
+  SafeAutoCorrect: false
+Migration/DepartmentName:
+  SafeAutoCorrect: false
+Naming/InclusiveLanguage:
+  SafeAutoCorrect: false
+Naming/MemoizedInstanceVariableName:
+  SafeAutoCorrect: false
+Naming/RescuedExceptionsVariableName:
+  SafeAutoCorrect: false
+Packaging/BundlerSetupInTests:
+  SafeAutoCorrect: false
+Packaging/RequireHardcodingLib:
+  SafeAutoCorrect: false
+Packaging/RequireRelativeHardcodingLib:
+  SafeAutoCorrect: false
+Performance/AncestorsInclude:
+  SafeAutoCorrect: false
+Performance/ArraySemiInfiniteRangeSlice:
+  SafeAutoCorrect: false
+Performance/BigDecimalWithNumericArgument:
+  SafeAutoCorrect: false
+Performance/BindCall:
+  SafeAutoCorrect: false
+Performance/BlockGivenWithExplicitBlock:
+  SafeAutoCorrect: false
+Performance/Caller:
+  SafeAutoCorrect: false
+Performance/CaseWhenSplat:
+  SafeAutoCorrect: false
+Performance/Casecmp:
+  SafeAutoCorrect: false
+Performance/CompareWithBlock:
+  SafeAutoCorrect: false
+Performance/ConcurrentMonotonicTime:
+  SafeAutoCorrect: false
+Performance/Count:
+  SafeAutoCorrect: false
+Performance/DeletePrefix:
+  SafeAutoCorrect: false
+Performance/DeleteSuffix:
+  SafeAutoCorrect: false
+Performance/Detect:
+  SafeAutoCorrect: false
+Performance/DoubleStartEndWith:
+  SafeAutoCorrect: false
+Performance/EndWith:
+  SafeAutoCorrect: false
+Performance/FlatMap:
+  SafeAutoCorrect: false
+Performance/InefficientHashSearch:
+  SafeAutoCorrect: false
+Performance/IoReadlines:
+  SafeAutoCorrect: false
+Performance/MapCompact:
+  SafeAutoCorrect: false
+Performance/RangeInclude:
+  SafeAutoCorrect: false
+Performance/RedundantBlockCall:
+  SafeAutoCorrect: false
+Performance/RedundantEqualityComparisonBlock:
+  SafeAutoCorrect: false
+Performance/RedundantMerge:
+  SafeAutoCorrect: false
+Performance/RedundantSortBlock:
+  SafeAutoCorrect: false
+Performance/RedundantSplitRegexpArgument:
+  SafeAutoCorrect: false
+Performance/RedundantStringChars:
+  SafeAutoCorrect: false
+Performance/ReverseEach:
+  SafeAutoCorrect: false
+Performance/ReverseFirst:
+  SafeAutoCorrect: false
+Performance/Size:
+  SafeAutoCorrect: false
+Performance/SortReverse:
+  SafeAutoCorrect: false
+Performance/Squeeze:
+  SafeAutoCorrect: false
+Performance/StartWith:
+  SafeAutoCorrect: false
+Performance/StringBytesize:
+  SafeAutoCorrect: false
+Performance/StringIdentifierArgument:
+  SafeAutoCorrect: false
+Performance/StringInclude:
+  SafeAutoCorrect: false
+Performance/StringReplacement:
+  SafeAutoCorrect: false
+Performance/Sum:
+  SafeAutoCorrect: false
+Performance/TimesMap:
+  SafeAutoCorrect: false
+Performance/UnfreezeString:
+  SafeAutoCorrect: false
+Performance/UriDefaultParser:
+  SafeAutoCorrect: false
+Performance/ZipWithoutBlock:
+  SafeAutoCorrect: false
+RSpec/AlignLeftLetBrace:
+  SafeAutoCorrect: false
+RSpec/AlignRightLetBrace:
+  SafeAutoCorrect: false
+RSpec/BeEmpty:
+  SafeAutoCorrect: false
+RSpec/BeEq:
+  SafeAutoCorrect: false
+RSpec/BeEql:
+  SafeAutoCorrect: false
+RSpec/BeNil:
+  SafeAutoCorrect: false
+RSpec/ChangeByZero:
+  SafeAutoCorrect: false
+RSpec/ClassCheck:
+  SafeAutoCorrect: false
+RSpec/ContainExactly:
+  SafeAutoCorrect: false
+RSpec/ContextMethod:
+  SafeAutoCorrect: false
+RSpec/DescribedClass:
+  SafeAutoCorrect: false
+RSpec/Dialect:
+  SafeAutoCorrect: false
+RSpec/DuplicatedMetadata:
+  SafeAutoCorrect: false
+RSpec/EmptyExampleGroup:
+  SafeAutoCorrect: false
+RSpec/EmptyHook:
+  SafeAutoCorrect: false
+RSpec/EmptyLineAfterExample:
+  SafeAutoCorrect: false
+RSpec/EmptyLineAfterExampleGroup:
+  SafeAutoCorrect: false
+RSpec/EmptyLineAfterFinalLet:
+  SafeAutoCorrect: false
+RSpec/EmptyLineAfterHook:
+  SafeAutoCorrect: false
+RSpec/EmptyLineAfterSubject:
+  SafeAutoCorrect: false
+RSpec/EmptyMetadata:
+  SafeAutoCorrect: false
+RSpec/EmptyOutput:
+  SafeAutoCorrect: false
+RSpec/Eq:
+  SafeAutoCorrect: false
+RSpec/ExampleWording:
+  SafeAutoCorrect: false
+RSpec/ExcessiveDocstringSpacing:
+  SafeAutoCorrect: false
+RSpec/ExpectActual:
+  SafeAutoCorrect: false
+RSpec/ExpectChange:
+  SafeAutoCorrect: false
+RSpec/Focus:
+  SafeAutoCorrect: false
+RSpec/HookArgument:
+  SafeAutoCorrect: false
+RSpec/HooksBeforeExamples:
+  SafeAutoCorrect: false
+RSpec/ImplicitExpect:
+  SafeAutoCorrect: false
+RSpec/ImplicitSubject:
+  SafeAutoCorrect: false
+RSpec/IncludeExamples:
+  SafeAutoCorrect: false
+RSpec/InstanceSpy:
+  SafeAutoCorrect: false
+RSpec/IsExpectedSpecify:
+  SafeAutoCorrect: false
+RSpec/ItBehavesLike:
+  SafeAutoCorrect: false
+RSpec/IteratedExpectation:
+  SafeAutoCorrect: false
+RSpec/LeadingSubject:
+  SafeAutoCorrect: false
+RSpec/LetBeforeExamples:
+  SafeAutoCorrect: false
+RSpec/MatchArray:
+  SafeAutoCorrect: false
+RSpec/MatchWithSimpleRegex:
+  SafeAutoCorrect: false
+RSpec/MetadataStyle:
+  SafeAutoCorrect: false
+RSpec/MultipleSubjects:
+  SafeAutoCorrect: false
+RSpec/NotToNot:
+  SafeAutoCorrect: false
+RSpec/Output:
+  SafeAutoCorrect: false
+RSpec/PredicateMatcher:
+  SafeAutoCorrect: false
+RSpec/ReceiveCounts:
+  SafeAutoCorrect: false
+RSpec/ReceiveMessages:
+  SafeAutoCorrect: false
+RSpec/ReceiveNever:
+  SafeAutoCorrect: false
+RSpec/RedundantAround:
+  SafeAutoCorrect: false
+RSpec/RedundantPredicateMatcher:
+  SafeAutoCorrect: false
+RSpec/ReturnFromStub:
+  SafeAutoCorrect: false
+RSpec/ScatteredLet:
+  SafeAutoCorrect: false
+RSpec/ScatteredSetup:
+  SafeAutoCorrect: false
+RSpec/SharedContext:
+  SafeAutoCorrect: false
+RSpec/SharedExamples:
+  SafeAutoCorrect: false
+RSpec/SingleArgumentMessageChain:
+  SafeAutoCorrect: false
+RSpec/SortMetadata:
+  SafeAutoCorrect: false
+RSpec/SubjectDeclaration:
+  SafeAutoCorrect: false
+RSpec/VariableDefinition:
+  SafeAutoCorrect: false
+RSpec/VerifiedDoubleReference:
+  SafeAutoCorrect: false
+RSpec/Yield:
+  SafeAutoCorrect: false
+Security/IoMethods:
+  SafeAutoCorrect: false
+Security/JSONLoad:
+  SafeAutoCorrect: false
+Security/YAMLLoad:
+  SafeAutoCorrect: false
+Style/AccessModifierDeclarations:
+  SafeAutoCorrect: false
+Style/AmbiguousEndlessMethodDefinition:
+  SafeAutoCorrect: false
+Style/AndOr:
+  SafeAutoCorrect: false
+Style/ArrayCoercion:
+  SafeAutoCorrect: false
+Style/ArrayFirstLast:
+  SafeAutoCorrect: false
+Style/ArrayIntersect:
+  SafeAutoCorrect: false
+Style/ArrayIntersectWithSingleElement:
+  SafeAutoCorrect: false
+Style/ArrayJoin:
+  SafeAutoCorrect: false
+Style/Attr:
+  SafeAutoCorrect: false
+Style/BarePercentLiterals:
+  SafeAutoCorrect: false
+Style/BisectedAttrAccessor:
+  SafeAutoCorrect: false
+Style/BitwisePredicate:
+  SafeAutoCorrect: false
+Style/BlockComments:
+  SafeAutoCorrect: false
+Style/CaseEquality:
+  SafeAutoCorrect: false
+Style/CaseLikeIf:
+  SafeAutoCorrect: false
+Style/ClassAndModuleChildren:
+  SafeAutoCorrect: false
+Style/ClassEqualityComparison:
+  SafeAutoCorrect: false
+Style/ClassMethods:
+  SafeAutoCorrect: false
+Style/ClassMethodsDefinitions:
+  SafeAutoCorrect: false
+Style/CollectionCompact:
+  SafeAutoCorrect: false
+Style/CollectionMethods:
+  SafeAutoCorrect: false
+Style/CollectionQuerying:
+  SafeAutoCorrect: false
+Style/ColonMethodDefinition:
+  SafeAutoCorrect: false
+Style/CombinableDefined:
+  SafeAutoCorrect: false
+Style/CombinableLoops:
+  SafeAutoCorrect: false
+Style/CommandLiteral:
+  SafeAutoCorrect: false
+Style/CommentedKeyword:
+  SafeAutoCorrect: false
+Style/ComparableBetween:
+  SafeAutoCorrect: false
+Style/ComparableClamp:
+  SafeAutoCorrect: false
+Style/ConcatArrayLiterals:
+  SafeAutoCorrect: false
+Style/Copyright:
+  SafeAutoCorrect: false
+Style/DataInheritance:
+  SafeAutoCorrect: false
+Style/DateTime:
+  SafeAutoCorrect: false
+Style/DefWithParentheses:
+  SafeAutoCorrect: false
+Style/DigChain:
+  SafeAutoCorrect: false
+Style/Dir:
+  SafeAutoCorrect: false
+Style/DirEmpty:
+  SafeAutoCorrect: false
+Style/DirectiveScope:
+  SafeAutoCorrect: false
+Style/DisableCopsWithinSourceCodeDirective:
+  SafeAutoCorrect: false
+Style/DoubleCopDisableDirective:
+  SafeAutoCorrect: false
+Style/DoubleNegation:
+  SafeAutoCorrect: false
+Style/EachForSimpleLoop:
+  SafeAutoCorrect: false
+Style/EmptyCaseCondition:
+  SafeAutoCorrect: false
+Style/EmptyClassDefinition:
+  SafeAutoCorrect: false
+Style/EmptyHeredoc:
+  SafeAutoCorrect: false
+Style/EmptyLambdaParameter:
+  SafeAutoCorrect: false
+Style/EmptyLiteral:
+  SafeAutoCorrect: false
+Style/EmptyMethod:
+  SafeAutoCorrect: false
+Style/EmptyStringInsideInterpolation:
+  SafeAutoCorrect: false
+Style/EndBlock:
+  SafeAutoCorrect: false
+Style/EndlessMethod:
+  SafeAutoCorrect: false
+Style/EnvHome:
+  SafeAutoCorrect: false
+Style/EvalWithLocation:
+  SafeAutoCorrect: false
+Style/EvenOdd:
+  SafeAutoCorrect: false
+Style/FileEmpty:
+  SafeAutoCorrect: false
+Style/FileNull:
+  SafeAutoCorrect: false
+Style/FileRead:
+  SafeAutoCorrect: false
+Style/FileTouch:
+  SafeAutoCorrect: false
+Style/FloatDivision:
+  SafeAutoCorrect: false
+Style/For:
+  SafeAutoCorrect: false
+Style/FormatString:
+  SafeAutoCorrect: false
+Style/FormatStringToken:
+  SafeAutoCorrect: false
+Style/FrozenStringLiteralComment:
+  SafeAutoCorrect: false
+Style/GlobalStdStream:
+  SafeAutoCorrect: false
+Style/HashAsLastArrayItem:
+  SafeAutoCorrect: false
+Style/HashConversion:
+  SafeAutoCorrect: false
+Style/HashEachMethods:
+  SafeAutoCorrect: false
+Style/HashExcept:
+  SafeAutoCorrect: false
+Style/HashFetchChain:
+  SafeAutoCorrect: false
+Style/HashLookupMethod:
+  SafeAutoCorrect: false
+Style/HashSlice:
+  SafeAutoCorrect: false
+Style/HashTransformKeys:
+  SafeAutoCorrect: false
+Style/HashTransformValues:
+  SafeAutoCorrect: false
+Style/IdenticalConditionalBranches:
+  SafeAutoCorrect: false
+Style/IfUnlessModifier:
+  SafeAutoCorrect: false
+Style/IfUnlessModifierOfIfUnless:
+  SafeAutoCorrect: false
+Style/IfWithBooleanLiteralBranches:
+  SafeAutoCorrect: false
+Style/InPatternThen:
+  SafeAutoCorrect: false
+Style/InfiniteLoop:
+  SafeAutoCorrect: false
+Style/InverseMethods:
+  SafeAutoCorrect: false
+Style/InvertibleUnlessCondition:
+  SafeAutoCorrect: false
+Style/ItBlockParameter:
+  SafeAutoCorrect: false
+Style/KeywordArgumentsMerging:
+  SafeAutoCorrect: false
+Style/KeywordParametersOrder:
+  SafeAutoCorrect: false
+Style/Lambda:
+  SafeAutoCorrect: false
+Style/LambdaCall:
+  SafeAutoCorrect: false
+Style/LineEndConcatenation:
+  SafeAutoCorrect: false
+Style/MapCompactWithConditionalBlock:
+  SafeAutoCorrect: false
+Style/MapIntoArray:
+  SafeAutoCorrect: false
+Style/MapJoin:
+  SafeAutoCorrect: false
+Style/MapToHash:
+  SafeAutoCorrect: false
+Style/MapToSet:
+  SafeAutoCorrect: false
+Style/MethodCallWithArgsParentheses:
+  SafeAutoCorrect: false
+Style/MethodCallWithoutArgsParentheses:
+  SafeAutoCorrect: false
+Style/MethodDefParentheses:
+  SafeAutoCorrect: false
+Style/MinMax:
+  SafeAutoCorrect: false
+Style/MinMaxComparison:
+  SafeAutoCorrect: false
+Style/MissingElse:
+  SafeAutoCorrect: false
+Style/MixinGrouping:
+  SafeAutoCorrect: false
+Style/ModuleFunction:
+  SafeAutoCorrect: false
+Style/ModuleMemberExistenceCheck:
+  SafeAutoCorrect: false
+Style/MultilineIfThen:
+  SafeAutoCorrect: false
+Style/MultilineInPatternThen:
+  SafeAutoCorrect: false
+Style/MultilineMemoization:
+  SafeAutoCorrect: false
+Style/MultilineMethodSignature:
+  SafeAutoCorrect: false
+Style/MultilineWhenThen:
+  SafeAutoCorrect: false
+Style/MutableConstant:
+  SafeAutoCorrect: false
+Style/NegatedUnless:
+  SafeAutoCorrect: false
+Style/NegativeArrayIndex:
+  SafeAutoCorrect: false
+Style/NestedFileDirname:
+  SafeAutoCorrect: false
+Style/NestedModifier:
+  SafeAutoCorrect: false
+Style/NestedParenthesizedCalls:
+  SafeAutoCorrect: false
+Style/NilLambda:
+  SafeAutoCorrect: false
+Style/NumericLiteralPrefix:
+  SafeAutoCorrect: false
+Style/NumericPredicate:
+  SafeAutoCorrect: false
+Style/ObjectThen:
+  SafeAutoCorrect: false
+Style/OperatorMethodCall:
+  SafeAutoCorrect: false
+Style/PartitionInsteadOfDoubleSelect:
+  SafeAutoCorrect: false
+Style/PercentQLiterals:
+  SafeAutoCorrect: false
+Style/PredicateWithKind:
+  SafeAutoCorrect: false
+Style/PreferredHashMethods:
+  SafeAutoCorrect: false
+Style/Proc:
+  SafeAutoCorrect: false
+Style/RaiseArgs:
+  SafeAutoCorrect: false
+Style/RandomWithOffset:
+  SafeAutoCorrect: false
+Style/ReduceToHash:
+  SafeAutoCorrect: false
+Style/RedundantArgument:
+  SafeAutoCorrect: false
+Style/RedundantArrayConstructor:
+  SafeAutoCorrect: false
+Style/RedundantArrayFlatten:
+  SafeAutoCorrect: false
+Style/RedundantCapitalW:
+  SafeAutoCorrect: false
+Style/RedundantCurrentDirectoryInPath:
+  SafeAutoCorrect: false
+Style/RedundantDoubleSplatHashBraces:
+  SafeAutoCorrect: false
+Style/RedundantEach:
+  SafeAutoCorrect: false
+Style/RedundantException:
+  SafeAutoCorrect: false
+Style/RedundantFetchBlock:
+  SafeAutoCorrect: false
+Style/RedundantFilterChain:
+  SafeAutoCorrect: false
+Style/RedundantFormat:
+  SafeAutoCorrect: false
+Style/RedundantHeredocDelimiterQuotes:
+  SafeAutoCorrect: false
+Style/RedundantInitialize:
+  SafeAutoCorrect: false
+Style/RedundantInterpolation:
+  SafeAutoCorrect: false
+Style/RedundantMinMaxBy:
+  SafeAutoCorrect: false
+Style/RedundantRegexpConstructor:
+  SafeAutoCorrect: false
+Style/RedundantSelfAssignment:
+  SafeAutoCorrect: false
+Style/RedundantSort:
+  SafeAutoCorrect: false
+Style/RedundantSortBy:
+  SafeAutoCorrect: false
+Style/RedundantStringEscape:
+  SafeAutoCorrect: false
+Style/RedundantStructKeywordInit:
+  SafeAutoCorrect: false
+Style/RequireOrder:
+  SafeAutoCorrect: false
+Style/ReturnNil:
+  SafeAutoCorrect: false
+Style/ReturnNilInPredicateMethodDefinition:
+  SafeAutoCorrect: false
+Style/ReverseFind:
+  SafeAutoCorrect: false
+Style/SafeNavigation:
+  SafeAutoCorrect: false
+Style/Sample:
+  SafeAutoCorrect: false
+Style/SelectByKind:
+  SafeAutoCorrect: false
+Style/SelectByRange:
+  SafeAutoCorrect: false
+Style/SelectByRegexp:
+  SafeAutoCorrect: false
+Style/SendWithLiteralMethodName:
+  SafeAutoCorrect: false
+Style/SignalException:
+  SafeAutoCorrect: false
+Style/SingleArgumentDig:
+  SafeAutoCorrect: false
+Style/SingleLineBlockParams:
+  SafeAutoCorrect: false
+Style/SingleLineDoEndBlock:
+  SafeAutoCorrect: false
+Style/SingleLineMethods:
+  SafeAutoCorrect: false
+Style/SlicingWithRange:
+  SafeAutoCorrect: false
+Style/SpecialGlobalVars:
+  SafeAutoCorrect: false
+Style/StabbyLambdaParentheses:
+  SafeAutoCorrect: false
+Style/StaticClass:
+  SafeAutoCorrect: false
+Style/StringChars:
+  SafeAutoCorrect: false
+Style/StringConcatenation:
+  SafeAutoCorrect: false
+Style/StringHashKeys:
+  SafeAutoCorrect: false
+Style/StringMethods:
+  SafeAutoCorrect: false
+Style/Strip:
+  SafeAutoCorrect: false
+Style/StructInheritance:
+  SafeAutoCorrect: false
+Style/SwapValues:
+  SafeAutoCorrect: false
+Style/SymbolProc:
+  SafeAutoCorrect: false
+Style/TallyMethod:
+  SafeAutoCorrect: false
+Style/TimeNow:
+  SafeAutoCorrect: false
+Style/TrailingBodyOnClass:
+  SafeAutoCorrect: false
+Style/TrailingBodyOnMethodDefinition:
+  SafeAutoCorrect: false
+Style/TrailingBodyOnModule:
+  SafeAutoCorrect: false
+Style/TrailingCommaInBlockArgs:
+  SafeAutoCorrect: false
+Style/TrailingMethodEndStatement:
+  SafeAutoCorrect: false
+Style/WhenThen:
+  SafeAutoCorrect: false
+Style/YAMLFileRead:
+  SafeAutoCorrect: false
+Style/YodaCondition:
+  SafeAutoCorrect: false
+Style/YodaExpression:
+  SafeAutoCorrect: false
+Style/ZeroLengthPredicate:
+  SafeAutoCorrect: false
+ThreadSafety/MutableClassInstanceVariable:
+  SafeAutoCorrect: false

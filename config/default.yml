@@ -7,6 +7,10 @@ plugins:
 
 # A cop RuboCop adds in a later release stays off until kata lists it: a
 # `bundle update` must not add an autocorrect nobody reviewed to `rubocop -a`.
+# config/autocorrect.yml, layered on top, holds back every correction no
+# corpus suite has run green (see data/autocorrect.txt); the
+# `SafeAutoCorrect: false` entries in this file name the ones seen to break
+# code, and stay -A whatever a corpus shows.
 # The pending cops kata wants are enabled one by one at the end of this file.
 AllCops:
   NewCops: disable
@@ -61,7 +65,7 @@ Kata/GoodClassName:
     nested classes and modules is a namespace wrapper, not a definition.
   Enabled: true
   VersionAdded: "0.9"
-  VersionChanged: "0.12"
+  VersionChanged: "0.11"
   Exclude:
     - "db/*migrate/**/*"
     - "**/*.jbuilder"
@@ -200,7 +204,7 @@ Kata/NoComments:
     are the framework's generated guidance.
   Enabled: true
   VersionAdded: "0.1"
-  VersionChanged: "0.12"
+  VersionChanged: "0.11"
   SafeAutoCorrect: false
   AllowDocumentation: true
   AllowCitations: true
@@ -598,7 +602,7 @@ Kata/RealWords:
     accepts American spelling only.
   Enabled: true
   VersionAdded: "0.5"
-  VersionChanged: "0.12"
+  VersionChanged: "0.11"
   Spelling: any
   BannedWords: []
   Terms: []
@@ -776,7 +780,7 @@ Kata/NoHashAsObject:
     for a hash.
   Enabled: true
   VersionAdded: "0.3"
-  VersionChanged: "0.12"
+  VersionChanged: "0.11"
   MaxKeys: 4
   TableMethods: []
   AllowedMethods:
@@ -1201,7 +1205,7 @@ Kata/NoEmptyLinesInBlocks:
     string are text, not layout, and are left alone. Fixed copy of
     `Elegant/NoEmptyLinesInBlocks`.
   Enabled: true
-  VersionAdded: "0.12"
+  VersionAdded: "0.11"
   Exclude:
     - "spec/**/*"
     - "test/**/*"
@@ -1217,7 +1221,7 @@ Kata/NoEmptyLinesInMethods:
     methods. Blank lines inside a heredoc or a multi-line string are text, not
     layout, and are left alone. Fixed copy of `Elegant/NoEmptyLinesInMethods`.
   Enabled: true
-  VersionAdded: "0.12"
+  VersionAdded: "0.11"
   Exclude:
     - "spec/**/*"
     - "test/**/*"
@@ -1337,7 +1341,7 @@ Kata/NoRedundantVariable:
     or last line it lands on).
   Enabled: true
   VersionAdded: "0.10"
-  VersionChanged: "0.12"
+  VersionChanged: "0.11"
 
 Kata/PairedBrackets:
   Description: "A bracket pairs on its line, or opens at the end of one and closes at the start of another."

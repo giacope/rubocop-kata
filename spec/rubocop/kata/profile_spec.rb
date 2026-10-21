@@ -15,22 +15,27 @@ RSpec.describe(RuboCop::Kata::Profile) do
 
   let(:base) { described_class::BASE }
   let(:rails) { described_class::RAILS }
+  let(:autocorrect) { described_class::AUTOCORRECT }
 
-  it "hands a gem that runs RSpec the shipped defaults unchanged" do
-    project(["shelf.gemspec", ""], [".rspec", ""]) { expect(described_class.new(it, {}).path).to(eq(base)) }
+  it "hands a gem that runs RSpec the shipped defaults and the autocorrect allowlist, nothing more" do
+    project(["shelf.gemspec", ""], [".rspec", ""]) do |root|
+      expect(described_class.new(root, {}).overlay).to(eq({ "inherit_from" => [base, autocorrect] }))
+    end
   end
 
   it "adds the Rails setting, and leaves out packaging and RSpec, for a Rails app on Minitest" do
     project(["config/application.rb", ""]) do |root|
       off = { "Enabled" => false }
-      expected = { "inherit_from" => [base, rails], "Packaging" => off, "RSpec" => off }
+      expected = { "inherit_from" => [base, autocorrect, rails], "Packaging" => off, "RSpec" => off }
       expect(described_class.new(root, {}).overlay).to(eq(expected))
     end
   end
 
   it "reads RSpec from the lockfile when the project keeps no .rspec" do
     lock = "GEM\n  specs:\n    rspec-core (3.13.0)\n"
-    project(["shelf.gemspec", ""], ["Gemfile.lock", lock]) { expect(described_class.new(it, {}).path).to(eq(base)) }
+    project(["shelf.gemspec", ""], ["Gemfile.lock", lock]) do |root|
+      expect(described_class.new(root, {}).overlay).to(eq({ "inherit_from" => [base, autocorrect] }))
+    end
   end
 
   it "does not take a gem that merely depends on rspec-core for one that runs it" do
@@ -44,13 +49,13 @@ RSpec.describe(RuboCop::Kata::Profile) do
   it "takes a Rails engine for Rails" do
     engine = "module Shop\n  class Engine < ::Rails::Engine\n    isolate_namespace Shop\n  end\nend\n"
     project(["shop.gemspec", ""], ["lib/shop/engine.rb", engine]) do |root|
-      expect(described_class.new(root, {}).overlay["inherit_from"]).to(eq([base, rails]))
+      expect(described_class.new(root, {}).overlay["inherit_from"]).to(eq([base, autocorrect, rails]))
     end
   end
 
   it "does not take a file merely named engine.rb for a Rails engine" do
     project(["shop.gemspec", ""], ["lib/shop/engine.rb", "class Engine\nend\n"]) do |root|
-      expect(described_class.new(root, {}).overlay["inherit_from"]).to(eq([base]))
+      expect(described_class.new(root, {}).overlay["inherit_from"]).to(eq([base, autocorrect]))
     end
   end
 
@@ -66,7 +71,7 @@ RSpec.describe(RuboCop::Kata::Profile) do
   it "reads the project from its root when started in a subdirectory" do
     project(["config/application.rb", ""], ["Gemfile", ""], ["app/models/user.rb", ""]) do |root|
       profile = described_class.new(File.join(root, "app", "models"), {})
-      expect([profile.root, profile.overlay["inherit_from"]]).to(eq([File.realpath(root), [base, rails]]))
+      expect([profile.root, profile.overlay["inherit_from"]]).to(eq([File.realpath(root), [base, autocorrect, rails]]))
     end
   end
 
@@ -77,7 +82,7 @@ RSpec.describe(RuboCop::Kata::Profile) do
   it "lets the plugin's options overrule what it detects" do
     project(["config/application.rb", ""], [".rspec", ""]) do |root|
       options = { "rails" => false, "packaging" => true, "rspec" => false }
-      expected = { "inherit_from" => [base], "RSpec" => { "Enabled" => false } }
+      expected = { "inherit_from" => [base, autocorrect], "RSpec" => { "Enabled" => false } }
       expect(described_class.new(root, options).overlay).to(eq(expected))
     end
   end
@@ -154,5 +159,39 @@ RSpec.describe(RuboCop::Kata::Profile) do
     patterns = YAML.load_file(rails).dig("Kata/GoodMethodName", "AllowedPatterns").map { Regexp.new(it) }
     names = %w[permitted_attributes_for_create permitted_attributes_for_update permitted_attributes]
     expect(names.map { |name| patterns.any? { name.match?(it) } }).to(eq([true, true, false]))
+  end
+
+  context "with the autocorrect allowlist" do
+    let(:allowed) { File.readlines("data/autocorrect.txt", chomp: true) }
+    let(:held) { YAML.load_file("config/autocorrect.yml") }
+
+    def shipped
+      setting = "plugins:\n  - rubocop-kata\n\nAllCops:\n  TargetRubyVersion: 3.4\n"
+      files = [["shelf.gemspec", ""], [".rspec", ""], ["config/application.rb", ""], [".rubocop.yml", setting]]
+      project(*files) { RuboCop::ConfigStore.new.for_dir(it) }
+    end
+
+    def unsafe?(setting) = setting["SafeAutoCorrect"] == false || setting["Safe"] == false
+
+    it "lists each correction once, in order" do
+      expect(allowed).to(eq(allowed.uniq.sort))
+    end
+
+    it "never holds back a correction it allows" do
+      expect(held.keys & allowed).to(be_empty)
+    end
+
+    it "holds back every correction kata runs that no corpus suite has proved" do
+      config = shipped
+      correcting = RuboCop::Cop::Registry.global.cops.select(&:support_autocorrect?).map(&:cop_name)
+      loose = correcting.select { config.cop_enabled?(it) && !allowed.include?(it) && !unsafe?(config.for_cop(it)) }
+      expect(loose).to(be_empty)
+    end
+
+    it "lets rubocop -a run what the allowlist names" do
+      config = shipped
+      proved = %w[Layout/TrailingWhitespace Style/StringLiterals]
+      expect(proved.map { unsafe?(config.for_cop(it)) }).to(eq([false, false]))
+    end
   end
 end

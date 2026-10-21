@@ -2,6 +2,59 @@
 
 ## [Unreleased]
 
+- From a second field test on twenty more MIT codebases (vita-min,
+  whitehall, Claim-for-Crown-Court-Defence, apply-for-teacher-training,
+  camaleon-cms, rails, rouge, steep, rspec, capybara, CocoaPods, asciidoctor,
+  tapioca and others). `rubocop -a` still changed behavior in five ways, so
+  it is now an allowlist:
+  - A correction runs under `-a` only when kata's corpora (Sequel, rouge,
+    steep) ran it with their suites green. `data/autocorrect.txt` lists
+    those corrections; `script/autocorrect` writes `config/autocorrect.yml`,
+    which marks every other autocorrecting cop `SafeAutoCorrect: false`, and
+    `eval/run` reports the listed ones no green suite ran. rouge and steep
+    join the eval corpora with their suites.
+  - Name-swapping corrections are `-A` by policy: `Style/FormatString`
+    (`sprintf` → `format` inside rouge's formatters, which define their own
+    `format`), `Style/ObjectThen` (`yield_self` → `then` on a receiver that
+    defines `then`), `Lint/DeprecatedConstants` (steep's own `TRUE` and
+    `FALSE` became literals), and `Lint/AmbiguousRegexpLiteral`, which dropped
+    a paren and left vita-min unparsable.
+  - `Kata/NoEmptyLinesInMethods` and `Kata/NoEmptyLinesInBlocks` replace
+    their Elegant originals, which deleted blank lines inside heredocs and
+    multi-line strings (steep's hover text, vita-min's and whitehall's
+    templates). The block cop is excluded from `**/spec/**` and `**/test/**`
+    too, where it looped against RSpec's layout cops (capybara).
+  - `Kata/RealWords` accepts British and Commonwealth spellings (883
+    offenses on 38 words in the UK-government apps) and cloud initialisms
+    (`vpc`, `iam`, `acl`, `arn`); `Spelling: en-US` holds a codebase to
+    American.
+  - `Kata/NoTypeCheck` decides what is Ruby's from a shipped inventory of
+    core, stdlib and gem constants (`data/core.txt`, from
+    `script/inventory`), not from the constants RuboCop's own process had
+    loaded, so a project's `Parser` or `AST` is judged the same on every
+    machine; `respond_to?` on IO and reflection protocols (`read`, `rewind`,
+    `path`, `superclass`) is duck typing.
+  - `Kata/NoHashAsObject` exempts the rows of a constant array table (fog's
+    flavors) and the mappings a `TableMethods` call takes; the Rails profile
+    lists `enum`.
+  - `Kata/NoComments` counts one offense per block of comment lines (rails
+    had 51,198, one per line), and under `AllowDocumentation` keeps a block
+    directly above a public class, module or method in any markup, not only
+    one carrying a YARD tag.
+  - `Kata/GoodClassName` skips a reopen that only nests classes and
+    modules, so a class is judged once, where it is defined (CocoaPods'
+    `Installer` was reported in 54 files).
+  - `Kata/NoRedundantVariable` measures the first and last lines a
+    multi-line value would land on before inlining it into an argument list.
+  - The plugin finds the project root from the working directory upwards,
+    takes a Rails engine (`lib/**/engine.rb` subclassing `Rails::Engine`) for
+    Rails, and reads a gemspec one directory down (a monorepo) as a gem.
+    Configuration layers merge deeply: lists add up and an upper layer's
+    setting wins, where scalars used to be OR-ed.
+  - The Rails profile allows Pundit's `permitted_attributes_for_<action>`.
+  - `doctor` names the cop a renamed cop became instead of calling it "not
+    enabled here".
+
 - From a field test on ten MIT codebases larger than Fizzy (Chatwoot,
   Coursemology, Feedbin, Huginn, Human Essentials, fastlane, Sequel,
   graphql-ruby, YARD, ruby-lsp). Plain `rubocop -a` no longer changes what

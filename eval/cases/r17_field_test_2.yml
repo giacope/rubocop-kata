@@ -1,0 +1,201 @@
+# What the second field test, on twenty more MIT codebases, found: each case
+# is the shape a codebase misread or an autocorrect broke.
+- id: ternary-regexp-argument-still-parses-after-safe-autocorrect
+  cop: Lint/AmbiguousRegexpLiteral
+  expect: offense
+  correct: safe
+  only: true
+  keeps: ["puts /a/.match?(ARGV.first) ? 1 : 2"]
+  source: |
+    # frozen_string_literal: true
+
+    puts /a/.match?(ARGV.first) ? 1 : 2
+- id: sprintf-in-a-class-with-its-own-format-is-not-swapped
+  cop: Style/FormatString
+  expect: offense
+  correct: safe
+  only: true
+  keeps: ["    sprintf(\"%s\", value)"]
+  source: |
+    # frozen_string_literal: true
+
+    class Shelf
+      def format(tokens) = tokens.join
+
+      def label(value)
+        sprintf("%s", value)
+      end
+    end
+- id: own-true-constant-is-not-replaced-by-the-literal
+  cop: Lint/DeprecatedConstants
+  expect: offense
+  correct: safe
+  only: true
+  keeps: ["    truthy || TRUE"]
+  source: |
+    # frozen_string_literal: true
+
+    class Shelf
+      TRUE = Object.new.freeze
+
+      def pick(truthy)
+        truthy || TRUE
+      end
+    end
+- id: yield-self-on-a-receiver-with-its-own-then-is-not-swapped
+  cop: Style/ObjectThen
+  expect: offense
+  correct: safe
+  only: true
+  keeps: ["    result.yield_self { |value| value + 1 }"]
+  source: |
+    # frozen_string_literal: true
+
+    class Shelf
+      def bump(result)
+        result.yield_self { |value| value + 1 }
+      end
+    end
+- id: blank-line-inside-a-heredoc-survives-the-method-blank-line-cop
+  cop: Kata/NoEmptyLinesInMethods
+  expect: offense
+  correct: safe
+  only: true
+  becomes: |
+    def render(type)
+      lines = []
+      lines << <<~MD
+        `#{type}`
+
+        ----
+      MD
+      lines.join
+    end
+  source: |
+    def render(type)
+      lines = []
+
+      lines << <<~MD
+        `#{type}`
+
+        ----
+      MD
+      lines.join
+    end
+- id: blank-lines-in-a-nested-spec-folder-are-left-to-rspec
+  cop: Kata/NoEmptyLinesInBlocks
+  expect: clean
+  path: engine/spec/models/shelf_spec.rb
+  source: |
+    # frozen_string_literal: true
+
+    RSpec.describe(Shelf) do
+      let(:shelf) { Shelf.new }
+
+      it "holds books" do
+        expect(shelf.books).to(eq([]))
+      end
+    end
+- id: british-spelling-is-english
+  cop: Kata/RealWords
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    def authorise(organisation, colour, offence)
+      [organisation, colour, offence]
+    end
+- id: cloud-initialisms-are-words
+  cop: Kata/RealWords
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    def attach(vpc_id, iam_role, acl_entry) = [vpc_id, iam_role, acl_entry]
+- id: own-parser-class-is-judged-whatever-rubocop-loaded
+  cop: Kata/NoTypeCheck
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Parser
+      end
+
+      def self.parsed?(value) = value.is_a?(Parser)
+    end
+- id: io-protocol-probe-is-duck-typing
+  cop: Kata/NoTypeCheck
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Source
+        def read = ""
+      end
+
+      def self.text(source) = source.respond_to?(:read) ? source.read : source.to_s
+    end
+- id: rows-of-a-constant-array-table-are-a-table
+  cop: Kata/NoHashAsObject
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      FLAVORS = [
+        { id: "t1.micro", name: "Micro", cores: 1, ram: 613, disk: 0 },
+        { id: "m1.small", name: "Small", cores: 1, ram: 1740, disk: 160 }
+      ].freeze
+    end
+- id: namespace-reopen-is-not-judged-again
+  cop: Kata/GoodClassName
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Pod
+      class Installer
+        class Context
+        end
+      end
+    end
+- id: rdoc-above-a-public-method-is-documentation
+  cop: Kata/NoComments
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Invoice
+        # Totals the +billable+ lines, in cents.
+        def total = 0
+      end
+    end
+- id: prose-above-a-private-method-is-still-prose
+  cop: Kata/NoComments
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Invoice
+        private
+
+        # Adds them up.
+        def lines = []
+      end
+    end
+- id: multi-line-value-is-not-inlined-past-the-line-limit
+  cop: Kata/NoRedundantVariable
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    def render(items, catalogue_identifier_for_the_current_storefront, page_number_of_the_listing)
+      value = items.fetch(:key) do
+        0
+      end
+      draw(catalogue_identifier_for_the_current_storefront, page_number_of_the_listing, items.size, items.count, value)
+    end

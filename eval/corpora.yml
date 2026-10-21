@@ -2,7 +2,9 @@
 # `plugins: [rubocop-kata]`, the zero-config install; `own` keeps the
 # project's `.rubocop.yml`, for codebases that already run kata. `fix` runs
 # `rubocop -a` and `-A` on a copy and checks that the copy still parses and,
-# where `test` is set, that its suite stays green.
+# where `test` is set, that its suite stays green. The corrections `-a` runs
+# on a corpus whose suite stays green are the ones data/autocorrect.txt may
+# list; the report names the listed ones no green suite ran.
 - name: faraday
   url: https://github.com/lostisland/faraday.git
   sha: deeb6ef8e47b366581585ec40c30104bf500826f
@@ -17,6 +19,20 @@
   paths: [lib]
   fix: true
   test: "ruby spec/core_spec.rb && ruby spec/core_extensions_spec.rb && ruby spec/model_spec.rb && ruby spec/plugin_spec.rb"
+- name: rouge
+  url: https://github.com/rouge-ruby/rouge.git
+  sha: 16e6ecdb3bc4248cead78375e1b24580ee2352a1
+  config: bare
+  paths: [lib]
+  fix: true
+  test: "bundle install --quiet && bundle exec rake test"
+- name: steep
+  url: https://github.com/soutaro/steep.git
+  sha: de4829ed09d3120fc881554f8d41bd719a998391
+  config: bare
+  paths: [lib]
+  fix: true
+  test: "bundle install --quiet && bundle exec rbs collection install > /dev/null && bundle exec rake test"
 - name: rubygems.org
   url: https://github.com/rubygems/rubygems.org.git
   sha: be8fc6b7d005c30830d0efa5014091d3f1b2f479

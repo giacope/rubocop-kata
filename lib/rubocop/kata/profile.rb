@@ -9,6 +9,7 @@ class RuboCop::Kata::Profile
   SHELF = File.expand_path("../../../config", __dir__)
   BASE = File.join(SHELF, "default.yml")
   RAILS = File.join(SHELF, "rails.yml")
+  AUTOCORRECT = File.join(SHELF, "autocorrect.yml")
   LOCKS = %w[Gemfile.lock gems.locked].freeze
   RSPEC = /^ {4}rspec-core \(/
   MARKERS = %w[Gemfile gems.rb *.gemspec config/application.rb].freeze
@@ -25,7 +26,6 @@ class RuboCop::Kata::Profile
 
   def path
     layer = overlay
-    return BASE if layer == { "inherit_from" => [BASE] }
     text = YAML.dump(silenced(standalone(layer), layer))
     target = File.join(@shelf, "rubocop-kata-#{Digest::SHA256.hexdigest(text)[0, 16]}.yml")
     publish(target, text) unless File.file?(target) && File.read(target) == text
@@ -33,7 +33,7 @@ class RuboCop::Kata::Profile
   end
 
   def overlay
-    layer = { "inherit_from" => [BASE, *(RAILS if rails?)] }
+    layer = { "inherit_from" => [BASE, AUTOCORRECT, *(RAILS if rails?)] }
     layer["Packaging"] = { "Enabled" => false } unless packaged?
     layer["RSpec"] = { "Enabled" => false } unless specified?
     layer
