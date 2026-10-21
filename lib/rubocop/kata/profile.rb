@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "digest"
+require "pathname"
 require "tmpdir"
 require "yaml"
 
@@ -10,12 +11,17 @@ class RuboCop::Kata::Profile
   RAILS = File.join(SHELF, "rails.yml")
   LOCKS = %w[Gemfile.lock gems.locked].freeze
   RSPEC = /^ {4}rspec-core \(/
+  MARKERS = %w[Gemfile gems.rb *.gemspec config/application.rb].freeze
+  GEMSPECS = %w[*.gemspec */*.gemspec].freeze
+  ENGINE = /<\s*(::)?Rails::Engine\b|^\s*isolate_namespace\b/
 
-  def initialize(root, options, shelf: Dir.tmpdir)
-    @root = root
+  def initialize(start, options, shelf: Dir.tmpdir)
+    @start = start
     @options = options
     @shelf = shelf
   end
+
+  def root = @_root ||= Pathname(@start).expand_path.ascend.map(&:to_s).find { marked?(it) } || @start
 
   def path
     layer = overlay
@@ -37,10 +43,16 @@ class RuboCop::Kata::Profile
 
   def standalone(layer)
     files = layer.fetch("inherit_from").map { YAML.load_file(it, aliases: true) }
-    [*files, layer.except("inherit_from")].reduce do |lower, upper|
-      lower.merge(upper) { |_, low, high| low.merge(high) { |_, old, new| old | new } }
-    end
+    [*files, layer.except("inherit_from")].reduce { |lower, upper| layered(lower, upper) }
   end
+
+  def layered(lower, upper)
+    return lower | upper if lower.is_a?(Array) && upper.is_a?(Array)
+    return upper unless lower.is_a?(Hash) && upper.is_a?(Hash)
+    lower.merge(upper) { |_, low, high| layered(low, high) }
+  end
+
+  def marked?(dir) = MARKERS.any? { Dir.glob(it, base: dir).any? }
 
   def silenced(merged, layer)
     departments = layer.select { |_, value| value == { "Enabled" => false } }.keys
@@ -53,14 +65,16 @@ class RuboCop::Kata::Profile
     File.rename(draft, target)
   end
 
-  def rails? = chosen("rails") { File.file?(File.join(@root, "config", "application.rb")) }
+  def rails? = chosen("rails") { File.file?(File.join(root, "config", "application.rb")) || engine? }
 
-  def packaged? = chosen("packaging") { Dir.glob("*.gemspec", base: @root).any? }
+  def engine? = Dir.glob("lib/**/engine.rb", base: root).any? { ENGINE.match?(File.read(File.join(root, it))) }
 
-  def specified? = chosen("rspec") { File.file?(File.join(@root, ".rspec")) || RSPEC.match?(lockfile) }
+  def packaged? = chosen("packaging") { Dir.glob(GEMSPECS, base: root).any? }
+
+  def specified? = chosen("rspec") { File.file?(File.join(root, ".rspec")) || RSPEC.match?(lockfile) }
 
   def lockfile
-    found = LOCKS.map { File.join(@root, it) }.find { File.file?(it) }
+    found = LOCKS.map { File.join(root, it) }.find { File.file?(it) }
     found ? File.read(found) : ""
   end
 

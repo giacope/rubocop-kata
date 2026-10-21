@@ -1,10 +1,12 @@
 # frozen_string_literal: true
 
 require "yaml"
+require_relative "renames"
 
 class RuboCop::Kata::Checkup
   INERT = "%s:%d: `%s` is disabled by the configuration this project inherits; the entry does nothing."
   DEAD = "%s:%d: the directive names `%s`, which is not enabled here; the comment does nothing."
+  RENAMED = "%s:%d: the directive names `%s`, which RuboCop renamed to `%s`; the comment does nothing."
   UNREAD = "%s: not checked, %s."
   BROKEN = "%s: does not parse as Ruby %s, the target version; its directives were read only as far as the parser got."
   UNLOADED = "%s: the project's configuration does not load (%s); run doctor through the project's bundle, " \
@@ -69,14 +71,20 @@ class RuboCop::Kata::Checkup
 
   def dead
     parsed.flat_map do |path, source|
-      source.comments.filter_map do |comment|
+      source.comments.flat_map do |comment|
         directive = RuboCop::DirectiveComment.new(comment)
-        next unless directive.start_with_marker? && !directive.all_cops?
-        stale = directive.cop_names.reject { active?(it, path) }
-        format(DEAD, path, directive.line_number, stale.join("`, `")) unless stale.empty?
+        directive.start_with_marker? && !directive.all_cops? ? stale(path, directive) : []
       end
     end
   end
+
+  def stale(path, directive)
+    moved, gone = directive.cop_names.reject { active?(it, path) }.partition { renames.to(it) }
+    renamed = moved.map { format(RENAMED, path, directive.line_number, it, renames.to(it)) }
+    gone.empty? ? renamed : [*renamed, format(DEAD, path, directive.line_number, gone.join("`, `"))]
+  end
+
+  def renames = @_renames ||= RuboCop::Kata::Renames.new
 
   def active?(name, path)
     configuration = store.for_file(path)

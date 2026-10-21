@@ -40,6 +40,40 @@ RSpec.describe(RuboCop::Kata::Profile) do
     end
   end
 
+  # camaleon-cms: an engine keeps no config/application.rb at its root.
+  it "takes a Rails engine for Rails" do
+    engine = "module Shop\n  class Engine < ::Rails::Engine\n    isolate_namespace Shop\n  end\nend\n"
+    project(["shop.gemspec", ""], ["lib/shop/engine.rb", engine]) do |root|
+      expect(described_class.new(root, {}).overlay["inherit_from"]).to(eq([base, rails]))
+    end
+  end
+
+  it "does not take a file merely named engine.rb for a Rails engine" do
+    project(["shop.gemspec", ""], ["lib/shop/engine.rb", "class Engine\nend\n"]) do |root|
+      expect(described_class.new(root, {}).overlay["inherit_from"]).to(eq([base]))
+    end
+  end
+
+  # rspec: each gem of the monorepo keeps its gemspec one level down.
+  it "takes a monorepo of gems for packaged code" do
+    project(["rspec-core/rspec-core.gemspec", ""], ["Gemfile", ""]) do |root|
+      expect(described_class.new(root, {}).overlay).not_to(have_key("Packaging"))
+    end
+  end
+
+  # Run from app/models, the plugin saw no config/application.rb and no
+  # gemspec in the directory it was started from.
+  it "reads the project from its root when started in a subdirectory" do
+    project(["config/application.rb", ""], ["Gemfile", ""], ["app/models/user.rb", ""]) do |root|
+      profile = described_class.new(File.join(root, "app", "models"), {})
+      expect([profile.root, profile.overlay["inherit_from"]]).to(eq([File.realpath(root), [base, rails]]))
+    end
+  end
+
+  it "stays where it was started when no directory above marks a project" do
+    project(["notes.txt", ""]) { |root| expect(described_class.new(root, {}).root).to(eq(root)) }
+  end
+
   it "lets the plugin's options overrule what it detects" do
     project(["config/application.rb", ""], [".rspec", ""]) do |root|
       options = { "rails" => false, "packaging" => true, "rspec" => false }
@@ -86,6 +120,14 @@ RSpec.describe(RuboCop::Kata::Profile) do
     end
   end
 
+  it "lets an upper layer's setting win, and adds an upper layer's list to the lower one" do
+    profile = described_class.new(Dir.tmpdir, {})
+    lower = { "Cop" => { "Enabled" => true, "Max" => 10, "Exclude" => %w[a] }, "plugins" => %w[x] }
+    upper = { "Cop" => { "Enabled" => false, "Max" => 12, "Exclude" => %w[b] }, "plugins" => %w[y] }
+    expect(profile.__send__(:layered, lower, upper))
+      .to(eq({ "Cop" => { "Enabled" => false, "Max" => 12, "Exclude" => %w[a b] }, "plugins" => %w[x y] }))
+  end
+
   it "leaves an overlay already written alone" do
     shelved(["config/application.rb", ""]) do |profile, _|
       File.utime(Time.at(0), Time.at(0), profile.path)
@@ -105,5 +147,12 @@ RSpec.describe(RuboCop::Kata::Profile) do
     names = setting.dig("Kata/GoodMethodName", "AllowedNames")
     expect([setting.keys, names.include?("default_url_options"), setting.dig("Kata/NoComments", "Exclude")])
       .to(eq([%w[Kata/GoodMethodName Kata/NoComments Kata/NoHashAsObject], true, %w[bin/**/* db/**/*]]))
+  end
+
+  # register-trainee-teachers: Pundit calls `permitted_attributes_for_<action>`.
+  it "lets a Rails app name the attribute lists Pundit asks a policy for" do
+    patterns = YAML.load_file(rails).dig("Kata/GoodMethodName", "AllowedPatterns").map { Regexp.new(it) }
+    names = %w[permitted_attributes_for_create permitted_attributes_for_update permitted_attributes]
+    expect(names.map { |name| patterns.any? { name.match?(it) } }).to(eq([true, true, false]))
   end
 end

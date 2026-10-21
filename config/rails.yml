@@ -1,11 +1,15 @@
 # Applied on top of default.yml when the project root holds
-# config/application.rb (opt out with `rails: false` under the plugin, see
-# README). It names what Rails and its common gems dictate and the files they
-# generate; it relaxes no rule for code the application writes. Each list
-# here is added to the shipped one, not put in its place.
+# config/application.rb or a lib/**/engine.rb that defines a Rails::Engine
+# (opt out with `rails: false` under the plugin, see README). It names what
+# Rails and its common gems dictate and the files they generate; it relaxes
+# no rule for code the application writes. Each list here is added to the
+# shipped one, not put in its place.
 
-# Hooks Rails, Devise and Turbo call by these names: a contract, not a choice.
+# Hooks Rails, Devise, Turbo and Pundit call by these names: a contract, not
+# a choice. Pundit asks a policy for `permitted_attributes_for_<action>`.
 Kata/GoodMethodName:
+  AllowedPatterns:
+    - "\\Apermitted_attributes_for_\\w+\\z"
   AllowedNames:
     - after_confirmation_path_for
     - after_database_authentication
