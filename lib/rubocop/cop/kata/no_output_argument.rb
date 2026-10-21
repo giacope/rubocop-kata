@@ -21,9 +21,11 @@ class RuboCop::Cop::Kata::NoOutputArgument < RuboCop::Cop::Base
 
   def judge(call, names, method)
     target = call.receiver
-    return unless target&.lvar_type? && names.include?(target.children.first) && mutation?(call)
+    return unless target&.lvar_type?
+    name = target.children.first
+    return unless names.include?(name) && mutation?(call)
     return if outside?(call, method) || fresh?(target, method)
-    add_offense(call, message: format(MSG, label(call), target.children.first))
+    add_offense(call, message: format(MSG, label(call), name))
   end
 
   def label(call) = written?(call) ? :[]= : call.method_name
