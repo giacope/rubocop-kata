@@ -50,6 +50,31 @@ RSpec.describe(RuboCop::Cop::Kata::NoTypeCheck, :config) do
     RUBY
   end
 
+  # Kimera's `Shift::Doubt =\n  Class.new(Suspect) do` went unflagged.
+  it "counts a constant the file assigns a new class, module, Struct or Data to as the project's own" do
+    expect_offense(<<~RUBY)
+      Point = Struct.new(:x)
+      Billing::Draft =
+        Data.define(:id) do
+          def ok? = true
+        end
+      Failure = Class.new(StandardError)
+      ::Mixin = Module.new
+      Plain = Object.new
+      Limit = 3
+      Built = build
+      def point?(value) = value.is_a?(Point)
+                                ^^^^^ `is_a?` asks an object what it is; tell it what to do, and let polymorphism choose.
+      def draft?(value) = value.is_a?(Billing::Draft)
+                                ^^^^^ `is_a?` asks an object what it is; tell it what to do, and let polymorphism choose.
+      def failure?(value) = value.is_a?(Failure)
+                                  ^^^^^ `is_a?` asks an object what it is; tell it what to do, and let polymorphism choose.
+      def mixin?(value) = value.is_a?(Mixin)
+                                ^^^^^ `is_a?` asks an object what it is; tell it what to do, and let polymorphism choose.
+      def other(value) = value.is_a?(Plain) || value.is_a?(Limit) || value.is_a?(Built)
+    RUBY
+  end
+
   it "counts each name of a compact definition as the project's own" do
     expect_offense(<<~RUBY)
       class Billing::Amount
@@ -159,14 +184,18 @@ RSpec.describe(RuboCop::Cop::Kata::NoTypeCheck, :config) do
       invoice = "module Billing\n  class Invoice\n    def settle = nil\n  end\n  Draft = Struct.new(:id)\nend\n"
       File.write(File.join(root, "lib", "billing", "invoice.rb"), invoice)
       File.write(File.join(root, "lib", "billing", "cart.rb"), "class Shop::Cart\nend\n")
+      refund = "Billing::Refund =\n  Class.new(StandardError) do\n  end\n"
+      File.write(File.join(root, "lib", "billing", "refund.rb"), refund)
     end
 
     after { FileUtils.rm_rf(root) }
 
     it "knows the types and methods defined in OwnedPaths" do
-      probes = %w[is_a?(Billing::Invoice) is_a?(Draft) respond_to?(:settle) is_a?(Hash) is_a?(Shop::Cart)]
+      probes = %w[
+        is_a?(Billing::Invoice) is_a?(Draft) respond_to?(:settle) is_a?(Hash) is_a?(Shop::Cart) is_a?(Refund)
+      ]
       found = offenses(probes.map { "x.#{it}\n" }.join)
-      expect(found.map(&:line)).to(eq([1, 2, 3, 5]))
+      expect(found.map(&:line)).to(eq([1, 2, 3, 5, 6]))
     end
   end
 end

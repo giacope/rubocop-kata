@@ -983,7 +983,9 @@ Kata/NoTypeCheck:
     and `respond_to_missing?`, whose contract is to accept any object and
     check what it was handed. Only the project's own types are judged: a
     check against a class or module the project defines (in the file, or in
-    `OwnedPaths`), or a `respond_to?` probe for a method the project defines.
+    `OwnedPaths`; a constant assigned `Class.new`, `Module.new`, `Struct.new`
+    or `Data.define` counts), or a `respond_to?` probe for a method the
+    project defines.
     A check against a class another library owns (an AST node, `String`) is
     the boundary where foreign data comes in, which polymorphism cannot
     reach, and is left alone, even where the project reopens that class or
