@@ -1333,10 +1333,11 @@ Kata/NoRedundantVariable:
     expression already spells it (`user = User.find(id)`). A name that adds
     a word explains the value (`subtotal = [...].max`), as Clean Code asks of
     an explanatory variable, and stays; so does a local whose inlining would
-    push its line past Layout/LineLength.
+    push its line past Layout/LineLength (for a multi-line value, the first
+    or last line it lands on).
   Enabled: true
   VersionAdded: "0.10"
-  VersionChanged: "0.11"
+  VersionChanged: "0.12"
 
 Kata/PairedBrackets:
   Description: "A bracket pairs on its line, or opens at the end of one and closes at the start of another."

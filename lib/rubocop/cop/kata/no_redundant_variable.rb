@@ -33,11 +33,16 @@ class RuboCop::Cop::Kata::NoRedundantVariable < RuboCop::Cop::Base
 
   def long?(assign, read)
     limit = config.for_cop("Layout/LineLength")
-    return false if limit["Enabled"] == false || assign.expression.source.include?("\n")
+    return false if limit["Enabled"] == false
     width(RuboCop::Kata::Variable::Inlining.new(assign.expression, read)) > limit.fetch("Max", LIMIT)
   end
 
-  def width(inlining) = inlining.range.then { it.source_line.length - it.length } + inlining.text.length
+  def width(inlining)
+    range = inlining.range
+    line = range.source_line
+    joined = "#{line[0, range.column]}#{inlining.text}#{line[range.last_column..]}".lines
+    [joined.first, joined.last].map { it.chomp.length }.max
+  end
 
   def register(assign, read, movable)
     return inline(assign, read) if movable.key?(assign)
