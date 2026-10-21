@@ -194,9 +194,12 @@ Kata/NoComments:
     reek `:reek:`, kimera, hashira, RubyMine `language=`), RDoc and YARD
     directives, licence headers, every comment block that cites a URL, an
     issue or pull request (`rails/rails#123`, `#123`), an RFC or a CVE, and
-    public API documentation: a block directly above a public class, module
-    or method, in any markup (RDoc, Markdown, YARD), and any block carrying a
-    YARD tag. A published API's documentation is product, not prose
+    public API documentation: a block whose next definition is public — a
+    class, module, method, `attr_reader`/`attr_writer`/`attr_accessor`,
+    `define_method` or a constant not made private — in any markup (RDoc,
+    Markdown, YARD), read across a Sorbet `sig { ... }`, a bare `memoize` or
+    `memo_wise` line, and the blank line RDoc allows after a `##` opener;
+    and any block carrying a YARD tag. A published API's documentation is product, not prose
     (`AllowDocumentation: false` to price it too); a block inside a method
     body, above a private or protected method, or above a top-level method
     is prose. One block of consecutive full-line comments is one offense.
