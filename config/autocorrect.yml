@@ -29,8 +29,6 @@ Kata/NoComments:
   SafeAutoCorrect: false
 Layout/ClassStructure:
   SafeAutoCorrect: false
-Layout/DefEndAlignment:
-  SafeAutoCorrect: false
 Layout/EmptyLineAfterGuardClause:
   SafeAutoCorrect: false
 Layout/EmptyLineAfterMultilineCondition:
@@ -44,8 +42,6 @@ Layout/EmptyLinesAroundAccessModifier:
 Layout/EmptyLinesAroundAttributeAccessor:
   SafeAutoCorrect: false
 Layout/EmptyLinesAroundBeginBody:
-  SafeAutoCorrect: false
-Layout/EmptyLinesAroundExceptionHandlingKeywords:
   SafeAutoCorrect: false
 Layout/FirstArgumentIndentation:
   SafeAutoCorrect: false
@@ -79,19 +75,11 @@ Layout/MultilineHashKeyLineBreaks:
   SafeAutoCorrect: false
 Layout/MultilineMethodArgumentLineBreaks:
   SafeAutoCorrect: false
-Layout/MultilineMethodDefinitionBraceLayout:
-  SafeAutoCorrect: false
 Layout/MultilineMethodParameterLineBreaks:
-  SafeAutoCorrect: false
-Layout/ParameterAlignment:
   SafeAutoCorrect: false
 Layout/SingleLineBlockChain:
   SafeAutoCorrect: false
-Layout/SpaceAfterColon:
-  SafeAutoCorrect: false
 Layout/SpaceAfterMethodName:
-  SafeAutoCorrect: false
-Layout/SpaceAroundBlockParameters:
   SafeAutoCorrect: false
 Layout/SpaceAroundMethodCallOperator:
   SafeAutoCorrect: false
@@ -99,13 +87,7 @@ Layout/SpaceBeforeComment:
   SafeAutoCorrect: false
 Layout/SpaceBeforeSemicolon:
   SafeAutoCorrect: false
-Layout/SpaceInLambdaLiteral:
-  SafeAutoCorrect: false
 Layout/SpaceInsideRangeLiteral:
-  SafeAutoCorrect: false
-Layout/SpaceInsideReferenceBrackets:
-  SafeAutoCorrect: false
-Layout/SpaceInsideStringInterpolation:
   SafeAutoCorrect: false
 Lint/AmbiguousBlockAssociation:
   SafeAutoCorrect: false
@@ -154,8 +136,6 @@ Lint/HashNewWithKeywordArgumentsAsDefault:
 Lint/HeredocMethodCallPosition:
   SafeAutoCorrect: false
 Lint/IdentityComparison:
-  SafeAutoCorrect: false
-Lint/ImplicitStringConcatenation:
   SafeAutoCorrect: false
 Lint/IncompatibleIoSelectWithFiberScheduler:
   SafeAutoCorrect: false
@@ -239,8 +219,6 @@ Lint/TopLevelReturnWithArgument:
   SafeAutoCorrect: false
 Lint/TrailingCommaInAttributeDeclaration:
   SafeAutoCorrect: false
-Lint/TripleQuotes:
-  SafeAutoCorrect: false
 Lint/UnescapedBracketInRegexp:
   SafeAutoCorrect: false
 Lint/UriRegexp:
@@ -321,8 +299,6 @@ Performance/RedundantMerge:
   SafeAutoCorrect: false
 Performance/RedundantSortBlock:
   SafeAutoCorrect: false
-Performance/RedundantSplitRegexpArgument:
-  SafeAutoCorrect: false
 Performance/RedundantStringChars:
   SafeAutoCorrect: false
 Performance/ReverseEach:
@@ -342,8 +318,6 @@ Performance/StringBytesize:
 Performance/StringIdentifierArgument:
   SafeAutoCorrect: false
 Performance/StringInclude:
-  SafeAutoCorrect: false
-Performance/StringReplacement:
   SafeAutoCorrect: false
 Performance/Sum:
   SafeAutoCorrect: false
@@ -569,8 +543,6 @@ Style/DoubleNegation:
   SafeAutoCorrect: false
 Style/EachForSimpleLoop:
   SafeAutoCorrect: false
-Style/EmptyCaseCondition:
-  SafeAutoCorrect: false
 Style/EmptyClassDefinition:
   SafeAutoCorrect: false
 Style/EmptyHeredoc:
@@ -580,8 +552,6 @@ Style/EmptyLambdaParameter:
 Style/EmptyLiteral:
   SafeAutoCorrect: false
 Style/EmptyMethod:
-  SafeAutoCorrect: false
-Style/EmptyStringInsideInterpolation:
   SafeAutoCorrect: false
 Style/EndBlock:
   SafeAutoCorrect: false
@@ -647,11 +617,7 @@ Style/InverseMethods:
   SafeAutoCorrect: false
 Style/InvertibleUnlessCondition:
   SafeAutoCorrect: false
-Style/ItBlockParameter:
-  SafeAutoCorrect: false
 Style/KeywordArgumentsMerging:
-  SafeAutoCorrect: false
-Style/KeywordParametersOrder:
   SafeAutoCorrect: false
 Style/Lambda:
   SafeAutoCorrect: false
@@ -670,8 +636,6 @@ Style/MapToHash:
 Style/MapToSet:
   SafeAutoCorrect: false
 Style/MethodCallWithArgsParentheses:
-  SafeAutoCorrect: false
-Style/MethodCallWithoutArgsParentheses:
   SafeAutoCorrect: false
 Style/MethodDefParentheses:
   SafeAutoCorrect: false
@@ -710,8 +674,6 @@ Style/NestedModifier:
 Style/NestedParenthesizedCalls:
   SafeAutoCorrect: false
 Style/NilLambda:
-  SafeAutoCorrect: false
-Style/NumericLiteralPrefix:
   SafeAutoCorrect: false
 Style/NumericPredicate:
   SafeAutoCorrect: false
