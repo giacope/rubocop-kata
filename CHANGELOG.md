@@ -33,7 +33,11 @@
     `script/inventory`), not from the constants RuboCop's own process had
     loaded, so a project's `Parser` or `AST` is judged the same on every
     machine; `respond_to?` on IO and reflection protocols (`read`, `rewind`,
-    `path`, `superclass`) is duck typing.
+    `path`, `superclass`) is duck typing. A constant assigned `Class.new`,
+    `Module.new`, `Struct.new` or `Data.define` is the project's own type,
+    in the file or in `OwnedPaths`, also when the value starts on the next
+    line (kimera's `Shift::Doubt =` / `Class.new(Suspect) do` went
+    unflagged).
   - `Kata/NoHashAsObject` exempts the rows of a constant array table (fog's
     flavors) and the mappings a `TableMethods` call takes; the Rails profile
     lists `enum`.

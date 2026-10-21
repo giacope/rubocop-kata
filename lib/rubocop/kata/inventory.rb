@@ -2,7 +2,7 @@
 
 class RuboCop::Kata::Inventory
   DEFINITION = /^[ \t]*(?:class|module)[ \t]+(?:::)?((?:[A-Z]\w*::)*[A-Z]\w*)/
-  ASSIGNMENT = /^[ \t]*((?:[A-Z]\w*::)*[A-Z]\w*)[ \t]*=[ \t]*(?:Class\.new|Module\.new|Struct\.new|Data\.define)\b/
+  ASSIGNMENT = /^[ \t]*((?:[A-Z]\w*::)*[A-Z]\w*)[ \t]*=\s*(?:Class\.new|Module\.new|Struct\.new|Data\.define)\b/
   METHOD = /^[ \t]*def[ \t]+(?:self\.)?([a-z_]\w*[?!]?)/
 
   SHELVES = Hash.new { |shelves, key| shelves[key] = new(*key) }

@@ -38,7 +38,7 @@ class RuboCop::Cop::Kata::NoTypeCheck < RuboCop::Cop::Base
 
   def message?(name) = !PROTOCOL.match?(name) && (local_messages.include?(name) || inventory.message?(name))
 
-  def local_types = processed_source.ast.each_node(:class, :module).flat_map { it.identifier.const_name.split("::") }
+  def local_types = RuboCop::Kata::Declared.new(processed_source.ast).types
 
   def local_messages = processed_source.ast.each_node(:def, :defs).map { it.method_name.to_s }
 
