@@ -33,6 +33,10 @@
     `initialize` is Ruby's constructor).
   - The evaluation suite's snippets run under their own `.rubocop.yml`, so
     the checkout around them lends them no vocabulary.
+  - kata holds itself to its defaults: a bare `.rubocop.yml` with no inline
+    disable, no hashira baseline (every kind on but change_coupling), and a
+    full mutation run with no survivor, no uncovered mutant and nothing
+    ignored, gated in CI on every push to main.
 
 - From a third field test on thirty more MIT codebases (rubygems, mail,
   liquid, rack, pry, concurrent-ruby, dependabot-core, devise, good_job,
