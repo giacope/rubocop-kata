@@ -23,6 +23,11 @@
   - `Style/FormatStringToken` leaves `expect_offense`'s `%{name}` template
     alone, and the ThreadSafety state cops skip the test suite, as
     MethodRedefinition and DirChdir already did.
+  - `ThreadSafety/NewThread` is on in the Rails profile only: its advice
+    (leave threads to the server or the job runner) is for application
+    code, and a library or a CLI that waits on child processes owns its
+    threads. `Naming/PredicateMethod` allows a runner's `run`, which answers
+    a boolean by contract (Minitest.run).
   - Dictionary: `hotspot`, `ndjson`, `jsonl`, `sarif` and `vendored` are
     words, and `init` is no longer a clipping (it cannot be spelled out:
     `initialize` is Ruby's constructor).

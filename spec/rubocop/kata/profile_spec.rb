@@ -103,6 +103,18 @@ RSpec.describe(RuboCop::Kata::Profile) do
     expect(spoken(["shelf.gemspec", gemspec])).to(eq({}))
   end
 
+  # kimera waits on its child processes from threads; a Rails app leaves threads to its server.
+  it "leaves threads to a library, and to the server in a Rails app" do
+    found = [["shelf.gemspec", ""], ["config/application.rb", ""]].map { threads(it) }
+    expect(found).to(eq([false, true]))
+  end
+
+  def threads(file)
+    project(file) do |root|
+      YAML.load_file(described_class.new(root, {}).path, aliases: true).dig("ThreadSafety/NewThread", "Enabled")
+    end
+  end
+
   # rspec: each gem of the monorepo keeps its gemspec one level down.
   it "takes a monorepo of gems for packaged code" do
     project(["rspec-core/rspec-core.gemspec", ""], ["Gemfile", ""]) do |root|
@@ -253,10 +265,11 @@ RSpec.describe(RuboCop::Kata::Profile) do
     end
   end
 
-  it "keeps the Rails setting to framework contracts and generated files" do
+  it "keeps the Rails setting to framework contracts, generated files and the server's threads" do
     setting = YAML.load_file(rails)
     names = setting.dig("Kata/GoodMethodName", "AllowedNames")
     cops = %w[GoodMethodName NoComments NoHashAsObject NoTypeCheck NoClassMethodLogic FrozenState].map { "Kata/#{it}" }
+    cops << "ThreadSafety/NewThread"
     expect([setting.keys, names.include?("default_url_options"), setting.dig("Kata/NoComments", "Exclude")])
       .to(eq([cops, true, %w[bin/**/* db/**/*]]))
   end

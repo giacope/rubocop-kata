@@ -165,3 +165,12 @@
     # frozen_string_literal: true
 
     Minitest.singleton_class.prepend(Module.new { def run(*) = true })
+- id: library-thread-waiting-on-a-child-process
+  cop: ThreadSafety/NewThread
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      def self.drain(pipes) = pipes.map { |pipe| Thread.new { pipe.read } }.map(&:value)
+    end

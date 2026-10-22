@@ -1573,6 +1573,13 @@ ThreadSafety/DirChdir:
     - "spec/**/*"
     - "test/**/*"
 
+# rubocop-thread_safety's advice ("let a framework like Sidekiq handle the
+# threads") is for application code under a threaded server, so the Rails
+# profile turns it on; a library or a CLI that waits on child processes owns
+# its threads.
+ThreadSafety/NewThread:
+  Enabled: false
+
 # A suite is not shared mutable state: a fixture class keeps what a test sets
 # on it, as ThreadSafety/MethodRedefinition and DirChdir already allow.
 ThreadSafety/ClassInstanceVariable:
