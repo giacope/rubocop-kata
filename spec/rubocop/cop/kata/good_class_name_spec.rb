@@ -517,4 +517,27 @@ RSpec.describe(RuboCop::Cop::Kata::GoodClassName, :config) do
       RUBY
     end
   end
+
+  # kimera's RSpecSuite: rubocop-rspec's transform spells `RSpec` as one word.
+  context "with brands spelled as one word" do
+    let(:other_cops) do
+      transform = { "RSpec" => "rspec", "RuboCop" => "rubocop", "RSpecAdapter" => "rspec_adapter" }
+      { "RSpec/SpecFilePathFormat" => { "CustomTransform" => transform } }
+    end
+
+    it "counts a brand as one concept, and still reads the doer after it" do
+      expect_offense(<<~RUBY)
+        class RSpecSuite
+        end
+        class RuboCopSheet
+        end
+        class RSpecFetcher
+              ^^^^^^^^^^^^ `RSpecFetcher` names a doer; name the class for the thing it is, not the work it does.
+        end
+        class RSpecSuiteTable
+              ^^^^^^^^^^^^^^^ `RSpecSuiteTable` packs 3 concepts into one name; a class names one object that exists in the model — or, if `RSpecSuiteTable` reads as one concept here, add it to `Terms`.
+        end
+      RUBY
+    end
+  end
 end

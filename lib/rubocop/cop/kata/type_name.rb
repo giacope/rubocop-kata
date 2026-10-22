@@ -21,7 +21,7 @@ module RuboCop::Cop::Kata::TypeName
   end
 
   def crowd(name)
-    count = name.scan(SEGMENT).size
+    count = segments(name).size
     format(self.class::CROWD_MSG, name, count, name) if count > max
   end
 
@@ -64,7 +64,7 @@ module RuboCop::Cop::Kata::TypeName
     parent&.const_type? && list("EntitySuperclasses").include?(parent.const_name)
   end
 
-  def same_role?(parent, name) = parent.scan(SEGMENT).last == name.scan(SEGMENT).last
+  def same_role?(parent, name) = segments(parent).last == segments(name).last
 
   def banned?(name) = list("BannedNames").any? { name.end_with?(it) }
 

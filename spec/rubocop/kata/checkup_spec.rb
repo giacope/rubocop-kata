@@ -147,6 +147,15 @@ RSpec.describe(RuboCop::Kata::Checkup) do
     ) { |root| expect(report(root).first).to(eq("clean\n")) }
   end
 
+  # kimera's runtime: the directive Style/DirectiveScope asks for is a waiver too.
+  it "lists a disable-next waiver with its reason" do
+    source = "# frozen_string_literal: true\n\n# rubocop:disable-next Kata/FrozenState -- the switch mutants read\n" \
+      "class Runtime\nend\n"
+    project("", source) do |root|
+      expect(report(root).first).to(include("sample.rb:3: disables `Kata/FrozenState` — the switch mutants read"))
+    end
+  end
+
   it "counts the files it could not check in the plural" do
     project("", "def total(\n") do |root|
       File.write(File.join(root, "other.rb"), "def other(\n")

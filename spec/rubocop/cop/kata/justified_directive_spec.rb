@@ -25,6 +25,37 @@ RSpec.describe(RuboCop::Cop::Kata::JustifiedDirective, :config) do
     RUBY
   end
 
+  # kimera's runtime: Style/DirectiveScope steers a one-statement disable to `disable-next`.
+  it "flags the next-statement forms and a signed push or next that disables" do
+    expect_offense(<<~RUBY)
+      # rubocop:disable-next Kata/FrozenState, Kata/NoSetter
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Say why after `--`: `# rubocop:disable Kata/FrozenState, Kata/NoSetter -- <reason>`; a reason of at least 3 words.
+      class Runtime
+      end
+      # rubocop:todo-next Metrics/AbcSize
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Say why after `--`: `# rubocop:disable Metrics/AbcSize -- <reason>`; a reason of at least 3 words.
+      TOTAL = 1
+      # rubocop:push -Style/Send +Layout/LineLength
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Say why after `--`: `# rubocop:disable Style/Send -- <reason>`; a reason of at least 3 words.
+      VALUE.send(:x)
+      # rubocop:pop
+      # rubocop:next -Style/Send
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^ Say why after `--`: `# rubocop:disable Style/Send -- <reason>`; a reason of at least 3 words.
+      VALUE.send(:y)
+    RUBY
+  end
+
+  it "leaves a push that only enables, and a reasoned next-statement disable, alone" do
+    expect_no_offenses(<<~RUBY)
+      # rubocop:push +Layout/LineLength
+      VALUE = 1
+      # rubocop:pop
+      # rubocop:disable-next Kata/FrozenState -- the switch every mutated method reads
+      class Runtime
+      end
+    RUBY
+  end
+
   it "flags a reason too short to say anything" do
     expect_offense(<<~RUBY)
       VALUE = load # rubocop:disable Security/MarshalLoad -- trusted
