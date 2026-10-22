@@ -13,7 +13,7 @@ class RuboCop::Cop::Kata::NoRedundantVariable < RuboCop::Cop::Base
 
   def on_def(node)
     body = node.body
-    audit(body, node.arguments.each_node(*RuboCop::Kata::Variable::Ledger::PARAMETERS).to_a) if body
+    audit(body, node.arguments.each_node(*RuboCop::Kata::Variable::Census::PARAMETERS).to_a) if body
   end
 
   alias on_defs on_def
@@ -21,7 +21,7 @@ class RuboCop::Cop::Kata::NoRedundantVariable < RuboCop::Cop::Base
   private
 
   def audit(body, parameters)
-    singles = RuboCop::Kata::Variable::Ledger.new(body, parameters).pairs
+    singles = RuboCop::Kata::Variable::Ledger.new(RuboCop::Kata::Variable::Census.new(body, parameters)).pairs
     plain = singles.reject { |assign, read| explains?(assign) || long?(assign, read) }
     movable = plain.select { |assign, read| movable?(assign, read, singles) }
     gap = RuboCop::Kata::Variable::Gap.new(singles, movable)
@@ -39,8 +39,7 @@ class RuboCop::Cop::Kata::NoRedundantVariable < RuboCop::Cop::Base
   def width(inlining)
     range = inlining.range
     line = range.source_line
-    joined = "#{line[0, range.column]}#{inlining.text}#{line[range.last_column..]}".lines
-    [joined.first, joined.last].map { it.chomp.length }.max
+    "#{line[0, range.column]}#{inlining.text}#{line[range.last_column..]}".length
   end
 
   def register(assign, read, movable)
@@ -61,12 +60,10 @@ class RuboCop::Cop::Kata::NoRedundantVariable < RuboCop::Cop::Base
   end
 
   def movable?(assign, read, singles)
-    solo?(assign) && !heredoc?(assign) && !swallows?(assign, singles) && faithful?(assign, read)
+    solo?(assign) && !swallows?(assign, singles) && faithful?(assign, read)
   end
 
   def faithful?(assign, read) = RuboCop::Kata::Variable::Inlining.new(assign.expression, read).faithful?
-
-  def heredoc?(assign) = assign.each_descendant(:str, :dstr, :xstr).any?(&:heredoc?)
 
   def solo?(assign)
     range = assign.source_range

@@ -78,7 +78,7 @@ class Assay::Session
     options[:only].each_with_object({ "kata" => bundle.to_h }) { |name, data| data[name] = section(name, bundle) }
   end
 
-  def work = options[:work] || File.join(Assay::ROOT, "..", "tmp", "eval", File.basename(options[:kata]))
+  def work = options[:work] || File.join(Dir.tmpdir, "assay", File.basename(options[:kata]))
 
   def section(name, bundle)
     @io.puts("assay: #{name}")
@@ -86,18 +86,7 @@ class Assay::Session
     BUILDERS.fetch(name).call(bundle, File.join(work, name), options).to_h
   end
 
-  def corpora(bundle)
-    results = lanes.map { start(it, bundle) }.map(&:value).reduce({}, :merge)
-    specs.to_h { [it["name"], results.fetch(it["name"])] }
-  end
-
-  def lanes = specs.each_with_index.group_by { |_, index| index % options[:jobs] }.values.map { it.map(&:first) }
-
-  def start(lane, bundle)
-    Thread.new do # rubocop:disable ThreadSafety/NewThread -- each thread only waits on a child rubocop process
-      lane.to_h { [it["name"], measure(it, bundle)] }
-    end
-  end
+  def corpora(bundle) = Assay::Fleet.new(specs, options[:jobs]).results { measure(it, bundle) }
 
   def measure(spec, bundle)
     name = spec["name"]

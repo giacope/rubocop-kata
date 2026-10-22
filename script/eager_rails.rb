@@ -8,7 +8,7 @@ reach =
       found =
         begin
           held.const_get(name)
-        rescue Exception # rubocop:disable Lint/RescueException -- an autoload may raise anything; skip that constant
+        rescue StandardError, ScriptError
           next
         end
       reach.call(found) if found.is_a?(Module) && found.name.to_s.start_with?("#{held.name}::")

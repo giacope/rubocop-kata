@@ -3,7 +3,7 @@
 - id: clipping-flagged
   cop: Kata/RealWords
   expect: offense
-  each: [str, req, resp, conn, args, opts, src, cmd, impl, util, calc, func, ctx, msg, msgs, attrs, cfg, tmp, num, idx, init, cb, fn]
+  each: [str, req, resp, conn, args, opts, src, cmd, impl, util, calc, func, ctx, msg, msgs, attrs, cfg, tmp, num, idx, cb, fn]
   source: |
     def call({word}) = {word}
 - id: placeholder-flagged

@@ -6,6 +6,7 @@ RSpec.describe(RuboCop::Cop::Kata::RealWords, :config) do
     {
       "BannedWords" => YAML.load_file("config/default.yml", aliases: true).fetch("Kata/RealWords").fetch("BannedWords"),
       "Terms" => %w[],
+      "Vocabulary" => %w[],
       "AllowedNames" => %w[]
     }
   end
@@ -111,7 +112,7 @@ RSpec.describe(RuboCop::Cop::Kata::RealWords, :config) do
   end
 
   context "with the shipped defaults" do
-    let(:cop_config) { RuboCop::ConfigLoader.default_configuration.for_cop("Kata/RealWords") }
+    let(:cop_config) { RuboCop::ConfigLoader.default_configuration.for_cop("Kata/RealWords").merge("Vocabulary" => []) }
 
     it "allows the conversion protocol Ruby calls by name" do
       expect_no_offenses(<<~RUBY)
@@ -370,5 +371,43 @@ RSpec.describe(RuboCop::Cop::Kata::RealWords, :config) do
     expect_no_offenses(<<~RUBY)
       def deliver(artefact, dependants, tcp, ipv6, cpu, dkim, bcc, jitter, uptime, heatmap, stylesheet) = nil
     RUBY
+  end
+
+  context "with the project's vocabulary" do
+    let(:cop_config) { { "Terms" => [], "Vocabulary" => %w[kata lvasgn str], "AllowedNames" => [] } }
+
+    it "takes the project's name and the parser's node types for words" do
+      expect_no_offenses(<<~RUBY)
+        def on_lvasgn(node) = node
+        kata = str = 1
+      RUBY
+    end
+  end
+
+  it "leaves a method that calls super to its ancestor's name" do
+    expect_no_offenses(<<~RUBY)
+      def visit_dstr(node) = endpoint(node) { super }
+    RUBY
+  end
+
+  context "with the project's library" do
+    include TabledCop
+
+    let(:root) { Dir.mktmpdir("kata-words") }
+    let(:cop) do
+      shipped = { "Kata/RealWords" => { "Vocabulary" => [], "OwnedPaths" => ["lib/**/*.rb"] } }
+      described_class.new(RuboCop::Config.new(shipped, File.join(root, ".rubocop.yml")))
+    end
+
+    before do
+      FileUtils.mkdir_p(File.join(root, "lib"))
+      File.write(File.join(root, "lib", "walk.rb"), "class Walk\n  def visit(node) = node.dstr_parts\nend\n")
+    end
+
+    after { FileUtils.rm_rf(root) }
+
+    it "leaves a stand-in for a message the project sends but never defines to the caller's name" do
+      expect(offenses("def dstr_parts = 1\ndef dstr_count = 2\n").map(&:line)).to(eq([2]))
+    end
   end
 end

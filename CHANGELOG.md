@@ -2,6 +2,42 @@
 
 ## [Unreleased]
 
+- From running kata bare on its own repo, hashira and kimera (self-hosting):
+  - The project's own name is its vocabulary: `Kata/RealWords` takes the
+    segments of the gemspec names and of a Rails application's module for
+    words (`Vocabulary`, which kata fills), and a gem that depends on parser,
+    rubocop-ast, rubocop or unparser speaks the parser's node types
+    (`on_lvasgn`, `dstr`, `kwoptarg`, `str`, `arg`) and has
+    `Lint/BooleanSymbol` off, where `:false` is a node type.
+  - A method that calls `super` keeps its ancestor's name, and a stand-in for
+    a message the project's owned code sends but never defines keeps the
+    caller's (a spec double of ActiveSupport's `get_callbacks`): in
+    `Kata/GoodMethodName`, `Kata/RealWords` and `Kata/BuilderNoun`.
+  - `Kata/EnvDiscipline` and `Kata/ClockDiscipline` take code outside every
+    class, module and method for a script's boot layer.
+  - `Kata/NoRedundantVariable` keeps a value that spans several lines (a
+    heredoc's too) and a regexp under a name: both are explanatory variables.
+  - `RSpec/SpecFilePathFormat` spells a project constant that embeds `RSpec`
+    or `RuboCop` the way the brand is spelled (`RSpecAdapter` is
+    `rspec_adapter`, not `r_spec_adapter`).
+  - `Style/FormatStringToken` leaves `expect_offense`'s `%{name}` template
+    alone, and the ThreadSafety state cops skip the test suite, as
+    MethodRedefinition and DirChdir already did.
+  - `ThreadSafety/NewThread` is on in the Rails profile only: its advice
+    (leave threads to the server or the job runner) is for application
+    code, and a library or a CLI that waits on child processes owns its
+    threads. `Naming/PredicateMethod` allows a runner's `run`, which answers
+    a boolean by contract (Minitest.run).
+  - Dictionary: `hotspot`, `ndjson`, `jsonl`, `sarif` and `vendored` are
+    words, and `init` is no longer a clipping (it cannot be spelled out:
+    `initialize` is Ruby's constructor).
+  - The evaluation suite's snippets run under their own `.rubocop.yml`, so
+    the checkout around them lends them no vocabulary.
+  - kata holds itself to its defaults: a bare `.rubocop.yml` with no inline
+    disable, no hashira baseline (every kind on but change_coupling), and a
+    full mutation run with no survivor, no uncovered mutant and nothing
+    ignored, gated in CI on every push to main.
+
 - From a third field test on thirty more MIT codebases (rubygems, mail,
   liquid, rack, pry, concurrent-ruby, dependabot-core, devise, good_job,
   activeadmin, syntax_tree, reek and others):

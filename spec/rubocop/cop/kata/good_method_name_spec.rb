@@ -3,6 +3,7 @@
 require "tmpdir"
 
 RSpec.describe(RuboCop::Cop::Kata::GoodMethodName, :config) do
+  let(:ruby_version) { 3.4 }
   let(:defaults) { YAML.load_file("config/default.yml", aliases: true).fetch("Kata/GoodMethodName") }
   let(:cop_config) { defaults.merge("Terms" => [], "AllowedNames" => []) }
 
@@ -373,7 +374,7 @@ RSpec.describe(RuboCop::Cop::Kata::GoodMethodName, :config) do
     before do
       FileUtils.mkdir_p(File.join(root, "lib"))
       base = "module Shelf\n  class Fetcher\n    def check_required_files = nil\n    " \
-        "def self.fetch_lock_files = nil\n  end\nend\n"
+        "def self.fetch_lock_files = nil\n    def flip(owner) = owner.clear_action_methods!\n  end\nend\n"
       File.write(File.join(root, "lib", "fetcher.rb"), base)
       File.write(File.join(root, "lib", "npm.rb"), "module Shelf\n  class Npm < Fetcher\n  end\nend\n")
     end
@@ -385,5 +386,39 @@ RSpec.describe(RuboCop::Cop::Kata::GoodMethodName, :config) do
         "def fetch_lock_files = 2\n  end\nend\n"
       expect(offenses(source).map(&:line)).to(eq([4]))
     end
+
+    # kimera's runtime_spec: the stand-in answers the message lib/ sends to a
+    # Rails controller.
+    it "leaves a stand-in for a message the project sends but never defines to the caller's name" do
+      source = "controller = Class.new { def self.clear_action_methods! = 1 }\n" \
+        "define_method(:clear_action_methods!) { 1 }\ndef assemble_monthly_report = 1\n"
+      expect(offenses(source).map(&:line)).to(eq([3]))
+    end
+  end
+
+  # kimera's TestExit and unparser emitters: the ancestor chose the name.
+  it "leaves a method that calls super to its ancestor's name" do
+    expect_no_offenses(<<~RUBY)
+      module Example
+        def with_around_example_hooks
+          super
+        rescue SystemExit => error
+          error
+        end
+
+        def visit_begin_node(node) = endpoint(node) { super }
+
+        def self.clear_reflections_cache(*) = super(*)
+      end
+    RUBY
+  end
+
+  it "still prices a method whose super belongs to a method nested inside it" do
+    expect_offense(<<~RUBY)
+      def define_monthly_report
+          ^^^^^^^^^^^^^^^^^^^^^ #{offense("define_monthly_report")}
+        Class.new { def total = super }
+      end
+    RUBY
   end
 end

@@ -66,9 +66,8 @@ class RuboCop::Cop::Kata::FrozenState < RuboCop::Cop::Base
     name = method.method_name
     scope = method.each_ancestor(:class, :module, :any_block).first
     return true if hooks(scope).include?(name.to_s)
-    return builders([method]).include?(name) unless scope
-    return true if lineage(scope).any? { builders(it.each_descendant(:def).to_a).include?(name) }
-    constructed?(scope, name.to_s)
+    return constructed?(scope, name.to_s) if scope&.type?(:class, :module)
+    builders(scope ? scope.each_descendant(:def).to_a : [method]).include?(name)
   end
 
   def hooks(scope)
@@ -84,22 +83,7 @@ class RuboCop::Cop::Kata::FrozenState < RuboCop::Cop::Base
   end
 
   def constructed?(scope, name)
-    return false unless scope.type?(:class, :module)
     project.constructed(RuboCop::Kata::Nesting.new(scope).qualified, hooks(scope).sort).include?(name)
-  end
-
-  def lineage(scope)
-    found = [scope]
-    while (base = base(found.last)) && !found.include?(base)
-      found << base
-    end
-    found
-  end
-
-  def base(scope)
-    parent = scope.parent_class if scope.class_type?
-    return unless parent&.const_type?
-    processed_source.ast.each_node(:class).find { it.identifier.short_name == parent.short_name }
   end
 
   def builders(methods)

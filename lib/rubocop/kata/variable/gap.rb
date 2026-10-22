@@ -5,6 +5,8 @@
 # Derived from rubocop-elegant (https://github.com/yegor256/rubocop-elegant), see LICENSE.txt
 
 class RuboCop::Kata::Variable::Gap
+  include RuboCop::Kata::Order
+
   PURE = %i[
     int float rational complex str sym true false nil array hash regexp regopt
     irange erange lvar self pair begin
@@ -43,7 +45,7 @@ class RuboCop::Kata::Variable::Gap
   def deferred?(node, read) = pure?(node) || (@movable.key?(node) && later?(node, read))
 
   def later?(node, read)
-    @pairs.fetch(node).source_range.begin_pos >= read.source_range.begin_pos && !crossed?(node)
+    precedes?(read, @pairs.fetch(node)) && !crossed?(node)
   end
 
   def pure?(node)

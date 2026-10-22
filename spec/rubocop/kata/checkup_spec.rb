@@ -147,6 +147,13 @@ RSpec.describe(RuboCop::Kata::Checkup) do
     ) { |root| expect(report(root).first).to(eq("clean\n")) }
   end
 
+  it "counts the files it could not check in the plural" do
+    project("", "def total(\n") do |root|
+      File.write(File.join(root, "other.rb"), "def other(\n")
+      expect(report(root).first).to(include("2 files not fully checked"))
+    end
+  end
+
   it "says which file it could not decode, instead of passing it silently" do
     project("", "# rubocop:enable Elegant/GoodMethodName\nVALUE = \"\xFF\"\n".b) do |root|
       noted = include("sample.rb: does not parse", "0 dead entries, 1 file not fully checked")

@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class RuboCop::Cop::Kata::ClockDiscipline < RuboCop::Cop::Base
+  include RuboCop::Cop::Kata::BootLayer
+
   MSG = "Inject a clock; `%s` reads the ambient time."
 
   RESTRICT_ON_SEND = %i[now today current yesterday tomorrow new clock_gettime].freeze
@@ -17,8 +19,4 @@ class RuboCop::Cop::Kata::ClockDiscipline < RuboCop::Cop::Base
   def on_send(node)
     add_offense(node, message: format(MSG, node.source)) if ambient?(node) && !seam?(node)
   end
-
-  private
-
-  def seam?(node) = node.each_ancestor(:optarg, :kwoptarg).any?
 end

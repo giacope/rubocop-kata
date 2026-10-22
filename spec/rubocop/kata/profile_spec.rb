@@ -59,6 +59,62 @@ RSpec.describe(RuboCop::Kata::Profile) do
     end
   end
 
+  def spoken(*files)
+    project(*files) { described_class.new(it, {}).overlay.slice("Kata/RealWords", "Lint/BooleanSymbol") }
+  end
+
+  # kimera: rubocop-rspec spells `RSpecAdapter` as r_spec_adapter, since its
+  # `RSpec: rspec` transform matches whole constant names only.
+  it "spells a project constant that embeds RSpec or RuboCop the way the brand is spelled" do
+    library = "module Shelf\n  class RSpecAdapter\n  end\n\n  class RuboCopRunner\n  end\nend\n"
+    found = transforms(["shelf.gemspec", ""], ["lib/shelf.rb", "#{library}class RuboCop::Cop\nend\n"])
+    expect(found).to(include("RSpecAdapter" => "rspec_adapter", "RuboCopRunner" => "rubocop_runner"))
+  end
+
+  it "leaves the transform alone when no constant embeds a brand" do
+    expect(transforms(["shelf.gemspec", ""], ["lib/shelf.rb", "class RuboCop::Shelf\nend\n"])).to(be_nil)
+  end
+
+  def transforms(*files)
+    project(*files) { described_class.new(it, {}).overlay.dig("RSpec/SpecFilePathFormat", "CustomTransform") }
+  end
+
+  it "takes the gem's own name for a word, and leaves dictionary words to the dictionary" do
+    expect(spoken(["rubocop-kata.gemspec", ""], ["shelf.gemspec", ""]))
+      .to(eq({ "Kata/RealWords" => { "Vocabulary" => %w[kata] } }))
+  end
+
+  it "takes a Rails application's module for its name" do
+    application = "module FatFreeCrm\n  class Application < Rails::Application\n  end\nend\n"
+    vocabulary = spoken(["config/application.rb", application]).dig("Kata/RealWords", "Vocabulary")
+    expect(vocabulary).to(eq(%w[crm]))
+  end
+
+  # rubocop-kata's cops answer on_lvasgn; kimera's guards build `s(:false)`.
+  it "speaks the parser's node types for a gem that depends on the parser" do
+    gemspec = "Gem::Specification.new { it.add_dependency(\"rubocop-ast\", \">= 1\") }\n"
+    found = spoken(["shelf.gemspec", gemspec])
+    expect([found.dig("Kata/RealWords", "Vocabulary"), found["Lint/BooleanSymbol"]])
+      .to(match([include("lvasgn", "dstr", "kwoptarg", "str", "arg"), { "Enabled" => false }]))
+  end
+
+  it "does not speak node types for a parser the gem only develops with" do
+    gemspec = "Gem::Specification.new { it.add_development_dependency(\"rubocop\") }\n"
+    expect(spoken(["shelf.gemspec", gemspec])).to(eq({}))
+  end
+
+  # kimera waits on its child processes from threads; a Rails app leaves threads to its server.
+  it "leaves threads to a library, and to the server in a Rails app" do
+    found = [["shelf.gemspec", ""], ["config/application.rb", ""]].map { threads(it) }
+    expect(found).to(eq([false, true]))
+  end
+
+  def threads(file)
+    project(file) do |root|
+      YAML.load_file(described_class.new(root, {}).path, aliases: true).dig("ThreadSafety/NewThread", "Enabled")
+    end
+  end
+
   # rspec: each gem of the monorepo keeps its gemspec one level down.
   it "takes a monorepo of gems for packaged code" do
     project(["rspec-core/rspec-core.gemspec", ""], ["Gemfile", ""]) do |root|
@@ -209,10 +265,11 @@ RSpec.describe(RuboCop::Kata::Profile) do
     end
   end
 
-  it "keeps the Rails setting to framework contracts and generated files" do
+  it "keeps the Rails setting to framework contracts, generated files and the server's threads" do
     setting = YAML.load_file(rails)
     names = setting.dig("Kata/GoodMethodName", "AllowedNames")
     cops = %w[GoodMethodName NoComments NoHashAsObject NoTypeCheck NoClassMethodLogic FrozenState].map { "Kata/#{it}" }
+    cops << "ThreadSafety/NewThread"
     expect([setting.keys, names.include?("default_url_options"), setting.dig("Kata/NoComments", "Exclude")])
       .to(eq([cops, true, %w[bin/**/* db/**/*]]))
   end

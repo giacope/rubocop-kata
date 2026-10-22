@@ -71,3 +71,7 @@ Kata/NoClassMethodLogic:
 Kata/FrozenState:
   ConstructorHooks:
     - "Arbre#build"
+
+# An application runs under a server and a job runner that own its threads.
+ThreadSafety/NewThread:
+  Enabled: true

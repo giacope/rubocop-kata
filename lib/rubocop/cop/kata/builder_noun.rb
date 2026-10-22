@@ -2,6 +2,7 @@
 
 class RuboCop::Cop::Kata::BuilderNoun < RuboCop::Cop::Base
   include RuboCop::Cop::Kata::Roster
+  include RuboCop::Cop::Kata::Contract
 
   MSG = "A builder is named for what it returns: `%s`, not `%s`."
 
@@ -13,7 +14,7 @@ class RuboCop::Cop::Kata::BuilderNoun < RuboCop::Cop::Base
 
   def check(node)
     name = node.method_name.to_s
-    return if allowed?(name)
+    return if allowed?(name) || inherited?(node) || foreign?(name)
     verb = prefix(name)
     add_offense(node.loc.name, message: format(MSG, name.delete_prefix("#{verb}_"), name)) if verb
   end

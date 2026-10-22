@@ -1,0 +1,176 @@
+# What running kata bare on its own repo, hashira and kimera found: each case
+# is a name or a shape the defaults misread on the three tools' own code.
+- id: method-calling-super-keeps-its-ancestor-name
+  cop: Kata/GoodMethodName
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Kimera
+      module Example
+        def with_around_example_hooks
+          super
+        rescue SystemExit => error
+          error
+        end
+      end
+    end
+- id: unparser-emitter-override-keeps-its-name
+  cop: Kata/GoodMethodName
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Kimera
+      module RangeEndpoints
+        def visit_begin_node(node) = endpoint(node) { super }
+      end
+    end
+- id: three-words-without-super-still-flagged
+  cop: Kata/GoodMethodName
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Kimera
+      module RangeEndpoints
+        def visit_begin_node(node) = endpoint(node)
+      end
+    end
+- id: words-a-report-format-or-a-command-is-named
+  cop: Kata/RealWords
+  expect: clean
+  each: [hotspots, ndjson, sarif, init, vendored?, jsonl]
+  source: |
+    # frozen_string_literal: true
+
+    module Report
+      def {word}(document) = document
+    end
+- id: clipping-still-flagged-after-init-left-the-table
+  cop: Kata/RealWords
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Report
+      def inits(document) = document
+    end
+- id: script-top-level-reads-env
+  cop: Kata/EnvDiscipline
+  expect: clean
+  path: eval/run
+  source: |
+    # frozen_string_literal: true
+
+    exit(Assay::Session.new(ARGV, io: $stdout, env: ENV.to_h).run)
+- id: probe-loaded-with-r-reads-the-clock
+  cop: Kata/ClockDiscipline
+  expect: clean
+  path: eval/probe/peak.rb
+  source: |
+    # frozen_string_literal: true
+
+    started = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+    at_exit { File.write(ENV.fetch("PEAK"), Process.clock_gettime(Process::CLOCK_MONOTONIC) - started) }
+- id: env-in-a-module-body-still-flagged
+  cop: Kata/EnvDiscipline
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Settings
+      HOME = ENV.fetch("HOME")
+    end
+- id: expect-offense-template-is-not-a-format-string
+  cop: Style/FormatStringToken
+  expect: clean
+  path: spec/shelf_spec.rb
+  source: |
+    # frozen_string_literal: true
+
+    RSpec.describe(Shelf) do
+      it "flags" do
+        expect_offense(<<~RUBY, name: "x")
+          def %{name}
+              ^{name} Too long.
+          end
+        RUBY
+      end
+    end
+- id: format-token-outside-the-spec-helpers-still-flagged
+  cop: Style/FormatStringToken
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      LABEL = format("%{name}", name: "x")
+    end
+- id: fixture-class-state-in-a-spec
+  cop: ThreadSafety/ClassInstanceVariable
+  expect: clean
+  path: spec/runtime_spec.rb
+  source: |
+    # frozen_string_literal: true
+
+    RSpec.describe(Runtime) do
+      it "counts flips" do
+        controller = Class.new { def self.flip = (@flips = (@flips || 0) + 1) }
+        expect(controller.flip).to(eq(1))
+      end
+    end
+- id: multi-line-value-is-a-named-step
+  cop: Kata/NoRedundantVariable
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      def self.render(items)
+        rows = items.map do |item|
+          item.to_s
+        end
+        print(rows)
+      end
+    end
+- id: named-regexp-is-explanatory
+  cop: Kata/NoRedundantVariable
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      def self.digits?(text)
+        digits = /\A\d+\z/
+        text.match?(digits)
+      end
+    end
+- id: regexp-under-a-letter-still-flagged
+  cop: Kata/NoRedundantVariable
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      def self.digits?(text)
+        x = /\A\d+\z/
+        text.match?(x)
+      end
+    end
+- id: runner-run-answers-a-boolean-by-contract
+  cop: Naming/PredicateMethod
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    Minitest.singleton_class.prepend(Module.new { def run(*) = true })
+- id: library-thread-waiting-on-a-child-process
+  cop: ThreadSafety/NewThread
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      def self.drain(pipes) = pipes.map { |pipe| Thread.new { pipe.read } }.map(&:value)
+    end

@@ -37,6 +37,31 @@ RSpec.describe(RuboCop::Cop::Kata::FrozenState, :config) do
     RUBY
   end
 
+  it "allows the helpers a constructor calls in a class built by a block" do
+    expect_no_offenses(<<~RUBY)
+      Account = Class.new do
+        def initialize = prepare
+
+        def prepare = fill
+
+        def fill = @balance = 0
+      end
+    RUBY
+  end
+
+  it "flags a method that sets state in a class built by a block, when no constructor calls it" do
+    expect_offense(<<~RUBY)
+      Account = Class.new do
+        def initialize = prepare
+
+        def prepare = @ready = true
+
+        def reset = @ready = false
+                    ^^^^^^ `@ready` changes after construction; set state once in `initialize` and return a new object to change it.
+      end
+    RUBY
+  end
+
   it "allows a helper only the constructor calls, however deep" do
     expect_no_offenses(<<~RUBY)
       class Account
