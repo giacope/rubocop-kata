@@ -155,9 +155,11 @@
     module Shelf
       VERSION = '1.3.8'
     end
+# RuboCop reports the `_1` up to 1.92.0 and, since 1.92.1, sees the `it` local
+# and does not; either way `-a` must keep the line.
 - id: numbered-parameter-beside-an-it-local-is-not-renamed
   cop: Style/ItBlockParameter
-  expect: offense
+  expect: any
   correct: safe
   keeps: ["    items.map { _1 + it }.sum"]
   source: |
