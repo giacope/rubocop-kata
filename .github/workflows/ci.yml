@@ -31,10 +31,8 @@ jobs:
           bundler-cache: true
       - run: bundle exec rubocop
       - run: bundle exec rspec
-      # Every kind hashira checks by default; `--fail-on all` once hashira main has it.
-      - run: >-
-          bundle exec hashira --fail-on
-          cycle,dead_code,roll_call,sdp_violation,layer_violation,mixed_audience,bidirectional_association,wide_edge,complexity,duplication,fragmentation,indirection,smells
+      # Every kind this run checks (.hashira.yml turns them all on, change_coupling aside).
+      - run: bundle exec hashira --fail-on all
 
   eval:
     runs-on: ubuntu-latest
