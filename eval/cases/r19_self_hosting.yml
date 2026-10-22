@@ -174,3 +174,32 @@
     module Shelf
       def self.drain(pipes) = pipes.map { |pipe| Thread.new { pipe.read } }.map(&:value)
     end
+- id: next-statement-disable-says-why
+  cop: Kata/JustifiedDirective
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    # rubocop:disable-next Kata/FrozenState, Kata/NoSetter
+    class Runtime
+    end
+- id: signed-push-that-disables-says-why
+  cop: Kata/JustifiedDirective
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    # rubocop:push -Style/Send
+    VALUE = Object.send(:name)
+    # rubocop:pop
+- id: brand-is-one-concept-in-a-class-name
+  cop: Kata/GoodClassName
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Kimera
+      class RSpecSuite
+        def files = []
+      end
+    end

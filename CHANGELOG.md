@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+- `Kata/JustifiedDirective` and `rubocop-kata doctor` read every directive
+  that turns a cop off: `disable-next` and `todo-next` (RuboCop 1.92's
+  Style/DirectiveScope asks for them), and a `push`/`next` with a `-Cop`.
+- `Kata/GoodClassName` and `Kata/GoodModuleName` count a brand rubocop-rspec
+  spells as one word (`RSpec`, `RuboCop`) as one concept: `RSpecSuite` is
+  two, not three.
+
 - From running kata bare on its own repo, hashira and kimera (self-hosting):
   - The project's own name is its vocabulary: `Kata/RealWords` takes the
     segments of the gemspec names and of a Rails application's module for

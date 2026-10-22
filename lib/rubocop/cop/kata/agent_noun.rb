@@ -8,7 +8,7 @@ module RuboCop::Cop::Kata::AgentNoun
 
   private
 
-  def doer?(name) = RuboCop::Kata::Agency.new(name.scan(SEGMENT).last.to_s.downcase).doer?
+  def doer?(name) = RuboCop::Kata::Agency.new(segments(name).last.to_s.downcase).doer?
 
   def doer(name, kind)
     hint = suggestion(name)
@@ -21,11 +21,18 @@ module RuboCop::Cop::Kata::AgentNoun
   end
 
   def split(name)
-    segments = name.scan(SEGMENT)
+    segments = segments(name)
     [segments[0..-2].join, segments.last.to_s]
   end
 
   def proposal(name) = (name if known?(name))
 
-  def known?(name) = RuboCop::Kata::Dictionary::ENTRIES.include?(name.scan(SEGMENT).last.to_s.downcase)
+  def known?(name) = RuboCop::Kata::Dictionary::ENTRIES.include?(segments(name).last.to_s.downcase)
+
+  def segments(name) = name.scan(Regexp.union(*brands, SEGMENT))
+
+  def brands
+    Hash(config.for_cop("RSpec/SpecFilePathFormat")["CustomTransform"])
+      .filter_map { |brand, word| brand if word.to_s.match?(/\A[a-z0-9]+\z/) }
+  end
 end

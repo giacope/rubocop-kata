@@ -32,7 +32,9 @@ Kata/GoodClassName:
     A class names one object that exists in the model. Three shapes hide that
     object: a doer name (`-er`/`-or`), a junk-drawer name (`Service`, `Util`,
     `Data`), and a name packing several concepts (`CustomerOrderPayment`).
-    Compound syntax is not the smell — `CreditCard` is one concept, and belongs
+    A brand rubocop-rspec spells as one word (`RSpec`, `RuboCop`, the keys of
+    RSpec/SpecFilePathFormat's `CustomTransform`) is one concept: `RSpecSuite`
+    is two. Compound syntax is not the smell — `CreditCard` is one concept, and belongs
     in `Terms`. A doer is an agent noun: the shipped WordNet data says whether
     a word's dominant sense is "one that <verb>s" (`Parser`, `Timer`) or a
     thing (`Number`, `Header`, `Order`), and an unknown word is a doer when its
@@ -1397,7 +1399,9 @@ Style/DisableCopsWithinSourceCodeDirective:
 Kata/JustifiedDirective:
   Description: >-
     An inline `rubocop:disable` says why, after `--`, in at least `MinWords`
-    words. A false positive then costs one reviewed line instead of a
+    words, and so does every other directive that turns a cop off:
+    `disable-next-line`, `disable-next`, `todo`, `todo-next`, and a `push` or
+    `next` with a `-Cop`. A false positive then costs one reviewed line instead of a
     per-file `Exclude` that hides every later offense in the file. A
     `disable all` silences this cop too, on its own line; `rubocop-kata
     doctor` lists it with the rest.
