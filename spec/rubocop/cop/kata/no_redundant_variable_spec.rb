@@ -50,6 +50,7 @@ RSpec.describe(RuboCop::Cop::Kata::NoRedundantVariable) do
       "yield_read_after_other_work" => "def foo\n  returned = yield\n  log(out)\n  returned\nend",
       "calls_before_read_in_same_array" => "def foo\n  returned = yield\n  [out.string, err.string, returned]\nend",
       "call_before_read_in_same_argument_list" => "def foo\n  x = bar\n  baz(qux, x)\nend",
+      "receiver_called_before_the_read" => "def foo\n  x = bar\n  baz.qux(x)\nend",
       "local_assignment_that_changes_saved_value" =>
       "def foo\n  state = :old\n  saved = state\n  state = :new\n  saved\nend",
       "constant_lookup_between_assignment_and_read" =>

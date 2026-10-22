@@ -5,6 +5,8 @@
 # Derived from rubocop-elegant (https://github.com/yegor256/rubocop-elegant), see LICENSE.txt
 
 class RuboCop::Kata::Variable::Ledger
+  include RuboCop::Kata::Order
+
   def initialize(census)
     @census = census
   end
@@ -24,6 +26,6 @@ class RuboCop::Kata::Variable::Ledger
   def single(found, once)
     assign = found.first
     read = once.first
-    [assign, read] if found.size == 1 && once.size == 1 && read.source_range.begin_pos >= assign.source_range.end_pos
+    [assign, read] if found.size == 1 && once.size == 1 && precedes?(assign, read)
   end
 end

@@ -2,6 +2,7 @@
 
 class RuboCop::Cop::Kata::NoOutputArgument < RuboCop::Cop::Base
   include RuboCop::Cop::Kata::Roster
+  include RuboCop::Kata::Order
 
   MSG = "`%s` changes the caller's `%s`; return a new value, or move the change to the object that owns it."
   INPUTS = %i[arg optarg kwarg kwoptarg].freeze
@@ -50,7 +51,6 @@ class RuboCop::Cop::Kata::NoOutputArgument < RuboCop::Cop::Base
 
   def fresh?(target, method)
     name = target.children.first
-    start = target.source_range.begin_pos
-    method.each_descendant(:lvasgn).any? { it.children.first == name && it.source_range.end_pos <= start }
+    method.each_descendant(:lvasgn).any? { it.children.first == name && precedes?(it, target) }
   end
 end
