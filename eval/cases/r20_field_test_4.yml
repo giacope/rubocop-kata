@@ -1,0 +1,228 @@
+# What the fourth field test found running `rubocop -a` on fifty more codebases:
+# each case is a shape -a broke or would have broken (Opal could not boot, rodauth
+# and roda stopped parsing, travis-api's SQL changed), and -a now leaves alone.
+- id: parameter-backtick-javascript-reads-is-not-renamed
+  cop: Lint/UnusedMethodArgument
+  expect: offense
+  correct: safe
+  keeps: ["  def char_code(text)", "  def concat(left, right)"]
+  source: |
+    # frozen_string_literal: true
+    # backtick_javascript: true
+
+    module Bytes
+      def char_code(text)
+        `text.charCodeAt(0)`
+      end
+
+      def concat(left, right)
+        `left.concat(right)`
+      end
+    end
+- id: block-parameter-shadowing-an-assigned-local-is-not-renamed
+  cop: Lint/UnusedBlockArgument
+  expect: offense
+  correct: safe
+  keeps: ["  [3].each do |total|"]
+  source: |
+    # frozen_string_literal: true
+
+    def settle
+      total = 0
+      [3].each do |total|
+        total = 7
+      end
+      total
+    end
+- id: splat-forwarded-inside-a-block-with-its-own-splat-is-kept
+  cop: Style/ArgumentsForwarding
+  expect: offense
+  correct: safe
+  keeps: ["def wrap(*args) = [[1]].map { |*| collect(*args) }"]
+  source: |
+    # frozen_string_literal: true
+
+    def collect(*items) = items
+    def wrap(*args) = [[1]].map { |*| collect(*args) }
+- id: documented-forwarding-parameter-keeps-its-name
+  cop: Style/ArgumentsForwarding
+  expect: offense
+  correct: safe
+  keeps: ["    def self.process(*args)"]
+  source: |
+    # frozen_string_literal: true
+
+    module Tasks
+      class Task
+        # Processes one item.
+        #
+        # @param args [Object, nil] the item to process
+        def self.process(*args)
+          new.process(*args)
+        end
+
+        def process(item) = item
+      end
+    end
+- id: negated-comparison-keeps-its-operator
+  cop: Style/Not
+  expect: offense
+  correct: safe
+  keeps: ["  not left < right"]
+  source: |
+    # frozen_string_literal: true
+
+    def unordered?(left, right)
+      not left < right
+    end
+- id: subjectless-case-with-a-splat-stays-a-case
+  cop: Style/EmptyCaseCondition
+  expect: offense
+  correct: safe
+  keeps: ["  when *CHECKS then :hit"]
+  source: |
+    # frozen_string_literal: true
+
+    CHECKS = [false, true].freeze
+
+    def check
+      case
+      when *CHECKS then :hit
+      else :miss
+      end
+    end
+- id: unless-assignment-returned-by-a-method-is-kept
+  cop: Style/OrAssignment
+  expect: offense
+  correct: safe
+  keeps: ["      @value = compute unless @value"]
+  source: |
+    # frozen_string_literal: true
+
+    module Store
+      class Cache
+        def load
+          @value = compute unless @value
+        end
+
+        def compute = 42
+      end
+    end
+- id: self-assignment-branch-returned-by-a-method-is-kept
+  cop: Style/RedundantSelfAssignmentBranch
+  expect: offense
+  correct: safe
+  keeps: ["  text = strip ? text.strip : text"]
+  source: |
+    # frozen_string_literal: true
+
+    def normalize(text, strip)
+      text = strip ? text.strip : text
+    end
+- id: prematch-backref-is-not-called-on-a-missing-match
+  cop: Style/PerlBackrefs
+  expect: offense
+  correct: safe
+  keeps: ["  [$`, $']"]
+  source: |
+    # frozen_string_literal: true
+
+    def around(text)
+      text =~ /=/
+      [$`, $']
+    end
+- id: nested-if-then-keeps-its-comments
+  cop: Style/IfInsideElse
+  expect: offense
+  correct: safe
+  keeps: ["      # Successful payment"]
+  source: |
+    # frozen_string_literal: true
+
+    def kind(code)
+      if code == 1 then
+        :fault
+      else
+        if code == 2 then
+          # Successful payment
+          :paid
+        else
+          :unknown
+        end
+      end
+    end
+- id: plain-heredoc-with-an-indented-terminator-word-is-kept
+  cop: Layout/HeredocIndentation
+  expect: offense
+  correct: safe
+  keeps: ["  <<END", "  END"]
+  source: |
+    # frozen_string_literal: true
+
+    def salt_sql
+      <<END
+    CASE
+      WHEN hash LIKE '$argon%' THEN 1
+      END
+    END
+    end
+- id: operator-called-with-a-dot-does-not-loop
+  cop: Lint/AmbiguousOperatorPrecedence
+  expect: offense
+  correct: safe
+  keeps: ["p Expr.|(1, 2 & 3)"]
+  source: |
+    # frozen_string_literal: true
+
+    module Expr
+      def self.|(left, right) = [:or, left, right]
+    end
+    p Expr.|(1, 2 & 3)
+- id: trailing-spaces-inside-a-multi-line-string-are-kept
+  cop: Layout/TrailingWhitespace
+  expect: offense
+  correct: safe
+  keeps: ["SQL = \"SELECT *   "]
+  source: |
+    # frozen_string_literal: true
+
+    SQL = "SELECT *   
+    FROM t"
+- id: multi-line-regexp-is-not-re-indented
+  cop: Layout/IndentationWidth
+  expect: offense
+  correct: safe
+  keeps: ["      end/"]
+  source: |
+    # frozen_string_literal: true
+
+    def pattern
+        /begin
+          end/
+    end
+- id: string-ending-mid-line-inside-brackets-is-not-indented
+  cop: Kata/PairedBrackets
+  expect: offense
+  correct: safe
+  keeps: ["second\", 1"]
+  source: |
+    # frozen_string_literal: true
+
+    def outer(*args) = args
+    def inner(*args) = args
+    result = outer(inner("first
+    second", 1), 2,
+      3)
+- id: assignment-in-a-condition-is-parenthesised-by-safe-autocorrect
+  cop: Lint/AssignmentInCondition
+  expect: offense
+  correct: safe
+  keeps: ["  if (line = io.gets)"]
+  source: |
+    # frozen_string_literal: true
+
+    def first_line(io)
+      if line = io.gets
+        line.chomp
+      end
+    end

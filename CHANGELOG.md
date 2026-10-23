@@ -2,6 +2,41 @@
 
 ## [Unreleased]
 
+- From the fourth field test, on `rubocop -a` (50 codebases, 14 suites):
+  - `-a` renames, anonymises or forwards no parameter: `Lint/UnusedMethodArgument`,
+    `Lint/UnusedBlockArgument`, `Style/ArgumentsForwarding` and
+    `Naming/BlockForwarding` are `-A` only. Opal's corelib reads Ruby locals from
+    backtick JavaScript, which RuboCop cannot see, so `-a` left Opal unable to
+    boot; a renamed shadowing block parameter assigned the outer local; `*`
+    inside a block with its own `|*|` does not parse; YARD's `@param` and
+    `Method#parameters` changed.
+  - `-A` only, too, the "equivalent" rewrites that are not: `Style/Not`
+    (`not a < b` became `a >= b`), `Style/EmptyCaseCondition` (`if *LIST`),
+    `Style/OrAssignment` and `Style/RedundantSelfAssignmentBranch` (a method's
+    value changed), `Style/PerlBackrefs` (`pre_match` on nil),
+    `Style/IfInsideElse` (dropped comments), `Lint/RedundantStringCoercion` (a
+    private or non-String `to_s`), `Style/CommentedKeyword` (deletes the comment
+    on an `end` line); and `Layout/HeredocIndentation` (`<<END` → `<<~END` ended
+    rodauth's heredoc at an indented SQL `END`, and broke roda's nested
+    heredocs) and `Lint/AmbiguousOperatorPrecedence` (loops with
+    `Style/RedundantParentheses` on `Sequel.|(a, b & c)`).
+    `data/autocorrect.txt` lists each as `held`, with what it broke.
+  - `Lint/AssignmentInCondition` and `Lint/AmbiguousRange`, on the list but
+    shipped unsafe by RuboCop, now run under `-a` (they add parentheses):
+    `script/autocorrect` writes `SafeAutoCorrect: true` for a listed correction
+    RuboCop marks unsafe, and a spec checks both directions against the
+    effective configuration.
+  - `-a` keeps a file as it was when its corrections would leave it
+    unparsable or change the value of a string, heredoc, x-string, regexp or
+    symbol literal, and says so on one stderr line (`rubocop-kata: kept
+    lib/sql.rb as it was: -a would have changed the literal on line 4`). It
+    caught `Layout/TrailingWhitespace` inside a multi-line string and
+    `Layout/IndentationWidth`/`IndentationStyle` inside a multi-line regexp or
+    quoted symbol. RuboCop 1.91 or later.
+  - `Kata/PairedBrackets` never indents a line that starts inside a string,
+    regexp, symbol or x-string that ends mid-line (travis-api's SQL gained two
+    spaces).
+
 - `Kata/JustifiedDirective` and `rubocop-kata doctor` read every directive
   that turns a cop off: `disable-next` and `todo-next` (RuboCop 1.92's
   Style/DirectiveScope asks for them), and a `push`/`next` with a `-Cop`.

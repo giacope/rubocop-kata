@@ -1,7 +1,8 @@
 # Written by script/autocorrect from data/autocorrect.txt; edit the list, not
 # this file. `rubocop -a` applies a correction only when it changes layout or
 # delimiters, or swaps syntax for an exact equivalent that resolves no name the
-# project could define; every other correction waits for `rubocop -A`.
+# project could define; every other correction waits for `rubocop -A`. A listed
+# correction RuboCop ships as unsafe is vouched for here (`SafeAutoCorrect: true`).
 # Run it under the oldest and the newest RuboCop the gemspec allows: it adds
 # to the entries already shipped.
 Bundler/InsecureProtocolSource:
@@ -54,6 +55,8 @@ Layout/FirstMethodParameterLineBreak:
   SafeAutoCorrect: false
 Layout/HeredocArgumentClosingParenthesis:
   SafeAutoCorrect: false
+Layout/HeredocIndentation:
+  SafeAutoCorrect: false
 Layout/MultilineArrayLineBreaks:
   SafeAutoCorrect: false
 Layout/MultilineHashKeyLineBreaks:
@@ -66,10 +69,16 @@ Layout/SingleLineBlockChain:
   SafeAutoCorrect: false
 Lint/AmbiguousBlockAssociation:
   SafeAutoCorrect: false
+Lint/AmbiguousOperatorPrecedence:
+  SafeAutoCorrect: false
+Lint/AmbiguousRange:
+  SafeAutoCorrect: true
 Lint/AmbiguousRegexpLiteral:
   SafeAutoCorrect: false
 Lint/ArrayLiteralInRegexp:
   SafeAutoCorrect: false
+Lint/AssignmentInCondition:
+  SafeAutoCorrect: true
 Lint/BigDecimalNew:
   SafeAutoCorrect: false
 Lint/BooleanSymbol:
@@ -166,6 +175,8 @@ Lint/RedundantSafeNavigation:
   SafeAutoCorrect: false
 Lint/RedundantSplatExpansion:
   SafeAutoCorrect: false
+Lint/RedundantStringCoercion:
+  SafeAutoCorrect: false
 Lint/RedundantTypeConversion:
   SafeAutoCorrect: false
 Lint/RedundantWithIndex:
@@ -202,6 +213,10 @@ Lint/UnescapedBracketInRegexp:
   SafeAutoCorrect: false
 Lint/UnifiedInteger:
   SafeAutoCorrect: false
+Lint/UnusedBlockArgument:
+  SafeAutoCorrect: false
+Lint/UnusedMethodArgument:
+  SafeAutoCorrect: false
 Lint/UriRegexp:
   SafeAutoCorrect: false
 Lint/UselessAccessModifier:
@@ -225,6 +240,8 @@ Lint/Void:
 Migration/DepartmentName:
   SafeAutoCorrect: false
 Naming/BinaryOperatorParameterName:
+  SafeAutoCorrect: false
+Naming/BlockForwarding:
   SafeAutoCorrect: false
 Naming/InclusiveLanguage:
   SafeAutoCorrect: false
@@ -468,6 +485,8 @@ Style/AmbiguousEndlessMethodDefinition:
   SafeAutoCorrect: false
 Style/AndOr:
   SafeAutoCorrect: false
+Style/ArgumentsForwarding:
+  SafeAutoCorrect: false
 Style/ArrayCoercion:
   SafeAutoCorrect: false
 Style/ArrayFirstLast:
@@ -516,6 +535,8 @@ Style/CombinableLoops:
   SafeAutoCorrect: false
 Style/CommandLiteral:
   SafeAutoCorrect: false
+Style/CommentedKeyword:
+  SafeAutoCorrect: false
 Style/ComparableBetween:
   SafeAutoCorrect: false
 Style/ComparableClamp:
@@ -549,6 +570,8 @@ Style/DoubleNegation:
 Style/EachForSimpleLoop:
   SafeAutoCorrect: false
 Style/EachWithObject:
+  SafeAutoCorrect: false
+Style/EmptyCaseCondition:
   SafeAutoCorrect: false
 Style/EmptyClassDefinition:
   SafeAutoCorrect: false
@@ -621,6 +644,8 @@ Style/HashTransformKeys:
 Style/HashTransformValues:
   SafeAutoCorrect: false
 Style/IdenticalConditionalBranches:
+  SafeAutoCorrect: false
+Style/IfInsideElse:
   SafeAutoCorrect: false
 Style/IfUnlessModifier:
   SafeAutoCorrect: false
@@ -708,11 +733,15 @@ Style/NilLambda:
   SafeAutoCorrect: false
 Style/NonNilCheck:
   SafeAutoCorrect: false
+Style/Not:
+  SafeAutoCorrect: false
 Style/NumericPredicate:
   SafeAutoCorrect: false
 Style/ObjectThen:
   SafeAutoCorrect: false
 Style/OperatorMethodCall:
+  SafeAutoCorrect: false
+Style/OrAssignment:
   SafeAutoCorrect: false
 Style/ParallelAssignment:
   SafeAutoCorrect: false
@@ -721,6 +750,8 @@ Style/ParenthesesAroundCondition:
 Style/PartitionInsteadOfDoubleSelect:
   SafeAutoCorrect: false
 Style/PercentQLiterals:
+  SafeAutoCorrect: false
+Style/PerlBackrefs:
   SafeAutoCorrect: false
 Style/PredicateWithKind:
   SafeAutoCorrect: false
@@ -779,6 +810,8 @@ Style/RedundantRegexpConstructor:
 Style/RedundantRegexpEscape:
   SafeAutoCorrect: false
 Style/RedundantSelfAssignment:
+  SafeAutoCorrect: false
+Style/RedundantSelfAssignmentBranch:
   SafeAutoCorrect: false
 Style/RedundantSort:
   SafeAutoCorrect: false

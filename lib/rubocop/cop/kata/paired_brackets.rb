@@ -6,6 +6,7 @@
 
 class RuboCop::Cop::Kata::PairedBrackets < RuboCop::Cop::Base
   extend RuboCop::Cop::AutoCorrector
+  include RuboCop::Cop::Kata::Verbatim
 
   MSG = "Bracket %s must be paired on the same line, or start/end its line"
 
@@ -68,23 +69,14 @@ class RuboCop::Cop::Kata::PairedBrackets < RuboCop::Cop::Base
     ((token.line + 1)..last).reject { untouched?(it) }
   end
 
-  def untouched?(line)
-    processed_source.lines[line - 1].strip.empty? ||
-      strings.any? { it.contains?(processed_source.buffer.line_range(line)) }
-  end
+  def untouched?(line) = processed_source.lines[line - 1].strip.empty? || quoted.include?(line)
 
   def start(line)
     range = processed_source.buffer.line_range(line)
     range.adjust(begin_pos: range.source[/\A[ \t]*/].length).resize(0)
   end
 
-  def strings = (@_strings ||= {}.compare_by_identity)[processed_source] ||= literals
-
-  def literals
-    Array(processed_source.ast&.each_node(:str, :dstr, :xstr)).map do |node|
-      node.heredoc? ? node.loc.heredoc_body.join(node.loc.heredoc_end) : node.source_range.adjust(begin_pos: 1)
-    end
-  end
+  def quoted = (@_quoted ||= {}.compare_by_identity)[processed_source] ||= verbatim(processed_source.ast)
 
   def heredocs = Array(processed_source.ast&.each_node(:str, :dstr, :xstr)).select(&:heredoc?)
 

@@ -75,4 +75,9 @@ require_relative "rubocop/kata/project_root"
 require_relative "rubocop/kata/survey"
 require_relative "rubocop/kata/profile"
 require_relative "rubocop/kata/plugin"
+require_relative "rubocop/kata/literals"
+require_relative "rubocop/kata/correction"
+require_relative "rubocop/kata/safeguard"
 require_relative "rubocop/kata/version"
+
+RuboCop::Runner.prepend(RuboCop::Kata::Safeguard)

@@ -14,10 +14,7 @@ module RuboCop::Cop::Kata::Verbatim
     (node.first_line + 1)..node.last_line
   end
 
-  def heredoc(node)
-    body = node.loc.heredoc_body
-    body.line..body.last_line
-  end
+  def heredoc(node) = node.loc.heredoc_body.line..node.loc.heredoc_end.line
 
   def report(lines) = lines.sort.each { register(it) if processed_source.lines[it - 1].strip.empty? }
 

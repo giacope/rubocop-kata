@@ -51,6 +51,16 @@ RSpec.describe(RuboCop::Cop::Kata::PairedBrackets) do
         "foo(\n  bar(<<-TEXT\n  body\nTEXT\n  )\n)"
       ],
       "multiline_string_is_never_shifted" => ["foo(bar(\"a\n  b\"\n))", "foo(\n  bar(\"a\n  b\"\n  )\n)"],
+      "string_ending_mid_line_is_never_shifted" =>
+        ["outer(inner(\"first\nsecond\", 1),\n  2)", "outer(\n  inner(\"first\nsecond\", 1),\n  2\n)"],
+      "interpolated_string_ending_mid_line_is_never_shifted" =>
+        ["outer(inner(\"a\#{b}\nc\", 1),\n  2)", "outer(\n  inner(\"a\#{b}\nc\", 1),\n  2\n)"],
+      "regexp_ending_mid_line_is_never_shifted" =>
+        ["outer(inner(/a\nb/, 1),\n  2)", "outer(\n  inner(/a\nb/, 1),\n  2\n)"],
+      "quoted_symbol_ending_mid_line_is_never_shifted" =>
+        ["outer(inner(:\"a\nb\", 1),\n  2)", "outer(\n  inner(:\"a\nb\", 1),\n  2\n)"],
+      "x_string_ending_mid_line_is_never_shifted" =>
+        ["outer(inner(`a\nb`, 1),\n  2)", "outer(\n  inner(`a\nb`, 1),\n  2\n)"],
       "opener_with_indent" => ["  foo(1,\n    2\n  )", "  foo(\n    1,\n    2\n  )"],
       "closer_with_indent" => ["  foo(\n    1)", "  foo(\n    1\n  )"],
       "space_after_opener_is_consumed" => ["  { a: 1,\n    b: 2 }", "  {\n    a: 1,\n    b: 2\n  }"],
