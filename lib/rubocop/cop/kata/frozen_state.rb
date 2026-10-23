@@ -6,11 +6,17 @@ class RuboCop::Cop::Kata::FrozenState < RuboCop::Cop::Base
   include RuboCop::Cop::Kata::Ancestry
 
   MSG = "`%s` changes after construction; set state once in `initialize` and return a new object to change it."
+  CLASS_MSG = "`%s` is class-level state every caller shares, changed after load; set it once and freeze it, " \
+    "or keep it in an object the class holds."
+  SIDE = /Class(Methods|Interface)\z/
   CONSTRUCTORS = %i[initialize initialize_copy initialize_dup initialize_clone].freeze
   LOOKUPS = %i[key? include? has_key? member? []].freeze
 
   def_node_matcher :minted, "(any_block (send {nil? self} :define_method ${sym str dsym} ...) ...)"
   def_node_matcher :injected, "(send {nil? self} :instance_variable_set ${sym str dsym} _)"
+  def_node_matcher :class_methods?, "(block (send nil? :class_methods) ...)"
+  def_node_matcher :functions?, "(send nil? :module_function)"
+  def_node_matcher :itself?, "(send nil? :extend (self))"
 
   def on_ivasgn(node) = judge(node, node.loc.name, node.children.first)
 
@@ -26,7 +32,7 @@ class RuboCop::Cop::Kata::FrozenState < RuboCop::Cop::Base
     method = node.each_ancestor(:def, :defs).first
     return dynamic(node, range, name) if method.nil?
     return if class_level?(method) || builder?(method) || cached?(node)
-    add_offense(range, message: format(MSG, name))
+    add_offense(range, message: format(class_side?(method) ? CLASS_MSG : MSG, name))
   end
 
   def dynamic(node, range, name)
@@ -44,7 +50,26 @@ class RuboCop::Cop::Kata::FrozenState < RuboCop::Cop::Base
   end
 
   def class_level?(method)
-    method.defs_type? || method.each_ancestor(:sclass, :class, :module).first&.sclass_type?
+    scope = method.each_ancestor(:sclass, :class, :module).first
+    return true if method.defs_type? || scope&.sclass_type? || method.each_ancestor(:block).any? { class_methods?(it) }
+    scope&.module_type? ? shared?(scope, method) : false
+  end
+
+  def shared?(scope, method)
+    scope.identifier.short_name == :ClassMethods || method.left_siblings.any? { functions?(it) }
+  end
+
+  def class_side?(method)
+    scope = method.each_ancestor(:class, :module).first
+    return false unless scope&.module_type?
+    name = scope.identifier.short_name
+    SIDE.match?(name) || scope.body&.each_node(:send)&.any? { itself?(it) } || extended?(name)
+  end
+
+  def extended?(name)
+    processed_source.ast.each_node(:send).any? do |call|
+      call.method?(:extend) && call.arguments.any? { it.const_type? && it.short_name == name }
+    end
   end
 
   def mutation?(node)

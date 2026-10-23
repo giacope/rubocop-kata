@@ -1,6 +1,7 @@
 # Applied on top of default.yml when the project root holds
-# config/application.rb or a lib/**/engine.rb that defines a Rails::Engine
-# (opt out with `rails: false` under the plugin, see README). It names what
+# config/application.rb, or any lib/**/*.rb defines a Rails engine
+# (`< Rails::Engine` or `isolate_namespace`; opt out with `rails: false` under
+# the plugin, see README). It names what
 # Rails and its common gems dictate and the files they generate; it relaxes
 # no rule for code the application writes. Each list here is added to the
 # shipped one, not put in its place.

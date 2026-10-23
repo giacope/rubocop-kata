@@ -35,11 +35,4 @@ class RuboCop::Cop::Kata::GoodMethodName < RuboCop::Cop::Base
     joint = words[1...-1].to_a.find { JOINTS.include?(it) }
     judge(range, name, stem) { format(CHAIN_MSG, name, joint) if joint }
   end
-
-  def override?(node)
-    scope = node.each_ancestor(:class, :module).first
-    return false unless scope
-    name = node.method_name.to_s
-    project.ancestors(RuboCop::Kata::Nesting.new(scope).qualified).drop(1).any? { project.defines?(it, name) }
-  end
 end

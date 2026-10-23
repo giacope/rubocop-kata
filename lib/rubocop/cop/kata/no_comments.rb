@@ -24,7 +24,7 @@ class RuboCop::Cop::Kata::NoComments < RuboCop::Cop::Base
   TAG = /\A#\s*@!?[a-z]/
   CITATION = %r{
     https?://\S|\b[\w.-]+/[\w.-]+\#\d+\b|[\s(]\#\d+\b|\bGH-\d+\b|\bRFC\s?\d{3,5}\b|
-    \bCVE-\d{4}-\d{4,}\b|\bGHSA(-[a-z0-9]{4}){3}\b
+    \bCVE-\d{4}-\d{4,}\b|\bGHSA(-[a-z0-9]{4}){3}\b|\b[A-Z][\w.-]*\s?(?:[<>]=?|~>)\s?v?\d+(?:\.\d+)+
   }xi
   NOTICE = /^#\s*(copyright\b|\(c\)\s*\d|spdx-|licen[sc]ed under\b|licen[sc]e:|all rights reserved)/i
   SHEBANG = /\A#!/

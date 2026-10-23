@@ -22,8 +22,15 @@ module RuboCop::Cop::Kata::Wording
   end
 
   def core(words)
-    rest = listed?("Prefixes", words.first) ? words.drop(1) : words
+    root = namespaces.find { |segments| words.first(segments.size) == segments }
+    rest = root ? words.drop(root.size) : prefixed(words)
     listed?("Suffixes", rest.last) ? rest[0..-2] : rest
+  end
+
+  def prefixed(words) = listed?("Prefixes", words.first) ? words.drop(1) : words
+
+  def namespaces
+    @_namespaces ||= list("Roots").map { it.gsub("::", "_").gsub(/([a-z\d])([A-Z])/, '\1_\2').downcase.split("_") }
   end
 
   def allowed?(name) = super || listed?("Terms", name) || list("AllowedPatterns").any? { name.match?(Regexp.new(it)) }

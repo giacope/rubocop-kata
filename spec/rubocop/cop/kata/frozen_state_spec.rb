@@ -419,4 +419,48 @@ RSpec.describe(RuboCop::Cop::Kata::FrozenState, :config) do
       RUBY
     end
   end
+
+  # doorkeeper's `module ClassMethods`, roda's RequestClassMethods, rom's ClassInterface.
+  it "leaves class-side state to ThreadSafety where it reports it, and says it is class state elsewhere" do
+    expect_offense(<<~RUBY)
+      module Naming
+        module ClassMethods
+          def table(name) = @table = name
+        end
+        concern = proc do
+          class_methods do
+            def column(name) = @column = name
+          end
+        end
+        module Tools
+          module_function
+
+          def tool(name) = @tool = name
+        end
+        module RequestClassMethods
+          def match(name) = @match = name
+                            ^^^^^^ `@match` is class-level state every caller shares, changed after load; set it once and freeze it, or keep it in an object the class holds.
+        end
+        module Helpers
+          extend self
+
+          def cache(name) = @cache = name
+                            ^^^^^^ `@cache` is class-level state every caller shares, changed after load; set it once and freeze it, or keep it in an object the class holds.
+        end
+        module ClassInterface
+          def schema(name) = @schema = name
+                             ^^^^^^^ `@schema` is class-level state every caller shares, changed after load; set it once and freeze it, or keep it in an object the class holds.
+        end
+        module Plain
+          def plain(name) = @plain = name
+                            ^^^^^^ `@plain` is class-level state every caller shares, changed after load; set it once and freeze it, or keep it in an object the class holds.
+        end
+        module Mixed
+          def mixed(name) = @mixed = name
+                            ^^^^^^ `@mixed` changes after construction; set state once in `initialize` and return a new object to change it.
+        end
+        Store.extend(Plain)
+      end
+    RUBY
+  end
 end

@@ -26,6 +26,7 @@ _marshal_dump_7_1
 _parts
 _prepare_callbacks
 _prepare_callbacks=
+_reflections
 _reset_callbacks
 _reset_callbacks=
 _run_callbacks
@@ -55,6 +56,8 @@ _teardown_callbacks
 _teardown_callbacks=
 _to_partial_path
 abbr
+abstract_class
+abstract_class?
 accessed
 accessed_fields
 accessor
@@ -246,6 +249,7 @@ attr_name=
 attribute
 attribute_alias
 attribute_alias?
+attribute_aliases
 attribute_before_last_save
 attribute_change_to_be_saved
 attribute_changed?
@@ -283,6 +287,7 @@ average
 backend
 backend=
 backtrace=
+base_class
 base_klass
 batch
 batch_size
@@ -619,6 +624,7 @@ define_cached_method
 define_callbacks
 define_model_callbacks
 define_on
+defined_enums
 defined_for?
 defining_class
 defining_class=
@@ -641,6 +647,7 @@ deprecation_horizon=
 deprecation_warning
 deprecator
 descendants
+descends_from_active_record?
 deserialize
 destroy
 destroy_all
@@ -1063,6 +1070,7 @@ index_options
 indexes
 inflections
 inheritable_copy
+inheritance_column
 inherited
 init_attributes
 initial_count_for
@@ -1519,6 +1527,7 @@ quoted_columns_for_index
 quoted_date
 quoted_false
 quoted_primary_key
+quoted_table_name
 quoted_time
 quoted_true
 raise_int_wider_than_64bit
@@ -1570,6 +1579,8 @@ references
 references!
 references_values
 references_values=
+reflect_on_all_associations
+reflect_on_association
 reflection
 reflections
 register_class_with_precision
@@ -1840,12 +1851,14 @@ start_unloading
 start_worker
 stats
 steal!
+sti_name
 sticky
 sticky=
 stop_broadcasting_to
 stop_exclusive
 stop_sharing
 stop_worker
+store_full_sti_class
 strict_loading
 strict_loading!
 strict_loading?

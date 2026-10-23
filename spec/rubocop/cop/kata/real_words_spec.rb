@@ -7,7 +7,8 @@ RSpec.describe(RuboCop::Cop::Kata::RealWords, :config) do
       "BannedWords" => YAML.load_file("config/default.yml", aliases: true).fetch("Kata/RealWords").fetch("BannedWords"),
       "Terms" => %w[],
       "Vocabulary" => %w[],
-      "AllowedNames" => %w[]
+      "AllowedNames" => %w[],
+      "NodeCallbacks" => false
     }
   end
 
@@ -374,14 +375,65 @@ RSpec.describe(RuboCop::Cop::Kata::RealWords, :config) do
   end
 
   context "with the project's vocabulary" do
-    let(:cop_config) { { "Terms" => [], "Vocabulary" => %w[kata lvasgn str], "AllowedNames" => [] } }
+    include TabledCop
+
+    let(:cop_config) do
+      words = %w[kata lvasgn cref jsonify]
+      { "Terms" => %w[frob], "Vocabulary" => words, "AllowedNames" => [], "NodeCallbacks" => true }
+    end
 
     it "takes the project's name and the parser's node types for words" do
       expect_no_offenses(<<~RUBY)
         def on_lvasgn(node) = node
-        kata = str = 1
+        kata = 1
       RUBY
     end
+
+    # zeitwerk: `autoloaded`, `crefs`; rubocop: `autocorrected`; opal: `swapcased`.
+    it "inflects every word it accepts, where no dictionary spells the forms" do
+      expect_no_offenses(<<~RUBY)
+        autoloaded = autoloading = autocorrected = swapcased = swapcasing = decrypted = favorited = paywalled = 1
+        crefed = kataing = jsonified = frobbed = chmodded = chmodding = gzipping = evented = blocklisted = 1
+      RUBY
+    end
+
+    # helpy `submited`, opal `embeded`, homeland `readed`/`logined`, faker `splitted`.
+    # The dictionary spells `making` and `splitting`; `checkout` and `layoff` inflect as a phrase.
+    it "still reads every misspelt form as a typo" do
+      typos = %w[maked checkouted addoned dropdowned takeovered layoffed arged]
+      expect(offenses(typos.map { "#{it} = 1" }.join("\n")).map { it.message[/`(\w+)`/, 1] }).to(eq(typos))
+    end
+
+    it "still reads a misspelt form as a typo where the dictionary spells the word's own" do
+      expect_offense(<<~RUBY)
+        submited = embeded = readed = logined = splitted = setuped = 1
+        ^^^^^^^^ `submited` is not in the dictionary — restore the underscore between smashed words, spell the abbreviation out, or add it to `Terms` if it is one domain term here.
+                   ^^^^^^^ `embeded` is not in the dictionary — restore the underscore between smashed words, spell the abbreviation out, or add it to `Terms` if it is one domain term here.
+                             ^^^^^^ `readed` is not in the dictionary — restore the underscore between smashed words, spell the abbreviation out, or add it to `Terms` if it is one domain term here.
+                                      ^^^^^^^ `logined` is not in the dictionary — restore the underscore between smashed words, spell the abbreviation out, or add it to `Terms` if it is one domain term here.
+                                                ^^^^^^^^ `splitted` is not in the dictionary — restore the underscore between smashed words, spell the abbreviation out, or add it to `Terms` if it is one domain term here.
+                                                           ^^^^^^^ `setuped` is not in the dictionary — restore the underscore between smashed words, spell the abbreviation out, or add it to `Terms` if it is one domain term here.
+      RUBY
+    end
+
+    # rubocop's cops answer `on_str` and `on_op_asgn`, which RuboCop calls by the node's type.
+    it "leaves a node callback to the parser's spelling, and bans the clipping elsewhere" do
+      expect_offense(<<~RUBY)
+        def on_str(node) = node
+        def on_op_asgn(node) = node
+        def on_strs(node) = node
+            ^^^^^^^ `strs` (in `on_strs`) is an abbreviation of `string`; spell the word out.
+        str = 1
+        ^^^ `str` is an abbreviation of `string`; spell the word out.
+      RUBY
+    end
+  end
+
+  it "reads a node callback's name as any other where the project speaks no parser" do
+    expect_offense(<<~RUBY)
+      def on_str(node) = node
+          ^^^^^^ `str` (in `on_str`) is an abbreviation of `string`; spell the word out.
+    RUBY
   end
 
   it "leaves a method that calls super to its ancestor's name" do

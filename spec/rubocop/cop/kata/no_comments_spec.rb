@@ -253,6 +253,21 @@ RSpec.describe(RuboCop::Cop::Kata::NoComments, :config) do
       STATUS = 400
       # Escape first: CVE-2023-27530 and GH-17.
       LIMIT = 1
+      def matcher
+        # Compatibility with RSpec < 3.0, released 2014-06-01.
+        # Ruby >= 3.2 freezes it already.
+        example
+      end
+    RUBY
+  end
+
+  it "flags a comparison that cites no version" do
+    expect_offense(<<~RUBY)
+      def retry?
+        # retry while count < 3
+        ^^^^^^^^^^^^^^^^^^^^^^^ Say it in the code: rename it, extract it, or name the constant.
+        @count < 3
+      end
     RUBY
   end
 

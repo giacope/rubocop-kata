@@ -13,8 +13,15 @@ plugins:
 # `SafeAutoCorrect: false` entries in this file name the ones seen to break
 # code, and stay -A whatever the rule says.
 # The pending cops kata wants are enabled one by one at the end of this file.
+# A project's own `AllCops: Exclude` adds to the paths kata skips (vendored
+# copies, generated files, the schema) instead of replacing them; a project
+# that wants RuboCop's replace-the-list behaviour writes
+# `inherit_mode: { override: [Exclude] }` under its `AllCops`.
 AllCops:
   NewCops: disable
+  inherit_mode:
+    merge:
+      - Exclude
   Exclude:
     - "vendor/**/*"
     - "**/vendor/**/*"
@@ -22,8 +29,12 @@ AllCops:
 
 # A .jbuilder template is presentation, not an object: no Kata cop reads it.
 # A cop with its own Exclude list carries the same entry, since a cop's list
-# replaces the department's.
+# replaces the department's. `Roots` holds the project's own root constants
+# (`Rubocop::Kata` for rubocop-kata, a Rails application's module), which
+# kata fills from the gemspec names: the naming cops do not judge them, and
+# their snake-case names count as a role prefix (`pundit_policy`).
 Kata:
+  Roots: []
   Exclude:
     - "**/*.jbuilder"
 
@@ -148,10 +159,20 @@ Kata/GoodModuleName:
     `ActionController` must spell it exactly. Reopening another library's
     junk drawer (`FileUtils`) is a file-boundary `Exclude`, not a naming
     choice. `AllowedNames` is the class list. Absorbs the module half of
-    Kata/NoUtilName.
+    Kata/NoUtilName. A namespace reopened around the classes of many files
+    is one naming decision, judged once: in the file named for it
+    (`lib/flipper/services.rb`), else in its opening with the most
+    statements, among the files `OwnedPaths` matches. The project's own root
+    constants (`Faker`, `Nanoc::Core`: the `Kata` department's `Roots`, which
+    kata fills from the gemspec names and the Rails application's module)
+    name the gem, and pass here and in Kata/GoodClassName.
   Enabled: true
   VersionAdded: "0.9"
   VersionChanged: "0.11"
+  OwnedPaths:
+    - "app/**/*.rb"
+    - "lib/**/*.rb"
+    - "*/lib/**/*.rb"
   MaxWords: 2
   ContractSuffixes:
     - Controller
@@ -195,7 +216,8 @@ Kata/NoComments:
     (RuboCop, Standard, SimpleCov, Steep `@type`, RBS `#:` and `@rbs`, Sorbet,
     reek `:reek:`, kimera, hashira, RubyMine `language=`), RDoc and YARD
     directives, licence headers, every comment block that cites a URL, an
-    issue or pull request (`rails/rails#123`, `#123`), an RFC or a CVE, and
+    issue or pull request (`rails/rails#123`, `#123`), an RFC, a CVE or a
+    version constraint (`Compatibility with RSpec < 3.0`, `Ruby >= 3.2`), and
     public API documentation: a block whose next definition is public — a
     class, module, method, `attr_reader`/`attr_writer`/`attr_accessor`,
     `define_method` or a constant not made private — in any markup (RDoc,
@@ -575,10 +597,14 @@ Kata/GoodVariableName:
     - resource_or_scope
 
 Kata/IoDiscipline:
-  Description: "Write through an injected io, not bare puts/warn/pp/p."
+  Description: >-
+    Write through an injected io, not bare puts/warn/pp/p. Where the class
+    already holds a stream (`@io`, `@out`, `@stderr`, …), the message names
+    it; where nothing is injected, it names the seam to add
+    (`def initialize(io: $stdout)`).
   Enabled: true
   VersionAdded: "0.1"
-  VersionChanged: "0.8"
+  VersionChanged: "0.11"
   Exclude:
     - "spec/**/*"
     - "test/**/*"
@@ -621,9 +647,17 @@ Kata/RealWords:
     `colour`, `offence`, `labelled`, `metre`) are words; `Spelling: en-US`
     accepts American spelling only. The project's own name is its
     vocabulary: kata fills `Vocabulary` with the segments of its gemspec
-    names and Rails application module (`kata` in rubocop-kata), and, for a
-    gem that depends on parser, rubocop-ast, rubocop or unparser, with the
-    parser's node types (`lvasgn`, `dstr`, `kwoptarg`, `str`, `arg`).
+    names and Rails application module (`kata` in rubocop-kata), of the
+    names of its dependencies (`pagy`, `sshkit`) and of its own constants
+    (`cref` for zeitwerk's `Cref`), and, for a gem that depends on parser,
+    rubocop-ast, rubocop or unparser, with the parser's whole node types
+    (`lvasgn`, `dstr`, `kwoptarg`), and turns on `NodeCallbacks`, which
+    leaves a callback named for a node type alone (`on_str`, `on_op_asgn`).
+    No vocabulary unbans a clipping: `str`, `args` and `sym` are spelled out
+    there too. A word kata accepts is inflected (`autoloaded`,
+    `autoloading`, `favorited`) where no dictionary spells its forms; where
+    one does (`submitted`, `reading`), any other spelling is a typo, and a
+    verb-particle noun (`login`, `setup`) inflects as the phrase.
   Enabled: true
   VersionAdded: "0.5"
   VersionChanged: "0.11"
@@ -631,6 +665,7 @@ Kata/RealWords:
   BannedWords: []
   Terms: []
   Vocabulary: []
+  NodeCallbacks: false
   OwnedPaths:
     - "app/**/*.rb"
     - "lib/**/*.rb"
@@ -644,10 +679,15 @@ Kata/RealWords:
 Kata/BuilderNoun:
   Description: >-
     Builders are named for what they return; verbs are for side effects. A
-    method that calls `super` overrides its ancestor's name, and a stand-in
-    for a message the project's code sends but never defines
-    (`get_callbacks` in a spec double of ActiveSupport) answers to the name
-    the caller chose.
+    method that calls `super`, or that overrides a method of the project's
+    superclass or included module (flipper's adapters implementing
+    `Flipper::Adapter#get_all`), keeps its ancestor's name, reported once
+    where it was chosen; a stand-in for a message the project's code sends
+    but never defines (`get_callbacks` in a spec double of ActiveSupport)
+    answers to the name the caller chose. A method that ends in a command,
+    one of the `Commands` (a file write, a generator step such as
+    `create_file` or `invoke`; a constant alone, such as `FileUtils`, stands
+    for each of its methods), is a side effect, not a builder.
   Enabled: true
   VersionAdded: "0.3"
   VersionChanged: "0.11"
@@ -655,6 +695,29 @@ Kata/BuilderNoun:
     - "app/**/*.rb"
     - "lib/**/*.rb"
     - "*/lib/**/*.rb"
+  Commands:
+    - Dir.mkdir
+    - File.binwrite
+    - File.write
+    - FileUtils
+    - IO.binwrite
+    - IO.write
+    - append_to_file
+    - copy_file
+    - create_file
+    - directory
+    - empty_directory
+    - exec
+    - gsub_file
+    - inject_into_file
+    - insert_into_file
+    - invoke
+    - prepend_to_file
+    - remove_file
+    - run
+    - spawn
+    - system
+    - template
   BannedPrefixes:
     - get
     - calculate
@@ -666,11 +729,19 @@ Kata/BuilderNoun:
 Kata/NoBooleanFlag:
   Description: >-
     A boolean flag is two methods trapped in one: at a call, and as a
-    positional parameter's default. `AllowedMethods` holds the calls whose
-    boolean is a protocol or a value rather than a flag — Ruby's reflection
+    positional parameter's default. A boolean the callee stores, binds or
+    compares is a value, not a flag: the value of a setting named before it
+    (`set :sessions, true`, `auth_value_method :verify?, false`,
+    `update_attribute(:spam, false)`; not `send(:name, true)`, which passes
+    a flag on), a bind after a SQL string with a placeholder
+    (`where("active = ?", true)`), an expectation (`eq(true)`,
+    `receive(:x).with(false)`), a hash value, and an attribute writer
+    (`config.x = true`). `AllowedMethods` holds the calls whose boolean is a
+    protocol or a value rather than a flag — Ruby's reflection
     (`respond_to?(name, true)`), a default (`fetch(:ssl, false)`), a stored
-    value (`instance_variable_set(:@done, false)`) — and the defs whose
-    signature Ruby dictates (`respond_to_missing?`).
+    value (`instance_variable_set(:@done, false)`, `set`), a query
+    (`where`, `find_by`, `exists?`, `update`), RSpec's matchers — and the
+    defs whose signature Ruby dictates (`respond_to_missing?`).
   Enabled: true
   VersionAdded: "0.3"
   VersionChanged: "0.11"
@@ -683,21 +754,30 @@ Kata/NoBooleanFlag:
     - "**/*.jbuilder"
   AllowedMethods:
     - all?
+    - and_return
     - any?
+    - be
     - const_defined?
     - const_get
     - const_source_location
     - content_security_policy
+    - eq
+    - eql
+    - equal
+    - exists?
     - exit
     - exit!
     - fetch
+    - find_by
     - include?
     - instance_methods
     - instance_variable_set
     - layout
+    - match
     - method_defined?
     - methods
     - none?
+    - not_to
     - private_instance_methods
     - private_method_defined?
     - private_methods
@@ -709,8 +789,14 @@ Kata/NoBooleanFlag:
     - push
     - respond_to?
     - respond_to_missing?
+    - set
     - singleton_methods
     - store
+    - to
+    - to_not
+    - update
+    - update_all
+    - where
 
 Kata/ConstructorDiscipline:
   Description: >-
@@ -1064,10 +1150,21 @@ Kata/NoTypeCheck:
     reach, and is left alone; so are the conversion and iteration protocols
     (`respond_to?(:to_h)`, `:each`, `:call`) and any `respond_to?` probe of
     a method a public class of `Protocols` answers: Ruby's core and standard
-    library, and Rails' frameworks in the Rails profile (data/protocols).
+    library, and Rails' frameworks in the Rails profile or for a library
+    whose gemspec depends on ActiveRecord, ActiveModel or ActiveSupport
+    (data/protocols). A `respond_to?(:m)` probe is about the project's types
+    only when one of its own classes defines `m` publicly (a private helper
+    never answers it; `respond_to?(:m, true)` asks for private ones too) and
+    the receiver is not another library's constant (pundit's
+    `::RSpec.respond_to?(:current_example)`). A namespace one of the
+    `Dependencies` is named for (kata fills them from the Gemfile, the
+    lockfile and the gemspecs: rack owns `Rack`, rack-test `Rack::Test`)
+    stays the dependency's however the project reopens it, unless the
+    project's own root sits inside it (`RuboCop::Kata` in `RuboCop`).
   Enabled: true
   VersionAdded: "0.11"
   VersionChanged: "0.11"
+  Dependencies: []
   Protocols:
     - ruby
   OwnedPaths:
@@ -1450,10 +1547,19 @@ Kata/ClassInModule:
     and Zeitwerk already demands the matching module. Reopening one of the
     `CoreClasses` (`class String`) is a monkey patch: wrapping it in a module
     would define a new class, so the message asks for a refinement or a
-    decorator instead.
+    decorator instead. The project's own root constant (`class Roda` in the
+    roda gem, from the gemspec's name or the Rails application's module, in
+    the `Kata` department's `Roots`) is its one top-level name and passes. A
+    class reopened in several files is one decision, judged once: in the
+    file named for it, else in its opening with the most statements, among
+    the files `OwnedPaths` matches.
   Enabled: true
   VersionAdded: "0.10"
   VersionChanged: "0.11"
+  OwnedPaths:
+    - "app/**/*.rb"
+    - "lib/**/*.rb"
+    - "*/lib/**/*.rb"
   CoreClasses:
     - Array
     - BasicObject
@@ -1625,6 +1731,23 @@ Elegant/OneClassPerFile:
     - "**/*_test.rb"
     - "test/**/*"
     - "spec/**/*"
+
+# --- rubocop-elegant's config switches off cops RuboCop enables; kata turns
+# back on the ones no Kata cop covers (spec/rubocop/kata/plugin_spec.rb lists
+# the rest and why each stays off). A class variable is mutable state every
+# subclass shares; a class variable another class reads
+# (`Minitest.class_variable_set(:@@installed_at_exit, …)`) is that class's
+# setting and is not reported (lib/rubocop/kata/foreign_setting.rb).
+Style/ClassVars:
+  Enabled: true
+
+# A `def` inside a method redefines a method on every call. One inside a
+# `proc` or `lambda` is a body for `class_exec` and is left alone.
+Lint/NestedMethodDefinition:
+  Enabled: true
+  AllowedMethods:
+    - lambda
+    - proc
 
 # --- Pending cops, reviewed against RuboCop 1.92 and the bundled extensions.
 # NewCops stays off (see AllCops), so each one kata wants is named here.
