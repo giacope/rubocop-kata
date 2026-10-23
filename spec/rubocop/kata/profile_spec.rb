@@ -336,7 +336,7 @@ RSpec.describe(RuboCop::Kata::Profile) do
   end
 
   context "with the autocorrect allowlist" do
-    let(:allowed) { entries.map(&:first) }
+    let(:allowed) { entries.reject { it[1] == "held" }.map(&:first) }
     let(:held) { YAML.load_file("config/autocorrect.yml") }
 
     def shipped
@@ -347,14 +347,24 @@ RSpec.describe(RuboCop::Kata::Profile) do
 
     def entries = File.readlines("data/autocorrect.txt", chomp: true).map { it.split(" ", 3) }
 
-    def unsafe?(setting) = setting["SafeAutoCorrect"] == false || setting["Safe"] == false
+    def withheld = entries.select { it[1] == "held" }.map(&:first)
 
-    it "lists each correction once, in order" do
-      expect(allowed).to(eq(allowed.uniq.sort))
+    def unsafe?(setting)
+      switches = setting.values_at("SafeAutoCorrect", "Safe", "AutoCorrect")
+      switches.include?(false) || switches.include?("disabled")
     end
 
-    it "files every correction under layout, delimiter or equivalent, with a reason" do
-      kinds = %w[layout delimiter equivalent]
+    def eligible?(config, cop)
+      cop.support_autocorrect? && config.cop_enabled?(cop.cop_name) && !unsafe?(config.for_cop(cop))
+    end
+
+    it "lists each correction once, in order" do
+      names = entries.map(&:first)
+      expect(names).to(eq(names.uniq.sort))
+    end
+
+    it "files every correction under layout, delimiter, equivalent or held, with a reason" do
+      kinds = %w[layout delimiter equivalent held]
       unfiled = entries.reject { |_, kind, reason| kinds.include?(kind) && reason.to_s.size > 10 }
       expect(unfiled).to(be_empty)
     end
@@ -370,8 +380,23 @@ RSpec.describe(RuboCop::Kata::Profile) do
       expect(moved & allowed).to(be_empty)
     end
 
+    # Opal's corelib reads Ruby locals from backtick JavaScript, which RuboCop cannot see.
+    it "holds back every correction that renames, anonymises or forwards a parameter" do
+      moved = %w[Lint/UnusedMethodArgument Lint/UnusedBlockArgument Style/ArgumentsForwarding Naming/BlockForwarding]
+      expect(moved - withheld).to(be_empty)
+    end
+
+    it "holds back the rewrites a field test showed are not equivalent, and the ones that loop" do
+      moved = %w[
+        Style/Not Style/EmptyCaseCondition Style/OrAssignment Style/RedundantSelfAssignmentBranch Style/PerlBackrefs
+        Style/IfInsideElse Style/CommentedKeyword Layout/HeredocIndentation Lint/AmbiguousOperatorPrecedence
+        Lint/RedundantStringCoercion
+      ]
+      expect(moved - withheld).to(be_empty)
+    end
+
     it "never holds back a correction it allows" do
-      expect(held.keys & allowed).to(be_empty)
+      expect(held.select { |_, setting| unsafe?(setting) }.keys & allowed).to(be_empty)
     end
 
     it "holds back every correction kata runs that no corpus suite has proved" do
@@ -381,10 +406,10 @@ RSpec.describe(RuboCop::Kata::Profile) do
       expect(loose).to(be_empty)
     end
 
-    it "lets rubocop -a run what the allowlist names" do
+    it "lets rubocop -a run every correction the allowlist names" do
       config = shipped
-      proved = %w[Layout/TrailingWhitespace Style/StringLiterals]
-      expect(proved.map { unsafe?(config.for_cop(it)) }).to(eq([false, false]))
+      known = allowed.filter_map { RuboCop::Cop::Registry.global.find_by_cop_name(it) }
+      expect(known.reject { eligible?(config, it) }.map(&:cop_name)).to(be_empty)
     end
   end
 end

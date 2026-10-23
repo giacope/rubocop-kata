@@ -154,6 +154,57 @@ RSpec.describe(RuboCop::Kata::Plugin) do
     end
   end
 
+  context "with the -a post-check" do
+    let(:sql) { "# frozen_string_literal: true\n\nSQL = \"SELECT *   \nFROM t\"\n" }
+    let(:heredoc) { "# frozen_string_literal: true\n\ndef salt\n  <<END\nCASE\n  WHEN a THEN 1\n  END\nEND\nend\n" }
+    let(:vouching) { "\nLayout/HeredocIndentation:\n  SafeAutoCorrect: true\n" }
+
+    before do
+      skip("RuboCop #{RuboCop::Version::STRING} writes each pass itself") unless
+        RuboCop::Runner.instance_method(:finalize_corrections).super_method
+    end
+
+    def guarded(arguments, source, setting = "", input: "")
+      Dir.mktmpdir("kata-safeguard") do |root|
+        File.write(File.join(plant(root, { "sample.rb" => source }), "..", ".rubocop.yml"), setting, mode: "a")
+        streams = [$stdin, $stdout, $stderr]
+        $stdin = StringIO.new(input)
+        $stdout = StringIO.new
+        $stderr = StringIO.new
+        Dir.chdir(root) { RuboCop::CLI.new.run([*arguments, "--cache", "false"]) }
+        yield(File.read(File.join(root, "lib", "sample.rb")), $stderr.string, $stdout.string)
+      ensure
+        $stdin, $stdout, $stderr = streams
+      end
+    end
+
+    it "keeps a file whose corrections would change a string's text as it was, and says why on one line" do
+      guarded(%w[-a lib], sql) do |kept, errors, _|
+        message = "rubocop-kata: kept lib/sample.rb as it was: -a would have changed the literal on line 3\n"
+        expect([kept, errors.lines.grep(/rubocop-kata/)]).to(eq([sql, [message]]))
+      end
+    end
+
+    it "keeps a file a correction the project vouched for would leave unparsable" do
+      guarded(%w[-a lib], heredoc, vouching) do |kept, errors, _|
+        message = "rubocop-kata: kept lib/sample.rb as it was: -a would have made it unparsable\n"
+        expect([kept, errors.lines.grep(/rubocop-kata/)]).to(eq([heredoc, [message]]))
+      end
+    end
+
+    it "hands rubocop -a --stdin its input back" do
+      guarded(%w[-a --stdin lib/sample.rb], "", input: sql) do |_, errors, output|
+        expect([output.end_with?("=\n#{sql}"), errors.include?("kept lib/sample.rb")]).to(eq([true, true]))
+      end
+    end
+
+    it "leaves rubocop -A to write what it corrects" do
+      guarded(%w[-A lib], sql) do |fixed, errors, _|
+        expect([fixed.include?("SELECT *\n"), errors]).to(eq([true, ""]))
+      end
+    end
+  end
+
   it "keeps a dash-form magic comment through rubocop -A" do
     shape = { "table.rb" => "# frozen-string-literal: true\n\nmodule Shelf\n  TABLE = { a: [1] }.freeze\nend\n" }
     correct("-A", shape) { |fixed, _| expect(fixed.fetch("table.rb")).to(match(/\A# frozen.string.literal: true/)) }

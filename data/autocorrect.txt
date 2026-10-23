@@ -33,7 +33,7 @@ Layout/FirstArrayElementIndentation layout re-indents the first element
 Layout/FirstHashElementIndentation layout re-indents the first pair
 Layout/FirstParameterIndentation layout re-indents the first parameter
 Layout/HashAlignment layout aligns keys and values with spaces
-Layout/HeredocIndentation layout re-indents a heredoc body as <<~, which strips the same indentation, so the string is unchanged
+Layout/HeredocIndentation held writes <<END as <<~END, which ends at an indented END in its body, and re-indents the heredocs nested in its interpolation; heredoc layout is a preference -A keeps
 Layout/IndentationConsistency layout re-indents statements
 Layout/IndentationStyle layout turns indentation tabs into spaces outside string literals
 Layout/IndentationWidth layout re-indents a body
@@ -84,29 +84,29 @@ Layout/SpaceInsideStringInterpolation layout sets spaces inside #{}, around code
 Layout/TrailingEmptyLines layout sets the blank lines at the end of the file
 Layout/TrailingWhitespace layout deletes trailing spaces; in a heredoc it keeps them as #{'  '}, so the string is unchanged
 Lint/AmbiguousOperator delimiter parenthesises the arguments the parser already gives a splat or block-pass
-Lint/AmbiguousOperatorPrecedence delimiter parenthesises the operation that already binds tighter
+Lint/AmbiguousOperatorPrecedence held loops with Style/RedundantParentheses on an operator called with a dot, Sequel.|(a, b & c)
 Lint/AmbiguousRange delimiter parenthesises a range boundary that already binds tighter
 Lint/AssignmentInCondition delimiter parenthesises an assignment used as a condition
-Lint/RedundantStringCoercion equivalent drops .to_s inside interpolation, which calls to_s itself
+Lint/RedundantStringCoercion held drops .to_s inside interpolation, which calls a private to_s and ignores one that returns no String, where x.to_s raised or returned it
 Lint/SymbolConversion equivalent writes a symbol literal without quotes, or in place of .to_sym on a string literal
 Lint/TripleQuotes delimiter drops the empty strings of """x""", which Ruby concatenates away
-Lint/UnusedBlockArgument equivalent prefixes a block parameter no code reads with _
-Lint/UnusedMethodArgument equivalent prefixes a positional parameter no code reads with _; keywords are left
-Naming/BlockForwarding equivalent forwards the block anonymously (&) where it is only passed on
+Lint/UnusedBlockArgument held renames a block parameter an x-string or eval may read by name (Opal), or that shadows an outer local the block assigns
+Lint/UnusedMethodArgument held renames a parameter an x-string, eval or binding may read by name (Opal's corelib), and changes Method#parameters
+Naming/BlockForwarding held anonymises a block parameter an x-string or eval may read by name, and changes Method#parameters
 Naming/HeredocDelimiterCase delimiter upcases a heredoc delimiter
-Style/ArgumentsForwarding equivalent forwards arguments anonymously (*, **, &, ...) where they are only passed on
+Style/ArgumentsForwarding held anonymises parameters an x-string, eval or YARD @param names, and writes * inside a block with its own |*|, which does not parse
 Style/BlockDelimiters delimiter swaps do/end and braces where the block binds to the same call
 Style/CharacterLiteral delimiter writes ?a as "a"
 Style/ColonMethodCall delimiter writes Foo::bar as Foo.bar, the same call
 Style/CommentAnnotation layout formats a TODO/FIXME keyword in a comment
-Style/CommentedKeyword layout moves a comment off the line of class/def/end
+Style/CommentedKeyword held deletes the comment on an end line
 Style/EmptyBlockParameter delimiter drops empty block pipes
-Style/EmptyCaseCondition equivalent writes a subjectless case as if/elsif with the same conditions in the same order
+Style/EmptyCaseCondition held copies a when's splat into if *LIST, which does not parse
 Style/EmptyElse equivalent drops an else that holds nothing or nil, the value if/case already give
 Style/EmptyStringInsideInterpolation equivalent writes "#{c ? x : ''}" as "#{x if c}", which interpolates the same text
 Style/Encoding layout deletes a utf-8 encoding comment, Ruby's default
 Style/HashSyntax delimiter writes :a => as a:, and {a: a} as {a:}
-Style/IfInsideElse equivalent writes else-if as elsif
+Style/IfInsideElse held rebuilds a nested if ... then without its comments
 Style/IfWithSemicolon equivalent writes if c; a else b end as a ternary
 Style/LambdaCall equivalent writes x.() as x.call, the call it stands for
 Style/MagicCommentFormat layout formats a magic comment
@@ -115,13 +115,13 @@ Style/MultilineIfModifier equivalent writes a multi-line modifier if as an if bl
 Style/MultilineTernaryOperator equivalent writes a multi-line ternary as if/else
 Style/NestedTernaryOperator equivalent writes a nested ternary as if/elsif
 Style/Next equivalent writes a block's wrapping if as next unless, with the same condition
-Style/Not equivalent writes not x as !x, the same call
+Style/Not held writes not a < b as a >= b, a different method for a partial order, NaN or a custom !=
 Style/NumericLiteralPrefix delimiter writes an octal or hex prefix in lowercase
 Style/NumericLiterals delimiter adds underscores to a long integer
 Style/OneLineConditional equivalent writes a one-line if/then/else as a ternary
-Style/OrAssignment equivalent writes x = x || y and x = y unless x as x ||= y
+Style/OrAssignment held writes @x = y unless @x as @x ||= y, whose value as a method's last expression is @x, not nil
 Style/PercentLiteralDelimiters delimiter swaps the delimiters of a percent literal
-Style/PerlBackrefs equivalent writes $1 as Regexp.last_match(1) (::Regexp inside a namespace), the same frame-local match
+Style/PerlBackrefs held writes $` and $' as Regexp.last_match.pre_match and .post_match, which raise after a failed match
 Style/QuotedSymbols delimiter swaps a quoted symbol's quotes
 Style/RedundantAssignment equivalent drops the local that a method assigns and then returns
 Style/RedundantBegin delimiter drops a begin/end that groups nothing
@@ -133,7 +133,7 @@ Style/RedundantParentheses delimiter drops parentheses that group nothing
 Style/RedundantPercentQ delimiter writes %q()/%Q() as quotes
 Style/RedundantReturn equivalent drops return on a method's last expression
 Style/RedundantSelf equivalent drops self. where no local shadows the method
-Style/RedundantSelfAssignmentBranch equivalent drops the branch that assigns a variable to itself
+Style/RedundantSelfAssignmentBranch held writes v = c ? x : v as v = x if c, whose value as a method's last expression is nil, not v
 Style/RegexpLiteral delimiter swaps // and %r{}
 Style/RescueModifier equivalent writes a rescue modifier as begin/rescue, which rescues the same errors
 Style/SelfAssignment equivalent writes x = x + y as x += y

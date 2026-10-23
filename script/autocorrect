@@ -11,7 +11,8 @@ HEADER = <<~YAML
   # Written by script/autocorrect from data/autocorrect.txt; edit the list, not
   # this file. `rubocop -a` applies a correction only when it changes layout or
   # delimiters, or swaps syntax for an exact equivalent that resolves no name the
-  # project could define; every other correction waits for `rubocop -A`.
+  # project could define; every other correction waits for `rubocop -A`. A listed
+  # correction RuboCop ships as unsafe is vouched for here (`SafeAutoCorrect: true`).
   # Run it under the oldest and the newest RuboCop the gemspec allows: it adds
   # to the entries already shipped.
 YAML
@@ -19,8 +20,11 @@ YAML
 PLUGINS.each { require it }
 require "rubocop-kata"
 
-allowed = File.readlines(ALLOWLIST, chomp: true).map { it.split(" ", 2).first }
-shipped = File.file?(TARGET) ? YAML.load_file(TARGET).keys : []
+allowed = File.readlines(ALLOWLIST, chomp: true).map { it.split(" ", 3) }.reject { it[1] == "held" }.map(&:first)
+shipped = File.file?(TARGET) ? YAML.load_file(TARGET) : {}
 correcting = RuboCop::Cop::Registry.global.cops.select(&:support_autocorrect?).map(&:cop_name)
-unsafe = (shipped | correcting).sort - allowed
-File.write(TARGET, HEADER + unsafe.to_h { [it, { "SafeAutoCorrect" => false }] }.to_yaml.delete_prefix("---\n"))
+defaults = RuboCop::ConfigLoader.default_configuration
+vouched = allowed.select { shipped.dig(it, "SafeAutoCorrect") || defaults.for_cop(it)["SafeAutoCorrect"] == false }
+held = (shipped.keys | correcting) - allowed
+settings = (held | vouched).sort.to_h { [it, { "SafeAutoCorrect" => vouched.include?(it) }] }
+File.write(TARGET, HEADER + settings.to_yaml.delete_prefix("---\n"))
