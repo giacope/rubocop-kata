@@ -12,6 +12,7 @@ class RuboCop::Kata::Profile
   AUTOCORRECT = File.join(SHELF, "autocorrect.yml")
   BRANDS = { "RuboCop" => "Rubocop", "RSpec" => "Rspec" }.freeze
   SPELLED = { "RuboCop" => "rubocop", "RSpec" => "rspec" }.freeze
+  WORD = /\A[a-z][a-z0-9]+\z/
   def initialize(root, options, shelf: Dir.tmpdir)
     @root = root
     @options = options
@@ -32,24 +33,47 @@ class RuboCop::Kata::Profile
     { "Packaging" => :packaged?, "RSpec" => :rspec? }.each do |department, found|
       layer[department] = { "Enabled" => false } unless chosen(department.downcase) { survey.public_send(found) }
     end
-    skipped = survey.generated
-    layer["AllCops"] = { "Exclude" => skipped } unless skipped.empty?
-    layer.merge(spoken(survey))
+    layer.merge(skipped(survey), spoken(survey), owned(survey))
   end
 
   private
 
+  def skipped(survey)
+    generated = survey.generated
+    generated.empty? ? {} : { "AllCops" => { "Exclude" => generated } }
+  end
+
   def spoken(survey)
-    words = (survey.names + nodes(survey)).uniq.reject { plain?(it) }
+    words = (survey.names + coined(survey)).uniq.reject { plain?(it) }
     layer = words.empty? ? {} : { "Kata/RealWords" => { "Vocabulary" => words } }
     layer = layer.merge(transforms(survey))
-    survey.parser? ? layer.merge("Lint/BooleanSymbol" => { "Enabled" => false }) : layer
+    return layer unless survey.parser?
+    spoken = layer.fetch("Kata/RealWords", {}).merge("NodeCallbacks" => true)
+    layer.merge("Kata/RealWords" => spoken, "Lint/BooleanSymbol" => { "Enabled" => false })
   end
+
+  def owned(survey)
+    roots = survey.roots
+    layer = roots.empty? ? {} : { "Kata" => { "Roots" => roots } }
+    checked = { "Dependencies" => survey.dependencies.sort, "Protocols" => (survey.framework? ? %w[rails] : []) }
+    checked = checked.reject { |_, value| value.empty? }
+    checked.empty? ? layer : layer.merge("Kata/NoTypeCheck" => checked)
+  end
+
+  def coined(survey)
+    (survey.dependencies.flat_map { parts(it) } + named(survey) + nodes(survey)).reject { clipping?(it) }
+  end
+
+  def parts(gem) = gem.downcase.split(/[-_.]/).grep(WORD)
+
+  def named(survey) = survey.constants.flat_map { spelled(it).split("_") }.grep(WORD)
+
+  def spelled(name) = snake(BRANDS.reduce(name) { |text, (brand, word)| text.gsub(brand, word) })
 
   def transforms(survey)
     found =
       (survey.constants - SPELLED.keys).filter_map do |name|
-        path = snake(BRANDS.reduce(name) { |text, (brand, word)| text.gsub(brand, word) })
+        path = spelled(name)
         [name, path] unless path == snake(name)
       end
     found.empty? ? {} : { "RSpec/SpecFilePathFormat" => { "CustomTransform" => SPELLED.merge(found.to_h) } }
@@ -57,14 +81,11 @@ class RuboCop::Kata::Profile
 
   def snake(name) = name.gsub(/([^A-Z])([A-Z]+)/, '\1_\2').gsub(/([A-Z])([A-Z][^A-Z\d]+)/, '\1_\2').downcase
 
-  def nodes(survey)
-    return [] unless survey.parser?
-    Parser::Meta::NODE_TYPES.flat_map { [it.to_s, *it.to_s.split("_")] }.grep(/\A[a-z][a-z0-9]+\z/)
-  end
+  def nodes(survey) = survey.parser? ? Parser::Meta::NODE_TYPES.map(&:to_s).grep(WORD) : []
 
-  def plain?(word)
-    RuboCop::Kata::Dictionary::ENTRIES.include?(word) && !RuboCop::Kata::Dictionary::CLIPPINGS.key?(word)
-  end
+  def plain?(word) = RuboCop::Kata::Dictionary::ENTRIES.include?(word) && !clipping?(word)
+
+  def clipping?(word) = RuboCop::Kata::Dictionary::CLIPPINGS.key?(word)
 
   def standalone(layer)
     files = layer.fetch("inherit_from").map { YAML.load_file(it, aliases: true) }

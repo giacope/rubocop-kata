@@ -2,6 +2,7 @@ accessor
 acl
 admin
 ai
+alg
 aluminium
 api
 apk
@@ -17,6 +18,7 @@ bcc
 began
 bio
 blew
+blocklist
 boilerplate
 boolean
 bot
@@ -32,6 +34,7 @@ config
 cors
 cpu
 cron
+crv
 css
 csv
 cte
@@ -81,6 +84,7 @@ http
 https
 i18n
 iam
+iat
 imap
 initializer
 inline
@@ -88,6 +92,7 @@ instagram
 internet
 ipv4
 ipv6
+iso
 iterator
 itunes
 ivar
@@ -97,14 +102,18 @@ jobseeker
 js
 json
 jsonl
+jti
 jwt
 keepalive
 kerb
+keypair
 keyword
+kty
 l10n
 lifecycle
 llm
 logout
+lsp
 manoeuvre
 max
 memoization
@@ -129,6 +138,7 @@ oidc
 omniauth
 online
 openai
+openssl
 otp
 paid
 payload
@@ -142,12 +152,14 @@ pwa
 pyjamas
 qr
 queueing
+rackup
 rcpt
 readme
 redis
 refactor
 rollup
 runtime
+safelist
 saml
 sarif
 sceptic
@@ -185,6 +197,7 @@ uprate
 uptime
 uri
 url
+urlsafe
 utf
 uuid
 validator
@@ -199,6 +212,7 @@ website
 whitespace
 workflow
 workspace
+xdg
 xhr
 xlsx
 xml

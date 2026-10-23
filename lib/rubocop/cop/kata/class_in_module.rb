@@ -6,13 +6,15 @@
 
 class RuboCop::Cop::Kata::ClassInModule < RuboCop::Cop::Base
   include RuboCop::Cop::Kata::Roster
+  include RuboCop::Cop::Kata::Territory
+  include RuboCop::Cop::Kata::Reopening
 
   MSG = "Class %s must be defined inside a module, not globally"
   REOPEN_MSG = "Reopening `%s` patches it for every caller; use a refinement (`refine %s`) or a decorator object"
   public_constant :MSG
 
   def on_class(node)
-    return if namespaced?(node) || scoped?(node)
+    return if namespaced?(node) || scoped?(node) || root?(node.identifier.const_name) || !judged?(node)
     add_offense(node, message: message(node))
   end
 

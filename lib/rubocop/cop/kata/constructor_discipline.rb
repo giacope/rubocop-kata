@@ -2,24 +2,21 @@
 
 class RuboCop::Cop::Kata::ConstructorDiscipline < RuboCop::Cop::Base
   include RuboCop::Cop::Kata::Roster
+  include RuboCop::Cop::Kata::Tally
 
-  MSG = "A constructor assigns; it does not compute. Move `%s` out of `initialize`."
+  MSG = "A constructor assigns; it does not compute. Move %s out of `initialize`."
   CONVERSION = /\Ato_[a-z]+\z/
   FRESH = %i[+@ -@ compare_by_identity].freeze
   LITERALS = %i[str dstr hash array].freeze
 
   def on_def(node)
     return unless node.method?(:initialize)
-    node.body&.each_node(:send, :csend) { judge(it, node) }
+    calls = node.body&.each_node(:send, :csend).to_a
+    moved = calls.reject { allowed?(it) || exempt?(it, node) || typing?(it) }
+    add_offense(moved.first, message: format(MSG, tally(moved.map(&:method_name)))) unless moved.empty?
   end
 
   private
-
-  def judge(send, root)
-    name = send.method_name
-    return if allowed?(send) || exempt?(send, root) || typing?(send)
-    add_offense(send, message: format(MSG, name))
-  end
 
   def allowed?(send)
     name = send.method_name.to_s

@@ -3,13 +3,14 @@
 module RuboCop::Cop::Kata::TypeName
   include RuboCop::Cop::Kata::AgentNoun
   include RuboCop::Cop::Kata::Roster
+  include RuboCop::Cop::Kata::Territory
 
   private
 
   def check(node)
     identifier = node.identifier
     name = subject(identifier.short_name.to_s)
-    return if allowed?(name) || contract?(node)
+    return if allowed?(name) || contract?(node) || root?(RuboCop::Kata::Nesting.new(node).qualified)
     complaint = complaint(name, node)
     add_offense(identifier, message: complaint) if complaint
   end

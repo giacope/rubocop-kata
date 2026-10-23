@@ -541,4 +541,20 @@ RSpec.describe(RuboCop::Cop::Kata::GoodClassName, :config) do
       RUBY
     end
   end
+
+  context "with the project's root constants" do
+    let(:cop_config) { { "Roots" => %w[Rubocop::Kata::Planner] } }
+
+    it "passes the root class, which names the gem" do
+      expect_no_offenses(<<~RUBY)
+        module RuboCop
+          module Kata
+            class Planner
+              def stage; end
+            end
+          end
+        end
+      RUBY
+    end
+  end
 end

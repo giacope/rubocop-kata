@@ -19,6 +19,12 @@ class RuboCop::Kata::Inventory
 
   def foreign?(name) = sent.include?(name.to_s) && !message?(name)
 
+  def owners(name, hidden:)
+    replies.fetch(name.to_s, []).filter_map { |owner, _, shown| owner if hidden || shown == :public }
+  end
+
+  def openings(name) = opened.fetch(name, [])
+
   def lineage
     @_lineage ||= texts.map { RuboCop::Kata::Lineage.parse(it) }.reduce(RuboCop::Kata::Lineage.new({}), :merge)
   end
@@ -33,10 +39,16 @@ class RuboCop::Kata::Inventory
 
   def messages = @_messages ||= texts.flat_map { it.scan(METHOD) }.flatten.to_set
 
+  def opened = @_opened ||= files.flat_map { RuboCop::Kata::Openings.new(*it).records }.group_by(&:first)
+
+  def replies = @_replies ||= texts.flat_map { RuboCop::Kata::Messages.new(it).records }.group_by { it[1] }
+
   def sent = @_sent ||= texts.flat_map { |text| CALLS.flat_map { text.scan(it) } }.flatten.to_set
 
-  def texts
-    @_texts ||= @patterns.flat_map { Dir.glob(it, base: @root) }.uniq
-      .map { File.read(File.join(@root, it), encoding: Encoding::UTF_8).scrub }
+  def texts = files.map(&:last)
+
+  def files
+    @_files ||= @patterns.flat_map { Dir.glob(it, base: @root) }.uniq
+      .map { [it, File.read(File.join(@root, it), encoding: Encoding::UTF_8).scrub] }
   end
 end

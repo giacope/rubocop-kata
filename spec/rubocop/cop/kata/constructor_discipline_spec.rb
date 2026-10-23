@@ -47,15 +47,13 @@ RSpec.describe(RuboCop::Cop::Kata::ConstructorDiscipline, :config) do
     expect_offense(<<~RUBY)
       def initialize(name)
         if name.empty?
-           ^^^^^^^^^^^ A constructor assigns; it does not compute. Move `empty?` out of `initialize`.
+           ^^^^^^^^^^^ A constructor assigns; it does not compute. Move `empty?`, `ready?` and `done?` out of `initialize`.
           raise ArgumentError
         else
           @name = name
         end
         @ready = true if name.ready?
-                         ^^^^^^^^^^^ A constructor assigns; it does not compute. Move `ready?` out of `initialize`.
         if name.done?
-           ^^^^^^^^^^ A constructor assigns; it does not compute. Move `done?` out of `initialize`.
         end
       end
     RUBY
@@ -76,10 +74,23 @@ RSpec.describe(RuboCop::Cop::Kata::ConstructorDiscipline, :config) do
     expect_offense(<<~RUBY)
       def initialize(list)
         @names = list.map { |user| user.name }
-                                   ^^^^^^^^^ A constructor assigns; it does not compute. Move `name` out of `initialize`.
-                 ^^^^^^^^ A constructor assigns; it does not compute. Move `map` out of `initialize`.
+                 ^^^^^^^^ A constructor assigns; it does not compute. Move `map` and `name` out of `initialize`.
       end
     RUBY
+  end
+
+  # opal's CLIOptions#initialize: two hundred `on` calls are one decision.
+  it "reports a constructor once, counting each call it would move" do
+    expect_offense(<<~RUBY)
+      def initialize(record)
+        @message = "\#{record.name} \#{record.name} \#{record.name}"
+                      ^^^^^^^^^^^ A constructor assigns; it does not compute. Move `name` ×3 out of `initialize`.
+      end
+    RUBY
+  end
+
+  it "reads an empty constructor" do
+    expect_no_offenses("def initialize; end\n")
   end
 
   it "leaves computation in other methods alone" do
@@ -124,9 +135,8 @@ RSpec.describe(RuboCop::Cop::Kata::ConstructorDiscipline, :config) do
       expect_offense(<<~RUBY)
         def initialize(name, table)
           @text = +name
-                  ^^^^^ A constructor assigns; it does not compute. Move `+@` out of `initialize`.
+                  ^^^^^ A constructor assigns; it does not compute. Move `+@` and `compare_by_identity` out of `initialize`.
           @seen = table.compare_by_identity
-                  ^^^^^^^^^^^^^^^^^^^^^^^^^ A constructor assigns; it does not compute. Move `compare_by_identity` out of `initialize`.
         end
       RUBY
     end
@@ -135,15 +145,11 @@ RSpec.describe(RuboCop::Cop::Kata::ConstructorDiscipline, :config) do
       expect_offense(<<~RUBY)
         def initialize(items, url)
           @id = SecureRandom.uuid
-                ^^^^^^^^^^^^^^^^^ A constructor assigns; it does not compute. Move `uuid` out of `initialize`.
+                ^^^^^^^^^^^^^^^^^ A constructor assigns; it does not compute. Move `uuid`, `new`, `sum`, `map` and `instance_method` out of `initialize`.
           @client = Http::Client.new(url)
-                    ^^^^^^^^^^^^^^^^^^^^^ A constructor assigns; it does not compute. Move `new` out of `initialize`.
           @total = items.sum
-                   ^^^^^^^^^ A constructor assigns; it does not compute. Move `sum` out of `initialize`.
           @ids = Set.new(items.map(&:id))
-                         ^^^^^^^^^^^^^^^ A constructor assigns; it does not compute. Move `map` out of `initialize`.
           @size = String.instance_method(:size)
-                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ A constructor assigns; it does not compute. Move `instance_method` out of `initialize`.
         end
       RUBY
     end

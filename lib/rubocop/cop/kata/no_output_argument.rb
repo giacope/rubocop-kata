@@ -3,8 +3,10 @@
 class RuboCop::Cop::Kata::NoOutputArgument < RuboCop::Cop::Base
   include RuboCop::Cop::Kata::Roster
   include RuboCop::Kata::Order
+  include RuboCop::Cop::Kata::Tally
 
-  MSG = "`%s` changes the caller's `%s`; return a new value, or move the change to the object that owns it."
+  MSG = "%s changes the caller's `%s`; return a new value, or move the change to the object that owns it."
+  MANY_MSG = "This method changes the caller's %s; return a new value, or move the change to the object that owns it."
   INPUTS = %i[arg optarg kwarg kwoptarg].freeze
   SCOPES = %i[def defs sclass].freeze
   WRITES = %i[op_asgn or_asgn and_asgn].freeze
@@ -13,20 +15,28 @@ class RuboCop::Cop::Kata::NoOutputArgument < RuboCop::Cop::Base
   def on_def(node)
     names = node.arguments.select { INPUTS.include?(it.type) }.map(&:name)
     names -= list("AllowedNames").map(&:to_sym)
-    node.body&.each_node(:send, :csend) { judge(it, names, node) }
+    changes = node.body ? node.body.each_node(:send, :csend).select { changed?(it, names, node) } : []
+    report(changes) unless changes.empty?
   end
 
   alias on_defs on_def
 
   private
 
-  def judge(call, names, method)
+  def report(changes)
+    held = changes.group_by { it.receiver.children.first }.transform_values { |calls| calls.map { label(it) } }
+    add_offense(changes.first, message: message(held))
+  end
+
+  def message(held)
+    return format(MSG, tally(held.values.first), held.keys.first) if held.size == 1
+    format(MANY_MSG, joined(held.map { |name, labels| "`#{name}` (#{tally(labels)})" }))
+  end
+
+  def changed?(call, names, method)
     target = call.receiver
-    return unless target&.lvar_type?
-    name = target.children.first
-    return unless names.include?(name) && mutation?(call)
-    return if outside?(call, method) || fresh?(target, method)
-    add_offense(call, message: format(MSG, label(call), name))
+    return false unless target&.lvar_type? && names.include?(target.children.first) && mutation?(call)
+    !outside?(call, method) && !fresh?(target, method)
   end
 
   def label(call) = written?(call) ? :[]= : call.method_name
