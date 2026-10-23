@@ -7,10 +7,8 @@ module RuboCop::Kata::Dictionary
   WORDS = File.join(DATA, "words.txt.gz")
   SOFTWARE = File.join(DATA, "software.txt.gz")
   EXTRA = File.join(DATA, "supplement.txt")
-  ENTRIES = Set.new(
-    [WORDS, SOFTWARE].flat_map { Zlib.gunzip(File.binread(it)).split("\n") } +
-      File.readlines(EXTRA, chomp: true)
-  ).freeze
+  ENGLISH = Set.new(Zlib.gunzip(File.binread(WORDS)).split("\n")).freeze
+  ENTRIES = (ENGLISH | Zlib.gunzip(File.binread(SOFTWARE)).split("\n") | File.readlines(EXTRA, chomp: true)).freeze
   AGENTS, THINGS, WORDNET_VERBS =
     %w[agents things verbs].map { Set.new(Zlib.gunzip(File.binread("#{DATA}/#{it}.txt.gz")).split("\n")).freeze }
   VERBS = (WORDNET_VERBS | File.readlines(File.join(DATA, "actions.txt"), chomp: true)).freeze

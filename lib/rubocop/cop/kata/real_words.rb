@@ -20,12 +20,18 @@ class RuboCop::Cop::Kata::RealWords < RuboCop::Cop::Base
     [/([b-df-hj-np-tv-z])\1er\z/, '\1'], [/or\z/, ""], [/less\z/, ""]
   ].freeze
 
+  INFLECTIONS = [
+    [/ed\z/, ""], [/(?<=e)d\z/, ""], [/ied\z/, "y"], [/([b-df-hj-np-tv-z])\1ed\z/, '\1'],
+    [/ing\z/, ""], [/ing\z/, "e"], [/([b-df-hj-np-tv-z])\1ing\z/, '\1']
+  ].freeze
+  PARTICLES = %w[in on out up off down over].freeze
+  CALLBACK = /\Aon_([a-z][a-z0-9_]*)\z/
   PREFIXES = %w[un re non sub].freeze
   NAMED = %i[ivasgn cvasgn gvasgn arg optarg kwarg kwoptarg restarg kwrestarg blockarg].freeze
 
   def on_def(node)
     name = node.method_name
-    mint(node.loc.name, name) unless inherited?(node) || foreign?(name)
+    mint(node.loc.name, name) unless inherited?(node) || foreign?(name) || callback?(name)
   end
 
   alias on_defs on_def
@@ -56,7 +62,33 @@ class RuboCop::Cop::Kata::RealWords < RuboCop::Cop::Base
     base = segment.sub(/\d+\z/, "")
     return true if base.length < 2 || listed?("Terms", segment) || listed?("Vocabulary", segment)
     entries = RuboCop::Kata::Dictionary::ENTRIES
-    (entries.include?(segment) || forms(base).any? { entries.include?(it) }) && !banned?(segment)
+    known = entries.include?(segment) || forms(base).any? { entries.include?(it) } || inflected?(base)
+    known && !banned?(segment)
+  end
+
+  def callback?(name)
+    cop_config["NodeCallbacks"] == true && Parser::Meta::NODE_TYPES.include?(name.to_s[CALLBACK, 1]&.to_sym)
+  end
+
+  def inflected?(base)
+    INFLECTIONS.any? do |pattern, replacement|
+      root = base.sub(pattern, replacement)
+      root != base && coined?(root)
+    end
+  end
+
+  def coined?(root)
+    known = listed?("Terms", root) || listed?("Vocabulary", root) || RuboCop::Kata::Dictionary::ENTRIES.include?(root)
+    known && !banned?(root) && !conjugated?(root) && !phrasal?(root)
+  end
+
+  def conjugated?(root)
+    english = RuboCop::Kata::Dictionary::ENGLISH
+    english.include?(root) && %W[#{root}ing #{root.chomp("e")}ing #{root}#{root[-1]}ing].any? { english.include?(it) }
+  end
+
+  def phrasal?(root)
+    PARTICLES.any? { root.end_with?(it) && RuboCop::Kata::Dictionary::VERBS.include?(root.delete_suffix(it)) }
   end
 
   def forms(base)

@@ -190,4 +190,20 @@ RSpec.describe(RuboCop::Cop::Kata::GoodVariableName, :config) do
       $stdout = StringIO.new
     RUBY
   end
+
+  # pundit's `@_pundit_policy_scoped`, solid_queue's `solid_queue_job`: code mixed into host classes.
+  context "with the project's root constants" do
+    let(:cop_config) do
+      defaults.merge("Terms" => [], "AllowedNames" => [], "Roots" => %w[Pundit SolidQueue RubyEventStore])
+    end
+
+    it "counts the root's snake-case name as a role prefix" do
+      expect_offense(<<~RUBY)
+        @_pundit_policy_scoped = solid_queue_claimed_job = 1
+        policy_scope_cache = 1
+        ^^^^^^^^^^^^^^^^^^ `policy_scope_cache` strings 3 words together, past the 2 a name carries: the words describe an object you have not introduced yet. Name that object, give a role a `Prefixes`/`Suffixes` word — or, if `policy_scope_cache` is one domain concept here, add it to `Terms`.
+        pundit = ruby_event_store = 1
+      RUBY
+    end
+  end
 end

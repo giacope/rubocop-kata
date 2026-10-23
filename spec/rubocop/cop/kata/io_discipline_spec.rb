@@ -1,23 +1,35 @@
 # frozen_string_literal: true
 
 RSpec.describe(RuboCop::Cop::Kata::IoDiscipline, :config) do
-  it "flags bare output calls" do
+  let(:ruby_version) { 3.4 }
+
+  it "flags bare output calls, naming the stream the class holds" do
     expect_offense(<<~RUBY)
-      puts "report"
-      ^^^^^^^^^^^^^ Write through the injected `@io`, not bare `puts`.
-      warn "oops"
-      ^^^^^^^^^^^ Write through the injected `@io`, not bare `warn`.
-      pp value
-      ^^^^^^^^ Write through the injected `@io`, not bare `pp`.
-      p value
-      ^^^^^^^ Write through the injected `@io`, not bare `p`.
+      class Report
+        def initialize(out) = @out = out
+        def show
+          puts "report"
+          ^^^^^^^^^^^^^ Write through the injected `@out`, not bare `puts`.
+          warn "oops"
+          ^^^^^^^^^^^ Write through the injected `@out`, not bare `warn`.
+          pp value
+          ^^^^^^^^ Write through the injected `@out`, not bare `pp`.
+          p value
+          ^^^^^^^ Write through the injected `@out`, not bare `p`.
+        end
+      end
     RUBY
   end
 
-  it "flags a bare call without arguments" do
+  # pundit.rb: a module-level `warn` has no stream to write through yet.
+  it "names the seam to add where nothing is injected" do
     expect_offense(<<~RUBY)
       puts
-      ^^^^ Write through the injected `@io`, not bare `puts`.
+      ^^^^ Inject the stream `puts` writes to (`def initialize(io: $stdout)`) and write through it.
+      module Pundit
+        def self.deprecate = warn("old")
+                             ^^^^^^^^^^^ Inject the stream `warn` writes to (`def initialize(io: $stderr)`) and write through it.
+      end
     RUBY
   end
 
@@ -48,9 +60,9 @@ RSpec.describe(RuboCop::Cop::Kata::IoDiscipline, :config) do
   it "still flags p printing a value" do
     expect_offense(<<~RUBY)
       p(value)
-      ^^^^^^^^ Write through the injected `@io`, not bare `p`.
+      ^^^^^^^^ Inject the stream `p` writes to (`def initialize(io: $stdout)`) and write through it.
       p value, other
-      ^^^^^^^^^^^^^^ Write through the injected `@io`, not bare `p`.
+      ^^^^^^^^^^^^^^ Inject the stream `p` writes to (`def initialize(io: $stdout)`) and write through it.
     RUBY
   end
 

@@ -5,7 +5,7 @@ require "tmpdir"
 RSpec.describe(RuboCop::Cop::Kata::NoTypeCheck, :config) do
   let(:ruby_version) { 3.4 }
 
-  let(:cop_config) { { "AllowedMethods" => %w[== coerce], "OwnedPaths" => [] } }
+  let(:cop_config) { { "AllowedMethods" => %w[== coerce], "OwnedPaths" => [], "Dependencies" => [] } }
 
   it "flags asking an object whether it is one of the project's own types" do
     expect_offense(<<~RUBY)
@@ -264,16 +264,136 @@ RSpec.describe(RuboCop::Cop::Kata::NoTypeCheck, :config) do
   end
 
   context "with the shipped protocol inventories" do
-    let(:cop_config) { { "AllowedMethods" => [], "OwnedPaths" => [], "Protocols" => %w[ruby rails] } }
+    let(:cop_config) do
+      { "AllowedMethods" => [], "OwnedPaths" => [], "Protocols" => %w[ruby rails], "Dependencies" => [] }
+    end
 
     it "reads a probe of a name Ruby's or Rails' public classes answer as a protocol" do
       expect_offense(<<~RUBY)
-        def warn(text) = text
-        def lease_connection = nil
-        def settle = nil
+        class Ledger
+          def warn(text) = text
+          def lease_connection = nil
+          def defined_enums = {}
+          def settle = nil
+        end
         def log(logger) = logger.respond_to?(:warn) && logger.respond_to?(:lease_connection)
-        def pay(bill) = bill.respond_to?(:settle)
+        def pay(bill) = bill.respond_to?(:settle) || bill.respond_to?(:defined_enums)
                              ^^^^^^^^^^^ `respond_to?` asks an object what it is; tell it what to do, and let polymorphism choose.
+      RUBY
+    end
+  end
+
+  # In the rubocop gem, `node.respond_to?(:setter_method?)` asks rubocop-ast's
+  # Node, where the cop's own `setter_method?(node)` is a private helper.
+  it "leaves a probe of a method the project defines only privately, or outside any class" do
+    expect_no_offenses(<<~RUBY)
+      def outline = nil
+      class VoidCheck
+        def tagged(node) = node.respond_to?(:modifier_form?) && node.respond_to?(:setter_method?)
+        def drawn(node) = node.respond_to?(:outline) || node.respond_to?(:sealed?) || node.respond_to?(:kept)
+        protected def sealed? = true
+        private
+        def setter_method?(node) = node.method_name.end_with?("=")
+        def kept = nil
+        public
+        def modifier_form?(node) = node.loc.end.nil?
+        private :modifier_form?, "kept"
+      end
+    RUBY
+  end
+
+  it "flags a probe of a module function or a class method the project defines" do
+    expect_offense(<<~RUBY)
+      module Tools
+        module_function
+
+        def sharpen = nil
+        def self.hone = nil
+      end
+      def ready?(tool) = tool.respond_to?(:sharpen) || tool.respond_to?(:hone)
+                              ^^^^^^^^^^^ `respond_to?` asks an object what it is; tell it what to do, and let polymorphism choose.
+                                                            ^^^^^^^^^^^ `respond_to?` asks an object what it is; tell it what to do, and let polymorphism choose.
+    RUBY
+  end
+
+  it "flags a probe that asks for private methods too, and one of a method made public again" do
+    expect_offense(<<~RUBY)
+      class VoidCheck
+        private
+        def setter_method?(node) = node.method_name.end_with?("=")
+        def self.vetted = true
+        public
+        def modifier_form?(node) = node.loc.end.nil?
+        class << self
+          def shelved = new
+        end
+      end
+      def tagged(node) = node.respond_to?(:setter_method?, true) || node.respond_to?(:modifier_form?)
+                              ^^^^^^^^^^^ `respond_to?` asks an object what it is; tell it what to do, and let polymorphism choose.
+                                                                         ^^^^^^^^^^^ `respond_to?` asks an object what it is; tell it what to do, and let polymorphism choose.
+      def made(kind) = kind.respond_to?(:shelved) && kind.respond_to?(:vetted)
+                            ^^^^^^^^^^^ `respond_to?` asks an object what it is; tell it what to do, and let polymorphism choose.
+                                                          ^^^^^^^^^^^ `respond_to?` asks an object what it is; tell it what to do, and let polymorphism choose.
+    RUBY
+  end
+
+  it "makes private only the method of the class that says so" do
+    expect_offense(<<~RUBY)
+      class Outer
+        class Inner
+          def shown = 1
+        end
+        def shown = 2
+        private :shown, :ghost
+      end
+      def shown?(node) = node.respond_to?(:shown) || node.respond_to?(:ghost, true)
+                              ^^^^^^^^^^^ `respond_to?` asks an object what it is; tell it what to do, and let polymorphism choose.
+    RUBY
+  end
+
+  # pundit: `::RSpec.respond_to?(:current_example)` guards its own polyfill of that method.
+  it "leaves a probe of a foreign constant, even for a method the project defines" do
+    expect_offense(<<~RUBY)
+      module Matchers
+        def current_example = nil
+        Ok = Module.new
+      end
+      def polyfilled? = ::RSpec.respond_to?(:current_example) || Matchers::Ok.respond_to?(:current_example)
+                                                                              ^^^^^^^^^^^ `respond_to?` asks an object what it is; tell it what to do, and let polymorphism choose.
+    RUBY
+  end
+
+  context "with the project's dependencies" do
+    let(:cop_config) do
+      gems = %w[rack rubocop rubocop-ast rack_attack]
+      { "AllowedMethods" => [], "OwnedPaths" => [], "Dependencies" => gems, "Roots" => %w[Rubocop::Kata] }
+    end
+
+    it "leaves a class a dependency owns, however the project reopens it" do
+      expect_offense(<<~RUBY)
+        module Rack
+          class Request
+            def client_address = get_header("REMOTE_ADDR")
+          end
+        end
+        class RuboCop::AST::Node
+          def outline = nil
+        end
+        class RuboCop::Kata::Waiver
+          def lifted = nil
+        end
+        class Racket; end
+        module Rack
+          def self.version = 3
+        end
+        class RackAttack::Throttle; end
+        def rack?(app) = app.is_a?(Rack) || app.is_a?(RackAttack::Throttle)
+        def open?(request) = request.is_a?(Rack::Request) || request.respond_to?(:client_address)
+        def node?(node) = node.is_a?(RuboCop::AST::Node) || node.respond_to?(:outline) || node.is_a?(Racket)
+                                                                                               ^^^^^ `is_a?` asks an object what it is; tell it what to do, and let polymorphism choose.
+        def waived?(waiver) = waiver.is_a?(RuboCop::Kata::Waiver) || waiver.respond_to?(:lifted)
+                                     ^^^^^ `is_a?` asks an object what it is; tell it what to do, and let polymorphism choose.
+                                                                            ^^^^^^^^^^^ `respond_to?` asks an object what it is; tell it what to do, and let polymorphism choose.
       RUBY
     end
   end
@@ -306,6 +426,8 @@ RSpec.describe(RuboCop::Cop::Kata::NoTypeCheck, :config) do
       File.write(File.join(root, "lib", "billing", "cart.rb"), "class Shop::Cart\nend\n")
       refund = "Billing::Refund =\n  Class.new(StandardError) do\n  end\n"
       File.write(File.join(root, "lib", "billing", "refund.rb"), refund)
+      helper = "class Billing::Ledger\n  private\n\n  def reconcile = nil\nend\n"
+      File.write(File.join(root, "lib", "billing", "ledger.rb"), helper)
     end
 
     after { FileUtils.rm_rf(root) }
@@ -317,6 +439,10 @@ RSpec.describe(RuboCop::Cop::Kata::NoTypeCheck, :config) do
       ]
       found = offenses(probes.map { "x.#{it}\n" }.join)
       expect(found.map(&:line)).to(eq([1, 2, 3, 5, 6]))
+    end
+
+    it "knows which of their methods are private" do
+      expect(offenses("x.respond_to?(:reconcile)\nx.respond_to?(:reconcile, true)\n").map(&:line)).to(eq([2]))
     end
   end
 end

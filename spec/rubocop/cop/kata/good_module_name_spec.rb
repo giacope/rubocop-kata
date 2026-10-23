@@ -108,4 +108,42 @@ RSpec.describe(RuboCop::Cop::Kata::GoodModuleName, :config) do
       end
     RUBY
   end
+
+  context "with the project's root constants" do
+    let(:cop_config) { { "BannedNames" => %w[Core], "Roots" => %w[Faker Nanoc::Core] } }
+
+    it "passes them, since they name the gem" do
+      expect_no_offenses(<<~RUBY)
+        module Faker
+        end
+        module Nanoc
+          module Core
+          end
+        end
+      RUBY
+    end
+  end
+
+  # flipper: `module Flipper; module Services` opens the namespace around each class.
+  context "with the project's files" do
+    include ProjectFiles
+
+    let(:setting) do
+      named = { "OwnedPaths" => ["lib/**/*.rb"], "BannedNames" => %w[Services] }
+      { "Kata/GoodModuleName" => named, "Kata" => { "Roots" => %w[Flipper] } }
+    end
+    let(:reopened) do
+      {
+        "lib/flipper/ui_services/actor.rb" => "module Flipper\n  module UiServices\n    class Actor; end\n  end\nend\n",
+        "lib/flipper/ui_services/gate.rb" => "module Flipper\n  module UiServices\n    class Gate; end\n  end\nend\n",
+        "lib/flipper/ui_services/many.rb" => "module Flipper\n  module UiServices\n    A = 1\n    B = 2\n  end\nend\n"
+      }
+    end
+
+    it "judges a namespace once: in the file named for it, else where it holds the most" do
+      named = reopened.merge("lib/flipper/ui_services.rb" => "module Flipper\n  module UiServices\n  end\nend\n")
+      found = [reopened, named].map { |files| files.keys.map { project_offenses(files, it).size } }
+      expect(found).to(eq([[0, 0, 1], [0, 0, 0, 1]]))
+    end
+  end
 end

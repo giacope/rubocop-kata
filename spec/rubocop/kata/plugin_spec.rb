@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "open3"
 require "tmpdir"
 
 RSpec.describe(RuboCop::Kata::Plugin) do
@@ -96,5 +97,66 @@ RSpec.describe(RuboCop::Kata::Plugin) do
     config = RuboCop::Config.new(shipped.slice("Kata/ClassInModule"), "/app/.rubocop.yml")
     cop = RuboCop::Cop::Kata::ClassInModule.new(config)
     expect(paths.map { cop.relevant_file?(File.join("/app", it)) }).to(eq([false, false, false, true, true]))
+  end
+
+  # doorkeeper, pagy, rake and twelve more corpus projects set an AllCops Exclude of their own. RuboCop
+  # anchors a plugin's paths where it first loads it, so the run gets a process of its own.
+  it "keeps skipping vendored copies and the schema when the project excludes paths of its own" do
+    own = "plugins:\n  - rubocop-kata\nAllCops:\n  Exclude:\n    - \"tmp/**/*\"\n"
+    files = { ".rubocop.yml" => own, "Gemfile" => "", "lib/shelf.rb" => "", "lib/shelf/vendor/tsort/sorter.rb" => "" }
+    listed = targets(files.merge("tmp/cache.rb" => "", "db/schema.rb" => ""))
+    expect(listed).to(eq(%w[Gemfile lib/shelf.rb]))
+  end
+
+  def targets(files)
+    Dir.mktmpdir("kata-config") do |root|
+      files.each do |path, text|
+        FileUtils.mkdir_p(File.dirname(File.join(root, path)))
+        File.write(File.join(root, path), text)
+      end
+      listed, = Open3.capture2(RbConfig.ruby, Gem.bin_path("rubocop", "rubocop"), "-L", "--cache", "false", chdir: root)
+      listed.lines.map { it.chomp.delete_prefix("#{File.realpath(root)}/") }.sort
+    end
+  end
+
+  def upstream
+    gems = %w[rubocop-performance rubocop-rspec rubocop-thread_safety rubocop-packaging]
+    shipped = gems.map { File.join(Gem.loaded_specs[it].gem_dir, "config/default.yml") }
+    files = [RuboCop::ConfigLoader::DEFAULT_FILE, *shipped]
+    files.map { YAML.safe_load_file(it, permitted_classes: [Regexp, Symbol], aliases: true) }.reduce(:merge)
+  end
+
+  def silenced
+    elegant = File.join(Gem.loaded_specs["rubocop-elegant"].gem_dir, "config/default.yml")
+    settings = YAML.load_file(elegant, aliases: true)
+    settings.select { |name, setting| name.include?("/") && setting.is_a?(Hash) && setting["Enabled"] == false }.keys
+  end
+
+  # Why each cop RuboCop ships on and rubocop-elegant switches off stays off in kata.
+  def kept_off
+    {
+      "Layout/EmptyLineAfterGuardClause" => "Kata/NoEmptyLinesInMethods forbids the blank line it asks for",
+      "Naming/MethodName" => "Kata/GoodMethodName holds every segment of a name to its lowercase Pattern",
+      "Naming/VariableName" => "Kata/GoodVariableName holds every segment of a name to its lowercase Pattern",
+      "Style/ClassAndModuleChildren" => "a module, a class and a compact namespace all name one (Kata/ClassInModule)",
+      "Style/Documentation" => "Kata/NoComments decides which comment documents a definition",
+      "Style/IfUnlessModifier" => "a layout preference: a modifier and a block `if` both read, and kata picks neither",
+      "Style/MultilineBlockChain" => "a pipeline of blocks reads in order; Metrics/BlockLength bounds each block",
+      "Style/RedundantException" => "Style/ImplicitRuntimeError, on through rubocop-elegant, wants the class it drops"
+    }
+  end
+
+  it "turns back on each cop RuboCop ships on and rubocop-elegant switches off, or says why it stays off" do
+    leaked = silenced.select { upstream.dig(it, "Enabled") == true }
+    effective do |config|
+      on = leaked.select { config.for_cop(it)["Enabled"] == true }
+      expect([leaked - on - kept_off.keys, kept_off.keys - (leaked - on)]).to(eq([[], []]))
+    end
+  end
+
+  it "reports class variables and a method defined inside another, which rubocop-elegant lets pass" do
+    effective do |config|
+      expect(%w[Style/ClassVars Lint/NestedMethodDefinition].map { config.for_cop(it)["Enabled"] }).to(eq([true, true]))
+    end
   end
 end

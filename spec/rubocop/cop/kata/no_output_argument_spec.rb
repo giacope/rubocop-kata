@@ -11,13 +11,10 @@ RSpec.describe(RuboCop::Cop::Kata::NoOutputArgument, :config) do
     expect_offense(<<~RUBY)
       def collect(node, found, options = {}, key:, limit: 3)
         found << node
-        ^^^^^^^^^^^^^ `<<` changes the caller's `found`; return a new value, or move the change to the object that owns it.
+        ^^^^^^^^^^^^^ This method changes the caller's `found` (`<<`), `options` (`delete`), `key` (`push`) and `limit` (`sort!`); return a new value, or move the change to the object that owns it.
         options.delete(:depth)
-        ^^^^^^^^^^^^^^^^^^^^^^ `delete` changes the caller's `options`; return a new value, or move the change to the object that owns it.
         key.push(1)
-        ^^^^^^^^^^^ `push` changes the caller's `key`; return a new value, or move the change to the object that owns it.
         limit&.sort!
-        ^^^^^^^^^^^^ `sort!` changes the caller's `limit`; return a new value, or move the change to the object that owns it.
       end
     RUBY
   end
@@ -26,11 +23,9 @@ RSpec.describe(RuboCop::Cop::Kata::NoOutputArgument, :config) do
     expect_offense(<<~RUBY)
       def self.tally(counts, word)
         counts[word] = 0
-        ^^^^^^^^^^^^^^^^ `[]=` changes the caller's `counts`; return a new value, or move the change to the object that owns it.
+        ^^^^^^^^^^^^^^^^ `[]=` ×3 changes the caller's `counts`; return a new value, or move the change to the object that owns it.
         counts[word] += 1
-        ^^^^^^^^^^^^ `[]=` changes the caller's `counts`; return a new value, or move the change to the object that owns it.
         counts[word] ||= 1
-        ^^^^^^^^^^^^ `[]=` changes the caller's `counts`; return a new value, or move the change to the object that owns it.
       end
     RUBY
   end
@@ -93,9 +88,8 @@ RSpec.describe(RuboCop::Cop::Kata::NoOutputArgument, :config) do
     expect_offense(<<~RUBY)
       def fill(rows, cells)
         cells.each { |cell| rows << cell }
-                            ^^^^^^^^^^^^ `<<` changes the caller's `rows`; return a new value, or move the change to the object that owns it.
+                            ^^^^^^^^^^^^ `<<` ×2 changes the caller's `rows`; return a new value, or move the change to the object that owns it.
         cells.each { rows << it }
-                     ^^^^^^^^^^ `<<` changes the caller's `rows`; return a new value, or move the change to the object that owns it.
       end
     RUBY
   end

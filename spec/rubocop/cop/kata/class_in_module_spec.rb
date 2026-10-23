@@ -49,4 +49,29 @@ RSpec.describe(RuboCop::Cop::Kata::ClassInModule) do
       expect(messages).to(eq(%w[Strings String].map { "Class #{it} must be defined inside a module, not globally" }))
     end
   end
+
+  # roda, pagy, thor and money reopen the gem's own top-level class in every plugin file.
+  context "with the project's files" do
+    include ProjectFiles
+
+    let(:setting) do
+      { "Kata/ClassInModule" => { "OwnedPaths" => ["lib/**/*.rb"] }, "Kata" => { "Roots" => %w[Shelf] } }
+    end
+    let(:files) do
+      {
+        "lib/shelf.rb" => "class Shelf\n  VERSION = 1\nend\n",
+        "lib/shelf/plugins/cache.rb" => "class Shelf\n  module Cache\n  end\nend\n",
+        "lib/build.rb" => "class Build\nend\n", "lib/build/step.rb" => "class Build\n  class Step\n  end\nend\n",
+        "lib/jobs/a.rb" => "class Job\nend\n",
+        "lib/jobs/b.rb" => "class Job\n  run\nrescue StandardError\n  nil\nend\n",
+        "lib/tasks/a.rb" => "class Task\n  def a = 1\nend\n",
+        "lib/tasks/b.rb" => "class Task\n  def b = 1\n  def c = 2\nend\n"
+      }
+    end
+
+    it "passes the project's root class, and judges a class reopened in many files once" do
+      found = files.keys.map { project_offenses(files, it).size }
+      expect(found).to(eq([0, 0, 1, 0, 0, 1, 0, 1]))
+    end
+  end
 end

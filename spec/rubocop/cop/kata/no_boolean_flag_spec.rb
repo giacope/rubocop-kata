@@ -27,6 +27,33 @@ RSpec.describe(RuboCop::Cop::Kata::NoBooleanFlag, :config) do
     RUBY
   end
 
+  # paper_trail, rodauth, sinatra: the callee stores or binds the boolean, it does not branch on it.
+  it "allows a boolean stored under the name before it, bound after a placeholder, or expected" do
+    expect_no_offenses(<<~RUBY)
+      comment.update_attribute(:is_spam, false)
+      auth_value_method :verify_account_set_password?, true
+      @store.find_by_sql(["SELECT * FROM tracks WHERE public = ? AND :draft", true])
+      connection.select_all("SELECT * FROM tracks WHERE public = :public", true)
+      connection.select_all("SELECT * FROM \#{table} WHERE public = ?", false)
+      expect(flipper).to receive(:enabled?).with(true)
+    RUBY
+  end
+
+  it "still flags a flag passed on through send, or one before the setting's name" do
+    expect_offense(<<~RUBY)
+      record.send(:touch, true)
+                          ^^^^ A boolean flag is two methods trapped in one; split them or name the argument.
+      register(true, :verbose)
+               ^^^^ A boolean flag is two methods trapped in one; split them or name the argument.
+      log("ready", false)
+                   ^^^^^ A boolean flag is two methods trapped in one; split them or name the argument.
+      log("Shelf::Ready", false)
+                          ^^^^^ A boolean flag is two methods trapped in one; split them or name the argument.
+      double.with(true)
+                  ^^^^ A boolean flag is two methods trapped in one; split them or name the argument.
+    RUBY
+  end
+
   it "flags a positional parameter that defaults to a boolean, on either kind of def" do
     expect_offense(<<~RUBY)
       def process(items, strict = false, verbose: true)
@@ -54,6 +81,20 @@ RSpec.describe(RuboCop::Cop::Kata::NoBooleanFlag, :config) do
       expect_no_offenses(<<~RUBY)
         exit(false)
         exit!(true)
+      RUBY
+    end
+  end
+
+  context "with the shipped allowed calls" do
+    let(:cop_config) { {} }
+
+    it "allows RSpec's matchers, queries and stored settings" do
+      expect_no_offenses(<<~RUBY)
+        expect(subject.enabled?(:beta)).to eq(true)
+        expect(flag).to be(false)
+        @store.where("settings.email_new_tracks = ?", true)
+        @store.set(reader, true)
+        allow(gate).to receive(:open?).and_return(false)
       RUBY
     end
   end

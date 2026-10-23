@@ -3,6 +3,8 @@
 require "prism"
 
 class RuboCop::Kata::Definitions
+  include RuboCop::Kata::Scoped
+
   FACTORIES = %w[Class.new Module.new Struct.new Data.define].freeze
   NESTS = [Prism::ClassNode, Prism::ModuleNode].freeze
 
@@ -31,8 +33,6 @@ class RuboCop::Kata::Definitions
     path = node.respond_to?(:target) ? node.target.slice : node.name.to_s
     factory?(node.value) ? [qualified(path, scope)] : []
   end
-
-  def qualified(path, scope) = path.start_with?("::") ? path.delete_prefix("::") : [*scope, path].join("::")
 
   def wrapper?(node)
     body = node.body&.body
