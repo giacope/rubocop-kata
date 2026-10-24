@@ -4,6 +4,7 @@ module RuboCop::Cop::Kata::Verbatim
   include RuboCop::Cop::RangeHelp
 
   LITERALS = %i[str dstr xstr].freeze
+  CONTINUATION = /(?<!\\)(?:\\\\)*\\\z/
 
   private
 
@@ -20,6 +21,15 @@ module RuboCop::Cop::Kata::Verbatim
 
   def register(number)
     target = processed_source.buffer.line_range(number)
+    return add_offense(target) if continued?(number - 1) || commented?(number)
     add_offense(target) { |corrector| corrector.remove(range_by_whole_lines(target, include_final_newline: true)) }
   end
+
+  def continued?(number)
+    processed_source.lines[number - 1].match?(CONTINUATION) && !processed_source.comment_at_line(number)
+  end
+
+  def commented?(number) = processed_source.comments.any? { spanned_lines(it).cover?(number) }
+
+  def spanned_lines(comment) = comment.loc.line...(comment.loc.line + comment.text.lines.size)
 end

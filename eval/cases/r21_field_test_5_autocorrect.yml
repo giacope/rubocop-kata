@@ -1,0 +1,90 @@
+# What the fifth field test found running `rubocop -a` on fifty more codebases and
+# a battery of snippets: each case is a shape -a changed the behaviour of, and now
+# leaves alone.
+- id: string-new-on-the-project-own-string-is-kept
+  cop: Style/RedundantInterpolationUnfreeze
+  expect: offense
+  correct: safe
+  keeps: ["  def self.label(id) = String.new(\"id-#{id}\")"]
+  source: |
+    # frozen_string_literal: true
+
+    module Box
+      class String
+        def self.new(text) = "wrapped(#{text})"
+      end
+
+      def self.label(id) = String.new("id-#{id}")
+    end
+- id: trailing-underscore-read-later-is-kept
+  cop: Style/TrailingUnderscoreVariable
+  expect: offense
+  correct: safe
+  keeps: ["  first, _ = list"]
+  source: |
+    # frozen_string_literal: true
+
+    def pair(list)
+      first, _ = list
+      [first, _]
+    end
+- id: adjacent-literals-across-a-line-break-are-not-joined-with-a-plus
+  cop: Layout/RedundantLineBreak
+  expect: clean
+  correct: safe
+  keeps: ["GREETING = \"Hello, \" \\", "  \"world\""]
+  source: |
+    # frozen_string_literal: true
+
+    GREETING = 'Hello, ' \
+      "world"
+- id: blank-line-a-backslash-continues-into-is-kept
+  cop: Kata/NoEmptyLinesInMethods
+  only: true
+  expect: offense
+  correct: safe
+  becomes: |
+    # frozen_string_literal: true
+
+    def pick
+      result = foo \
+
+      bar
+      result
+    end
+  source: |
+    # frozen_string_literal: true
+
+    def pick
+      result = foo \
+
+      bar
+      result
+    end
+- id: blank-line-inside-a-begin-comment-is-kept
+  cop: Kata/NoEmptyLinesInBlocks
+  only: true
+  expect: offense
+  correct: safe
+  becomes: |
+    # frozen_string_literal: true
+
+    [1].each do
+    =begin
+    first paragraph
+
+    second paragraph
+    =end
+      run
+    end
+  source: |
+    # frozen_string_literal: true
+
+    [1].each do
+    =begin
+    first paragraph
+
+    second paragraph
+    =end
+      run
+    end
