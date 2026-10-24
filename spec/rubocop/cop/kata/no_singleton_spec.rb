@@ -66,6 +66,7 @@ RSpec.describe(RuboCop::Cop::Kata::NoSingleton, :config) do
         def self.mapping = @mapping ||= YAML.load(ERB.new(File.read(PATH)).result)
         def self.handler = @handler ||= lambda { |key| Handler.new(key) }
         def self.defaults = @defaults ||= { client: Client.new }
+        def self.warmed = @warmed ||= tap { warm }
 
         def self.store
           @store ||= begin
