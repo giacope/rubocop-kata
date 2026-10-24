@@ -29,7 +29,7 @@ module RuboCop::Cop::Kata::Verbatim
     processed_source.lines[number - 1].match?(CONTINUATION) && !processed_source.comment_at_line(number)
   end
 
-  def commented?(number) = processed_source.comments.any? { spanned_lines(it).cover?(number) }
+  def commented?(number) = processed_source.comments.any? { spanned_lines(it).include?(number) }
 
-  def spanned_lines(comment) = comment.loc.line...(comment.loc.line + comment.text.lines.size)
+  def spanned_lines(comment) = (comment.loc.line..).first(comment.text.lines.size)
 end
