@@ -35,7 +35,9 @@ RSpec.describe(RuboCop::Cop::Kata::ConstructorDiscipline, :config) do
       def initialize(project, checks)
         self.project = project
         self.checks = checks.map(&:to_s)
-                      ^^^^^^^^^^^^^^^^^^ A constructor assigns; it does not compute. Move `map` out of `initialize`.
+                      ^^^^^^^^^^^^^^^^^^ A constructor assigns; it does not compute. Move `map`, `validate!` and `owner=` out of `initialize`.
+        self.validate!
+        project.owner = self
       end
     RUBY
   end

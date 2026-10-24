@@ -19,7 +19,7 @@ class RuboCop::Kata::Kinship
   def facts(node, scope, method = nil)
     case node
     when *RuboCop::Kata::Lineage::NESTS then nest(node, scope)
-    when Prism::DefNode then scope.empty? ? [] : defined(node, scope)
+    when Prism::DefNode then defined(node, scope)
     when Prism::CallNode then [*call(node, scope, method), *inner(node, scope, method)]
     else inner(node, scope, method)
     end

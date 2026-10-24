@@ -75,6 +75,8 @@ RSpec.describe(RuboCop::Cop::Kata::NoSingleton, :config) do
           end
         end
 
+        def self.cache = @cache ||= (Cache.new unless off?)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `@cache ||=` keeps one global instance on the class; build the object where it is needed and pass it in.
         def self.engine = @engine ||= ready? ? Engine.new : nil
                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `@engine ||=` keeps one global instance on the class; build the object where it is needed and pass it in.
         def self.logger = @logger ||= cached || Logger.new(STDOUT) { |line| line }

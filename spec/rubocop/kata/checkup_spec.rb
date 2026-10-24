@@ -228,6 +228,10 @@ RSpec.describe(RuboCop::Kata::Checkup) do
     end
   end
 
+  it "keeps quiet about a kata cop the project switches off itself, without DisabledByDefault" do
+    project("Kata/GoodClassName:\n  Enabled: false\n") { |root| expect(report(root).first).to(eq("clean\n")) }
+  end
+
   it "names the configuration file when it cannot point at the line that sets DisabledByDefault" do
     project("AllCops: { DisabledByDefault: true }\n") do |root|
       expect(report(root).first).to(start_with(".rubocop.yml: `DisabledByDefault: true` leaves 26 of kata's 26 cops"))

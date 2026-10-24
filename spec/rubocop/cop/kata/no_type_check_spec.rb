@@ -373,10 +373,13 @@ RSpec.describe(RuboCop::Cop::Kata::NoTypeCheck, :config) do
         end
         refine(Integer, &PATCH)
         def lookup = nil
+        helpers(String) { def chase = nil }
       end
       def polyfilled? = "".respond_to?(:safe_constantize) || [].respond_to?(:lookup) || 1.respond_to?(:lookup)
       def ready?(item) = item.respond_to?(:safe_constantize) || item.respond_to?(:lookup)
                                                                      ^^^^^^^^^^^ `respond_to?` asks an object what it is; tell it what to do, and let polymorphism choose.
+      def chased?(item) = item.respond_to?(:chase)
+                               ^^^^^^^^^^^ `respond_to?` asks an object what it is; tell it what to do, and let polymorphism choose.
     RUBY
   end
 

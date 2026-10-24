@@ -190,6 +190,8 @@ RSpec.describe(RuboCop::Cop::Kata::NoClassMethodLogic, :config) do
         def self.available? = !ActiveRecord.nil?
                  ^^^^^^^^^^ `available?` puts logic on the class; classes construct, instances work.
         def available? = false
+        def LIMITS.steps = []
+                   ^^^^^ `steps` only returns a literal; make it a constant.
       end
     RUBY
   end

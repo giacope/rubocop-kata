@@ -140,11 +140,12 @@ RSpec.describe(RuboCop::Kata::Profile) do
       ["core/lib/refinery/core.rb", "module Refinery\n  module Core\n  end\nend\n"],
       ["prof/test-prof.gemspec", ""], ["prof/lib/test-prof.rb", "require \"test_prof\"\nmodule RuboCop\nend\n"],
       ["prof/lib/test_prof.rb", "module TestProf\nend\n"],
-      ["http/http.gemspec", ""], ["http/lib/http.rb", "module HTTP\nend\n"]
+      ["http/http.gemspec", ""], ["http/lib/http.rb", "module HTTP\nend\n"],
+      ["shelf/shelfcms-core.gemspec", ""], ["shelf/lib/shelf/core.rb", "module Shelf\n  module Core\n  end\nend\n"]
     ]
     project(*files) do |root|
       expect(described_class.new(root, {}).overlay.dig("Kata", "Roots").sort)
-        .to(eq(%w[HTTP Refinery Refinery::Core TestProf]))
+        .to(eq(%w[HTTP Refinery Refinery::Core Shelf::Core TestProf]))
     end
   end
 
