@@ -166,12 +166,12 @@ RSpec.describe(RuboCop::Kata::Plugin) do
         RuboCop::Runner.instance_method(:finalize_corrections).super_method
     end
 
-    def guarded(arguments, source, setting = "", input: "")
+    def guarded(flags, source, setting = "", input: "")
       Dir.mktmpdir("kata-safeguard") do |root|
         path = File.join(plant(root, { "sample.rb" => source }), "sample.rb")
         File.write(File.join(root, ".rubocop.yml"), setting, mode: "a")
         node = File.stat(path).ino
-        status, output, errors = fed(input) { Dir.chdir(root) { RuboCop::CLI.new.run([*arguments, "--cache", "false"]) } }
+        status, output, errors = fed(input) { Dir.chdir(root) { RuboCop::CLI.new.run([*flags, "--cache", "false"]) } }
         yield(File.read(path), errors, output, status, File.stat(path).ino == node)
       end
     end
