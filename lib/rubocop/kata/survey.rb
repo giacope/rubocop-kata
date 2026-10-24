@@ -3,7 +3,8 @@
 class RuboCop::Kata::Survey
   MANIFESTS = %w[Gemfile gems.rb Gemfile.lock gems.locked *.gemspec */Gemfile */*.gemspec].freeze
   GEMSPECS = %w[*.gemspec */*.gemspec].freeze
-  LIBRARY = %w[lib/**/*.rb */lib/**/*.rb app/**/*.rb].freeze
+  LIBRARY = %w[lib/**/*.rb */lib/**/*.rb app/**/*.rb */app/**/*.rb].freeze
+  ENGINES = %w[lib/**/*.rb */lib/**/*.rb].freeze
   RSPEC = %w[rspec rspec-core rspec-rails].freeze
   SORBET = %w[sorbet sorbet-runtime sorbet-static].freeze
   ENGINE = /<\s*(::)?Rails::Engine\b|^\s*isolate_namespace\b/
@@ -16,13 +17,14 @@ class RuboCop::Kata::Survey
   DESCRIBE = /^\s*RSpec\.describe\b/
   GRAMMARS = %w[rl y racc treetop rex].freeze
   MARKER = /
-    \bgenerated\s+by\b|(?<![\w@])@generated\b|\bauto-?generated\b|\bdo\s+not\s+(?:edit|modify)\b|
-    \bhas\s+been\s+generated\b
+    \bgenerated\s+(?:by|from)\b|(?<![\w@])@generated\b|\bauto-?generated\b|\ba\s+generated\s+file\b|
+    \bdo\s+not\s+(?:edit|modify)\b|\bhas\s+been\s+generated\b
   /ix
   REQUIRED = [
     /^ {4}([A-Za-z0-9][\w.-]*) \(/, /^\s*gem[\s(]+["']([\w.-]+)["']/,
     /\.add_(?:runtime_|development_)?dependency[\s(]*["']([\w.-]+)["']/
   ].freeze
+  REQUIRE = %r{^\s*require(?:_relative)?[\s(]+["']([\w/.-]+)["']}
   BOUND = 3000
   HEADER = 40
 
@@ -30,9 +32,7 @@ class RuboCop::Kata::Survey
     @root = root
   end
 
-  def rails?
-    File.file?(File.join(@root, APPLICATION)) || sources("lib/**/*.rb").any? { ENGINE.match?(read(it)) }
-  end
+  def rails? = File.file?(File.join(@root, APPLICATION)) || sources(*ENGINES).any? { ENGINE.match?(read(it)) }
 
   def packaged? = Dir.glob(GEMSPECS, base: @root).any?
 
@@ -42,7 +42,7 @@ class RuboCop::Kata::Survey
 
   def names = [*gems, *application.map { snake(it) }].flat_map { it.split(/[-_.]/) }.uniq
 
-  def roots = [*gems.map { camelized(it) }, *application].uniq
+  def roots = [*Dir.glob(GEMSPECS, base: @root).map { root(it) }, *application].uniq
 
   def dependencies
     texts = Dir.glob(MANIFESTS, base: @root).map { read(File.join(@root, it)) }
@@ -73,6 +73,38 @@ class RuboCop::Kata::Survey
     return [] unless File.file?(path)
     read(path).scan(NAMESPACE).flatten.first(1)
   end
+
+  def root(gemspec)
+    gem = File.basename(gemspec, ".gemspec")
+    lib = File.join(@root, File.dirname(gemspec), "lib")
+    names = required(lib, gem) || shipped(lib)
+    names ? names.join("::") : camelized(gem)
+  end
+
+  def required(lib, gem)
+    spelled = [gem.tr("-", "/"), *entered(lib, gem)].map { spelled(it) }
+    names, = spelled.find(&:last) || spelled.max_by { it.first.size }
+    names unless names.empty?
+  end
+
+  def entered(lib, gem)
+    entry = File.join(lib, "#{gem}.rb")
+    return [] unless File.file?(entry)
+    read(entry).scan(REQUIRE).flatten.map { it.delete_suffix(".rb") }.select { File.file?(File.join(lib, "#{it}.rb")) }
+  end
+
+  def shipped(lib)
+    paths = Dir.glob("**/*.rb", base: lib).sort_by { [it.count("/"), it] }
+    paths.lazy.map { spelled(it.delete_suffix(".rb")) }.find(&:last)&.first
+  end
+
+  def spelled(path)
+    segments = path.split("/")
+    names = segments.map { spellings[it.delete("_").downcase] }.take_while(&:itself)
+    [names, names.size == segments.size]
+  end
+
+  def spellings = @_spellings ||= constants.to_h { [it.delete("_").downcase, it] }
 
   def camelized(gem) = gem.split("-").map { |part| part.split(/[_.]/).map(&:capitalize).join }.join("::")
 

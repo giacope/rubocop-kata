@@ -3,7 +3,7 @@
 module RuboCop::Cop::Kata::AgentNoun
   DOER_MSG = "`%s` names a doer; name the %s for the thing it is, not the work it does."
   DOER_HINT = "#{DOER_MSG} Try `%s`.".freeze
-  SEGMENT = /[A-Z]+(?=[A-Z][a-z]|\z)|[A-Z][a-z0-9]*/
+  SEGMENT = /[A-Z]+\d*(?=[A-Z][a-z]|\z)|[A-Z][a-z0-9]*/
   DERIVATIONS = [[/ator\z/, "ation"], [/ector\z/, "ection"], [/isor\z/, "ision"], [/i[zs]er\z/, "is"]].freeze
 
   private

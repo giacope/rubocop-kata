@@ -2,6 +2,57 @@
 
 ## [Unreleased]
 
+- From a fifth field test on fifty more codebases (stripe-ruby, refinerycms,
+  nokogiri, test-prof, aasm, cancancan, the GOV.UK and DfE apps and others),
+  in check mode:
+  - The generated-file marker is the trifecta's one list, the same as
+    hashira's: "generated from" and "a generated file" mark a file too, in
+    the comment block it opens with (stripe-ruby's 1,249 files opening with
+    "File generated from our OpenAPI spec", nokogiri's jars file). A
+    generator's templates (`**/generators/**/templates/`, `lib/templates/`)
+    are left out, as hashira and kimera leave them (simple_form's initializer
+    template, refinerycms's ERB `.rake` templates).
+  - Monorepos of engines: an engine's `<gem>/app/` is `app/` wherever a
+    default names `app/` — every `OwnedPaths`, `Kata/FrozenState`'s
+    controllers, mailers, helpers and views, `Kata/ClassInModule`'s Zeitwerk
+    roots — so refinerycms's `Core` is judged once and its engine
+    controllers keep their exemption; an engine defined in a `<gem>/lib/`
+    turns the Rails profile on.
+  - Roots are the namespace each gem defines, spelled as its code spells
+    it, through its require path or what its entry file requires
+    (`refinerycms-core` → `Refinery::Core`, `test-prof` → `TestProf`,
+    `http` → `HTTP`), not a camelized gem name; a root's role prefix reads
+    both as its words and lowercased (`omni_auth_`, `omniauth_`).
+  - One blank line, one offense: `Kata/NoEmptyLinesInBlocks` leaves a blank
+    line inside a method to `Kata/NoEmptyLinesInMethods` (2,903 lines were
+    reported by both).
+  - doctor says when `AllCops: DisabledByDefault: true` leaves kata's cops
+    off, and how to turn them on, and calls an entry for a renamed cop a
+    rename ("`Naming/PredicateName` was renamed to
+    `Naming/PredicatePrefix`; rename the entry"), never dead.
+  - Advice that would make code worse is gone: `Kata/BuilderNoun` reads a
+    command anywhere in a method (aasm's `invoke … unless model_exists?`),
+    leaves predicates and the public steps of a Rails generator or Thor
+    class (`StepSuperclasses`) alone, and knows Rails' and Thor's other
+    actions (`route`, `generate`, `rake`, `inject_into_class` …);
+    `Kata/ConstructorDiscipline` reads `self.project = project` as
+    assignment (`Kata/NoSetter` reports the writer);
+    `Kata/NoClassMethodLogic` says "make it a constant" only for a method
+    that takes nothing and that no subclass redefines (cancancan's
+    `for_class?(_member_class) = false`); `Kata/IoDiscipline` reads a
+    script's top level as its boot layer, as `Kata/EnvDiscipline` and
+    `Kata/ClockDiscipline` do; `Kata/NoTypeCheck` files a method defined in
+    `refine String do` under `String` and reads a literal receiver
+    (`"".respond_to?`) as the core object it is.
+  - Words: an acronym followed by digits is one segment (`HTML5`;
+    `UTF8Input` is two concepts), and `judgement`, `enrol`, `enrolment`,
+    `enquiry`, `forecasted` and HTML's attribute names (`tabindex`,
+    `srcset`, `hreflang`, `describedby`, `labelledby`, `colspan`,
+    `rowspan`) are words.
+  - `Kata/NoSingleton` judges a class-level cache by what it holds (beis's
+    `@all ||= Codelist.new(…).map { … }` holds an array; `Pathname` is a
+    value), and `Kata/NoBooleanFlag` lets a boolean searched for or
+    compared pass (`flags.index(true)`, `eql?(false)`).
 - From a fourth field test on fifty more codebases (opal, rubocop, roda,
   faker, flipper, nanoc, pundit, zeitwerk, rubygems.org and others), in
   check mode:

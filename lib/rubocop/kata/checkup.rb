@@ -2,9 +2,9 @@
 
 require "yaml"
 require_relative "renames"
+require_relative "entries"
 
 class RuboCop::Kata::Checkup
-  INERT = "%s:%d: `%s` is disabled by the configuration this project inherits; the entry does nothing."
   DEAD = "%s:%d: the directive names `%s`, which is not enabled here; the comment does nothing."
   RENAMED = "%s:%d: the directive names `%s`, which RuboCop renamed to `%s`; the comment does nothing."
   UNREAD = "%s: not checked, %s."
@@ -12,8 +12,8 @@ class RuboCop::Kata::Checkup
   UNLOADED = "%s: the project's configuration does not load (%s); %s."
   BUNDLED = "run doctor through the project's bundle, `bundle exec rubocop-kata doctor`"
   TALLY = "%d dead entr%s"
+  MOVES = ", %d entr%s to rename"
   SKIPPED = ", %d file%s not fully checked"
-  KEY = %r{\A([A-Z]\w*/\w+):}
 
   def initialize(root, io: $stdout)
     @root = root
@@ -31,41 +31,26 @@ class RuboCop::Kata::Checkup
   private
 
   def examine
-    found = inert + dead
-    clean = clean?(found)
-    [*waivers.lines, *notes, *found, clean ? "clean" : tally(found), *waivers.tally].each { @io.puts(it) }
+    found = entries.dead + dead
+    moved = entries.moved
+    clean = clean?(found, moved)
+    verdict = clean ? "clean" : tally(found, moved)
+    [*waivers.lines, *notes, *found, *moved, verdict, *waivers.tally].each { @io.puts(it) }
     clean ? 0 : 1
   end
 
-  def clean?(found) = found.empty? && notes.empty? && waivers.bare.zero?
+  def clean?(found, moved) = found.empty? && moved.empty? && notes.empty? && waivers.bare.zero?
 
-  def tally(found)
-    text = format(TALLY, found.size, found.one? ? "y" : "ies")
+  def tally(found, moved)
+    text = counted(TALLY, found) + (moved.empty? ? "" : counted(MOVES, moved))
     notes.empty? ? text : text + format(SKIPPED, notes.size, plural(notes))
   end
 
+  def counted(template, list) = format(template, list.size, list.one? ? "y" : "ies")
+
   def plural(list) = list.one? ? "" : "s"
 
-  def inert
-    files.flat_map do |file|
-      own = settings(file)
-      File.readlines(file, encoding: Encoding::UTF_8).each_with_index.filter_map do |text, index|
-        key = text[KEY, 1]
-        format(INERT, file.delete_prefix("#{@root}/"), index + 1, key) if key && !live?(key, own)
-      end
-    end
-  end
-
-  def settings(file) = YAML.safe_load_file(file, aliases: true) || {}
-
-  def files(file = File.join(@root, ".rubocop.yml"), seen = [])
-    return seen if seen.include?(file) || !File.file?(file)
-    Array(settings(file)["inherit_from"]).reduce([*seen, file]) do |found, path|
-      files(File.expand_path(path, File.dirname(file)), found)
-    end
-  end
-
-  def live?(key, own) = config.cop_enabled?(key) || own.dig(key, "Enabled") == false
+  def entries = @_entries ||= RuboCop::Kata::Entries.new(@root, config, renames)
 
   def dead
     parsed.flat_map do |path, source|

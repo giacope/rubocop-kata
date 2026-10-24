@@ -29,6 +29,28 @@ RSpec.describe(RuboCop::Cop::Kata::ConstructorDiscipline, :config) do
     RUBY
   end
 
+  # rubytoolbox's `self.project = project`: assigning through the class's own writer, which Kata/NoSetter reports.
+  it "reads an assignment through the object's own writer as assignment" do
+    expect_offense(<<~RUBY)
+      def initialize(project, checks)
+        self.project = project
+        self.checks = checks.map(&:to_s)
+                      ^^^^^^^^^^^^^^^^^^ A constructor assigns; it does not compute. Move `map`, `validate!` and `owner=` out of `initialize`.
+        self.validate!
+        project.owner = self
+      end
+    RUBY
+  end
+
+  it "still flags a store into the object itself" do
+    expect_offense(<<~RUBY)
+      def initialize(name)
+        self[:name] = name
+        ^^^^^^^^^^^^^^^^^^ A constructor assigns; it does not compute. Move `[]=` out of `initialize`.
+      end
+    RUBY
+  end
+
   it "allows the guard and the message of a raise" do
     expect_no_offenses(<<~RUBY)
       def initialize(name)

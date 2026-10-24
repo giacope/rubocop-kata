@@ -45,7 +45,8 @@ RSpec.describe(RuboCop::Cop::Kata::BuilderNoun, :config) do
     let(:ruby_version) { 3.4 }
     let(:cop_config) { { "BannedPrefixes" => %w[generate], "Commands" => %w[File.write FileUtils invoke] } }
 
-    it "leaves a method that ends in a command to its verb" do
+    # aasm's `invoke … unless model_exists?`, madmin's `route` in both branches of an `if`.
+    it "leaves a method that issues a command anywhere in its body to its verb" do
       expect_offense(<<~RUBY)
         def generate_initializer = File.write("config/shelf.rb", "Shelf.start")
         def generate_tree(dir) = FileUtils.mkdir_p(dir)
@@ -53,15 +54,62 @@ RSpec.describe(RuboCop::Cop::Kata::BuilderNoun, :config) do
           say "creating"
           invoke "flipper:active_record"
         end
+        def generate_model
+          invoke "active_record:model", [name] unless model_exists?
+        end
+        def generate_copy = files.map { File.write(it, "") }
         def generate_report = File.read("report.txt")
             ^^^^^^^^^^^^^^^ A builder is named for what it returns: `report`, not `generate_report`.
-        def generate_copy = files.map { File.write(it, "") }
-            ^^^^^^^^^^^^^ A builder is named for what it returns: `copy`, not `generate_copy`.
         def generate_log = logger.write("x")
             ^^^^^^^^^^^^ A builder is named for what it returns: `log`, not `generate_log`.
         def generate_site(dir) = FileUtils.cd(dir) { build }
-        def generate_list = invoke.map { it }
-            ^^^^^^^^^^^^^ A builder is named for what it returns: `list`, not `generate_list`.
+      RUBY
+    end
+  end
+
+  # resque's `generate_failure_ids?`, simple_form's `generate_label_for_attribute?`: a question returns a boolean.
+  it "leaves a predicate alone, since it builds nothing" do
+    expect_no_offenses(<<~RUBY)
+      def get_failure_ids?(options)
+        options.key?(:ids)
+      end
+    RUBY
+  end
+
+  # madmin's generators: Rails runs each public method of a generator in turn, a step whatever it returns.
+  context "with a generator" do
+    let(:ruby_version) { 3.4 }
+    let(:cop_config) do
+      { "BannedPrefixes" => %w[generate], "Commands" => [], "StepSuperclasses" => %w[Rails::Generators::Base Thor] }
+    end
+
+    it "leaves its public steps to their verbs, and judges its helpers and other classes" do
+      expect_offense(<<~RUBY)
+        module Shelf
+          class BaseGenerator < ::Rails::Generators::Base
+          end
+
+          class InstallGenerator < BaseGenerator
+            def generate_routes = resources.each { call_generator(it) }
+
+            def self.generate_banner = "shelf"
+                     ^^^^^^^^^^^^^^^ A builder is named for what it returns: `banner`, not `generate_banner`.
+
+            private
+
+            def generate_field(name) = name
+                ^^^^^^^^^^^^^^ A builder is named for what it returns: `field`, not `generate_field`.
+          end
+
+          class Command < Thor
+            def generate_config = say("written")
+          end
+
+          class Report
+            def generate_summary = 1
+                ^^^^^^^^^^^^^^^^ A builder is named for what it returns: `summary`, not `generate_summary`.
+          end
+        end
       RUBY
     end
   end

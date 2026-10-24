@@ -20,11 +20,12 @@ class RuboCop::Cop::Kata::NoEmptyLinesInBlocks < RuboCop::Cop::Base
 
   private
 
-  def gaps(ast) = ast.each_node(:def, :defs).flat_map { between(it).to_a }.to_set
+  def gaps(ast) = ast.each_node(:def, :defs).flat_map { kept(it) }.to_set
 
-  def between(node)
+  def kept(node)
+    body = node.body&.then { (it.first_line..it.last_line).to_a } || []
     sibling = node.right_sibling
-    return [] unless sibling.is_a?(RuboCop::AST::Node) && %i[def defs].include?(sibling.type)
-    (node.last_line + 1)..(sibling.first_line - 1)
+    return body unless sibling.is_a?(RuboCop::AST::Node) && %i[def defs].include?(sibling.type)
+    [*body, *((node.last_line + 1)..(sibling.first_line - 1))]
   end
 end
