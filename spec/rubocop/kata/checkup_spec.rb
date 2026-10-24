@@ -211,12 +211,14 @@ RSpec.describe(RuboCop::Kata::Checkup) do
   end
 
   # cancancan: RuboCop applies `Naming/PredicateName:` to `Naming/PredicatePrefix`, with a warning.
+  # RuboCop releases before the rename still know the cop by its old name, so the entry is live there.
   it "says to rename an entry for a cop RuboCop renamed and still applies, instead of calling it dead" do
     project("Naming/PredicateName:\n  Exclude:\n    - sample.rb\n") do |root|
-      expected = [
+      renamed = [
         ".rubocop.yml:4: `Naming/PredicateName` was renamed to `Naming/PredicatePrefix`; rename the entry.\n" \
           "0 dead entries, 1 entry to rename\n", 1
       ]
+      expected = RuboCop::Cop::Registry.global.find_by_cop_name("Naming/PredicatePrefix") ? renamed : ["clean\n", 0]
       expect(silenced { report(root) }).to(eq(expected))
     end
   end
