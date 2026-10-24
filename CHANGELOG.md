@@ -78,10 +78,10 @@
     where a bare `String` may be the project's own class) and
     `Style/TrailingUnderscoreVariable` (drops a `_` a later line reads, which
     then raises NameError).
-  - `Layout/RedundantLineBreak` no longer joins adjacent string literals across
-    their line break: `'a' \` + `"b"` became `"a" + "b"`, a new unfrozen String
-    where the literal was one frozen String. The post-check reads a `+` between
-    literals as the call it is.
+  - `Layout/RedundantLineBreak` still reports, but no longer joins, adjacent
+    string literals across their line break: `'a' \` + `"b"` became `"a" +
+    "b"`, a new unfrozen String where the literal was one frozen String. The
+    post-check reads a `+` between literals as the call it is.
   - `Kata/NoEmptyLinesInMethods` and `Kata/NoEmptyLinesInBlocks` report, but
     never delete, a blank line a `\` continues into (deleting it joined
     `x = foo \` with the next statement) or one inside an `=begin` comment.

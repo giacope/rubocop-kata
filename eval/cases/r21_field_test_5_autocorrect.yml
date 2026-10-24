@@ -30,7 +30,7 @@
     end
 - id: adjacent-literals-across-a-line-break-are-not-joined-with-a-plus
   cop: Layout/RedundantLineBreak
-  expect: clean
+  expect: offense
   correct: safe
   keeps: ["GREETING = \"Hello, \" \\", "  \"world\""]
   source: |
