@@ -8,7 +8,10 @@
   - The generated-file marker is the trifecta's one list, the same as
     hashira's: "generated from" and "a generated file" mark a file too, in
     the comment block it opens with (stripe-ruby's 1,249 files opening with
-    "File generated from our OpenAPI spec", nokogiri's jars file).
+    "File generated from our OpenAPI spec", nokogiri's jars file). A
+    generator's templates (`**/generators/**/templates/`, `lib/templates/`)
+    are left out, as hashira and kimera leave them (simple_form's initializer
+    template, refinerycms's ERB `.rake` templates).
   - Monorepos of engines: an engine's `<gem>/app/` is `app/` wherever a
     default names `app/` — every `OwnedPaths`, `Kata/FrozenState`'s
     controllers, mailers, helpers and views, `Kata/ClassInModule`'s Zeitwerk

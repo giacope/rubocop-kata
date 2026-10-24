@@ -14,7 +14,9 @@ plugins:
 # code, and stay -A whatever the rule says.
 # The pending cops kata wants are enabled one by one at the end of this file.
 # A project's own `AllCops: Exclude` adds to the paths kata skips (vendored
-# copies, generated files, the schema) instead of replacing them; a project
+# copies, generated files, the schema, and a generator's templates, files
+# copied into another project and often ERB, as hashira and kimera skip
+# them) instead of replacing them; a project
 # that wants RuboCop's replace-the-list behaviour writes
 # `inherit_mode: { override: [Exclude] }` under its `AllCops`.
 AllCops:
@@ -26,6 +28,9 @@ AllCops:
     - "vendor/**/*"
     - "**/vendor/**/*"
     - "db/*schema.rb"
+    - "**/generators/**/*templates/**/*"
+    - "**/generators/**/*template/**/*"
+    - "**/lib/templates/**/*"
 
 # A .jbuilder template is presentation, not an object: no Kata cop reads it.
 # A cop with its own Exclude list carries the same entry, since a cop's list
