@@ -59,6 +59,32 @@
   - `Kata/NoComments` keeps a comment that cites a version constraint
     (`Compatibility with RSpec < 3.0`), and `Kata/IoDiscipline` names the
     seam to add (`def initialize(io: $stdout)`) where nothing is injected.
+- From the fifth field test, on `rubocop -a` (50 codebases, 4,140 rewritten
+  files, 15 suites and a battery of 61 snippets):
+  - `rubocop -x` is checked and held like `-a`: kata runs it as `-a` narrowed
+    to layout, so the post-check runs and a held layout correction
+    (`Layout/HeredocIndentation`) stays held; only `-A` runs everything. `-x`
+    had rewritten a multi-line string and left rodauth's `<<END` heredoc
+    unparsable.
+  - A file the post-check keeps is reported as it was kept: its offenses are
+    not corrected (text and JSON), the summary counts only what was written,
+    and `rubocop -a` exits as a plain run on the file would (it exited 0, so
+    `rubocop -a && git diff --exit-code` passed). The stderr line names the
+    corrections it refused (`(refused: Layout/TrailingWhitespace)`).
+  - When a plugin registers another Ruby extractor, RuboCop writes each pass
+    to the file itself; kata now checks the file RuboCop wrote and writes the
+    original back, where the post-check did nothing.
+  - `-A` only: `Style/RedundantInterpolationUnfreeze` (drops `String.new(...)`
+    where a bare `String` may be the project's own class) and
+    `Style/TrailingUnderscoreVariable` (drops a `_` a later line reads, which
+    then raises NameError).
+  - `Layout/RedundantLineBreak` still reports, but no longer joins, adjacent
+    string literals across their line break: `'a' \` + `"b"` became `"a" +
+    "b"`, a new unfrozen String where the literal was one frozen String. The
+    post-check reads a `+` between literals as the call it is.
+  - `Kata/NoEmptyLinesInMethods` and `Kata/NoEmptyLinesInBlocks` report, but
+    never delete, a blank line a `\` continues into (deleting it joined
+    `x = foo \` with the next statement) or one inside an `=begin` comment.
 - From the fourth field test, on `rubocop -a` (50 codebases, 14 suites):
   - `-a` renames, anonymises or forwards no parameter: `Lint/UnusedMethodArgument`,
     `Lint/UnusedBlockArgument`, `Style/ArgumentsForwarding` and

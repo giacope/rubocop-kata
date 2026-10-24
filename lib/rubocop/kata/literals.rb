@@ -29,17 +29,9 @@ class RuboCop::Kata::Literals
 
   def label?(node) = node.is_a?(Prism::AssocNode) && node.key.is_a?(Prism::SymbolNode)
 
-  def composite?(node) = node.respond_to?(:parts) || sum?(node)
+  def composite?(node) = node.respond_to?(:parts)
 
-  def sum?(node) = node.is_a?(Prism::CallNode) && node.name == :+ && operands(node).all? { textual?(it) }
-
-  def textual?(node) = [Prism::StringNode, Prism::InterpolatedStringNode].include?(node.class) || sum?(node)
-
-  def operands(node) = [node.receiver, *node.arguments&.arguments]
-
-  def pieces(node) = node.respond_to?(:parts) ? node.parts : operands(node)
-
-  def joined(node) = pieces(node).map { piece(it) }.join
+  def joined(node) = node.parts.map { piece(it) }.join
 
   def piece(part)
     return part.unescaped if part.respond_to?(:unescaped)
@@ -47,7 +39,7 @@ class RuboCop::Kata::Literals
     spelled(part) || PLACEHOLDER
   end
 
-  def nested(node) = pieces(node).flat_map { inner(it) }
+  def nested(node) = node.parts.flat_map { inner(it) }
 
   def inner(part)
     return nested(part) if composite?(part)

@@ -98,6 +98,62 @@ RSpec.describe(RuboCop::Cop::Kata::NoEmptyLinesInMethods, :config) do
     RUBY
   end
 
+  # Deleting the blank line a backslash continues into makes `foo bar` of two
+  # statements; one inside =begin is the comment's text.
+  it "reports, but never deletes, a blank line a backslash continues into or one inside an =begin comment" do
+    expect_offense(<<~'RUBY')
+      def pick
+        result = foo \
+
+      ^{} Empty line inside method body is not allowed
+        bar
+      =begin
+      first
+
+      ^{} Empty line inside method body is not allowed
+      second
+      =end
+
+      ^{} Empty line inside method body is not allowed
+        result
+      end
+    RUBY
+    expect_correction(<<~'RUBY')
+      def pick
+        result = foo \
+
+        bar
+      =begin
+      first
+
+      second
+      =end
+        result
+      end
+    RUBY
+  end
+
+  it "removes a blank line after an escaped backslash or a comment that ends in one" do
+    expect_offense(<<~'RUBY')
+      def slash
+        char = ?\\
+
+      ^{} Empty line inside method body is not allowed
+        # C:\
+
+      ^{} Empty line inside method body is not allowed
+        char
+      end
+    RUBY
+    expect_correction(<<~'RUBY')
+      def slash
+        char = ?\\
+        # C:\
+        char
+      end
+    RUBY
+  end
+
   it "leaves a file with no code alone" do
     expect_no_offenses("# frozen_string_literal: true\n")
   end
