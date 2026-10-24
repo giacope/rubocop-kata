@@ -363,6 +363,23 @@ RSpec.describe(RuboCop::Cop::Kata::NoTypeCheck, :config) do
     RUBY
   end
 
+  # action_policy: `"".respond_to?(:safe_constantize)` asks whether ActiveSupport extended String; the project's
+  # own `safe_constantize` lives in `refine String do`, which no object answers respond_to? for.
+  it "leaves a probe of a literal, a core object, and of a method only a refinement defines" do
+    expect_offense(<<~RUBY)
+      module Ext
+        refine String do
+          def safe_constantize = nil
+        end
+        refine(Integer, &PATCH)
+        def lookup = nil
+      end
+      def polyfilled? = "".respond_to?(:safe_constantize) || [].respond_to?(:lookup) || 1.respond_to?(:lookup)
+      def ready?(item) = item.respond_to?(:safe_constantize) || item.respond_to?(:lookup)
+                                                                     ^^^^^^^^^^^ `respond_to?` asks an object what it is; tell it what to do, and let polymorphism choose.
+    RUBY
+  end
+
   context "with the project's dependencies" do
     let(:cop_config) do
       gems = %w[rack rubocop rubocop-ast rack_attack]

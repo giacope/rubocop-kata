@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class RuboCop::Cop::Kata::IoDiscipline < RuboCop::Cop::Base
+  include RuboCop::Cop::Kata::BootLayer
+
   MSG = "Write through the injected `%s`, not bare `%s`."
   SEAM_MSG = "Inject the stream `%s` writes to (`def initialize(io: %s)`) and write through it."
   STREAMS = %i[@io @out @output @stdout @stderr @stream @err @error].freeze
@@ -11,7 +13,7 @@ class RuboCop::Cop::Kata::IoDiscipline < RuboCop::Cop::Base
 
   def on_send(node)
     bare_output?(node) do |method|
-      add_offense(node, message: message(node, method)) unless element?(node)
+      add_offense(node, message: message(node, method)) unless element?(node) || seam?(node)
     end
   end
 

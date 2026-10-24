@@ -9,7 +9,9 @@ class RuboCop::Cop::Kata::NoSingleton < RuboCop::Cop::Base
   RESTRICT_ON_SEND = %i[include].freeze
 
   def_node_matcher :singleton?, "(send nil? :include (const {nil? cbase} :Singleton))"
-  def_node_search :makers, "(send ${nil? self const} :new ...)"
+  KEEPS = %i[freeze tap].freeze
+
+  def_node_matcher :maker?, "(send {nil? self const} :new ...)"
 
   def on_send(node)
     add_offense(node, message: MIXIN) if singleton?(node)
@@ -32,7 +34,20 @@ class RuboCop::Cop::Kata::NoSingleton < RuboCop::Cop::Base
     add_offense(holder, message: format(CACHE, node.children.first))
   end
 
-  def instance?(value) = makers(value).any? { !value?(it) }
+  def instance?(value) = held(value).any? { maker?(it) && !value?(it.receiver) }
+
+  def held(value)
+    passed = value ? through(value) : []
+    passed.one? && passed.first.equal?(value) ? passed : passed.flat_map { held(it) }
+  end
+
+  def through(value)
+    return value.branches if value.type?(:if, :case)
+    return value.children if value.type?(:and, :or)
+    return [value.children.last] if value.type?(:begin, :kwbegin)
+    return [value.send_node] if value.any_block_type?
+    [value.send_type? && KEEPS.include?(value.method_name) ? value.receiver : value]
+  end
 
   def value?(maker) = maker&.const_type? && listed?("AllowedConstructors", maker.const_name)
 end

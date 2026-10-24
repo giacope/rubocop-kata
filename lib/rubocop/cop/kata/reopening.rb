@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module RuboCop::Cop::Kata::Reopening
-  OWNED = %w[app/**/*.rb lib/**/*.rb */lib/**/*.rb].freeze
+  OWNED = %w[app/**/*.rb */app/**/*.rb lib/**/*.rb */lib/**/*.rb].freeze
 
   private
 

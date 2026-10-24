@@ -58,6 +58,33 @@ RSpec.describe(RuboCop::Cop::Kata::NoSingleton, :config) do
     RUBY
   end
 
+  # beis's `@all ||= Codelist.new(…).map { … }`, npq's `YAML.load(ERB.new(…).result)`: the cache holds the result.
+  it "reads what the cache holds, not each object built on the way to it" do
+    expect_offense(<<~RUBY)
+      class Registry
+        def self.all = @all ||= Codelist.new(type: "regions").map { new(it) }
+        def self.mapping = @mapping ||= YAML.load(ERB.new(File.read(PATH)).result)
+        def self.handler = @handler ||= lambda { |key| Handler.new(key) }
+        def self.defaults = @defaults ||= { client: Client.new }
+
+        def self.store
+          @store ||= begin
+          ^^^^^^^^^^^^^^^^ `@store ||=` keeps one global instance on the class; build the object where it is needed and pass it in.
+            warm
+            Store.new.tap(&:load)
+          end
+        end
+
+        def self.engine = @engine ||= ready? ? Engine.new : nil
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `@engine ||=` keeps one global instance on the class; build the object where it is needed and pass it in.
+        def self.logger = @logger ||= cached || Logger.new(STDOUT) { |line| line }
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `@logger ||=` keeps one global instance on the class; build the object where it is needed and pass it in.
+        def self.parser = @parser ||= case format when :json then Json.new end
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `@parser ||=` keeps one global instance on the class; build the object where it is needed and pass it in.
+      end
+    RUBY
+  end
+
   it "allows a class-level cache of a value, and instance memoization" do
     expect_no_offenses(<<~RUBY)
       class Registry

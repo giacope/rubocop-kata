@@ -17,6 +17,12 @@ RSpec.describe(RuboCop::Kata::Checkup) do
     described_class.new(root, io: io).run.then { [io.string, it] }
   end
 
+  let(:switched_off) do
+    ".rubocop.yml:5: `DisabledByDefault: true` leaves 25 of kata's 26 cops off: RuboCop runs only the cops the " \
+      "project's files enable by name; enable each by name (`Kata/GoodMethodName:` with `Enabled: true`), or drop " \
+      "the key.\n1 dead entry\n"
+  end
+
   it "reports an entry for a cop the inherited configuration disables", :aggregate_failures do
     project("Elegant/GoodMethodName:\n  AllowedNames:\n    - active=\n") do |root|
       output, status = report(root)
@@ -202,6 +208,38 @@ RSpec.describe(RuboCop::Kata::Checkup) do
     project("Lint/StringConversionInInterpolation:\n  Enabled: true\n", "VALUE = 1\n") do |root|
       expect(report(root)).to(match([include("rename it in .rubocop.yml"), 2]))
     end
+  end
+
+  # cancancan: RuboCop applies `Naming/PredicateName:` to `Naming/PredicatePrefix`, with a warning.
+  it "says to rename an entry for a cop RuboCop renamed and still applies, instead of calling it dead" do
+    project("Naming/PredicateName:\n  Exclude:\n    - sample.rb\n") do |root|
+      expected = [
+        ".rubocop.yml:4: `Naming/PredicateName` was renamed to `Naming/PredicatePrefix`; rename the entry.\n" \
+          "0 dead entries, 1 entry to rename\n", 1
+      ]
+      expect(silenced { report(root) }).to(eq(expected))
+    end
+  end
+
+  # solid_cache, caxlsx, resque, ransack: RuboCop then runs only the cops a project's own files name.
+  it "says when DisabledByDefault leaves kata's cops off, and how to turn them on" do
+    project("AllCops:\n  DisabledByDefault: true\n\nKata/RealWords:\n  Enabled: true\n") do |root|
+      expect(report(root)).to(eq([switched_off, 1]))
+    end
+  end
+
+  it "names the configuration file when it cannot point at the line that sets DisabledByDefault" do
+    project("AllCops: { DisabledByDefault: true }\n") do |root|
+      expect(report(root).first).to(start_with(".rubocop.yml: `DisabledByDefault: true` leaves 26 of kata's 26 cops"))
+    end
+  end
+
+  def silenced
+    stderr = $stderr
+    $stderr = StringIO.new
+    yield
+  ensure
+    $stderr = stderr
   end
 
   it "lists every inline disable with its reason, and fails on the bare ones" do

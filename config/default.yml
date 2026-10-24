@@ -171,6 +171,7 @@ Kata/GoodModuleName:
   VersionChanged: "0.11"
   OwnedPaths:
     - "app/**/*.rb"
+    - "*/app/**/*.rb"
     - "lib/**/*.rb"
     - "*/lib/**/*.rb"
   MaxWords: 2
@@ -265,6 +266,7 @@ Kata/GoodMethodName:
   Enabled: true
   OwnedPaths:
     - "app/**/*.rb"
+    - "*/app/**/*.rb"
     - "lib/**/*.rb"
     - "*/lib/**/*.rb"
   VersionAdded: "0.5"
@@ -601,7 +603,9 @@ Kata/IoDiscipline:
     Write through an injected io, not bare puts/warn/pp/p. Where the class
     already holds a stream (`@io`, `@out`, `@stderr`, …), the message names
     it; where nothing is injected, it names the seam to add
-    (`def initialize(io: $stdout)`).
+    (`def initialize(io: $stdout)`). Code outside every class, module and
+    method is a script's boot layer, and its terminal is the boot layer's
+    stream, as Kata/EnvDiscipline and Kata/ClockDiscipline read it.
   Enabled: true
   VersionAdded: "0.1"
   VersionChanged: "0.11"
@@ -668,6 +672,7 @@ Kata/RealWords:
   NodeCallbacks: false
   OwnedPaths:
     - "app/**/*.rb"
+    - "*/app/**/*.rb"
     - "lib/**/*.rb"
     - "*/lib/**/*.rb"
   AllowedNames:
@@ -684,15 +689,20 @@ Kata/BuilderNoun:
     `Flipper::Adapter#get_all`), keeps its ancestor's name, reported once
     where it was chosen; a stand-in for a message the project's code sends
     but never defines (`get_callbacks` in a spec double of ActiveSupport)
-    answers to the name the caller chose. A method that ends in a command,
-    one of the `Commands` (a file write, a generator step such as
-    `create_file` or `invoke`; a constant alone, such as `FileUtils`, stands
-    for each of its methods), is a side effect, not a builder.
+    answers to the name the caller chose. A method that issues a command
+    anywhere in its body, conditional or not, one of the `Commands` (a file
+    write, a generator or Thor action such as `create_file`, `route` or
+    `invoke`; a constant alone, such as `FileUtils`, stands for each of its
+    methods), is a side effect, not a builder; so is a public method of a
+    generator, a subclass of one of the `StepSuperclasses`, which Rails or
+    Thor runs as a step. A predicate (`generate_ids?`) answers a question
+    and builds nothing.
   Enabled: true
   VersionAdded: "0.3"
   VersionChanged: "0.11"
   OwnedPaths:
     - "app/**/*.rb"
+    - "*/app/**/*.rb"
     - "lib/**/*.rb"
     - "*/lib/**/*.rb"
   Commands:
@@ -702,22 +712,41 @@ Kata/BuilderNoun:
     - FileUtils
     - IO.binwrite
     - IO.write
+    - add_source
     - append_to_file
+    - chmod
+    - comment_lines
     - copy_file
     - create_file
+    - create_link
     - directory
     - empty_directory
     - exec
+    - generate
     - gsub_file
+    - initializer
+    - inject_into_class
     - inject_into_file
+    - inject_into_module
     - insert_into_file
     - invoke
+    - migration_template
     - prepend_to_file
+    - rails_command
+    - rake
     - remove_file
+    - route
     - run
     - spawn
     - system
     - template
+    - uncomment_lines
+  StepSuperclasses:
+    - ActiveRecord::Generators::Base
+    - Rails::Generators::Base
+    - Rails::Generators::NamedBase
+    - Thor
+    - Thor::Group
   BannedPrefixes:
     - get
     - calculate
@@ -738,7 +767,8 @@ Kata/NoBooleanFlag:
     `receive(:x).with(false)`), a hash value, and an attribute writer
     (`config.x = true`). `AllowedMethods` holds the calls whose boolean is a
     protocol or a value rather than a flag — Ruby's reflection
-    (`respond_to?(name, true)`), a default (`fetch(:ssl, false)`), a stored
+    (`respond_to?(name, true)`), a default (`fetch(:ssl, false)`), a value
+    searched for or compared (`flags.index(true)`, `eql?(false)`), a stored
     value (`instance_variable_set(:@done, false)`, `set`), a query
     (`where`, `find_by`, `exists?`, `update`), RSpec's matchers — and the
     defs whose signature Ruby dictates (`respond_to_missing?`).
@@ -761,15 +791,19 @@ Kata/NoBooleanFlag:
     - const_get
     - const_source_location
     - content_security_policy
+    - count
     - eq
     - eql
+    - eql?
     - equal
+    - equal?
     - exists?
     - exit
     - exit!
     - fetch
     - find_by
     - include?
+    - index
     - instance_methods
     - instance_variable_set
     - layout
@@ -789,6 +823,7 @@ Kata/NoBooleanFlag:
     - push
     - respond_to?
     - respond_to_missing?
+    - rindex
     - set
     - singleton_methods
     - store
@@ -809,7 +844,9 @@ Kata/ConstructorDiscipline:
     is flagged (`@id = SecureRandom.uuid`); a parameter default is the seam
     such a dependency comes in through (`def initialize(clock: Time)`), and
     passes. A guard may raise, through `raise` or one of the project's
-    `RaisingMethods` (`UI.user_error!`).
+    `RaisingMethods` (`UI.user_error!`). Assigning through the object's own
+    writer (`self.project = project`) is assigning; Kata/NoSetter reports
+    the writer.
   Enabled: true
   Sorbet: false
   VersionAdded: "0.3"
@@ -860,9 +897,18 @@ Kata/NoClassMethodLogic:
     the JSON additions `json_create`. A module declared with
     `module_function` or `extend self` is a bag of functions called on the
     module, the same logic with no class, and its declaration is reported.
+    A class method that only returns a literal is a constant in disguise
+    when it takes nothing and no subclass under `OwnedPaths` redefines it;
+    a hook that takes an argument or that subclasses override
+    (`def self.for_class?(_model) = false`) is the class's logic.
   Enabled: true
   VersionAdded: "0.3"
   VersionChanged: "0.11"
+  OwnedPaths:
+    - "app/**/*.rb"
+    - "*/app/**/*.rb"
+    - "lib/**/*.rb"
+    - "*/lib/**/*.rb"
   Exclude:
     - "spec/**/*"
     - "test/**/*"
@@ -1027,6 +1073,7 @@ Kata/FrozenState:
   ConstructorHooks: []
   OwnedPaths:
     - "app/**/*.rb"
+    - "*/app/**/*.rb"
     - "lib/**/*.rb"
     - "*/lib/**/*.rb"
   Exclude:
@@ -1035,9 +1082,13 @@ Kata/FrozenState:
     - "**/*_spec.rb"
     - "**/*_test.rb"
     - "app/controllers/**/*"
+    - "*/app/controllers/**/*"
     - "app/mailers/**/*"
+    - "*/app/mailers/**/*"
     - "app/helpers/**/*"
+    - "*/app/helpers/**/*"
     - "app/views/**/*"
+    - "*/app/views/**/*"
     - "**/*.jbuilder"
 
 Kata/NoOutputArgument:
@@ -1156,7 +1207,10 @@ Kata/NoTypeCheck:
     only when one of its own classes defines `m` publicly (a private helper
     never answers it; `respond_to?(:m, true)` asks for private ones too) and
     the receiver is not another library's constant (pundit's
-    `::RSpec.respond_to?(:current_example)`). A namespace one of the
+    `::RSpec.respond_to?(:current_example)`) nor a literal, a core object
+    (action_policy's `"".respond_to?(:safe_constantize)`); a method defined
+    in `refine String do` belongs to `String`, and no object answers
+    `respond_to?` for a refinement. A namespace one of the
     `Dependencies` is named for (kata fills them from the Gemfile, the
     lockfile and the gemspecs: rack owns `Rack`, rack-test `Rack::Test`)
     stays the dependency's however the project reopens it, unless the
@@ -1169,6 +1223,7 @@ Kata/NoTypeCheck:
     - ruby
   OwnedPaths:
     - "app/**/*.rb"
+    - "*/app/**/*.rb"
     - "lib/**/*.rb"
     - "*/lib/**/*.rb"
   AllowedMethods:
@@ -1206,9 +1261,11 @@ Kata/NoSingleton:
     A singleton is a global with a class name: `include Singleton`, or a
     class method caching an instance in a class-level variable
     (`def self.instance = @instance ||= new`). Build the object where the
-    program starts and pass it to what needs it. A class-level cache of a
-    value (`@members ||= Set.new(...)`, a `Struct.new`) is not an instance of
-    the class's service, and `AllowedConstructors` lists those classes.
+    program starts and pass it to what needs it. The cache is judged by
+    what it holds, the value its expression returns: a class-level cache of
+    a value (`@members ||= Set.new(...)`, a `Struct.new`, a `Pathname`, or
+    `Codelist.new(...).map { ... }`, an array) is not an instance of the
+    class's service, and `AllowedConstructors` lists those classes.
   Enabled: true
   VersionAdded: "0.11"
   AllowedConstructors:
@@ -1220,6 +1277,7 @@ Kata/NoSingleton:
     - Module
     - Monitor
     - Mutex
+    - Pathname
     - Queue
     - Regexp
     - Set
@@ -1558,6 +1616,7 @@ Kata/ClassInModule:
   VersionChanged: "0.11"
   OwnedPaths:
     - "app/**/*.rb"
+    - "*/app/**/*.rb"
     - "lib/**/*.rb"
     - "*/lib/**/*.rb"
   CoreClasses:
@@ -1599,7 +1658,9 @@ Kata/ClassInModule:
     - TrueClass
   Exclude:
     - "app/*/*.rb"
+    - "*/app/*/*.rb"
     - "app/*/concerns/*.rb"
+    - "*/app/*/concerns/*.rb"
     - "**/*_test.rb"
     - "test/**/*"
     - "spec/**/*"

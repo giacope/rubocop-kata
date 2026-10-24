@@ -30,6 +30,7 @@ cheque
 classify
 clawback
 cli
+colspan
 config
 cors
 cpu
@@ -44,6 +45,7 @@ dataset
 debugger
 decrypt
 dequeue
+describedby
 deserialize
 diff
 dkim
@@ -56,8 +58,12 @@ dsl
 email
 endpoint
 enqueue
+enquiry
+enrol
+enrolment
 fieldset
 firefox
+forecasted
 formatter
 frontend
 frontmatter
@@ -79,6 +85,7 @@ held
 helo
 hmac
 hotspot
+hreflang
 html
 http
 https
@@ -103,6 +110,7 @@ js
 json
 jsonl
 jti
+judgement
 jwt
 keepalive
 kerb
@@ -110,6 +118,7 @@ keypair
 keyword
 kty
 l10n
+labelledby
 lifecycle
 llm
 logout
@@ -158,6 +167,7 @@ readme
 redis
 refactor
 rollup
+rowspan
 runtime
 safelist
 saml
@@ -174,11 +184,13 @@ smtp
 spf
 sql
 sqlite
+srcset
 ssl
 sso
 storey
 stylesheet
 svg
+tabindex
 tcp
 timeout
 timestamp
