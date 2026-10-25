@@ -378,6 +378,23 @@ RSpec.describe(RuboCop::Cop::Kata::NoComments, :config) do
       RUBY
     end
 
+    it "keeps the documentation of a file's lone constant and of a class's only method" do
+      expect_no_offenses("# The largest size it formats.\nLIMIT = 1024\n")
+      expect_no_offenses(<<~RUBY)
+        class Invoice
+          # Totals the lines.
+          def total = 0
+        end
+      RUBY
+    end
+
+    it "prices a file of comments alone, which documents nothing" do
+      expect_offense(<<~RUBY)
+        # Notes on the format.
+        ^^^^^^^^^^^^^^^^^^^^^^ Say it in the code: rename it, extract it, or name the constant.
+      RUBY
+    end
+
     it "flags a block above a private or protected method, inside a body, or apart by a blank line" do
       expect_offense(<<~RUBY)
         # Loose.
