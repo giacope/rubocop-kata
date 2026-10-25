@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+- `Kata/NoComments` prices documentation by default: `AllowDocumentation`
+  is `false` again, as when the option was added, so a comment above a
+  public class, module, method or constant is prose like any other, YARD
+  tags and all. A gem that publishes its API documentation sets
+  `AllowDocumentation: true`. Deleting a comment still corrects only under
+  `rubocop -A`.
+- `Kata/NoComments` reads a tool's name as a directive only with its colon
+  (`# kimera:disable`, `# rubocop:disable`): `# kimera cannot say it covers
+  the mutant` was taken for a kimera directive, so `-A` kept that line and
+  deleted the rest of its block. `# standard library…`, `# typed arrays…` and
+  `# rubocop runs…` are prose too.
 - From a fifth field test on fifty more codebases (stripe-ruby, refinerycms,
   nokogiri, test-prof, aasm, cancancan, the GOV.UK and DfE apps and others),
   in check mode:

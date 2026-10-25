@@ -113,60 +113,6 @@ RSpec.describe(RuboCop::Cop::Kata::NoComments, :config) do
     RUBY
   end
 
-  it "attaches documentation to the next public definition, across sig, a decorator and RDoc's blank line" do
-    expect_offense(<<~RUBY)
-      class Sizes
-        extend T::Sig
-
-        # Returns the size as text.
-        sig { params(bytes: Integer).returns(String) }
-        def text(bytes) = bytes.to_s
-
-        ##
-        # Prepends the source.
-
-        def prepend(source) = [source]
-
-        # The largest size it formats.
-        LIMIT = 1024
-
-        # The bytes it was built with.
-        attr_reader :bytes
-
-        # Builds the reader for each unit.
-        define_method(:kibi) { 1 }
-
-        # Returns the size in mebibytes.
-        memoize
-        def mebi = 2
-
-        # A table only this class reads.
-        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Say it in the code: rename it, extract it, or name the constant.
-        UNITS = %w[KiB MiB].freeze
-        private_constant :UNITS
-
-        private
-
-        # The cache it fills.
-        ^^^^^^^^^^^^^^^^^^^^^ Say it in the code: rename it, extract it, or name the constant.
-        attr_reader :cache
-      end
-
-      module Hooks
-        # Runs when a class includes it.
-        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Say it in the code: rename it, extract it, or name the constant.
-        included do
-          nil
-        end
-      end
-
-      class Limit
-        # The highest value.
-        MAX = 9
-      end
-    RUBY
-  end
-
   it "keeps the directives RDoc and YARD read" do
     expect_no_offenses(<<~RUBY)
       # :stopdoc:
@@ -220,6 +166,18 @@ RSpec.describe(RuboCop::Cop::Kata::NoComments, :config) do
       ^^^^^^^^^^^^^^^^^^^^^^ Say it in the code: rename it, extract it, or name the constant.
       def total = lines.sum
     RUBY
+  end
+
+  # kimera's BaselineScreen: `-A` kept "# kimera cannot say it covers…" and deleted the rest of its block.
+  it "flags prose that merely starts with a tool's name" do
+    expect_offense(<<~RUBY)
+      # A failing test has no coverage, so
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Say it in the code: rename it, extract it, or name the constant.
+      # kimera cannot say it covers the mutant.
+      # rubocop runs it once; standard libraries and typed arrays too.
+      def total = lines.sum
+    RUBY
+    expect_correction("def total = lines.sum\n")
   end
 
   it "keeps the directives type checkers, linters and mutation testers read" do
@@ -305,12 +263,15 @@ RSpec.describe(RuboCop::Cop::Kata::NoComments, :config) do
   context "with the shipped defaults" do
     let(:cop_config) { RuboCop::ConfigLoader.default_configuration.for_cop("Kata/NoComments") }
 
-    it "keeps a YARD block whole" do
-      expect_no_offenses(<<~RUBY)
+    it "prices public API documentation too, a YARD block among it" do
+      expect_offense(<<~RUBY)
         # Totals the billable lines.
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Say it in the code: rename it, extract it, or name the constant.
         #
         # @return [Integer]
-        def total = lines.sum
+        class Invoice
+          def total = lines.sum
+        end
       RUBY
     end
 
@@ -321,6 +282,60 @@ RSpec.describe(RuboCop::Cop::Kata::NoComments, :config) do
 
   context "with documentation allowed, for a gem that publishes its API" do
     let(:cop_config) { { "AllowDocumentation" => true } }
+
+    it "attaches documentation to the next public definition, across sig, a decorator and RDoc's blank line" do
+      expect_offense(<<~RUBY)
+        class Sizes
+          extend T::Sig
+
+          # Returns the size as text.
+          sig { params(bytes: Integer).returns(String) }
+          def text(bytes) = bytes.to_s
+
+          ##
+          # Prepends the source.
+
+          def prepend(source) = [source]
+
+          # The largest size it formats.
+          LIMIT = 1024
+
+          # The bytes it was built with.
+          attr_reader :bytes
+
+          # Builds the reader for each unit.
+          define_method(:kibi) { 1 }
+
+          # Returns the size in mebibytes.
+          memoize
+          def mebi = 2
+
+          # A table only this class reads.
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Say it in the code: rename it, extract it, or name the constant.
+          UNITS = %w[KiB MiB].freeze
+          private_constant :UNITS
+
+          private
+
+          # The cache it fills.
+          ^^^^^^^^^^^^^^^^^^^^^ Say it in the code: rename it, extract it, or name the constant.
+          attr_reader :cache
+        end
+
+        module Hooks
+          # Runs when a class includes it.
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Say it in the code: rename it, extract it, or name the constant.
+          included do
+            nil
+          end
+        end
+
+        class Limit
+          # The highest value.
+          MAX = 9
+        end
+      RUBY
+    end
 
     # rails: RDoc and Markdown above public methods were priced as prose,
     # because only YARD tags marked a block as documentation.

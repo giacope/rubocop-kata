@@ -3,9 +3,6 @@
 module RuboCop::Kata::Safeguard
   KEPT = "rubocop-kata: kept %s as it was: -a would have %s (refused: %s)"
 
-  # `-x` asks for layout corrections and says nothing of their safety: kata
-  # runs it as `-a` narrowed to layout, so a correction -a holds back stays
-  # held and the post-check runs in every mode but `-A`.
   def run(...)
     @options[:safe_autocorrect] = safe? if @options[:autocorrect]
     super
