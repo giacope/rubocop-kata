@@ -31,13 +31,10 @@ RSpec.describe(RuboCop::Kata::Correction) do
     expect(flaw("a = \"x \" \\\n  \"y\"\n", "a = \"x\" \\\n  \" y\"\n")).to(be_nil)
   end
 
-  it "reads a + between string literals as the string it joins, as Layout/RedundantLineBreak writes it" do
-    original = "a = \"b \#{c} \" \\\n  'd' \\\n  \"e\"\nf = \"g\".+\n"
-    expect(flaw(original, "a = \"b \#{c} \" + 'd' + \"e\"\nf = \"g\".+\n")).to(be_nil)
-  end
-
-  it "reads no other call on string literals as joining them" do
-    expect([flaw("a = \"bc\"\n", "a = \"b\".concat(\"c\")\n"), flaw("a = \"bc\"\n", "a = b + \"c\"\n")])
+  # Adjacent literals are one frozen String; `+` builds a new, unfrozen one.
+  it "reads a + or any other call between string literals as a call, not as the string adjacent literals join" do
+    original = "a = 'b' \\\n  \"c\"\n"
+    expect([flaw(original, "a = 'b' + \"c\"\n"), flaw(original, "a = \"b\".concat(\"c\")\n")])
       .to(eq(["changed the literal on line 1"] * 2))
   end
 

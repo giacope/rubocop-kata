@@ -127,7 +127,7 @@ Style/RedundantAssignment equivalent drops the local that a method assigns and t
 Style/RedundantBegin delimiter drops a begin/end that groups nothing
 Style/RedundantFreeze equivalent drops .freeze on a literal that is already frozen
 Style/RedundantHeredocDelimiterQuotes delimiter drops the quotes of a heredoc delimiter whose body has no interpolation or escape
-Style/RedundantInterpolationUnfreeze equivalent drops +@ on an interpolated string, which is already unfrozen
+Style/RedundantInterpolationUnfreeze held drops String.new around an interpolated string, where a bare String may be the project's own class (Box::String.new wrapped its text), as well as +@ and dup
 Style/RedundantLineContinuation layout drops a backslash where the line continues anyway
 Style/RedundantParentheses delimiter drops parentheses that group nothing
 Style/RedundantPercentQ delimiter writes %q()/%Q() as quotes
@@ -149,7 +149,7 @@ Style/TernaryParentheses delimiter sets parentheses around a ternary's condition
 Style/TrailingCommaInArguments delimiter sets the trailing comma of a multi-line call
 Style/TrailingCommaInArrayLiteral delimiter sets the trailing comma of a multi-line array
 Style/TrailingCommaInHashLiteral delimiter sets the trailing comma of a multi-line hash
-Style/TrailingUnderscoreVariable equivalent drops a trailing _ from a multiple assignment
+Style/TrailingUnderscoreVariable held drops a trailing _ from a multiple assignment even when a later line reads _, which then raises NameError
 Style/UnlessElse equivalent writes unless/else as if/else with the branches swapped
 Style/VariableInterpolation delimiter writes "#$x" as "#{$x}"
 Style/WhileUntilDo layout drops do after while/until

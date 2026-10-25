@@ -799,6 +799,8 @@ Style/RedundantInitialize:
   SafeAutoCorrect: false
 Style/RedundantInterpolation:
   SafeAutoCorrect: false
+Style/RedundantInterpolationUnfreeze:
+  SafeAutoCorrect: false
 Style/RedundantMinMaxBy:
   SafeAutoCorrect: false
 Style/RedundantRegexpArgument:
@@ -892,6 +894,8 @@ Style/TrailingBodyOnModule:
 Style/TrailingCommaInBlockArgs:
   SafeAutoCorrect: false
 Style/TrailingMethodEndStatement:
+  SafeAutoCorrect: false
+Style/TrailingUnderscoreVariable:
   SafeAutoCorrect: false
 Style/TrivialAccessors:
   SafeAutoCorrect: false

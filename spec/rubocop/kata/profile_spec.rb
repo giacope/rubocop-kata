@@ -451,7 +451,7 @@ RSpec.describe(RuboCop::Kata::Profile) do
       moved = %w[
         Style/Not Style/EmptyCaseCondition Style/OrAssignment Style/RedundantSelfAssignmentBranch Style/PerlBackrefs
         Style/IfInsideElse Style/CommentedKeyword Layout/HeredocIndentation Lint/AmbiguousOperatorPrecedence
-        Lint/RedundantStringCoercion
+        Lint/RedundantStringCoercion Style/RedundantInterpolationUnfreeze Style/TrailingUnderscoreVariable
       ]
       expect(moved - withheld).to(be_empty)
     end

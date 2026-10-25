@@ -89,6 +89,25 @@ RSpec.describe(RuboCop::Cop::Kata::NoEmptyLinesInBlocks, :config) do
     RUBY
   end
 
+  it "reports, but never deletes, a blank line a backslash continues into or one inside an =begin comment" do
+    expect_offense(<<~'RUBY')
+      items.each do |item|
+        result = foo \
+
+      ^{} Empty line inside block body is not allowed
+        bar
+      =begin
+      first
+
+      ^{} Empty line inside block body is not allowed
+      second
+      =end
+        result
+      end
+    RUBY
+    expect_no_corrections
+  end
+
   it "keeps the gap between two methods defined in a block" do
     expect_no_offenses(<<~RUBY)
       Class.new do

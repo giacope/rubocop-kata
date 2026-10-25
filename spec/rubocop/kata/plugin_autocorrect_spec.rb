@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "json"
 require "tmpdir"
 require "stringio"
 
@@ -155,52 +156,113 @@ RSpec.describe(RuboCop::Kata::Plugin) do
   end
 
   context "with the -a post-check" do
-    let(:sql) { "# frozen_string_literal: true\n\nSQL = \"SELECT *   \nFROM t\"\n" }
+    let(:sql) { "# frozen_string_literal: true\n\nSQL = \"SELECT *   \nFROM t  \nWHERE a\"\n" }
     let(:heredoc) { "# frozen_string_literal: true\n\ndef salt\n  <<END\nCASE\n  WHEN a THEN 1\n  END\nEND\nend\n" }
     let(:vouching) { "\nLayout/HeredocIndentation:\n  SafeAutoCorrect: true\n" }
+    let(:stray) { kept_line("changed the literal on line 3", "Layout/TrailingWhitespace") }
 
     before do
       skip("RuboCop #{RuboCop::Version::STRING} writes each pass itself") unless
         RuboCop::Runner.instance_method(:finalize_corrections).super_method
     end
 
-    def guarded(arguments, source, setting = "", input: "")
+    def guarded(flags, source, setting = "", input: "")
       Dir.mktmpdir("kata-safeguard") do |root|
-        File.write(File.join(plant(root, { "sample.rb" => source }), "..", ".rubocop.yml"), setting, mode: "a")
-        streams = [$stdin, $stdout, $stderr]
-        $stdin = StringIO.new(input)
-        $stdout = StringIO.new
-        $stderr = StringIO.new
-        Dir.chdir(root) { RuboCop::CLI.new.run([*arguments, "--cache", "false"]) }
-        yield(File.read(File.join(root, "lib", "sample.rb")), $stderr.string, $stdout.string)
-      ensure
-        $stdin, $stdout, $stderr = streams
+        path = File.join(plant(root, { "sample.rb" => source }), "sample.rb")
+        File.write(File.join(root, ".rubocop.yml"), setting, mode: "a")
+        node = File.stat(path).ino
+        status, output, errors = fed(input) { Dir.chdir(root) { RuboCop::CLI.new.run([*flags, "--cache", "false"]) } }
+        yield(File.read(path), errors, output, status, File.stat(path).ino == node)
       end
     end
 
-    it "keeps a file whose corrections would change a string's text as it was, and says why on one line" do
-      guarded(%w[-a lib], sql) do |kept, errors, _|
-        message = "rubocop-kata: kept lib/sample.rb as it was: -a would have changed the literal on line 3\n"
-        expect([kept, errors.lines.grep(/rubocop-kata/)]).to(eq([sql, [message]]))
+    def fed(input)
+      streams = [$stdin, $stdout, $stderr]
+      $stdin = StringIO.new(input)
+      $stdout = StringIO.new
+      $stderr = StringIO.new
+      [yield, $stdout.string, $stderr.string]
+    ensure
+      $stdin, $stdout, $stderr = streams
+    end
+
+    def ran(options, source)
+      Dir.mktmpdir("kata-safeguard") do |root|
+        path = File.join(plant(root, { "sample.rb" => source }), "sample.rb")
+        runner = RuboCop::Runner.new(options.merge(formatters: [["quiet"]]), RuboCop::ConfigStore.new)
+        quietly { Dir.chdir(root) { runner.run(["lib"]) } }
+        File.read(path)
       end
+    end
+
+    def kept_line(flaw, cops) = "rubocop-kata: kept lib/sample.rb as it was: -a would have #{flaw} (refused: #{cops})\n"
+
+    it "keeps a file whose corrections would change a string's text as it was, untouched, and says why on one line" do
+      guarded(%w[-a lib], sql) do |kept, errors, _, _, untouched|
+        expect([kept, untouched, errors]).to(eq([sql, true, stray]))
+      end
+    end
+
+    # `rubocop -a && git diff --exit-code` passed on a file -a had kept.
+    it "reports a kept file's offenses as uncorrected, and exits as a plain run on it would" do
+      guarded(%w[-a --format json lib], sql) do |_, _, output, status|
+        found = JSON.parse(output).dig("files", 0, "offenses").map { it.values_at("cop_name", "corrected") }
+        expect([found, status]).to(eq([[["Layout/TrailingWhitespace", false]] * 2, 1]))
+      end
+    end
+
+    it "checks rubocop -x as it checks -a" do
+      guarded(%w[-x lib], sql) { |kept, errors| expect([kept, errors]).to(eq([sql, stray])) }
+    end
+
+    it "runs no correction -a holds back under rubocop -x either" do
+      guarded(%w[-x lib], heredoc) { |kept, errors| expect([kept, errors]).to(eq([heredoc, ""])) }
+    end
+
+    it "leaves a plain run's summary alone" do
+      guarded(%w[lib], sql) { |_, _, output| expect(output).to(include("2 offenses autocorrectable")) }
+    end
+
+    # The language server's "fix all" asks for every correction, as -A does.
+    it "leaves a runner told its corrections need not be safe to write what it corrects" do
+      expect(ran({ autocorrect: true, safe_autocorrect: false }, sql)).to(include("SELECT *\n"))
     end
 
     it "keeps a file a correction the project vouched for would leave unparsable" do
-      guarded(%w[-a lib], heredoc, vouching) do |kept, errors, _|
-        message = "rubocop-kata: kept lib/sample.rb as it was: -a would have made it unparsable\n"
-        expect([kept, errors.lines.grep(/rubocop-kata/)]).to(eq([heredoc, [message]]))
+      guarded(%w[-a lib], heredoc, vouching) do |kept, errors|
+        expect([kept, errors]).to(eq([heredoc, kept_line("made it unparsable", "Layout/HeredocIndentation")]))
       end
     end
 
-    it "hands rubocop -a --stdin its input back" do
-      guarded(%w[-a --stdin lib/sample.rb], "", input: sql) do |_, errors, output|
-        expect([output.end_with?("=\n#{sql}"), errors.include?("kept lib/sample.rb")]).to(eq([true, true]))
+    it "hands rubocop -a --stdin its input back, reports it uncorrected and leaves the file alone" do
+      guarded(%w[-a --stdin lib/sample.rb], "", input: sql) do |disk, errors, output|
+        facts = [disk, output.end_with?("=\n#{sql}"), output.scan("Layout/TrailingWhitespace").size, errors]
+        expect(facts).to(eq(["", true, 2, stray]))
       end
     end
 
     it "leaves rubocop -A to write what it corrects" do
       guarded(%w[-A lib], sql) do |fixed, errors, _|
         expect([fixed.include?("SELECT *\n"), errors]).to(eq([true, ""]))
+      end
+    end
+
+    # A plugin may add a Ruby extractor (Runner.ruby_extractors); RuboCop then writes each pass to the file itself.
+    context "when another Ruby extractor is registered" do
+      around do |example|
+        extractor = ->(_) {}
+        RuboCop::Runner.ruby_extractors.unshift(extractor)
+        example.run
+      ensure
+        RuboCop::Runner.ruby_extractors.delete(extractor)
+      end
+
+      it "checks the file RuboCop wrote itself, and puts the original back when the check fails" do
+        guarded(%w[-a lib], sql) { |kept, errors| expect([kept, errors]).to(eq([sql, stray])) }
+      end
+
+      it "leaves the corrections RuboCop wrote itself when they pass" do
+        guarded(%w[-a lib], "A = 'é'\n") { |fixed, errors| expect([fixed, errors]).to(eq(["A = \"é\"\n", ""])) }
       end
     end
   end
