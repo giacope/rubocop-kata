@@ -24,8 +24,8 @@ RSpec.describe(RuboCop::Cop::Kata::IoDiscipline, :config) do
   # pundit.rb: a module-level `warn` has no stream to write through yet.
   it "names the seam to add where nothing is injected" do
     expect_offense(<<~RUBY)
-      puts
-      ^^^^ Inject the stream `puts` writes to (`def initialize(io: $stdout)`) and write through it.
+      def report = puts
+                   ^^^^ Inject the stream `puts` writes to (`def initialize(io: $stdout)`) and write through it.
       module Pundit
         def self.deprecate = warn("old")
                              ^^^^^^^^^^^ Inject the stream `warn` writes to (`def initialize(io: $stderr)`) and write through it.
@@ -59,10 +59,21 @@ RSpec.describe(RuboCop::Cop::Kata::IoDiscipline, :config) do
 
   it "still flags p printing a value" do
     expect_offense(<<~RUBY)
+      def show
+        p(value)
+        ^^^^^^^^ Inject the stream `p` writes to (`def initialize(io: $stdout)`) and write through it.
+        p value, other
+        ^^^^^^^^^^^^^^ Inject the stream `p` writes to (`def initialize(io: $stdout)`) and write through it.
+      end
+    RUBY
+  end
+
+  # beis's lib/scripts/import_forecasts.rb: Kata/EnvDiscipline and Kata/ClockDiscipline call it the boot layer too.
+  it "takes code outside every class, module and method for a script's boot layer" do
+    expect_no_offenses(<<~RUBY)
+      warn "Could not find fund" unless ENV.key?("FUND")
+      ARGV.each { puts it }
       p(value)
-      ^^^^^^^^ Inject the stream `p` writes to (`def initialize(io: $stdout)`) and write through it.
-      p value, other
-      ^^^^^^^^^^^^^^ Inject the stream `p` writes to (`def initialize(io: $stdout)`) and write through it.
     RUBY
   end
 

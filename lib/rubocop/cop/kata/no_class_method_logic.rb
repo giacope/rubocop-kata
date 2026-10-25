@@ -2,6 +2,7 @@
 
 class RuboCop::Cop::Kata::NoClassMethodLogic < RuboCop::Cop::Base
   include RuboCop::Cop::Kata::Roster
+  include RuboCop::Cop::Kata::Ancestry
 
   MSG = "`%s` puts logic on the class; classes construct, instances work."
   LITERAL = "`%s` only returns a literal; make it a constant."
@@ -28,10 +29,19 @@ class RuboCop::Cop::Kata::NoClassMethodLogic < RuboCop::Cop::Base
   def check(node)
     name = node.method_name.to_s
     return if constructor?(name) || builds?(node)
-    add_offense(node.loc.name, message: format(literal?(node.body) ? LITERAL : MSG, name))
+    add_offense(node.loc.name, message: format(constant?(node) ? LITERAL : MSG, name))
   end
 
+  def constant?(node) = literal?(node.body) && node.arguments.empty? && !overridden?(node)
+
   def literal?(body) = LITERALS.include?(body&.type) && body.each_node(:send, :lvar, :ivar).none?
+
+  def overridden?(node)
+    scope = node.each_ancestor(:class, :module).first
+    scope && project.heirs(RuboCop::Kata::Nesting.new(scope).qualified).any? do
+      project.defines?(it, "self.#{node.method_name}")
+    end
+  end
 
   def constructor?(name) = name.start_with?("from_") || allowed?(name)
 

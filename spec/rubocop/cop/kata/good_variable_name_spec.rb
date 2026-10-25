@@ -206,4 +206,17 @@ RSpec.describe(RuboCop::Cop::Kata::GoodVariableName, :config) do
       RUBY
     end
   end
+
+  # test-prof's `TestProf`, omniauth's `OmniAuth`, kata's `RuboCop::Kata`: a root as the code spells it.
+  context "with roots spelled in CamelCase or as a brand" do
+    let(:cop_config) do
+      defaults.merge("Terms" => [], "AllowedNames" => [], "Roots" => %w[TestProf OmniAuth RuboCop::Kata])
+    end
+
+    it "counts the root's words, or its lowercased name, as a role prefix" do
+      expect_no_offenses(<<~RUBY)
+        test_prof_event_list = omniauth_strategy_list = rubocop_kata_cop_list = 1
+      RUBY
+    end
+  end
 end

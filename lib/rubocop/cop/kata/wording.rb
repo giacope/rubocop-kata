@@ -29,9 +29,9 @@ module RuboCop::Cop::Kata::Wording
 
   def prefixed(words) = listed?("Prefixes", words.first) ? words.drop(1) : words
 
-  def namespaces
-    @_namespaces ||= list("Roots").map { it.gsub("::", "_").gsub(/([a-z\d])([A-Z])/, '\1_\2').downcase.split("_") }
-  end
+  def namespaces = @_namespaces ||= list("Roots").flat_map { [segmented(it), it.downcase.split("::")] }
+
+  def segmented(root) = root.gsub("::", "_").gsub(/([a-z\d])([A-Z])/, '\1_\2').downcase.split("_")
 
   def allowed?(name) = super || listed?("Terms", name) || list("AllowedPatterns").any? { name.match?(Regexp.new(it)) }
 

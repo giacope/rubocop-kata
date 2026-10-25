@@ -1,0 +1,137 @@
+# What the fifth field test found running kata in check mode on fifty more
+# codebases: each case is a shape whose advice would have made the code worse
+# or counted one decision twice, and the true finding beside it.
+- id: generator-step-under-a-condition-is-a-command
+  cop: Kata/BuilderNoun
+  expect: clean
+  path: lib/generators/shelf/install_generator.rb
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class InstallGenerator < Rails::Generators::NamedBase
+        def generate_model
+          invoke "active_record:model", [name] unless model_exists?
+        end
+
+        def generate_route
+          namespaced? ? route("resources :shelves", namespace: [:admin]) : route("resources :shelves")
+        end
+      end
+    end
+- id: predicate-is-no-builder
+  cop: Kata/BuilderNoun
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Resque
+      class Failure
+        def generate_failure_ids?(options) = options.key?(:ids)
+      end
+    end
+- id: builder-named-for-its-verb-still-flagged
+  cop: Kata/BuilderNoun
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Report
+        def generate_summary(rows) = rows.sum
+      end
+    end
+- id: constructor-assigning-through-its-own-writer-is-assignment
+  cop: Kata/ConstructorDiscipline
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Health
+        def initialize(project, checks)
+          self.project = project
+          self.checks = checks
+        end
+
+        private
+
+        attr_writer :project, :checks
+      end
+    end
+- id: script-top-level-output-is-the-boot-layer
+  cop: Kata/IoDiscipline
+  expect: clean
+  path: lib/scripts/import.rb
+  source: |
+    # frozen_string_literal: true
+
+    fund = ENV.fetch("FUND")
+    warn "Could not find fund #{fund}" if fund.empty?
+    puts "Imported at #{Time.now}"
+- id: literal-receiver-probe-is-a-core-object
+  cop: Kata/NoTypeCheck
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      module Ext
+        refine String do
+          def safe_constantize = nil
+        end
+      end
+
+      class Lookup
+        def polyfilled? = "".respond_to?(:safe_constantize)
+      end
+    end
+- id: acronym-with-its-version-is-one-concept
+  cop: Kata/GoodModuleName
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Nokogiri
+      module HTML5
+      end
+    end
+- id: british-and-html-attribute-words
+  cop: Kata/RealWords
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Search
+      class Ranking
+        def judgements(enrolment) = [enrolment, tabindex, srcset]
+      end
+    end
+- id: blank-line-in-a-block-in-a-method-is-the-method-cops
+  cop: Kata/NoEmptyLinesInBlocks
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Expiration
+        def expire(items)
+          items.map do |item|
+            item.close
+
+            item.name
+          end
+        end
+      end
+    end
+- id: value-cache-on-the-class-is-no-singleton
+  cop: Kata/NoSingleton
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Country
+        def self.all = @all ||= Codelist.new(type: "countries").map { new(it) }
+      end
+    end

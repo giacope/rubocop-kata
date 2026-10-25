@@ -39,6 +39,15 @@ RSpec.describe(RuboCop::Kata::Plugin) do
     effective { |config| expect(tuned.select { config.for_cop(it)["Enabled"] == false }).to(be_empty) }
   end
 
+  # refinerycms: each engine of the monorepo holds its own app/ (core/app/controllers/application_controller.rb).
+  it "reads an engine's <gem>/app like app/ wherever a default names app/", :aggregate_failures do
+    lists = shipped.values.grep(Hash).flat_map { it.values_at("OwnedPaths", "Exclude").compact }
+    paths = [*lists, RuboCop::Cop::Kata::Reopening::OWNED, RuboCop::Cop::Kata::Contract::OWNED]
+    missing = paths.flat_map { |list| list.grep(%r{\Aapp/}).reject { list.include?("*/#{it}") } }
+    expect(missing).to(be_empty)
+    expect(paths.count { it.include?("*/app/**/*.rb") }).to(eq(10))
+  end
+
   it "keeps the parameter limit it advertises" do
     effective do |config|
       expect(config.for_cop("Metrics/ParameterLists").slice("Enabled", "Max")).to(eq("Enabled" => true, "Max" => 4))
@@ -89,14 +98,17 @@ RSpec.describe(RuboCop::Kata::Plugin) do
     end
   end
 
-  it "leaves a top-level class in a Zeitwerk root to Rails, and nowhere else" do
+  # refinerycms: an engine's own Zeitwerk root, core/app/controllers/application_controller.rb.
+  it "leaves a top-level class in a Zeitwerk root to Rails, an engine's included, and nowhere else" do
     paths = %w[
       app/models/account.rb app/models/concerns/archivable.rb app/jobs/sweep_job.rb
-      app/models/billing/invoice.rb lib/invoice.rb
+      core/app/controllers/application_controller.rb core/app/models/concerns/archivable.rb
+      app/models/billing/invoice.rb lib/invoice.rb core/lib/invoice.rb
     ]
-    config = RuboCop::Config.new(shipped.slice("Kata/ClassInModule"), "/app/.rubocop.yml")
+    config = RuboCop::Config.new(shipped.slice("Kata/ClassInModule"), "/shop/.rubocop.yml")
     cop = RuboCop::Cop::Kata::ClassInModule.new(config)
-    expect(paths.map { cop.relevant_file?(File.join("/app", it)) }).to(eq([false, false, false, true, true]))
+    expect(paths.map { cop.relevant_file?(File.join("/shop", it)) })
+      .to(eq([false, false, false, false, false, true, true, true]))
   end
 
   # doorkeeper, pagy, rake and twelve more corpus projects set an AllCops Exclude of their own. RuboCop

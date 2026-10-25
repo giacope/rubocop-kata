@@ -331,6 +331,14 @@ RSpec.describe(RuboCop::Cop::Kata::RealWords, :config) do
     RUBY
   end
 
+  # search-api's `judgements`, the DfE apps' enrolments, govuk_publishing_components' `aria-describedby` and `srcset`.
+  it "knows the en-GB forms and HTML attribute names the GOV.UK apps spell" do
+    expect_no_offenses(<<~RUBY)
+      judgements = enrolment = enrolled = enrol = enquiry = forecasted = 1
+      tabindex = srcset = hreflang = describedby = labelledby = colspan = rowspan = 2
+    RUBY
+  end
+
   it "knows the cloud and government initialisms an infrastructure codebase names" do
     expect_no_offenses(<<~RUBY)
       uk_region = vpc_id = iam_role = acl_entry = arn = 1

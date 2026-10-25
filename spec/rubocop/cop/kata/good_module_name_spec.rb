@@ -52,6 +52,19 @@ RSpec.describe(RuboCop::Cop::Kata::GoodModuleName, :config) do
     RUBY
   end
 
+  # nokogiri's `HTML5`: an acronym and its version are one concept.
+  it "reads an acronym followed by digits as one concept" do
+    expect_offense(<<~RUBY)
+      module HTML5
+      end
+      module UTF8Input
+      end
+      module HTML5ParserOptions
+             ^^^^^^^^^^^^^^^^^^ `HTML5ParserOptions` packs 3 concepts into one name; a module names one domain — or, if `HTML5ParserOptions` reads as one concept here, add it to `Terms`.
+      end
+    RUBY
+  end
+
   context "with a reviewed Term" do
     let(:cop_config) { { "Terms" => %w[CustomerOrderBilling] } }
 

@@ -97,5 +97,14 @@ RSpec.describe(RuboCop::Cop::Kata::NoBooleanFlag, :config) do
         allow(gate).to receive(:open?).and_return(false)
       RUBY
     end
+
+    # typeprof's `splat_flags.index(true)`, errbit's `confirm_err_actions.eql? false`: a value searched for or compared.
+    it "allows a boolean searched for or compared" do
+      expect_no_offenses(<<~RUBY)
+        flags.index(true) || flags.rindex(false) || flags.count(true)
+        actions.eql? false
+        actions.equal?(true)
+      RUBY
+    end
   end
 end

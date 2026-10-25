@@ -104,3 +104,22 @@
   expect:
     status: [1]
     stdout: ["Kata/RealWords", "Lint/BooleanSymbol"]
+- id: doctor-says-disabled-by-default-switches-kata-off
+  gap: R21
+  command: doctor
+  files:
+    .rubocop.yml: "plugins:\n  - rubocop-kata\n\nAllCops:\n  TargetRubyVersion: 3.4\n  DisabledByDefault: true\n"
+    lib/sample.rb: "# frozen_string_literal: true\n"
+  expect:
+    status: [1]
+    stdout: ["\\.rubocop\\.yml:6: `DisabledByDefault: true` leaves 26 of kata's 26 cops off"]
+- id: doctor-calls-a-renamed-cop-entry-a-rename
+  gap: R21
+  command: doctor
+  files:
+    .rubocop.yml: "plugins:\n  - rubocop-kata\n\nAllCops:\n  TargetRubyVersion: 3.4\n\nNaming/PredicateName:\n  Exclude:\n    - lib/sample.rb\n"
+    lib/sample.rb: "# frozen_string_literal: true\n"
+  expect:
+    status: [1]
+    stdout: ["was renamed to `Naming/PredicatePrefix`; rename the entry", "0 dead entries, 1 entry to rename"]
+    stdout_absent: ["does nothing"]

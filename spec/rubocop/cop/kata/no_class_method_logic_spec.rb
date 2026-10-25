@@ -174,4 +174,25 @@ RSpec.describe(RuboCop::Cop::Kata::NoClassMethodLogic, :config) do
       end
     RUBY
   end
+
+  # cancancan: `AbstractAdapter.for_class?(_member_class) = false`, which each adapter overrides with logic.
+  it "asks for a constant only for a method that takes nothing and no subclass redefines" do
+    expect_offense(<<~RUBY)
+      class Adapter
+        def self.for_class?(_model) = false
+                 ^^^^^^^^^^ `for_class?` puts logic on the class; classes construct, instances work.
+        def self.available? = true
+                 ^^^^^^^^^^ `available?` puts logic on the class; classes construct, instances work.
+        def self.steps = %i[a b]
+                 ^^^^^ `steps` only returns a literal; make it a constant.
+      end
+      class RecordAdapter < Adapter
+        def self.available? = !ActiveRecord.nil?
+                 ^^^^^^^^^^ `available?` puts logic on the class; classes construct, instances work.
+        def available? = false
+        def LIMITS.steps = []
+                   ^^^^^ `steps` only returns a literal; make it a constant.
+      end
+    RUBY
+  end
 end

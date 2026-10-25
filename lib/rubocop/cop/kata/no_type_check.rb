@@ -15,6 +15,7 @@ class RuboCop::Cop::Kata::NoTypeCheck < RuboCop::Cop::Base
   /x
   PROBES = %i[is_a? kind_of? instance_of?].freeze
   EQUALITIES = %i[== != eql? equal?].freeze
+  LITERALS = %i[str dstr array hash int float sym dsym regexp].freeze
 
   RESTRICT_ON_SEND = [*PROBES, :respond_to?, :===, *EQUALITIES].freeze
 
@@ -61,7 +62,7 @@ class RuboCop::Cop::Kata::NoTypeCheck < RuboCop::Cop::Base
     probe&.sym_type? && !stranger?(node.receiver) && message?(probe.value.to_s, node.arguments[1]&.true_type?)
   end
 
-  def stranger?(receiver) = receiver&.const_type? && !own?(receiver)
+  def stranger?(receiver) = LITERALS.include?(receiver&.type) || (receiver&.const_type? && !own?(receiver))
 
   def equality(node)
     sides = [node.receiver, node.first_argument]

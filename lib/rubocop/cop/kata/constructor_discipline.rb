@@ -20,8 +20,10 @@ class RuboCop::Cop::Kata::ConstructorDiscipline < RuboCop::Cop::Base
 
   def allowed?(send)
     name = send.method_name.to_s
-    listed?("AllowedMethods", name) || CONVERSION.match?(name) || state?(send)
+    listed?("AllowedMethods", name) || CONVERSION.match?(name) || state?(send) || written?(send)
   end
+
+  def written?(send) = send.receiver&.self_type? && send.setter_method? && !send.method?(:[]=)
 
   def state?(send)
     receiver = send.receiver

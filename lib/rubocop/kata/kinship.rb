@@ -19,7 +19,7 @@ class RuboCop::Kata::Kinship
   def facts(node, scope, method = nil)
     case node
     when *RuboCop::Kata::Lineage::NESTS then nest(node, scope)
-    when Prism::DefNode then node.receiver || scope.empty? ? [] : defined(node, scope)
+    when Prism::DefNode then defined(node, scope)
     when Prism::CallNode then [*call(node, scope, method), *inner(node, scope, method)]
     else inner(node, scope, method)
     end
@@ -35,14 +35,18 @@ class RuboCop::Kata::Kinship
   end
 
   def defined(node, scope)
+    return [] unless own?(node)
+    return [[scope.last, :method, "self.#{node.name}"]] if node.receiver
     method = node.name.to_s
     [[scope.last, :method, method], *inner(node, scope, method)]
   end
 
   def call(node, scope, method)
-    return [] unless RuboCop::Kata::Lineage::CALLERS.any? { node.receiver.is_a?(it) }
+    return [] unless own?(node)
     [[scope.last, :method, method, node.name.to_s]]
   end
+
+  def own?(node) = RuboCop::Kata::Lineage::CALLERS.any? { node.receiver.is_a?(it) }
 
   def written(parent, node) = [*parent&.slice, *Array(node.body&.body).flat_map { mixed(it) }]
 

@@ -4,6 +4,7 @@ class RuboCop::Cop::Kata::BuilderNoun < RuboCop::Cop::Base
   include RuboCop::Cop::Kata::Roster
   include RuboCop::Cop::Kata::Contract
   include RuboCop::Cop::Kata::Ancestry
+  include RuboCop::Cop::VisibilityHelp
 
   MSG = "A builder is named for what it returns: `%s`, not `%s`."
 
@@ -21,19 +22,18 @@ class RuboCop::Cop::Kata::BuilderNoun < RuboCop::Cop::Base
   end
 
   def builder?(node, name)
-    !(allowed?(name) || inherited?(node) || foreign?(name) || override?(node) || command?(node))
+    return false if name.end_with?("?") || allowed?(name) || inherited?(node) || foreign?(name)
+    !(override?(node) || command?(node) || step?(node))
   end
 
   def prefix(name) = list("BannedPrefixes").find { name.start_with?("#{it}_") }
 
-  def command?(node)
-    last = final(node)
-    last&.call_type? ? list("Commands").intersect?(spelled(last)) : false
-  end
+  def command?(node) = node.each_descendant(:send, :csend).any? { list("Commands").intersect?(spelled(it)) }
 
-  def final(node)
-    last = node.body&.then { it.begin_type? ? it.children.last : it }
-    last&.any_block_type? ? last.send_node : last
+  def step?(node)
+    holder = node.parent&.then { it.begin_type? ? it.parent : it }
+    return false unless node.def_type? && holder&.class_type? && node_visibility(node) == :public
+    project.ancestors(RuboCop::Kata::Nesting.new(holder).qualified).intersect?(list("StepSuperclasses"))
   end
 
   def spelled(call)
