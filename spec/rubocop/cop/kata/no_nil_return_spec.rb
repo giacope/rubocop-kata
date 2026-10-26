@@ -137,6 +137,7 @@ RSpec.describe(RuboCop::Cop::Kata::NoNilReturn, :config) do
         def c = COUNTS[@key]
         def d = @index[@key]
         def e = @rows[0...-1]
+        def f = @address.split("@").last
       end
     RUBY
   end

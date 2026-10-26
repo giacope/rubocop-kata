@@ -36,6 +36,12 @@
   `Rails.logger.info`) — is reported, and so is a `?` method that acts
   through a discarded message. Guards that raise, a helper filling one of
   the method's own locals, iterations and a method returning `self` pass.
+- `Kata/NoGetter` (new, on): a public `attr_reader`, a method that only
+  returns the field of its name, and `Struct.new`/`Data.define` (a getter for
+  every field, a data bag) are getters, which Elegant Objects rules out and
+  no rule reported (`Kata/NoSetter` saw only writers). The message asks to
+  tell the object what to do with its fields, or to have it print itself.
+  Private and protected readers pass.
 - `Kata/NoComments` prices documentation by default: `AllowDocumentation`
   is `false` again, as when the option was added, so a comment above a
   public class, module, method or constant is prose like any other, YARD

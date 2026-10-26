@@ -349,3 +349,199 @@
         end
       end
     end
+- id: v1-p20-violation-min-no-getter
+  cop: Kata/NoGetter
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Account
+        attr_reader :balance
+
+        def initialize(balance)
+          @balance = balance
+        end
+
+        def deposited(cents)
+          Account.new(@balance + cents)
+        end
+      end
+    end
+- id: v1-p20-violation-real-no-getter
+  cop: Kata/NoGetter
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Customer
+        attr_reader :first_name, :last_name, :email
+
+        def initialize(first_name, last_name, email)
+          @first_name = first_name
+          @last_name = last_name
+          @email = email
+        end
+
+        def contact
+          "#{@first_name} <#{@email}>"
+        end
+      end
+    end
+
+    module Shop
+      class Label
+        def initialize(customer)
+          @customer = customer
+        end
+
+        def text
+          "#{@customer.first_name.upcase} #{@customer.last_name.upcase}"
+        end
+      end
+    end
+- id: v1-p20-compliant-no-getter
+  cop: Kata/NoGetter
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Customer
+        def initialize(first, last, email)
+          @first = first
+          @last = last
+          @email = email
+        end
+
+        def contact
+          "#{@first} <#{@email}>"
+        end
+
+        def label
+          "#{@first.upcase} #{@last.upcase}"
+        end
+      end
+    end
+- id: v1-p20-compliant-alt-no-getter
+  cop: Kata/NoGetter
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Card
+        def initialize(fields)
+          @fields = fields.freeze
+        end
+
+        def with(name, value)
+          Card.new(@fields.merge(name => value))
+        end
+
+        def to_s
+          @fields.map { |name, value| "#{name}: #{value}" }.join("\n")
+        end
+      end
+    end
+
+    module Shop
+      class Customer
+        def initialize(first, last, email)
+          @first = first
+          @last = last
+          @email = email
+        end
+
+        def print(media)
+          media.with("first", @first).with("last", @last).with("email", @email)
+        end
+      end
+    end
+- id: v1-p28-violation-min-no-getter
+  cop: Kata/NoGetter
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Point
+        attr_reader :left, :top
+
+        def initialize(left, top)
+          @left = left
+          @top = top
+        end
+      end
+    end
+- id: v1-p28-violation-real-no-getter
+  cop: Kata/NoGetter
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      Address = Struct.new(:street, :city, :zip)
+    end
+
+    module Shop
+      class ApplicationRecord < ActiveRecord::Base
+        self.abstract_class = true
+      end
+    end
+
+    module Shop
+      class Invoice
+        def initialize(order, address)
+          @order = order
+          @address = address
+        end
+
+        def total
+          (@order.quantity * @order.unit_cents) + @order.shipping_cents
+        end
+
+        def label
+          "#{@address.street}, #{@address.zip} #{@address.city}"
+        end
+      end
+    end
+
+    module Shop
+      class Order < ApplicationRecord
+      end
+    end
+- id: v1-p28-compliant-no-getter
+  cop: Kata/NoGetter
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Address
+        def initialize(street, city, zip)
+          @street = street
+          @city = city
+          @zip = zip
+        end
+
+        def label
+          "#{@street}, #{@zip} #{@city}"
+        end
+      end
+    end
+
+    module Shop
+      class Order
+        def initialize(quantity, unit, shipping)
+          @quantity = quantity
+          @unit = unit
+          @shipping = shipping
+        end
+
+        def total
+          (@quantity * @unit) + @shipping
+        end
+      end
+    end

@@ -897,6 +897,26 @@ Kata/NoNilReturn:
 Elegant/NoNilReturn:
   Enabled: false
 
+Kata/NoGetter:
+  Description: >-
+    No getters: a public `attr_reader`, or a method that only returns the
+    field of its name (`def balance = @balance`), hands an object's data to
+    whoever asks, and the logic about it moves to them (`Label` building text
+    from `customer.first_name` and `customer.last_name`). Tell the object
+    what to do with its fields, or have it print itself to a medium it is
+    given (Elegant Objects' printers instead of getters). `Struct.new` and
+    `Data.define` mint a getter for every field: a data bag. A private or
+    protected reader is the object's own.
+  Enabled: true
+  VersionAdded: "0.11"
+  Exclude:
+    - "spec/**/*"
+    - "test/**/*"
+    - "**/*_spec.rb"
+    - "**/*_test.rb"
+    - "db/**/*"
+    - "config/**/*"
+
 Kata/NoHardWiring:
   Description: >-
     An instance method that builds one of the project's classes and talks to

@@ -15,7 +15,9 @@ class RuboCop::Cop::Kata::NoNilReturn < RuboCop::Cop::Base
   SCOPES = %i[def defs].freeze
   INNER = { begin: -1, kwbegin: -1, or_asgn: 1, rescue: 0, ensure: 0 }.freeze
 
-  def_node_matcher :defaulted, "{(block (send (const {nil? cbase} :Hash) :new) ...) (send (const {nil? cbase} :Hash) :new _)}"
+  def_node_matcher :defaulted, <<~PATTERN
+    {(block (send (const {nil? cbase} :Hash) :new) ...) (send (const {nil? cbase} :Hash) :new _)}
+  PATTERN
 
   def on_def(node)
     return unless node.body && judged?(node)
@@ -94,10 +96,17 @@ class RuboCop::Cop::Kata::NoNilReturn < RuboCop::Cop::Base
 
   def lookup?(call, block)
     name = call.method_name
-    return !(call.arguments.any?(&:range_type?) || defaulted?(call.receiver)) if name == :[]
-    (SEARCHES.include?(name) && block) || (SINGLES.include?(name) && !call.arguments?) ||
-      (LOOKUPS.include?(name) && (!call.receiver.nil? || name == :find_by))
+    return index?(call) if name == :[]
+    return block if SEARCHES.include?(name)
+    return single?(call) if SINGLES.include?(name)
+    LOOKUPS.include?(name) && (!call.receiver.nil? || name == :find_by)
   end
+
+  def index?(call) = !(call.arguments.any?(&:range_type?) || defaulted?(call.receiver))
+
+  def single?(call) = !(call.arguments? || split?(call.receiver))
+
+  def split?(holder) = holder&.send_type? && holder.method?(:split)
 
   def defaulted?(holder)
     return false unless holder&.type?(:const, :ivar)
