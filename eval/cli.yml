@@ -112,7 +112,7 @@
     lib/sample.rb: "# frozen_string_literal: true\n"
   expect:
     status: [1]
-    stdout: ["\\.rubocop\\.yml:6: `DisabledByDefault: true` leaves 26 of kata's 26 cops off"]
+    stdout: ["\\.rubocop\\.yml:6: `DisabledByDefault: true` leaves 28 of kata's 28 cops off"]
 - id: doctor-calls-a-renamed-cop-entry-a-rename
   gap: R21
   command: doctor
