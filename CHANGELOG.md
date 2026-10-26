@@ -13,7 +13,8 @@
   only a literal `nil` though its description says "on any code path": the
   nil a lookup passes on (`@items.detect { ... }`, `find_by`, `first`, `[]`,
   `dig`, `&.`) and the missing branch of a conditional that answers with a
-  value (`@items[code] if @open`) are nil returns too. A slice, a hash with a
+  value (`@items[code] if @open`) are nil returns too. A slice (`rows[1..]`,
+  `bio[0, 40]`), a hash with a
   default, a conditional command and a method forwarding the protocol it is
   named after pass.
 - `Kata/NoHardWiring` (new, on): an instance method that builds one of the
@@ -25,8 +26,10 @@
   constructors, class methods and composition roots (controllers, jobs,
   mailers, workers, `bin/`, `config/`, a subclass of a framework base that
   builds it, such as `RuboCop::Cop::Base`; `RootSuperclasses`) pass, as do
-  Ruby's and other libraries' classes. The ownership test is
-  `Kata/NoTypeCheck`'s, now shared.
+  Ruby's and other libraries' classes, and so does a method that answers
+  its own message by relaying it to an object built from its own fields
+  (`def csv = Table.new(COLUMNS, @orders, @separator).csv`, composition).
+  The ownership test is `Kata/NoTypeCheck`'s, now shared.
 
 - `Kata/CommandQuery` judges every query, not only `?` methods: a method
   whose last expression is a value (`@entries.sum`, a literal, a lookup, a

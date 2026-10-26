@@ -102,7 +102,9 @@ class RuboCop::Cop::Kata::NoNilReturn < RuboCop::Cop::Base
     LOOKUPS.include?(name) && (!call.receiver.nil? || name == :find_by)
   end
 
-  def index?(call) = !(call.arguments.any?(&:range_type?) || defaulted?(call.receiver))
+  def index?(call) = !(slice?(call.arguments) || defaulted?(call.receiver))
+
+  def slice?(arguments) = arguments.any?(&:range_type?) || (arguments.size == 2 && arguments.first.int_type?)
 
   def single?(call) = !(call.arguments? || split?(call.receiver))
 

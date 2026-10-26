@@ -23,8 +23,16 @@ class RuboCop::Cop::Kata::NoHardWiring < RuboCop::Cop::Base
     return false unless instance?(method) && node.each_ancestor(:optarg, :kwoptarg).none?
     target = node.receiver
     home = home(method)
-    own?(target) && !owners(target).include?(home) && !root?(home) && talked?(node, method)
+    own?(target) && !owners(target).include?(home) && !root?(home) && talked?(node, method) && !relayed?(node, method)
   end
+
+  def relayed?(node, method)
+    holder = built(node).parent
+    holder.send_type? && holder.method?(method.method_name) && holder.equal?(tail(method.body)) &&
+      node.arguments.any?(&:ivar_type?) && node.arguments.all? { it.type?(:ivar, :str, :sym, :int, :float, :array) }
+  end
+
+  def tail(body) = body.begin_type? ? body.children.fetch(-1) : body
 
   def root?(home) = project.ancestors(home).intersect?(list("RootSuperclasses"))
 

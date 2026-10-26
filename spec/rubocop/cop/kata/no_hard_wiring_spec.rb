@@ -49,7 +49,27 @@ RSpec.describe(RuboCop::Cop::Kata::NoHardWiring, :config) do
             ready.go
           end
           def again = self.class.new(@items).size
+          def csv = Gateway.new(%w[a b], @rows, @separator).csv
           def plain = new.size
+        end
+      end
+    RUBY
+  end
+
+  it "still flags a relay that builds from something other than its own state, or answers another message" do
+    expect_offense(<<~RUBY)
+      class Gateway
+      end
+
+      class Checkout
+        def charge(cents) = Gateway.new(cents).charge
+                            ^^^^^^^^^^^^^^^^^^ `charge` builds the `Gateway` it talks to; take one in the constructor, with this `new` as the parameter's default.
+        def receipt = Gateway.new(@key).charge(@cents)
+                      ^^^^^^^^^^^^^^^^^ `receipt` builds the `Gateway` it talks to; take one in the constructor, with this `new` as the parameter's default.
+        def total
+          Gateway.new(@key).total
+          ^^^^^^^^^^^^^^^^^ `total` builds the `Gateway` it talks to; take one in the constructor, with this `new` as the parameter's default.
+          1
         end
       end
     RUBY

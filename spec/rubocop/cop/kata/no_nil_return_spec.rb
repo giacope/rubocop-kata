@@ -138,6 +138,7 @@ RSpec.describe(RuboCop::Cop::Kata::NoNilReturn, :config) do
         def d = @index[@key]
         def e = @rows[0...-1]
         def f = @address.split("@").last
+        def g = @bio[0, 40]
       end
     RUBY
   end
@@ -154,6 +155,8 @@ RSpec.describe(RuboCop::Cop::Kata::NoNilReturn, :config) do
                 ^^^^^^^^^^ `b` passes on the nil `[]` can return; return a null object, or fail fast.
         def c = @rows[@key][1]
                 ^^^^^^^^^^^^^^ `c` passes on the nil `[]` can return; return a null object, or fail fast.
+        def d = @text[PATTERN, 1]
+                ^^^^^^^^^^^^^^^^^ `d` passes on the nil `[]` can return; return a null object, or fail fast.
       end
     RUBY
   end

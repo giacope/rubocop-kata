@@ -1120,6 +1120,7 @@ Kata/NoHardWiring:
     - "app/mailers/**/*"
     - "*/app/mailers/**/*"
     - "app/workers/**/*"
+    - "*/app/workers/**/*"
     - "**/*_controller.rb"
     - "**/*_job.rb"
     - "**/*_mailer.rb"
