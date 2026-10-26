@@ -42,6 +42,11 @@
   no rule reported (`Kata/NoSetter` saw only writers). The message asks to
   tell the object what to do with its fields, or to have it print itself.
   Private and protected readers pass.
+- `Kata/FieldCount` (new, on): at most four fields per class, counting the
+  instance variables its methods assign and the fields its `attr_*` macros
+  name, memoized answers aside. `Metrics/ParameterLists` counted only
+  constructor parameters, so a form object with six `attr_accessor` fields
+  passed.
 - `Kata/NoComments` prices documentation by default: `AllowDocumentation`
   is `false` again, as when the option was added, so a comment above a
   public class, module, method or constant is prose like any other, YARD

@@ -545,3 +545,77 @@
         end
       end
     end
+- id: v1-p04-violation-min-field-count
+  cop: Kata/FieldCount
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Address
+        def initialize(street, city, zip, country, phone)
+          @street = street
+          @city = city
+          @zip = zip
+          @country = country
+          @phone = phone
+        end
+
+        def label
+          "#{@street}, #{@zip} #{@city}, #{@country} (#{@phone})"
+        end
+      end
+    end
+- id: v1-p04-violation-real-field-count
+  cop: Kata/FieldCount
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Signup
+        include ActiveModel::Model
+
+        attr_accessor :email, :password, :name, :company, :phone, :plan
+
+        def summary
+          "#{name} <#{email}> at #{company}, #{phone}, on #{plan}"
+        end
+
+        def secure?
+          password.length > 11
+        end
+      end
+    end
+- id: v1-p04-compliant-field-count
+  cop: Kata/FieldCount
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Address
+        def initialize(street, place)
+          @street = street
+          @place = place
+        end
+
+        def label
+          "#{@street}, #{@place}"
+        end
+      end
+    end
+
+    module Shop
+      class Place
+        def initialize(zip, city, country)
+          @zip = zip
+          @city = city
+          @country = country
+        end
+
+        def to_s
+          "#{@zip} #{@city}, #{@country}"
+        end
+      end
+    end

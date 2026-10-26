@@ -897,6 +897,34 @@ Kata/NoNilReturn:
 Elegant/NoNilReturn:
   Enabled: false
 
+Kata/FieldCount:
+  Description: >-
+    A class encapsulates at most `Max` fields (four by default, Elegant
+    Objects' "encapsulate as little as possible"): the instance variables its
+    instance methods assign, and the fields its `attr_*` macros name, counted
+    once each. A memoized answer (`@total ||= ...`) is a cache, not a field.
+    More fields than that is several objects in one; group some into an
+    object of their own. Rails controllers, mailers, helpers and views, which
+    hand views their data through instance variables, are not judged.
+  Enabled: true
+  VersionAdded: "0.11"
+  Max: 4
+  Exclude:
+    - "spec/**/*"
+    - "test/**/*"
+    - "**/*_spec.rb"
+    - "**/*_test.rb"
+    - "db/**/*"
+    - "config/**/*"
+    - "app/controllers/**/*"
+    - "*/app/controllers/**/*"
+    - "app/mailers/**/*"
+    - "*/app/mailers/**/*"
+    - "app/helpers/**/*"
+    - "*/app/helpers/**/*"
+    - "app/views/**/*"
+    - "*/app/views/**/*"
+
 Kata/NoGetter:
   Description: >-
     No getters: a public `attr_reader`, or a method that only returns the
