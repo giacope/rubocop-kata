@@ -223,16 +223,19 @@ Kata/NoComments:
     reek `:reek:`, kimera, hashira, RubyMine `language=`), RDoc and YARD
     directives, licence headers, every comment block that cites a URL, an
     issue or pull request (`rails/rails#123`, `#123`), an RFC, a CVE or a
-    version constraint (`Compatibility with RSpec < 3.0`, `Ruby >= 3.2`), and
-    public API documentation: a block whose next definition is public — a
-    class, module, method, `attr_reader`/`attr_writer`/`attr_accessor`,
-    `define_method` or a constant not made private — in any markup (RDoc,
-    Markdown, YARD), read across a Sorbet `sig { ... }`, a bare `memoize` or
-    `memo_wise` line, and the blank line RDoc allows after a `##` opener;
-    and any block carrying a YARD tag. A published API's documentation is product, not prose
-    (`AllowDocumentation: false` to price it too); a block inside a method
-    body, above a private or protected method, or above a top-level method
-    is prose. One block of consecutive full-line comments is one offense.
+    version constraint (`Compatibility with RSpec < 3.0`, `Ruby >= 3.2`). A
+    tool's name opens a directive only with its colon (`# kimera:disable`):
+    `# kimera cannot say` is prose. Documentation is prose too, YARD tags
+    and all: a name, a type or a test says it. A gem that publishes its API
+    documentation sets `AllowDocumentation: true` to keep a block whose next
+    definition is public — a class, module, method,
+    `attr_reader`/`attr_writer`/`attr_accessor`, `define_method` or a
+    constant not made private — in any markup (RDoc, Markdown, YARD), read
+    across a Sorbet `sig { ... }`, a bare `memoize` or `memo_wise` line, and
+    the blank line RDoc allows after a `##` opener, and any block carrying a
+    YARD tag; a block inside a method body, above a private or protected
+    method, or above a top-level method is prose either way. One block of
+    consecutive full-line comments is one offense.
     `AllowedPatterns` adds the directives of tools it does not know. Removing
     a comment loses what it said, so the correction is unsafe: `rubocop -A`
     applies it, `rubocop -a` does not. `config/` is excluded: its comments
@@ -241,7 +244,7 @@ Kata/NoComments:
   VersionAdded: "0.1"
   VersionChanged: "0.11"
   SafeAutoCorrect: false
-  AllowDocumentation: true
+  AllowDocumentation: false
   AllowCitations: true
   AllowedPatterns: []
   Exclude:

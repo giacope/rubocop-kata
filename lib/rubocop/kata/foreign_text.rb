@@ -2,9 +2,6 @@
 
 require "rubocop-elegant"
 
-# Elegant/MonotonicIndents, taught that a line which starts inside an
-# x-string is shell or JavaScript text (opal's `%x{}`), not Ruby layout: it
-# already skips heredoc bodies for the same reason.
 module RuboCop::Kata::ForeignText
   private
 

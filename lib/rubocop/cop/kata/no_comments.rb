@@ -15,8 +15,8 @@ class RuboCop::Cop::Kata::NoComments < RuboCop::Cop::Base
   MODELINE = /\A#.*-\*-.*-\*-|\A#\s*(vim?|ex):\s*(set?\s+)?\w+[=:]/
   DIRECTIVE = /
     \A\#\s*(
-      rubocop|standard|simplecov|:nocov:|rbs\b|steep|sorbet|typed|typeprof|kimera|hashira|:reek:|
-      @type\s|@rbs\b|noinspection\s|language\s*=|erblint|yard:|packwerk
+      (rubocop|standard|simplecov|rbs|steep|sorbet|typed|typeprof|kimera|hashira|erblint|yard|packwerk)\s*:|
+      :nocov:|:reek:|@type\s|@rbs\b|noinspection\s|language\s*=
     )|\A\#:\s
   /x
   RDOC = /\A#\s*:(nodoc|doc|stopdoc|startdoc|enddoc|call-seq|yields|markup|section|include|title|main|notnew):/

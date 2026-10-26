@@ -130,19 +130,19 @@
   source: |
     # Escape before matching: CVE-2023-27530.
     LIMIT = 4096
-- id: yard-block-kept-by-default
+- id: yard-block-priced-by-default-and-kept-by-safe-autocorrect
   cop: Kata/NoComments
-  expect: clean
-  correct: all
+  expect: offense
+  correct: safe
   keeps: ["# Sums the billable lines.", "# @return [Integer]"]
   source: |
     # Sums the billable lines.
     #
     # @return [Integer]
     def total = lines.sum
-- id: yard-tag-lines-kept-by-default
+- id: yard-tag-lines-priced-by-default
   cop: Kata/NoComments
-  expect: clean
+  expect: offense
   source: |
     # @param lines [Array<Integer>]
     # @return [Integer]

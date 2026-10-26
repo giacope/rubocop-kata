@@ -161,9 +161,9 @@
         end
       end
     end
-- id: rdoc-above-a-public-method-is-documentation
+- id: rdoc-above-a-public-method-is-priced-by-default
   cop: Kata/NoComments
-  expect: clean
+  expect: offense
   source: |
     # frozen_string_literal: true
 
