@@ -13,6 +13,16 @@
     `self.label`, which a section sends to the class it holds), so it gets
     the plain "puts logic on the class", not "make it a constant", whose
     `klass::LABEL` would be shared state and break the delegation.
+  - The Rails profile names what ActiveRecord and ActionView call by name:
+    a namespace's `table_name_prefix` and `table_name_suffix` (the module
+    `rails generate model` writes; a constant in their place renames every
+    table under it), the transaction-record protocol (`rolledback!`,
+    `trigger_transactional_callbacks?`, `has_transactional_callbacks?`,
+    `add_to_transaction`), and `attributes` as a role suffix, so the
+    nested-attributes writer `fields_for` checks for
+    (`time_constraint_attributes=`) is judged by the words before it.
+    A library that does not declare ActiveRecord (statesman) still hears
+    about `rolledback!`: nothing tells kata it is Rails code.
   - `Kata/NoBooleanFlag` allows a boolean converted or rendered as a value:
     `quote`, `type_cast`, `cast`, `serialize` and `dump` join
     `AllowedMethods` (statesman's `connection.quote(type_cast(true))` renders

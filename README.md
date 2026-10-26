@@ -104,7 +104,10 @@ the configuration to match:
   [config/rails.yml](config/rails.yml) on top of the defaults: the method names
   Rails, Devise, Turbo and Pundit call by name (`default_url_options`,
   `after_sign_up_path_for`, `broadcast_target_default`,
-  `permitted_attributes_for_create`), `enum` mappings read as lookup tables,
+  `permitted_attributes_for_create`, a namespace's `table_name_prefix`, a
+  transaction record's `rolledback!`), `attributes` as the role suffix of a
+  nested-attributes writer (`time_constraint_attributes=` is judged as
+  `time_constraint`), `enum` mappings read as lookup tables,
   and the generated `bin/` and `db/` files kept out of `Kata/NoComments`. It
   relaxes no rule for code the application writes: an association chain, a nil
   check, a query on a model class or `Time.current` in a model are still
