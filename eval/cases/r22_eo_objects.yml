@@ -1,0 +1,168 @@
+# The V1 conformance cases (round 6) for the object principles of Elegant
+# Objects: each principle's minimal and realistic violation is flagged, and its
+# EO form is clean.
+- id: v1-p19-violation-min-no-nil-argument
+  cop: Kata/NoNilArgument
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Price
+        def initialize(cents)
+          @cents = cents
+        end
+
+        def discounted(coupon = nil)
+          return @cents if coupon.nil?
+          @cents - coupon.cents
+        end
+      end
+    end
+- id: v1-p19-violation-real-no-nil-argument
+  cop: Kata/NoNilArgument
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Signup
+        def initialize(email, referrer: nil)
+          @email = email
+          @referrer = referrer
+        end
+
+        def welcome
+          return "Welcome, #{@email}" if @referrer.nil?
+          "Welcome, #{@email}, invited by #{@referrer.name}"
+        end
+
+        def bonus
+          @referrer&.credit || 0
+        end
+      end
+    end
+- id: v1-p19-compliant-no-nil-argument
+  cop: Kata/NoNilArgument
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Signup
+        def initialize(email, referral)
+          @email = email
+          @referral = referral
+        end
+
+        def welcome
+          "Welcome, #{@email}#{@referral.mention}"
+        end
+
+        def bonus
+          @referral.credit
+        end
+      end
+    end
+- id: v1-p24-violation-min-no-nil-return
+  cop: Kata/NoNilReturn
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Catalog
+        def initialize(items)
+          @items = items
+        end
+
+        def find(code)
+          return nil unless @items.key?(code)
+          @items[code]
+        end
+      end
+    end
+- id: v1-p24-violation-real-no-nil-return
+  cop: Kata/NoNilReturn
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Cart
+        def initialize(catalog, codes)
+          @catalog = catalog
+          @codes = codes
+        end
+
+        def total
+          @codes.sum do |code|
+            item = @catalog.find(code)
+            item.nil? ? 0 : item.price
+          end
+        end
+      end
+    end
+
+    module Shop
+      class Catalog
+        def initialize(items)
+          @items = items
+        end
+
+        def find(code)
+          @items.detect { |item| item.code == code }
+        end
+      end
+    end
+- id: v1-p24-compliant-no-nil-return
+  cop: Kata/NoNilReturn
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Catalog
+        def initialize(items)
+          @items = items
+        end
+
+        def find(code)
+          @items.fetch(code)
+        end
+      end
+    end
+- id: v1-p24-compliant-alt-no-nil-return
+  cop: Kata/NoNilReturn
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class AbsentItem
+        def initialize(code)
+          @code = code
+        end
+
+        def price
+          0
+        end
+
+        def to_s
+          "#{@code} (unavailable)"
+        end
+      end
+    end
+
+    module Shop
+      class Catalog
+        def initialize(items, missing)
+          @items = items
+          @missing = missing
+        end
+
+        def find(code)
+          @items.fetch(code, @missing)
+        end
+      end
+    end

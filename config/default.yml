@@ -841,6 +841,62 @@ Kata/NoBooleanFlag:
     - update_all
     - where
 
+Kata/NoNilArgument:
+  Description: >-
+    A parameter that defaults to nil, which the method then asks about
+    (`coupon.nil?`, `coupon&.cents`, `coupon || NONE`, `if coupon`), is two
+    methods in one: the caller who has the value and the caller who does not.
+    Split them, or default to a null object that answers the same messages.
+    A constructor's nil default kept in a field the class asks about the same
+    way (`@referrer.nil?`) is two objects in one. A nil default that the
+    method only passes on (`fetch(key, default = nil)`) is the callee's
+    business, and the protocols whose signature Ruby or Rails dictates
+    (`as_json(options = nil)`) are in `AllowedMethods`.
+  Enabled: true
+  VersionAdded: "0.11"
+  Exclude:
+    - "spec/**/*"
+    - "test/**/*"
+    - "**/*_spec.rb"
+    - "**/*_test.rb"
+    - "db/*migrate/**/*"
+  AllowedMethods:
+    - as_json
+    - method_missing
+    - respond_to_missing?
+    - serializable_hash
+    - to_json
+    - to_xml
+
+Kata/NoNilReturn:
+  Description: >-
+    A method never returns nil, on any code path: not a literal `nil` or
+    `return nil`, not the nil a lookup passes on (`detect`, `find` with a
+    block, `find_by`, `first`, `last`, `min`, `max`, `sample`, `[]`, `dig`,
+    `match`, `index`, `presence`, `try`, `&.`), and not the missing branch of
+    an `if`, `unless` or `case` whose other branches answer with a value
+    (`@items[code] if @open`). Return a null object, or fail fast (`fetch`).
+    A block's literal `nil` is reported too. A predicate's falsy nil answers
+    its question, a writer's value is its argument, and a method that
+    forwards the protocol it is named after (`def first = @rows.first`)
+    keeps that protocol's contract; `AllowedMethods` holds the protocols
+    whose contract is nil (`[]`, `method_missing`). This replaces
+    `Elegant/NoNilReturn`, which sees only the literal `nil`.
+  Enabled: true
+  VersionAdded: "0.11"
+  Exclude:
+    - "spec/**/*"
+    - "test/**/*"
+    - "**/*_spec.rb"
+    - "**/*_test.rb"
+    - "db/*migrate/**/*"
+  AllowedMethods:
+    - "[]"
+    - method_missing
+
+Elegant/NoNilReturn:
+  Enabled: false
+
 Kata/ConstructorDiscipline:
   Description: >-
     Constructors assign; they do not compute. Shaping what was passed in is

@@ -2,6 +2,20 @@
 
 ## [Unreleased]
 
+- `Kata/NoNilArgument` (new, on): a parameter that defaults to nil and that
+  the method then asks about (`return @cents if coupon.nil?`, `coupon&.cents`,
+  `coupon || NONE`, `amount ||= total`) is two methods in one; the message
+  asks to split them or default to a null object. A constructor's nil default
+  kept in a field the class asks about (`@referrer.nil?`) is two objects in
+  one. Elegant Objects' "never accept NULL arguments" had no rule: hashira's
+  `nil_check` reads such a default as the caller's option.
+- `Kata/NoNilReturn` (new, on) replaces `Elegant/NoNilReturn`, which reported
+  only a literal `nil` though its description says "on any code path": the
+  nil a lookup passes on (`@items.detect { ... }`, `find_by`, `first`, `[]`,
+  `dig`, `&.`) and the missing branch of a conditional that answers with a
+  value (`@items[code] if @open`) are nil returns too. A slice, a hash with a
+  default, a conditional command and a method forwarding the protocol it is
+  named after pass.
 - `Kata/NoComments` prices documentation by default: `AllowDocumentation`
   is `false` again, as when the option was added, so a comment above a
   public class, module, method or constant is prose like any other, YARD
