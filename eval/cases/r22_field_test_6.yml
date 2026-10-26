@@ -79,3 +79,43 @@
         def label = @kind.label
       end
     end
+- id: r6b1-k3-condition-continued-two-columns-in-is-aligned-enough
+  cop: Layout/MultilineOperationIndentation
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Failure
+        def initialize(message)
+          @message = message
+        end
+
+        def unsupported?
+          if @message.include?("bool query does not support [filter]") ||
+            @message.include?("[bool] filter does not support [filter]")
+            true
+          end
+        end
+      end
+    end
+- id: r6b1-k3-condition-continued-three-columns-in-breaks-the-step
+  cop: Elegant/MonotonicIndents
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Failure
+        def initialize(message)
+          @message = message
+        end
+
+        def unsupported?
+          if @message.include?("bool query does not support [filter]") ||
+             @message.include?("[bool] filter does not support [filter]")
+            true
+          end
+        end
+      end
+    end

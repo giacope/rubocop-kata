@@ -51,7 +51,6 @@ Layout/MultilineHashBraceLayout layout moves a closing brace across a line break
 Layout/MultilineMethodCallBraceLayout layout moves a closing parenthesis across a line break
 Layout/MultilineMethodCallIndentation layout re-indents a continued call chain
 Layout/MultilineMethodDefinitionBraceLayout layout moves a closing parenthesis across a line break
-Layout/MultilineOperationIndentation layout re-indents a continued operation
 Layout/ParameterAlignment layout re-indents continuation parameters
 Layout/RedundantLineBreak layout joins an expression that fits on one line
 Layout/RescueEnsureAlignment layout re-indents rescue/ensure

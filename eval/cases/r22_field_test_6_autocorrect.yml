@@ -1,0 +1,43 @@
+# What the sixth field test found running `rubocop -a` on thirty more
+# codebases, five at a time: each case is a shape -a left in a layout another
+# rule rejects, and the layout it now reaches.
+- id: r6b1-k3-condition-continued-two-columns-in-stays
+  cop: Style/RedundantParentheses
+  expect: offense
+  correct: safe
+  becomes: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Failure
+        def initialize(message)
+          @message = message
+        end
+
+        def unsupported?
+          if @message.include?("bool query does not support [filter]") ||
+            @message.include?("[bool] filter does not support [filter]")
+            true
+          end
+        end
+      end
+    end
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Failure
+        def initialize(message)
+          @message = message
+        end
+
+        def unsupported?
+          if (
+            @message.include?("bool query does not support [filter]") ||
+            @message.include?("[bool] filter does not support [filter]")
+          )
+            true
+          end
+        end
+      end
+    end

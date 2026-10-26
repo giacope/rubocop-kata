@@ -65,6 +65,8 @@ Layout/MultilineMethodArgumentLineBreaks:
   SafeAutoCorrect: false
 Layout/MultilineMethodParameterLineBreaks:
   SafeAutoCorrect: false
+Layout/MultilineOperationIndentation:
+  SafeAutoCorrect: false
 Layout/SingleLineBlockChain:
   SafeAutoCorrect: false
 Lint/AmbiguousBlockAssociation:

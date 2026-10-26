@@ -1548,6 +1548,15 @@ Layout/RescueEnsureAlignment:
 Layout/ArgumentAlignment:
   EnforcedStyle: with_fixed_indentation
 
+# Neither of its styles agrees with Elegant/MonotonicIndents in a condition:
+# `aligned` puts the continuation of a multi-line `if` condition under its
+# first operand (3 columns in, 6 after `elsif`), `indented` 4 columns in, so
+# every layout of such a condition broke one rule or the other, and `-a`
+# walked a clean `if (\n a ||\n b\n)` into the conflict. MonotonicIndents
+# keeps a continued operation to the two-space step.
+Layout/MultilineOperationIndentation:
+  Enabled: false
+
 Layout/EmptyLinesAroundAttributeAccessor:
   Enabled: false
 

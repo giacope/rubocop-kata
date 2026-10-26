@@ -29,6 +29,12 @@
     paths): `lib/description_remover.rb` defines `DescriptionRemover` by
     Zeitwerk's rules, as `app/models/account.rb` defines `Account`, and
     wrapping it in a module makes eager loading raise.
+  - `Layout/MultilineOperationIndentation` is off: its `aligned` style puts
+    a multi-line `if` condition's continuation three columns in (six after
+    `elsif`) and `indented` four, while `Elegant/MonotonicIndents` allows a
+    step of two, so every layout of such a condition broke one rule, and
+    `-a` walked searchkick's clean `if (\n a ||\n b\n)` into the conflict.
+    MonotonicIndents keeps continued operations to the two-space step.
   - `Kata/NoBooleanFlag` allows a boolean converted or rendered as a value:
     `quote`, `type_cast`, `cast`, `serialize` and `dump` join
     `AllowedMethods` (statesman's `connection.quote(type_cast(true))` renders

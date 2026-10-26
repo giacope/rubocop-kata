@@ -297,7 +297,9 @@ endless methods on one line, `rescue => error` (reported, not renamed), and inli
 disables only with a reason. `NewCops` stays off: the pending cops kata reviewed
 are listed one by one, so a RuboCop upgrade adds no autocorrect nobody has
 read. The core Layout cops stay on, except the five that loop against the
-no-blank-lines rule. `rubocop -a` is an allowlist admitted by structure, not by
+no-blank-lines rule and `Layout/MultilineOperationIndentation`, whose two
+styles both indent a multi-line `if` condition by a step `Elegant/MonotonicIndents`
+rejects. `rubocop -a` is an allowlist admitted by structure, not by
 evidence: a suite that stays green proves a correction safe on the code it met,
 not on the next codebase ([data/autocorrect.txt](data/autocorrect.txt);
 `script/autocorrect` writes [config/autocorrect.yml](config/autocorrect.yml)
