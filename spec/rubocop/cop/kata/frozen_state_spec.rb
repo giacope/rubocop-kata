@@ -473,16 +473,25 @@ RSpec.describe(RuboCop::Cop::Kata::FrozenState, :config) do
     # The V1 conformance case P32: telling an injected store to insert is a command, not a change of state.
     it "passes a command a collaborator shares a name with a collection's mutator" do
       expect_no_offenses(<<~RUBY)
+        class Archive
+          def initialize
+            @store = []
+          end
+        end
+
         class Registration
           def initialize(store, client)
             @store = store
             @client = client
+            @gateway = Gateway.new
+            @rows = []
           end
 
           def submit(params)
-            @store.insert(params)
+            @store.insert(params[:email])
             @client.delete(path: "/assistants/1")
             @client.update(params)
+            @gateway.update(@rows)
           end
         end
       RUBY

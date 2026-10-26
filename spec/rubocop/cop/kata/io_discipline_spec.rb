@@ -74,8 +74,8 @@ RSpec.describe(RuboCop::Cop::Kata::IoDiscipline, :config) do
     expect_offense(<<~RUBY, path: fixed("File.write", "path"), url: fixed("Net::HTTP.post", "URL"))
       class Audit
         def record
-          File.write("log/audit.log", "\#{@event}.", mode: "a")
-          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ %{path}
+          File.write("log/audit.log", "\#{@event}.", mode: @mode)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ %{path}
           Net::HTTP.post(URI("https://hooks.example.com/audit"), @event)
           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ %{url}
         end

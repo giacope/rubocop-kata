@@ -22,15 +22,13 @@ class RuboCop::Cop::Kata::ScopedResource < RuboCop::Cop::Base
   def held(call, calls)
     undo = PAIRS[call.method_name]
     return unless undo && call.receiver
-    release = calls.find { it.call_type? && it.method?(undo) && same?(it.receiver, call.receiver) && after?(it, call) }
-    report(call, release, calls) if release
+    report(call, calls.select { it.call_type? && it.method?(undo) && same?(it.receiver, call.receiver) }, calls)
   end
 
   def opened(assignment, calls)
     value = assignment.expression
     return unless value&.send_type? && !covered?(value)
-    release = calls.find { closing?(it, assignment.name) && after?(it, value) }
-    report(value, release, calls) if release
+    report(value, calls.select { closing?(it, assignment.name) }, calls)
   end
 
   def same?(receiver, other) = receiver&.source == other.source
@@ -39,18 +37,19 @@ class RuboCop::Cop::Kata::ScopedResource < RuboCop::Cop::Base
 
   def covered?(value) = value.method?(:open) && COVERED.include?(value.receiver&.const_name)
 
-  def after?(later, earlier) = later.source_range.begin_pos > earlier.source_range.end_pos
-
   def guarded?(release)
     [release, *release.each_ancestor].each_cons(2).any? do |inner, outer|
       outer.resbody_type? || (outer.ensure_type? && outer.children.last.equal?(inner))
     end
   end
 
-  def between?(acquired, release, calls) = calls.any? { after?(it, acquired) && after?(release, it) }
+  def between?(acquired, release, calls)
+    gap = acquired.source_range.end_pos...release.source_range.begin_pos
+    calls.any? { gap.cover?(it.source_range.begin_pos) }
+  end
 
-  def report(acquired, release, calls)
-    return if guarded?(release) || !between?(acquired, release, calls)
-    add_offense(acquired, message: format(MSG, acquired.source, release.source))
+  def report(acquired, releases, calls)
+    release = releases.find { !guarded?(it) && between?(acquired, it, calls) }
+    add_offense(acquired, message: format(MSG, acquired.source, release.source)) if release
   end
 end

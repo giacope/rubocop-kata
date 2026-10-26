@@ -16,6 +16,7 @@ RSpec.describe(RuboCop::Cop::Kata::ScopedResource, :config) do
           @lock.lock
           ^^^^^^^^^^ %{lock}
           @log.write(line)
+          @lock.owned?
           @lock.unlock
         end
 
@@ -29,11 +30,24 @@ RSpec.describe(RuboCop::Cop::Kata::ScopedResource, :config) do
     RUBY
   end
 
-  # mechanize's Mechanize.start: `instance.shutdown` never runs when the block raises.
   it "flags a handle opened into a local and closed by hand" do
-    messages = { socket: held("TCPSocket.new(@host, 80)", "socket.close"), agent: held("new", "agent.shutdown") }
+    messages = {
+      socket: held("TCPSocket.new(@host, 80)", "socket.close"), agent: held("new", "agent.shutdown"),
+      zip: held("Zlib::GzipReader.open(@path)", "zip.close"), file: held("File.new(@path)", "file.close")
+    }
     expect_offense(<<~RUBY, **messages)
       class Client
+        def unzip
+          zip = Zlib::GzipReader.open(@path)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ %{zip}
+          zip.read
+          zip.close
+          file = File.new(@path)
+                 ^^^^^^^^^^^^^^^ %{file}
+          file.write(zip)
+          file.close
+        end
+
         def ping
           socket = TCPSocket.new(@host, 80)
                    ^^^^^^^^^^^^^^^^^^^^^^^^ %{socket}
@@ -76,6 +90,14 @@ RSpec.describe(RuboCop::Cop::Kata::ScopedResource, :config) do
           @lock.synchronize { @log.write("x") }
           File.open(@path) { it.read }
         end
+
+        # mechanize's Mechanize.start releases in the method's own ensure.
+        def self.start
+          instance = new
+          yield(instance)
+        ensure
+          instance.shutdown
+        end
       end
     RUBY
   end
@@ -90,6 +112,19 @@ RSpec.describe(RuboCop::Cop::Kata::ScopedResource, :config) do
         end
 
         def take = @lock.lock
+
+        def sum
+          total = compute(1)
+          total
+        end
+
+        def current
+          Pool.current.lock
+          Pool.current.unlock
+          @lock.unlock
+          write
+          @lock.lock
+        end
 
         def other
           @lock.lock

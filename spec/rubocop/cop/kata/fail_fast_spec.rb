@@ -88,7 +88,11 @@ RSpec.describe(RuboCop::Cop::Kata::FailFast, :config) do
       def run
         call
       rescue Timeout::Error
-        retry
+        retry if (@tries += 1) < 3
+        nil
+      rescue IndexError
+        raise if @strict
+        nil
       rescue KeyError => error
         @log.warn(error.message)
         raise
@@ -186,6 +190,9 @@ RSpec.describe(RuboCop::Cop::Kata::FailFast, :config) do
         end
         valid
       end
+
+      def flag = Integer(@text) rescue false
+                                ^^^^^^ %{message}
     RUBY
   end
 
@@ -216,10 +223,10 @@ RSpec.describe(RuboCop::Cop::Kata::FailFast, :config) do
       def connect
         @socket.write("x")
       rescue IOError => error
-        @socket.close rescue nil
+        @audit.record(error) rescue nil
         raise error
       ensure
-        @file.close rescue nil
+        @cache.write(:done) rescue nil
       end
 
       def reset = @socket.close rescue nil
