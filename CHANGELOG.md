@@ -53,6 +53,14 @@
   45 sampled findings were swallowed errors; the rest were deliberate (a 409
   Conflict taken as done, a lock another process holds, a best-effort
   release).
+- New `Kata/ScopedResource` (P27: `@lock.lock` ... `@lock.unlock` with no
+  `ensure` passed; only `File.open` without a block was reported): a lock
+  taken and released by hand, or a handle opened into a local and closed by
+  hand, with the release outside an `ensure`, stays held when anything
+  between them raises; the message asks for the block form or an `ensure`.
+  On the field-test codebases it found three, all leaks on the error path
+  (mechanize's `Mechanize.start`, ffaker's `Tempfile`, rack-mini-profiler's
+  `GzipWriter`).
 - `Kata/NoSingleton` reads the framework's globals as singletons (P17:
   `class Current < ActiveSupport::CurrentAttributes` read from a model
   passed): a `CurrentAttributes` subclass, state kept in the thread, the

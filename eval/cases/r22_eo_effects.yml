@@ -464,3 +464,64 @@
         def owner = Thread.current[:user]
       end
     end
+- id: p27-lock-released-by-hand
+  cop: Kata/ScopedResource
+  expect: offense
+  path: lib/shop/archive.rb
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Archive
+        def initialize(path, lock)
+          @path = path
+          @lock = lock
+        end
+
+        def append(line)
+          @lock.lock
+          log = File.open(@path, "a")
+          log.write("#{line}\n")
+          log.close
+          @lock.unlock
+        end
+      end
+    end
+- id: p27-lock-and-file-held-for-a-block
+  cop: Kata/ScopedResource
+  expect: clean
+  path: lib/shop/archive.rb
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Archive
+        def initialize(path, lock)
+          @path = path
+          @lock = lock
+        end
+
+        def append(line)
+          @lock.synchronize { File.open(@path, "a") { |log| log.write("#{line}\n") } }
+        end
+      end
+    end
+- id: p27-socket-closed-by-hand
+  cop: Kata/ScopedResource
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Probe
+        def initialize(host)
+          @host = host
+        end
+
+        def ping
+          socket = TCPSocket.new(@host, 80)
+          socket.write("ping")
+          socket.close
+        end
+      end
+    end

@@ -9,6 +9,7 @@ class RuboCop::Kata::Plan
     "structure" => %w[
       Kata/ConstructorDiscipline Kata/NoClassMethodLogic Kata/NoHashAsObject
       Kata/NoBooleanFlag Kata/IoDiscipline Kata/ClockDiscipline Kata/EnvDiscipline Kata/FailFast
+      Kata/ScopedResource
       Kata/ClassInModule Kata/NoRedundantVariable
       Kata/NoSetter Kata/FrozenState Kata/NoOutputArgument Kata/CommandQuery
       Kata/NoTypeCheck Kata/NoSingleton

@@ -7,13 +7,13 @@ Gem::Specification.new do |spec|
   spec.version = RuboCop::Kata::VERSION
   spec.authors = ["Giacomo GK"]
   spec.email = ["giaco@hey.com"]
-  spec.summary = "Practiced forms for Ruby: a RuboCop plugin with opinionated defaults and twenty-eight house cops"
+  spec.summary = "Practiced forms for Ruby: a RuboCop plugin with opinionated defaults and twenty-nine house cops"
   spec.description = "Bundles a curated RuboCop stack (rspec, performance, elegant, packaging, " \
     "thread_safety) behind one dependency, layers opinionated style defaults on top, and adds " \
-    "twenty-eight cops of its own — naming (GoodMethodName, GoodVariableName, dictionary-backed " \
+    "twenty-nine cops of its own — naming (GoodMethodName, GoodVariableName, dictionary-backed " \
     "RealWords, GoodClassName, GoodModuleName, BuilderNoun), discipline (IoDiscipline, ClockDiscipline, " \
-    "EnvDiscipline, FailFast, ConstructorDiscipline, NoClassMethodLogic), objects (NoSetter, FrozenState, " \
-    "NoOutputArgument, CommandQuery, NoTypeCheck, NoSingleton), and shape (NoComments, NoBooleanFlag, " \
+    "EnvDiscipline, FailFast, ScopedResource, ConstructorDiscipline, NoClassMethodLogic), objects (NoSetter, " \
+    "FrozenState, NoOutputArgument, CommandQuery, NoTypeCheck, NoSingleton), and shape (NoComments, NoBooleanFlag, " \
     "NoHashAsObject, ProsePlacement, JustifiedDirective). `rubocop -a` runs only the corrections its corpora " \
     "have run under a green test suite. The rubocop-kata command reports dead " \
     "configuration (doctor), buckets a backlog into the stages that cause each other (plan), " \

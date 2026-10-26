@@ -1234,6 +1234,19 @@ Kata/FailFast:
     - StopIteration
     - ThreadError
 
+Kata/ScopedResource:
+  Description: >-
+    Whoever acquires a resource releases it, whatever happens in between: a
+    lock taken and released by hand (`@lock.lock` ... `@lock.unlock`, and
+    `acquire`/`release`, `checkout`/`checkin`) or a handle opened into a
+    local and closed by hand (`file = File.open(path)` ... `file.close`, and
+    `finish`, `disconnect`, `release`, `shutdown`), with the release outside
+    an `ensure`, leaves the resource held when anything between them
+    raises. Hold it for a block (`@lock.synchronize { ... }`,
+    `File.open(path) { ... }`) or release it in `ensure`.
+  Enabled: true
+  VersionAdded: "0.11"
+
 Kata/NoSetter:
   Description: >-
     An object takes its state in the constructor and keeps it: `attr_writer`,
