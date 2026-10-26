@@ -47,6 +47,86 @@
     `quote`, `type_cast`, `cast`, `serialize` and `dump` join
     `AllowedMethods` (statesman's `connection.quote(type_cast(true))` renders
     the SQL literal; there are no two methods to split it into).
+- `Kata/IoDiscipline` reports the hidden I/O beyond `puts` (the V1
+  conformance case P33: an audit record that wrote `log/audit.log`, the Rails
+  log and a webhook passed). A file, network or shell call whose target is
+  written into the code is hidden I/O: `File.write("log/audit.log", …)`,
+  `YAML.load_file("config/x.yml")`, `Dir.pwd`, `Net::HTTP.post(URI("https://…"))`,
+  `system("git", "fetch")`, a backtick (`Effects`, by what each reaches: a
+  path, a URL or a command); one whose target holds a variable, an instance
+  variable, a method's value, an injected `base:`, a constant another file
+  defines or a path anchored on `__dir__` is the adapter whose job the effect
+  is, and passes (`File.write(@path, …)`). A global stream or service
+  (`$stdout.puts`, `STDERR`, `Rails.logger`, `Rails.cache`) asks to be
+  injected, and bare `print`/`printf` join `puts`. Path arithmetic
+  (`File.join`) reaches nothing, and a constant or command the project
+  defines (rubycritic's `Options::File`, kimera's own `spawn`) is not Ruby's.
+  On thirty field-test codebases, 27 of a 28-finding sample were hidden I/O.
+- The boot layer `Kata/IoDiscipline`, `Kata/ClockDiscipline` and
+  `Kata/EnvDiscipline` share takes in a framework's boot hooks (a block given
+  to `initializer`, `to_prepare`, `after_initialize`, `on_load`), and the
+  three leave `railtie.rb`, `engine.rb` and `lib/generators/` alone: hashie's
+  railtie hands `Rails.logger` to `Hashie.logger` there.
+- `Kata/ClockDiscipline` reads randomness as it reads the clock (P34: an
+  invoice numbered with `SecureRandom.hex` passed): `SecureRandom.*`, `rand`,
+  `Random.rand`, `Random.new_seed`, an unseeded `Random.new`, and
+  `sample`/`shuffle` without `random:` ask for an injected generator; a
+  parameter default is still the seam. A `rand` the project defines
+  (ffaker's seeded `RandomUtils#rand`) and a draw one of its modules answers
+  (`ArrayUtils.shuffle`) are its own. 44 of 46 findings on the field-test
+  codebases were ambient randomness; ffaker's 19 are `sample` calls that
+  bypass its own seeded generator.
+- `Kata/EnvDiscipline` reads Rails' configuration as it reads `ENV` (P35:
+  `Rails.application.credentials.dig` and `Rails.configuration.x` passed):
+  `Rails.env`, `Rails.configuration`, `Rails.application.config`,
+  `credentials`, `secrets` and `config_for` (`Settings`) belong in the boot
+  layer; `defined?(Rails.env)` reads nothing. 26 to 30 of 30 findings on the
+  field-test codebases were configuration read in a method, the range being
+  the controllers that read a webhook secret to check a request.
+- New `Kata/FailFast` (P25: `rescue JSON::ParserError, IOError => error;
+  @log.warn(...); {}` and `Integer(x) rescue 0` passed, the second reported
+  only for its syntax): a `rescue` that neither re-raises nor turns the error
+  into an object, answering a default (an empty body, `nil`, `false`, a
+  literal, `[]`, `{}`) or a log line, swallows the error; the message asks to
+  let it raise or to answer an object that says what failed. A boolean
+  answering a question about the errors a rescue names, `==`/`<=>`, the end
+  of a stream or a process, an optional library's `LoadError` and a resource
+  released on the way out pass; a `rescue` modifier is reported whatever it
+  answers. It replaces `Lint/SuppressedException`, which passed `rescue;
+  nil`, and `Style/RescueModifier`, whose correction (`begin ... rescue 0
+  end`) still swallowed; both are off. On thirty field-test codebases, 37 of
+  45 sampled findings were swallowed errors; the rest were deliberate (a 409
+  Conflict taken as done, a lock another process holds, a best-effort
+  release).
+- `Kata/FrozenState` no longer reads a command to an injected collaborator
+  as the object changing its own state (P32: the Elegant Objects version,
+  `@store.insert(params.merge(...))`, was reported because `insert` is in
+  the mutating list). A name a collection's mutator shares with a
+  collaborator's command (`insert`, `delete`, `clear`, `update`, `store`,
+  `pop`, `shift`, ...) is a change of state only on a collection the object
+  built (`[]`, `{}`, `Set.new`, `x.dup`, memoized or not) or uses as one
+  (`[]`, `<<`, `each`); `<<`, `[]=`, `push` and every `!` stay mutations.
+  On the field-test codebases this drops ruby-openai's ten
+  `@client.delete(path: ...)` and ferrum's `@headers.clear` (a CDP command),
+  and keeps every collection's `delete`/`clear`.
+- New `Kata/ScopedResource` (P27: `@lock.lock` ... `@lock.unlock` with no
+  `ensure` passed; only `File.open` without a block was reported): a lock
+  taken and released by hand, or a handle opened into a local and closed by
+  hand, with the release outside an `ensure`, stays held when anything
+  between them raises; the message asks for the block form or an `ensure`.
+  On the field-test codebases it finds two, both leaks on the error path
+  (ffaker's `Tempfile`, rack-mini-profiler's `GzipWriter`); mechanize's
+  `Mechanize.start`, which releases in the method's own `ensure`, passes.
+- `Kata/NoSingleton` reads the framework's globals as singletons (P17:
+  `class Current < ActiveSupport::CurrentAttributes` read from a model
+  passed): a `CurrentAttributes` subclass, state kept in the thread, the
+  fiber or the request store (`Thread.current[:user]`, `Fiber[:state]`,
+  `RequestStore.store[:user]`), and a class-level setting behind
+  `cattr_accessor`/`mattr_accessor` (their writers and thread variants; a
+  reader is a constant) ask for the value to be passed in. Every one of a
+  25-finding sample on the field-test codebases was global state
+  (searchkick's, timecop's and counter_culture's thread switches, ahoy's and
+  mailboxer's module settings).
 - `Kata/NoComments` prices documentation by default: `AllowDocumentation`
   is `false` again, as when the option was added, so a comment above a
   public class, module, method or constant is prose like any other, YARD

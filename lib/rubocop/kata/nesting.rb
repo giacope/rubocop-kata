@@ -12,6 +12,8 @@ class RuboCop::Kata::Nesting
 
   def qualified = joined(names.first, @node.identifier)
 
+  def candidates(name, absolute:) = absolute ? [name] : [*names.map { "#{it}::#{name}" }, name]
+
   private
 
   def joined(outer, identifier)

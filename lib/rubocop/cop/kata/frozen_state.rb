@@ -4,6 +4,7 @@ class RuboCop::Cop::Kata::FrozenState < RuboCop::Cop::Base
   include RuboCop::Cop::Kata::Memoization
   include RuboCop::Cop::Kata::Roster
   include RuboCop::Cop::Kata::Ancestry
+  include RuboCop::Cop::Kata::Contents
 
   MSG = "`%s` changes after construction; set state once in `initialize` and return a new object to change it."
   CLASS_MSG = "`%s` is class-level state every caller shares, changed after load; set it once and freeze it, " \
@@ -73,7 +74,7 @@ class RuboCop::Cop::Kata::FrozenState < RuboCop::Cop::Base
   end
 
   def mutation?(node)
-    mutating?(node.method_name) && !stored?(node)
+    mutating?(node.method_name) && !stored?(node) && !command?(node)
   end
 
   def mutating?(name)

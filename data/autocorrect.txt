@@ -134,7 +134,6 @@ Style/RedundantReturn equivalent drops return on a method's last expression
 Style/RedundantSelf equivalent drops self. where no local shadows the method
 Style/RedundantSelfAssignmentBranch held writes v = c ? x : v as v = x if c, whose value as a method's last expression is nil, not v
 Style/RegexpLiteral delimiter swaps // and %r{}
-Style/RescueModifier equivalent writes a rescue modifier as begin/rescue, which rescues the same errors
 Style/SelfAssignment equivalent writes x = x + y as x += y
 Style/Semicolon layout turns a statement-separating semicolon into a line break
 Style/StabbyLambdaParentheses delimiter sets the parentheses around a stabby lambda's parameters

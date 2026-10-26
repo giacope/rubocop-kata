@@ -74,7 +74,7 @@ class RuboCop::Cop::Kata::NoTypeCheck < RuboCop::Cop::Base
   def own?(probe) = probe&.const_type? && own_name?(probe.const_name, probe, absolute: probe.absolute?)
 
   def own_name?(name, node, absolute: false)
-    candidates = absolute ? [name] : [*RuboCop::Kata::Nesting.new(node).names.map { "#{it}::#{name}" }, name]
+    candidates = RuboCop::Kata::Nesting.new(node).candidates(name, absolute:)
     candidates.any? { !foreign?(it) && (local_types.include?(it) || inventory.type?(it)) }
   end
 
