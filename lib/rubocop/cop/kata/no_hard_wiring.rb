@@ -4,6 +4,7 @@ class RuboCop::Cop::Kata::NoHardWiring < RuboCop::Cop::Base
   include RuboCop::Cop::Kata::Roster
   include RuboCop::Cop::Kata::Ownership
   include RuboCop::Cop::Kata::Ancestry
+  include RuboCop::Cop::Kata::Answer
 
   MSG = "`%s` builds the `%s` it talks to; take one in the constructor, with this `new` as the parameter's default."
   CONSTRUCTORS = %i[initialize initialize_copy].freeze
@@ -31,8 +32,6 @@ class RuboCop::Cop::Kata::NoHardWiring < RuboCop::Cop::Base
     holder.send_type? && holder.method?(method.method_name) && holder.equal?(tail(method.body)) &&
       node.arguments.any?(&:ivar_type?) && node.arguments.all? { it.type?(:ivar, :str, :sym, :int, :float, :array) }
   end
-
-  def tail(body) = body.begin_type? ? body.children.fetch(-1) : body
 
   def root?(home) = project.ancestors(home).intersect?(list("RootSuperclasses"))
 

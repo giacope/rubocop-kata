@@ -13,32 +13,32 @@ class RuboCop::Cop::Kata::CommandQuery < RuboCop::Cop::Base
   CONSTRUCTORS = %i[initialize initialize_copy].freeze
 
   def on_def(node)
-    return unless node.body
-    inputs = node.arguments.each_node(*INPUTS).map(&:name)
-    return judge(node, inputs, MSG) if node.predicate_method?
-    judge(node, inputs, VALUE) if answers?(node)
+    body = node.body
+    return unless body
+    return judge(node, body, MSG) if node.predicate_method?
+    judge(node, body, VALUE) if answers?(node, body)
   end
 
   alias on_defs on_def
 
   private
 
-  def judge(method, inputs, message)
-    changes = method.body.each_node(:ivasgn, :send, :csend).select { change?(it, inputs) }
-    found = (changes + orders(method, inputs)).uniq(&:object_id)
-    found.each { add_offense(it, message: format(message, method.method_name, label(it), ADVICE)) }
+  def judge(method, body, message)
+    inputs = inputs(method)
+    changes = body.each_node(:ivasgn, :send, :csend).select { change?(it, inputs) }
+    orders = discarded(body).select { order?(it, inputs) && !building?(it, method) }
+    name = method.method_name
+    (changes + orders).uniq(&:object_id).each { add_offense(it, message: format(message, name, label(it), ADVICE)) }
   end
-
-  def orders(method, inputs) = discarded(method.body).select { order?(it, inputs) && !building?(it, method) }
 
   def change?(found, inputs) = found.ivasgn_type? ? !memoized?(found) : command?(found, inputs)
 
-  def answers?(method)
-    name = method.method_name
-    !(CONSTRUCTORS.include?(name) || name.end_with?("!", "=")) && value?(tail(method.body))
-  end
+  def inputs(method) = method.arguments.each_node(*INPUTS).map(&:name)
 
-  def tail(body) = body.begin_type? ? body.children.fetch(-1) : body
+  def answers?(method, body)
+    name = method.method_name
+    !(CONSTRUCTORS.include?(name) || name.end_with?("!", "=")) && value?(tail(body))
+  end
 
   def discarded(body)
     return [] unless body.begin_type?
@@ -52,12 +52,9 @@ class RuboCop::Cop::Kata::CommandQuery < RuboCop::Cop::Base
   end
 
   def order?(call, inputs)
-    return false if call.block_node || answer?(call) || raising?(call) || raises?(call)
-    target = root(call)
-    target.nil? || owned?(target, inputs)
+    return false if call.block_node || answer?(call) || raising?(call)
+    !listed?("RaisingMethods", call.method_name.to_s) && owned?(root(call), inputs)
   end
-
-  def raises?(call) = listed?("RaisingMethods", call.method_name.to_s)
 
   def building?(call, method)
     locals = method.each_node(:lvasgn).map { it.children.first }

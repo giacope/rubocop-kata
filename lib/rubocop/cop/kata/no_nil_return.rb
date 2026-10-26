@@ -52,9 +52,11 @@ class RuboCop::Cop::Kata::NoNilReturn < RuboCop::Cop::Base
   end
 
   def explicit(node, method)
-    value = node.children.first
-    return add_offense(node, message: format(MSG, method.method_name)) if value&.nil_type? && node.children.one?
-    visit(value, method) if value && node.children.one?
+    values = node.children
+    return unless values.one?
+    value = values.first
+    return add_offense(node, message: format(MSG, method.method_name)) if value.nil_type?
+    visit(value, method)
   end
 
   def judge(tail, branch, method)

@@ -16,4 +16,6 @@ module RuboCop::Cop::Kata::Answer
   def value?(node) = VALUES.include?(node.type) || (node.send_type? && answer?(node))
 
   def answer?(call) = QUERIES.include?(call.method_name) || call.predicate_method?
+
+  def tail(body) = body.begin_type? ? body.children.fetch(-1) : body
 end
