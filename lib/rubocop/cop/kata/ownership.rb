@@ -6,8 +6,7 @@ module RuboCop::Cop::Kata::Ownership
   def own?(name) = local.include?(name) || inventory.message?(name)
 
   def owned?(const)
-    name = const.const_name
-    candidates = const.absolute? ? [name] : [*RuboCop::Kata::Nesting.new(const).names.map { "#{it}::#{name}" }, name]
+    candidates = RuboCop::Kata::Nesting.new(const).candidates(const.const_name, absolute: const.absolute?)
     candidates.any? { !RuboCop::Kata::Dictionary::CORE.include?(it) && (types.include?(it) || inventory.type?(it)) }
   end
 
