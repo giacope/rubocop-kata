@@ -69,6 +69,7 @@ RSpec.describe(RuboCop::Cop::Kata::ConstructorDiscipline, :config) do
     expect_offense(<<~RUBY)
       def initialize(name)
         if name.empty?
+        ^^ `initialize` picks a way to build itself from `name`: several constructors in one. Keep one primary constructor, and give each other way a class method that calls `new`.
            ^^^^^^^^^^^ A constructor assigns; it does not compute. Move `empty?`, `ready?` and `done?` out of `initialize`.
           raise ArgumentError
         else
@@ -194,6 +195,7 @@ RSpec.describe(RuboCop::Cop::Kata::ConstructorDiscipline, :config) do
         def initialize(path)
           UI.important("missing") unless path
           ^^^^^^^^^^^^^^^^^^^^^^^ A constructor assigns; it does not compute. Move `important` out of `initialize`.
+                                  ^^^^^^ `initialize` picks a way to build itself from `path`: several constructors in one. Keep one primary constructor, and give each other way a class method that calls `new`.
           @path = path
         end
       RUBY
@@ -241,5 +243,77 @@ RSpec.describe(RuboCop::Cop::Kata::ConstructorDiscipline, :config) do
                  ^^^^^^^^^^^^^^^^^^^^ A constructor assigns; it does not compute. Move `let` out of `initialize`.
       end
     RUBY
+  end
+
+  context "with several ways to build" do
+    let(:ruby_version) { 3.4 }
+    let(:cop_config) { { "RaisingMethods" => %w[raise] } }
+    let(:paths) { "several constructors in one. #{primary}" }
+    let(:primary) { "Keep one primary constructor, and give each other way a class method that calls `new`." }
+
+    it "flags a constructor that branches on its arguments, once" do
+      expect_offense(<<~RUBY)
+        class Money
+          def initialize(cents = 0, currency = "USD", formatted: nil)
+            if formatted
+            ^^ `initialize` picks a way to build itself from `formatted` and `currency`: #{paths}
+              @cents = formatted
+            else
+              @cents = cents
+            end
+            @currency = currency unless currency
+          end
+        end
+      RUBY
+    end
+
+    it "flags a case on an argument" do
+      expect_offense(<<~RUBY)
+        class Money
+          def initialize(*parts)
+            case parts
+            ^^^^ `initialize` picks a way to build itself from `parts`: #{paths}
+            when [] then @cents = 0
+            end
+          end
+        end
+      RUBY
+    end
+
+    it "flags a class method that builds past initialize" do
+      expect_offense(<<~RUBY)
+        class Money
+          def self.from_hash(hash)
+            money = allocate
+                    ^^^^^^^^ `allocate` builds an instance past `initialize`, a second primary constructor; call `new` instead.
+            money
+          end
+
+          class << self
+            def blank = self.allocate
+                        ^^^^^^^^^^^^^ `allocate` builds an instance past `initialize`, a second primary constructor; call `new` instead.
+          end
+        end
+      RUBY
+    end
+
+    it "allows a guard that raises, a branch on its own state, and allocate elsewhere" do
+      expect_no_offenses(<<~RUBY)
+        class Money
+          def initialize(cents)
+            raise ArgumentError, "negative" if cents
+            @cents = cents
+            @ready = true if READY
+            case
+            when READY then @mode = 1
+            end
+          end
+
+          def copy = Other.allocate
+          def own = allocate
+        end
+        allocate
+      RUBY
+    end
   end
 end

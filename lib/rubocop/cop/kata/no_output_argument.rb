@@ -8,6 +8,7 @@ class RuboCop::Cop::Kata::NoOutputArgument < RuboCop::Cop::Base
   MSG = "%s changes the caller's `%s`; return a new value, or move the change to the object that owns it."
   MANY_MSG = "This method changes the caller's %s; return a new value, or move the change to the object that owns it."
   INPUTS = %i[arg optarg kwarg kwoptarg].freeze
+  CHARSET = /\A(?:\^?(?:[^[:alnum:]]|[[:alnum:]]-[[:alnum:]])+)\z/
   SCOPES = %i[def defs sclass].freeze
   WRITES = %i[op_asgn or_asgn and_asgn].freeze
   SHADOWS = %i[arg optarg restarg kwarg kwoptarg kwrestarg blockarg shadowarg].freeze
@@ -43,8 +44,11 @@ class RuboCop::Cop::Kata::NoOutputArgument < RuboCop::Cop::Base
 
   def mutation?(call)
     name = call.method_name
+    return false if name == :delete && call.arguments? && call.arguments.all? { charset?(it) }
     listed?("MutatingMethods", name.to_s) || (name == :[] && written?(call))
   end
+
+  def charset?(argument) = argument.str_type? && CHARSET.match?(argument.value)
 
   def written?(call)
     holder = call.parent

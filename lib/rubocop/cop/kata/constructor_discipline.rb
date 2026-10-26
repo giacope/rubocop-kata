@@ -5,18 +5,48 @@ class RuboCop::Cop::Kata::ConstructorDiscipline < RuboCop::Cop::Base
   include RuboCop::Cop::Kata::Tally
 
   MSG = "A constructor assigns; it does not compute. Move %s out of `initialize`."
+  PATHS = "`initialize` picks a way to build itself from %s: several constructors in one. %s"
+  PRIMARY = "Keep one primary constructor, and give each other way a class method that calls `new`."
+  BYPASS = "`allocate` builds an instance past `initialize`, a second primary constructor; call `new` instead."
+  BRANCHES = %i[if case].freeze
+
+  RESTRICT_ON_SEND = %i[allocate].freeze
   CONVERSION = /\Ato_[a-z]+\z/
   FRESH = %i[+@ -@ compare_by_identity].freeze
   LITERALS = %i[str dstr hash array].freeze
 
   def on_def(node)
-    return unless node.method?(:initialize)
-    calls = node.body&.each_node(:send, :csend).to_a
-    moved = calls.reject { allowed?(it) || exempt?(it, node) || typing?(it) }
-    add_offense(moved.first, message: format(MSG, tally(moved.map(&:method_name)))) unless moved.empty?
+    return unless node.method?(:initialize) && node.body
+    computed(node)
+    paths(node)
+  end
+
+  def on_send(node)
+    return unless node.receiver.nil? || node.receiver.self_type?
+    add_offense(node, message: BYPASS) if node.each_ancestor(:defs, :sclass).any?
   end
 
   private
+
+  def computed(node)
+    moved = node.body.each_node(:send, :csend).reject { allowed?(it) || exempt?(it, node) || typing?(it) }
+    add_offense(moved.first, message: format(MSG, tally(moved.map(&:method_name)))) unless moved.empty?
+  end
+
+  def paths(node)
+    inputs = node.arguments.map(&:name)
+    branches = node.body.each_node(*BRANCHES).reject { guard?(it) }.select { asked(it, inputs).any? }
+    return if branches.empty?
+    add_offense(branches.first.loc.keyword, message: format(PATHS, named(branches, inputs), PRIMARY))
+  end
+
+  def named(branches, inputs) = joined(branches.flat_map { asked(it, inputs) }.uniq.map { "`#{it}`" })
+
+  def asked(branch, inputs)
+    test = branch.condition
+    return [] unless test
+    [test, *test.each_descendant(:lvar)].select(&:lvar_type?).map { it.children.first }.uniq & inputs
+  end
 
   def allowed?(send)
     name = send.method_name.to_s

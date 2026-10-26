@@ -127,6 +127,86 @@
   25-finding sample on the field-test codebases was global state
   (searchkick's, timecop's and counter_culture's thread switches, ahoy's and
   mailboxer's module settings).
+- `Kata/NoNilArgument` (new, on): a parameter that defaults to nil and that
+  the method then asks about (`return @cents if coupon.nil?`, `coupon&.cents`,
+  `coupon || NONE`, `amount ||= total`) is two methods in one; the message
+  asks to split them or default to a null object. A constructor's nil default
+  kept in a field the class asks about (`@referrer.nil?`) is two objects in
+  one. Elegant Objects' "never accept NULL arguments" had no rule: hashira's
+  `nil_check` reads such a default as the caller's option.
+- `Kata/NoNilReturn` (new, on) replaces `Elegant/NoNilReturn`, which reported
+  only a literal `nil` though its description says "on any code path": the
+  nil a lookup passes on (`@items.detect { ... }`, `find_by`, `first`, `[]`,
+  `dig`, `&.`) and the missing branch of a conditional that answers with a
+  value (`@items[code] if @open`) are nil returns too. A slice (`rows[1..]`,
+  `bio[0, 40]`), a hash with a
+  default, a conditional command and a method forwarding the protocol it is
+  named after pass.
+- `Kata/NoHardWiring` (new, on): an instance method that builds one of the
+  project's classes and talks to it (`Gateway.new("live").charge(@cents)`,
+  `box = Mailbox.new(host); box.deliver(...)`) has wired that collaborator
+  in, and Elegant Objects' "always use interfaces" had no rule. The message
+  asks for a constructor parameter with the `new` as its default, the seam.
+  Returning or passing on a new object, the class building itself,
+  constructors, class methods and composition roots (controllers, jobs,
+  mailers, workers, `bin/`, `config/`, a subclass of a framework base that
+  builds it, such as `RuboCop::Cop::Base`; `RootSuperclasses`) pass, as do
+  Ruby's and other libraries' classes, and so does a method that answers
+  its own message by relaying it to an object built from its own fields
+  (`def csv = Table.new(COLUMNS, @orders, @separator).csv`, composition).
+  The ownership test is `Kata/NoTypeCheck`'s, now shared.
+
+- `Kata/CommandQuery` judges every query, not only `?` methods: a method
+  whose last expression is a value (`@entries.sum`, a literal, a lookup, a
+  new object) and that also acts — assigns state, calls a bang on its state
+  or parameters, or sends a message whose value it throws away to itself,
+  its state, its parameters or a constant (`@audit.record("balance read")`,
+  `Rails.logger.info`) — is reported, and so is a `?` method that acts
+  through a discarded message. Guards that raise, a helper filling one of
+  the method's own locals, iterations and a method returning `self` pass.
+- `Kata/NoGetter` (new, on): a public `attr_reader`, a method that only
+  returns the field of its name, and `Struct.new`/`Data.define` (a getter for
+  every field, a data bag) are getters, which Elegant Objects rules out and
+  no rule reported (`Kata/NoSetter` saw only writers). The message asks to
+  tell the object what to do with its fields, or to have it print itself.
+  Private and protected readers pass.
+- `Kata/FieldCount` (new, on): at most four fields per class, counting the
+  instance variables its methods assign and the fields its `attr_*` macros
+  name, memoized answers aside. `Metrics/ParameterLists` counted only
+  constructor parameters, so a form object with six `attr_accessor` fields
+  passed.
+- `Kata/PublicSurface` (new, on): at most four public instance methods per
+  class, Elegant Objects' "fewer than five", counting `attr_*`-minted
+  methods and leaving Ruby's protocols (`to_s`, `==`, `each`, `call` …) and
+  `on_*` callbacks out. Nothing counted public methods before.
+- `Kata/NoPublicConstant` (new, on): a read of another of the project's
+  classes' value constant (`Cart::MAX_ITEMS` in `Order`, a `Settings`
+  module's `TAX_RATE` read by two classes) is shared state, which Elegant
+  Objects rules out and no rule reported. The message asks to ask the owner
+  what the value means and make the constant private. Ruby's and other
+  libraries' constants, a class's own, namespaces and `VERSION` pass.
+- `Kata/NoReflection` (new, on): `@order.instance_variable_get(:@total)`,
+  `@record.send(:token)` and `Object.const_get("Shop::#{kind}View")` reach
+  past another object's interface; the message asks for a public method, or
+  a map from names to objects. `Style/Send`, which caught only the `send` and
+  advised `__send__` or `public_send` (the same reflection), is off.
+  `public_send(field)` on a name the code is handed, reflection on `self`
+  and the boot layer pass.
+- `Kata/ConstructorDiscipline` names Elegant Objects' "one primary
+  constructor": an `initialize` that branches on its arguments' count, type
+  or presence (`if parts.size == 1`, `if formatted`) is several constructors
+  in one, reported once with the arguments it asks about, and a class method
+  that builds with `allocate` (then `instance_variable_set`) bypasses
+  `initialize`. Before, both read only as "does not compute", or passed.
+- `Kata/NoOutputArgument` reads `text.delete("$,.")` as `String#delete`,
+  which returns a copy: a `delete` given a character set no longer counts as
+  changing the caller's argument. The EO form of a secondary constructor,
+  `def self.parse(text) = new(Integer(text.delete("$,.")), "USD")`, was
+  reported.
+- `Kata/NoBooleanFlag` no longer advises "make it a keyword" (or "name the
+  argument"): `csv(header: false)` is the same flag, and hashira's
+  `control_parameter` reports it. The advice is to split the method, one per
+  value.
 - `Kata/NoComments` prices documentation by default: `AllowDocumentation`
   is `false` again, as when the option was added, so a comment above a
   public class, module, method or constant is prose like any other, YARD

@@ -2,24 +2,70 @@
 
 class RuboCop::Cop::Kata::CommandQuery < RuboCop::Cop::Base
   include RuboCop::Cop::Kata::Memoization
+  include RuboCop::Cop::Kata::Roster
+  include RuboCop::Cop::Kata::Answer
 
   MSG = "`%s` asks a question and changes state with `%s`; a query answers, a command acts."
+  VALUE = "`%s` answers with a value and acts with `%s`; a query answers, a command acts. %s"
+  ADVICE = "Split them, or return a new object instead of acting."
   OWNED = %i[ivar cvar gvar const self].freeze
   INPUTS = %i[arg optarg restarg kwarg kwoptarg kwrestarg blockarg].freeze
+  CONSTRUCTORS = %i[initialize initialize_copy].freeze
 
   def on_def(node)
-    return unless node.predicate_method?
-    inputs = node.arguments.each_node(*INPUTS).map(&:name)
-    node.body&.each_node(:ivasgn, :send, :csend) { judge(it, node, inputs) }
+    body = node.body
+    return unless body
+    return judge(node, body, MSG) if node.predicate_method?
+    judge(node, body, VALUE) if answers?(node, body)
   end
 
   alias on_defs on_def
 
   private
 
-  def judge(found, method, inputs)
-    return unless found.ivasgn_type? ? !memoized?(found) : command?(found, inputs)
-    add_offense(found, message: format(MSG, method.method_name, label(found)))
+  def judge(method, body, message)
+    inputs = inputs(method)
+    changes = body.each_node(:ivasgn, :send, :csend).select { change?(it, inputs) }
+    orders = discarded(body).select { order?(it, inputs) && !building?(it, method) }
+    name = method.method_name
+    (changes + orders).uniq(&:object_id).each { add_offense(it, message: format(message, name, label(it), ADVICE)) }
+  end
+
+  def change?(found, inputs) = found.ivasgn_type? ? !memoized?(found) : command?(found, inputs)
+
+  def inputs(method) = method.arguments.each_node(*INPUTS).map(&:name)
+
+  def answers?(method, body)
+    name = method.method_name
+    !(CONSTRUCTORS.include?(name) || name.end_with?("!", "=")) && value?(tail(body))
+  end
+
+  def discarded(body)
+    return [] unless body.begin_type?
+    body.children[0...-1].flat_map { statements(it) }
+  end
+
+  def statements(node)
+    return node.branches.compact.flat_map { statements(it) } if node.if_type?
+    return node.children.flat_map { statements(it) } if node.begin_type?
+    node.call_type? ? [node] : []
+  end
+
+  def order?(call, inputs)
+    return false if call.block_node || answer?(call) || raising?(call)
+    !listed?("RaisingMethods", call.method_name.to_s) && owned?(root(call), inputs)
+  end
+
+  def building?(call, method)
+    locals = method.each_node(:lvasgn).map { it.children.first }
+    (call.receiver.nil? || call.receiver.const_type?) &&
+      call.arguments.any? { it.lvar_type? && locals.include?(it.children.first) }
+  end
+
+  def root(call)
+    target = call.receiver
+    target = target.receiver while target&.call_type? && target.receiver
+    target
   end
 
   def command?(call, inputs)

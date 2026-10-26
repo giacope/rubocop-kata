@@ -57,7 +57,7 @@ class RuboCop::Cop::Kata::IoDiscipline < RuboCop::Cop::Base
   end
 
   def effect(node)
-    names = spelled(node)
+    names = labels(node)
     return if names.empty? || listed?("AllowedMethods", names.first) || seam?(node)
     noun = names.lazy.filter_map { kind(it) }.first
     reach(node, names.first, noun, noun == COMMAND ? node.arguments : places(node)) if noun
@@ -73,11 +73,11 @@ class RuboCop::Cop::Kata::IoDiscipline < RuboCop::Cop::Base
     add_offense(node, message: format(FIXED_MSG, call, noun, noun))
   end
 
-  def spelled(node)
+  def labels(node)
     name = node.method_name
     receiver = node.receiver
-    return node.arguments? && !own?(name) ? [name.to_s] : [] if receiver.nil?
-    receiver.const_type? && !owned?(receiver) ? ["#{receiver.const_name}.#{name}", receiver.const_name] : []
+    return node.arguments? && !answered?(name) ? [name.to_s] : [] if receiver.nil?
+    receiver.const_type? && !own?(receiver) ? ["#{receiver.const_name}.#{name}", receiver.const_name] : []
   end
 
   def kind(name) = cop_config.fetch("Effects", {}).find { |_, names| Array(names).include?(name) }&.first

@@ -45,7 +45,7 @@ RSpec.describe(RuboCop::Kata::Plugin) do
     paths = [*lists, RuboCop::Cop::Kata::Reopening::OWNED, RuboCop::Cop::Kata::Contract::OWNED]
     missing = paths.flat_map { |list| list.grep(%r{\Aapp/}).reject { list.include?("*/#{it}") } }
     expect(missing).to(be_empty)
-    expect(paths.count { it.include?("*/app/**/*.rb") }).to(eq(12))
+    expect(paths.count { it.include?("*/app/**/*.rb") }).to(eq(14))
   end
 
   it "keeps the parameter limit it advertises" do

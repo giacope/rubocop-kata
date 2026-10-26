@@ -33,17 +33,15 @@ class RuboCop::Cop::Kata::ClockDiscipline < RuboCop::Cop::Base
   def on_send(node)
     return if seam?(node)
     return add_offense(node, message: format(MSG, node.source)) if ambient?(node)
-    return add_offense(node, message: format(RANDOM_MSG, spelled(node))) if random?(node) || bare?(node)
-    draw?(node) { |held, name| add_offense(node, message: format(DRAW_MSG, name)) unless seeded?(node) || owner?(held) }
+    return add_offense(node, message: format(RANDOM_MSG, label(node))) if random?(node) || bare?(node)
+    draw?(node) { |held, name| add_offense(node, message: format(DRAW_MSG, name)) unless seeded?(node) || own?(held) }
   end
 
   private
 
-  def spelled(node) = [node.receiver&.source, node.method_name].compact.join(".")
+  def label(node) = [node.receiver&.source, node.method_name].compact.join(".")
 
-  def bare?(node) = kernel?(node) { !own?(it) }
-
-  def owner?(held) = held.const_type? && owned?(held)
+  def bare?(node) = kernel?(node) { !answered?(it) }
 
   def seeded?(node) = node.arguments.any? { it.hash_type? && it.keys.any? { |key| key.value == :random } }
 end
