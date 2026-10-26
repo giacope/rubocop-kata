@@ -382,6 +382,14 @@ RSpec.describe(RuboCop::Cop::Kata::RealWords, :config) do
     RUBY
   end
 
+  # searchkick's `boost_by_recency`, pay's `proration_behavior` (Stripe's field): nouns no word list spelled.
+  it "knows recency and proration, the nouns of recent and prorate" do
+    expect_no_offenses(<<~RUBY)
+      def boost_by_recency(recency) = @recency = recency
+      def proration_behavior(proration) = @proration = proration
+    RUBY
+  end
+
   context "with the project's vocabulary" do
     include TabledCop
 

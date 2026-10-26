@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+- From a sixth field test, batch one (content-tagger, support, searchkick,
+  statesman, pay), in check mode and under `rubocop -a`:
+  - `Kata/RealWords` knows `recency` and `proration`, the nouns of `recent`
+    and `prorate` (searchkick's `boost_by_recency`, Stripe's
+    `proration_behavior` in pay): there was no smash to undo.
 - `Kata/NoComments` prices documentation by default: `AllowDocumentation`
   is `false` again, as when the option was added, so a comment above a
   public class, module, method or constant is prose like any other, YARD

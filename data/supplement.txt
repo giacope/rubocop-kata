@@ -157,6 +157,7 @@ plough
 plugin
 postgresql
 proc
+proration
 pwa
 pyjamas
 qr
@@ -164,6 +165,7 @@ queueing
 rackup
 rcpt
 readme
+recency
 redis
 refactor
 rollup

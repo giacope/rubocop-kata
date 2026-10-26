@@ -1,0 +1,21 @@
+# What the sixth field test found running kata in check mode on thirty more
+# codebases, five at a time: each case is a shape whose advice would have made
+# the code worse, or a fact kata misread, named after its finding.
+- id: r6b1-k6-recency-and-proration-are-words
+  cop: Kata/RealWords
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Boost
+        def initialize(recency, proration)
+          @recency = recency
+          @proration = proration
+        end
+
+        def by_recency = @recency
+
+        def proration_behavior = @proration
+      end
+    end
