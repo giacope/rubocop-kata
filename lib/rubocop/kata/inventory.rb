@@ -15,6 +15,8 @@ class RuboCop::Kata::Inventory
 
   def type?(name) = types.include?(name.to_s)
 
+  def namespace?(name) = types.any? { it.start_with?("#{name}::") }
+
   def message?(name) = messages.include?(name.to_s)
 
   def foreign?(name) = sent.include?(name.to_s) && !message?(name)

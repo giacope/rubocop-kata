@@ -51,6 +51,12 @@
   class, Elegant Objects' "fewer than five", counting `attr_*`-minted
   methods and leaving Ruby's protocols (`to_s`, `==`, `each`, `call` …) and
   `on_*` callbacks out. Nothing counted public methods before.
+- `Kata/NoPublicConstant` (new, on): a read of another of the project's
+  classes' value constant (`Cart::MAX_ITEMS` in `Order`, a `Settings`
+  module's `TAX_RATE` read by two classes) is shared state, which Elegant
+  Objects rules out and no rule reported. The message asks to ask the owner
+  what the value means and make the constant private. Ruby's and other
+  libraries' constants, a class's own, namespaces and `VERSION` pass.
 - `Kata/NoComments` prices documentation by default: `AllowDocumentation`
   is `false` again, as when the option was added, so a comment above a
   public class, module, method or constant is prose like any other, YARD

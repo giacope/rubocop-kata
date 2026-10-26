@@ -7,11 +7,14 @@ module RuboCop::Cop::Kata::Ownership
 
   def own?(probe) = probe&.const_type? && owners(probe).any?
 
-  def owners(probe)
+  def owners(probe) = candidates(probe).select { owned?(it) }
+
+  def candidates(probe)
     name = probe.const_name
-    candidates = probe.absolute? ? [name] : [*RuboCop::Kata::Nesting.new(probe).names.map { "#{it}::#{name}" }, name]
-    candidates.select { owned?(it) }
+    probe.absolute? ? [name] : [*RuboCop::Kata::Nesting.new(probe).names.map { "#{it}::#{name}" }, name]
   end
+
+  def namespace?(name) = local_types.any? { it.start_with?("#{name}::") } || inventory.namespace?(name)
 
   def owned?(name) = !foreign?(name) && (local_types.include?(name) || inventory.type?(name))
 

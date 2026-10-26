@@ -751,3 +751,111 @@
         end
       end
     end
+- id: v1-p09-violation-min-no-public-constant
+  cop: Kata/NoPublicConstant
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Cart
+        MAX_ITEMS = 50
+
+        def initialize(lines)
+          @lines = lines
+        end
+
+        def size
+          @lines.size
+        end
+      end
+    end
+
+    module Shop
+      class Order
+        def initialize(cart)
+          @cart = cart
+        end
+
+        def full?
+          @cart.size >= Cart::MAX_ITEMS
+        end
+      end
+    end
+- id: v1-p09-violation-real-no-public-constant
+  cop: Kata/NoPublicConstant
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Invoice
+        def initialize(cents)
+          @cents = cents
+        end
+
+        def tax
+          @cents * Settings::TAX_RATE
+        end
+
+        def to_s
+          "#{@cents} #{Settings::CURRENCY}"
+        end
+      end
+    end
+
+    module Shop
+      module Settings
+        CURRENCY = "USD"
+        TAX_RATE = 0.2
+        FREE_SHIPPING = 5_000
+      end
+    end
+
+    module Shop
+      class Shipment
+        def initialize(cents)
+          @cents = cents
+        end
+
+        def free?
+          @cents >= Settings::FREE_SHIPPING
+        end
+
+        def label
+          "#{@cents} #{Settings::CURRENCY}"
+        end
+      end
+    end
+- id: v1-p09-compliant-no-public-constant
+  cop: Kata/NoPublicConstant
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Cart
+        LIMIT = 50
+        private_constant :LIMIT
+
+        def initialize(lines)
+          @lines = lines
+        end
+
+        def full?
+          @lines.size >= LIMIT
+        end
+      end
+    end
+
+    module Shop
+      class Order
+        def initialize(cart)
+          @cart = cart
+        end
+
+        def open?
+          !@cart.full?
+        end
+      end
+    end

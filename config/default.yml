@@ -897,6 +897,34 @@ Kata/NoNilReturn:
 Elegant/NoNilReturn:
   Enabled: false
 
+Kata/NoPublicConstant:
+  Description: >-
+    No public constants as shared values: reading another of the project's
+    classes' or modules' value constant (`Cart::MAX_ITEMS`,
+    `Settings::TAX_RATE`) couples the reader to the value and scatters the
+    logic that interprets it. Ask the owner for what the value means
+    (`cart.full?`) and make the constant private (`private_constant`). Only
+    the project's own namespaces are judged (Ruby's `Float::INFINITY` and a
+    library's constants are its API), a class reading its own constants
+    passes, and `AllowedNames` holds the constants a packaging tool reads
+    (`VERSION`). A class, module or error is not a value.
+  Enabled: true
+  VersionAdded: "0.11"
+  OwnedPaths:
+    - "app/**/*.rb"
+    - "*/app/**/*.rb"
+    - "lib/**/*.rb"
+    - "*/lib/**/*.rb"
+  AllowedNames:
+    - VERSION
+  Exclude:
+    - "spec/**/*"
+    - "test/**/*"
+    - "**/*_spec.rb"
+    - "**/*_test.rb"
+    - "*.gemspec"
+    - "db/**/*"
+
 Kata/FieldCount:
   Description: >-
     A class encapsulates at most `Max` fields (four by default, Elegant
