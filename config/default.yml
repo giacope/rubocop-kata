@@ -1279,7 +1279,11 @@ Kata/FrozenState:
     variable holds is changing state too: `@items << item`, `@index[key] =
     value` and the other `MutatingMethods` of Kata/NoOutputArgument, outside
     construction, are offenses; a keyed cache (`@cache[key] ||= value`) is
-    memoization.
+    memoization. A name a collection's mutator shares with a collaborator's
+    command (`insert`, `delete`, `clear`, `update`, `store`, `pop`, ...) is a
+    change of state only on a collection the object built (`[]`, `{}`,
+    `Set.new`, `x.dup`, memoized or not) or uses as one (`[]`, `<<`,
+    `each`): `@store.insert(row)` tells an injected store to act.
     Rails hands a view its data through a controller's or mailer's instance
     variables, so `app/controllers`, `app/mailers` and `app/helpers` are
     excluded.

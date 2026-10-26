@@ -525,3 +525,56 @@
         end
       end
     end
+- id: p32-command-to-an-injected-store
+  cop: Kata/FrozenState
+  expect: clean
+  path: lib/shop/registration.rb
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Registration
+        def initialize(store)
+          @store = store
+        end
+
+        def submit(params)
+          @store.insert(params.merge(email: params.fetch(:email).downcase).except(:password_confirmation))
+        end
+      end
+    end
+- id: p32-output-argument-changed
+  cop: Kata/NoOutputArgument
+  expect: offense
+  path: lib/shop/registration.rb
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Registration
+        def initialize(store)
+          @store = store
+        end
+
+        def submit(params)
+          params[:email] = params[:email].to_s.downcase
+          params.delete(:password_confirmation)
+          @store.insert(params)
+        end
+      end
+    end
+- id: p32-collection-the-object-built-still-changes
+  cop: Kata/FrozenState
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Basket
+        def initialize
+          @items = []
+        end
+
+        def remove(item) = @items.delete(item)
+      end
+    end

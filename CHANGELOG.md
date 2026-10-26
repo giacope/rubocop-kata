@@ -53,6 +53,17 @@
   45 sampled findings were swallowed errors; the rest were deliberate (a 409
   Conflict taken as done, a lock another process holds, a best-effort
   release).
+- `Kata/FrozenState` no longer reads a command to an injected collaborator
+  as the object changing its own state (P32: the Elegant Objects version,
+  `@store.insert(params.merge(...))`, was reported because `insert` is in
+  the mutating list). A name a collection's mutator shares with a
+  collaborator's command (`insert`, `delete`, `clear`, `update`, `store`,
+  `pop`, `shift`, ...) is a change of state only on a collection the object
+  built (`[]`, `{}`, `Set.new`, `x.dup`, memoized or not) or uses as one
+  (`[]`, `<<`, `each`); `<<`, `[]=`, `push` and every `!` stay mutations.
+  On the field-test codebases this drops ruby-openai's ten
+  `@client.delete(path: ...)` and ferrum's `@headers.clear` (a CDP command),
+  and keeps every collection's `delete`/`clear`.
 - New `Kata/ScopedResource` (P27: `@lock.lock` ... `@lock.unlock` with no
   `ensure` passed; only `File.open` without a block was reported): a lock
   taken and released by hand, or a handle opened into a local and closed by
