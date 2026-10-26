@@ -2,6 +2,7 @@
 
 class RuboCop::Cop::Kata::NoNilReturn < RuboCop::Cop::Base
   include RuboCop::Cop::Kata::Roster
+  include RuboCop::Cop::Kata::Answer
 
   MSG = "`%s` returns nil; return a null object, or fail fast."
   SOURCE = "`%s` passes on the nil `%s` can return; return a null object, or fail fast."
@@ -10,18 +11,9 @@ class RuboCop::Cop::Kata::NoNilReturn < RuboCop::Cop::Base
   SEARCHES = %i[detect find].freeze
   SINGLES = %i[first last min max sample].freeze
   LOOKUPS = %i[[] dig find_by match index find_index rindex presence try].freeze
-  QUERIES = %i[
-    + - * / % ** == != < > <= >= <=> & | ^ ! -@ +@ ~
-    count downcase fetch filter_map flat_map format join keys length map merge new reject select size sort
-    sort_by split strip sum to_a to_h to_i to_s to_sym upcase values
-  ].freeze
   COMMANDS = %i[call close delete destroy perform run save touch update].freeze
   SCOPES = %i[def defs].freeze
   INNER = { begin: -1, kwbegin: -1, or_asgn: 1, rescue: 0, ensure: 0 }.freeze
-  VALUES = %i[
-    str dstr sym dsym int float rational complex array hash regexp true false const self
-    ivar lvar cvar gvar irange erange
-  ].freeze
 
   def_node_matcher :defaulted, "{(block (send (const {nil? cbase} :Hash) :new) ...) (send (const {nil? cbase} :Hash) :new _)}"
 
@@ -86,13 +78,10 @@ class RuboCop::Cop::Kata::NoNilReturn < RuboCop::Cop::Base
 
   def open?(node, arms, found)
     missing = node.if_type? ? arms.include?(nil) : arms.last.nil?
-    missing && found.any? && found.all? { |tail, branch| branch.nil? && value?(tail) }
+    missing && found.any? && found.all? { |tail, branch| branch.nil? && valued?(tail) }
   end
 
-  def value?(node)
-    return true if VALUES.include?(node.type) || sources(node).any?
-    node.send_type? && (QUERIES.include?(node.method_name) || node.predicate_method?)
-  end
+  def valued?(node) = value?(node) || sources(node).any?
 
   def last(node) = node&.type?(:begin, :kwbegin) ? node.children.last : node
 

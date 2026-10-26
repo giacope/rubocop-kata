@@ -286,3 +286,66 @@
         end
       end
     end
+- id: v1-p07-violation-min-command-query
+  cop: Kata/CommandQuery
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Basket
+        def initialize(items)
+          @items = items
+        end
+
+        def empty?
+          @items.compact!
+          @items.empty?
+        end
+      end
+    end
+- id: v1-p07-violation-real-command-query
+  cop: Kata/CommandQuery
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Account
+        def initialize(entries, audit)
+          @entries = entries
+          @audit = audit
+        end
+
+        def balance
+          @audit.record("balance read")
+          @entries.sum
+        end
+
+        def withdraw(cents)
+          @audit.record("withdrawal")
+          @entries.sum - cents
+        end
+      end
+    end
+- id: v1-p07-compliant-command-query
+  cop: Kata/CommandQuery
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Account
+        def initialize(entries)
+          @entries = entries
+        end
+
+        def balance
+          @entries.sum
+        end
+
+        def withdrawn(cents)
+          Account.new(@entries + [-cents])
+        end
+      end
+    end

@@ -1288,13 +1288,25 @@ Kata/NoOutputArgument:
 
 Kata/CommandQuery:
   Description: >-
-    A method whose name ends in `?` answers a question and changes nothing:
-    it assigns no instance variable and calls no `!` method on itself, its
-    state or its parameters. Memoizing the answer (`@valid ||= ...`) is not a
-    change, and neither is a guard whose only branch is a bang on a constant
-    (`UI.user_error!("...") unless key`): it raises, it does not mutate.
+    A method answers or acts, never both. A method whose name ends in `?`,
+    and any method whose last expression is a value (a literal, a field, a
+    sum, a lookup, a new object: `def balance = ... @entries.sum`), is a
+    query: it assigns no instance variable, calls no `!` method on itself,
+    its state or its parameters, and sends no message whose value it throws
+    away to itself, its state, its parameters or a constant
+    (`@audit.record("balance read")`, `Rails.logger.info(...)`): a statement
+    whose value nobody reads is there for its effect. Memoizing the answer
+    (`@valid ||= ...`) is not a change, and neither is a guard whose only
+    branch is a bang on a constant (`UI.user_error!("...") unless key`) or
+    one of the `RaisingMethods`: it raises, it does not mutate. Work on the
+    method's own locals (`lines << row; lines.join`), a block (an
+    iteration), and a method returning `self` (a chained command) are not
+    judged.
   Enabled: true
   VersionAdded: "0.11"
+  RaisingMethods:
+    - fail
+    - raise
   Exclude:
     - "spec/**/*"
     - "test/**/*"

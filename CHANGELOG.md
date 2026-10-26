@@ -28,6 +28,14 @@
   Ruby's and other libraries' classes. The ownership test is
   `Kata/NoTypeCheck`'s, now shared.
 
+- `Kata/CommandQuery` judges every query, not only `?` methods: a method
+  whose last expression is a value (`@entries.sum`, a literal, a lookup, a
+  new object) and that also acts — assigns state, calls a bang on its state
+  or parameters, or sends a message whose value it throws away to itself,
+  its state, its parameters or a constant (`@audit.record("balance read")`,
+  `Rails.logger.info`) — is reported, and so is a `?` method that acts
+  through a discarded message. Guards that raise, a helper filling one of
+  the method's own locals, iterations and a method returning `self` pass.
 - `Kata/NoComments` prices documentation by default: `AllowDocumentation`
   is `false` again, as when the option was added, so a comment above a
   public class, module, method or constant is prose like any other, YARD
