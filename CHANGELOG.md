@@ -2,6 +2,26 @@
 
 ## [Unreleased]
 
+- `Kata/IoDiscipline` reports the hidden I/O beyond `puts` (the V1
+  conformance case P33: an audit record that wrote `log/audit.log`, the Rails
+  log and a webhook passed). A file, network or shell call whose target is
+  written into the code is hidden I/O: `File.write("log/audit.log", …)`,
+  `YAML.load_file("config/x.yml")`, `Dir.pwd`, `Net::HTTP.post(URI("https://…"))`,
+  `system("git", "fetch")`, a backtick (`Effects`, by what each reaches: a
+  path, a URL or a command); one whose target holds a variable, an instance
+  variable, a method's value, an injected `base:`, a constant another file
+  defines or a path anchored on `__dir__` is the adapter whose job the effect
+  is, and passes (`File.write(@path, …)`). A global stream or service
+  (`$stdout.puts`, `STDERR`, `Rails.logger`, `Rails.cache`) asks to be
+  injected, and bare `print`/`printf` join `puts`. Path arithmetic
+  (`File.join`) reaches nothing, and a constant or command the project
+  defines (rubycritic's `Options::File`, kimera's own `spawn`) is not Ruby's.
+  On thirty field-test codebases, 27 of a 28-finding sample were hidden I/O.
+- The boot layer `Kata/IoDiscipline`, `Kata/ClockDiscipline` and
+  `Kata/EnvDiscipline` share takes in a framework's boot hooks (a block given
+  to `initializer`, `to_prepare`, `after_initialize`, `on_load`), and the
+  three leave `railtie.rb`, `engine.rb` and `lib/generators/` alone: hashie's
+  railtie hands `Rails.logger` to `Hashie.logger` there.
 - `Kata/NoComments` prices documentation by default: `AllowDocumentation`
   is `false` again, as when the option was added, so a comment above a
   public class, module, method or constant is prose like any other, YARD

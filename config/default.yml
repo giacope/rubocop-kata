@@ -608,15 +608,128 @@ Kata/GoodVariableName:
 
 Kata/IoDiscipline:
   Description: >-
-    Write through an injected io, not bare puts/warn/pp/p. Where the class
-    already holds a stream (`@io`, `@out`, `@stderr`, …), the message names
-    it; where nothing is injected, it names the seam to add
-    (`def initialize(io: $stdout)`). Code outside every class, module and
-    method is a script's boot layer, and its terminal is the boot layer's
-    stream, as Kata/EnvDiscipline and Kata/ClockDiscipline read it.
+    No hidden I/O: write through an injected io, not bare
+    puts/warn/pp/p/print. Where the class already holds a stream (`@io`,
+    `@out`, `@stderr`, …), the message names it; where nothing is injected,
+    it names the seam to add (`def initialize(io: $stdout)`). A global stream
+    or service (`$stdout.puts`, `Rails.logger`, `Rails.cache`; `Globals`) is
+    never injected, and asks to be. A file, network or shell call (`Effects`,
+    by what it reaches: a path, a URL, a command; a constant alone stands for
+    each of its methods) whose target is written into the code
+    (`File.write("log/audit.log", …)`, `Net::HTTP.post(URI("https://…"))`,
+    `` `git rev-parse HEAD` ``, `Dir.pwd`) is hidden I/O; one whose target
+    holds a variable, an instance variable or a method's value
+    (`File.write(@path, …)`), or a path anchored on the source file
+    (`__dir__`, `__FILE__`), is the adapter whose job the effect is, and
+    passes. Path arithmetic (`File.join`, `File.basename`; `AllowedMethods`)
+    reaches nothing. Code outside every class, module and method is a
+    script's boot layer, and its terminal is the boot layer's stream, as
+    Kata/EnvDiscipline and Kata/ClockDiscipline read it; a parameter default
+    is the seam.
   Enabled: true
   VersionAdded: "0.1"
   VersionChanged: "0.11"
+  Effects:
+    path:
+      - CSV.foreach
+      - CSV.open
+      - CSV.read
+      - CSV.readlines
+      - Dir
+      - File
+      - FileUtils
+      - IO.binread
+      - IO.binwrite
+      - IO.copy_stream
+      - IO.foreach
+      - IO.read
+      - IO.readlines
+      - IO.sysopen
+      - IO.write
+      - JSON.load_file
+      - YAML.load_file
+      - YAML.safe_load_file
+      - YAML.unsafe_load_file
+    URL:
+      - Excon.delete
+      - Excon.get
+      - Excon.head
+      - Excon.new
+      - Excon.patch
+      - Excon.post
+      - Excon.put
+      - Faraday.delete
+      - Faraday.get
+      - Faraday.head
+      - Faraday.new
+      - Faraday.patch
+      - Faraday.post
+      - Faraday.put
+      - HTTParty.delete
+      - HTTParty.get
+      - HTTParty.head
+      - HTTParty.patch
+      - HTTParty.post
+      - HTTParty.put
+      - Net::HTTP
+      - RestClient.delete
+      - RestClient.get
+      - RestClient.head
+      - RestClient.patch
+      - RestClient.post
+      - RestClient.put
+      - Typhoeus.delete
+      - Typhoeus.get
+      - Typhoeus.head
+      - Typhoeus.patch
+      - Typhoeus.post
+      - Typhoeus.put
+      - URI.open
+    command:
+      - IO.popen
+      - Kernel.exec
+      - Kernel.spawn
+      - Kernel.system
+      - Open3
+      - Process.spawn
+      - exec
+      - spawn
+      - system
+  AllowedMethods:
+    - File.absolute_path
+    - File.absolute_path?
+    - File.basename
+    - File.dirname
+    - File.expand_path
+    - File.extname
+    - File.fnmatch
+    - File.fnmatch?
+    - File.join
+    - File.path
+    - File.split
+  Globals:
+    - $stderr
+    - $stdin
+    - $stdout
+    - Rails.cache
+    - Rails.logger
+    - STDERR
+    - STDIN
+    - STDOUT
+  Conversions:
+    - Array
+    - Float
+    - Integer
+    - Pathname
+    - String
+    - URI
+    - format
+    - sprintf
+  OwnedPaths:
+    - "app/**/*.rb"
+    - "*/app/**/*.rb"
+    - "lib/**/*.rb"
+    - "*/lib/**/*.rb"
   Exclude:
     - "spec/**/*"
     - "test/**/*"
@@ -637,6 +750,10 @@ Kata/IoDiscipline:
     - "gems.rb"
     - "**/*.gemfile"
     - "**/*.jbuilder"
+    - "**/railtie.rb"
+    - "**/engine.rb"
+    - "lib/generators/**/*"
+    - "*/lib/generators/**/*"
 
 Kata/ProsePlacement:
   Description: "Keep sentence-length strings in the presentation layer."
@@ -1009,6 +1126,10 @@ Kata/ClockDiscipline:
     - "gems.rb"
     - "**/*.gemfile"
     - "**/*.jbuilder"
+    - "**/railtie.rb"
+    - "**/engine.rb"
+    - "lib/generators/**/*"
+    - "*/lib/generators/**/*"
 
 Kata/EnvDiscipline:
   Description: >-
@@ -1038,6 +1159,10 @@ Kata/EnvDiscipline:
     - "gems.rb"
     - "**/*.gemfile"
     - "**/*.jbuilder"
+    - "**/railtie.rb"
+    - "**/engine.rb"
+    - "lib/generators/**/*"
+    - "*/lib/generators/**/*"
 
 Kata/NoSetter:
   Description: >-

@@ -1,0 +1,112 @@
+# The Elegant Objects conformance cases (round 6, V1) for the effects a method
+# hides: I/O, the clock and randomness, configuration, swallowed errors, global
+# state reached through the framework, and resources released by hand. Each
+# principle's violating spellings are flagged by the rule that owns it, and its
+# compliant version stays clean.
+- id: p33-hidden-output-puts
+  cop: Kata/IoDiscipline
+  expect: offense
+  path: lib/shop/receipt.rb
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Receipt
+        def initialize(total)
+          @total = total
+        end
+
+        def print
+          puts "Total: #{@total}"
+        end
+      end
+    end
+- id: p33-hidden-io-file-log-webhook
+  cop: Kata/IoDiscipline
+  expect: offense
+  path: lib/shop/audit.rb
+  source: |
+    # frozen_string_literal: true
+
+    require "net/http"
+
+    module Shop
+      class Audit
+        def initialize(event)
+          @event = event
+        end
+
+        def record
+          File.write("log/audit.log", "#{@event}\n", mode: "a")
+          Rails.logger.info("audit #{@event}")
+          Net::HTTP.post(URI("https://hooks.example.com/audit"), @event)
+        end
+      end
+    end
+- id: p33-io-through-an-injected-stream
+  cop: Kata/IoDiscipline
+  expect: clean
+  path: lib/shop/audit.rb
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Audit
+        def initialize(event, out)
+          @event = event
+          @out = out
+        end
+
+        def record
+          @out.write("#{@event}\n")
+        end
+      end
+    end
+- id: p33-file-write-to-a-literal-path-alone
+  cop: Kata/IoDiscipline
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Ledger
+        def initialize(lines)
+          @lines = lines
+        end
+
+        def save = File.write("tmp/ledger.txt", @lines.join("\n"))
+      end
+    end
+- id: p33-rails-logger-alone
+  cop: Kata/IoDiscipline
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Refund
+        def initialize(cents)
+          @cents = cents
+        end
+
+        def issue
+          Rails.logger.info("refund #{@cents}")
+          @cents
+        end
+      end
+    end
+- id: p33-adapter-writing-an-injected-path
+  cop: Kata/IoDiscipline
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Disk
+        def initialize(path)
+          @path = path
+        end
+
+        def write(text) = File.write(@path, text)
+      end
+    end
