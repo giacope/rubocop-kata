@@ -619,3 +619,135 @@
         end
       end
     end
+- id: v1-p14-violation-min-public-surface
+  cop: Kata/PublicSurface
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Customer
+        def initialize(name, email)
+          @name = name
+          @email = email
+        end
+
+        def greeting
+          "Dear #{@name}"
+        end
+
+        def signature
+          "#{@name} <#{@email}>"
+        end
+
+        def initials
+          @name.split.map { |part| part[0] }.join
+        end
+
+        def mailto
+          "mailto:#{@email}"
+        end
+
+        def domain
+          @email.split("@").last
+        end
+
+        def handle
+          @email.split("@").first
+        end
+      end
+    end
+- id: v1-p14-violation-real-public-surface
+  cop: Kata/PublicSurface
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class User
+        def initialize(name, email, digest, plan)
+          @name = name
+          @email = email
+          @digest = digest
+          @plan = plan
+        end
+
+        def greeting
+          "Dear #{@name}"
+        end
+
+        def signature
+          "#{@name} <#{@email}>"
+        end
+
+        def authentic?(password)
+          @digest == password.hash
+        end
+
+        def token
+          "#{@email}:#{@digest}"
+        end
+
+        def premium?
+          @plan == "premium"
+        end
+
+        def monthly
+          premium? ? 2_000 : 500
+        end
+
+        def invoice
+          "#{@name}: #{monthly}"
+        end
+
+        def mailto
+          "mailto:#{@email}"
+        end
+      end
+    end
+- id: v1-p14-compliant-public-surface
+  cop: Kata/PublicSurface
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Customer
+        def initialize(name, email)
+          @name = name
+          @email = email
+        end
+
+        def greeting
+          "Dear #{@name}"
+        end
+
+        def signature
+          "#{@name} <#{@email}>"
+        end
+
+        def initials
+          @name.split.map { |part| part[0] }.join
+        end
+      end
+    end
+
+    module Shop
+      class Email
+        def initialize(address)
+          @address = address
+        end
+
+        def mailto
+          "mailto:#{@address}"
+        end
+
+        def domain
+          @address.split("@").last
+        end
+
+        def handle
+          @address.split("@").first
+        end
+      end
+    end

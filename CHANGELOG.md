@@ -47,6 +47,10 @@
   name, memoized answers aside. `Metrics/ParameterLists` counted only
   constructor parameters, so a form object with six `attr_accessor` fields
   passed.
+- `Kata/PublicSurface` (new, on): at most four public instance methods per
+  class, Elegant Objects' "fewer than five", counting `attr_*`-minted
+  methods and leaving Ruby's protocols (`to_s`, `==`, `each`, `call` …) and
+  `on_*` callbacks out. Nothing counted public methods before.
 - `Kata/NoComments` prices documentation by default: `AllowDocumentation`
   is `false` again, as when the option was added, so a comment above a
   public class, module, method or constant is prose like any other, YARD

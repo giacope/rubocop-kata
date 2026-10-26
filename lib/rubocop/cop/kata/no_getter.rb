@@ -1,12 +1,11 @@
 # frozen_string_literal: true
 
 class RuboCop::Cop::Kata::NoGetter < RuboCop::Cop::Base
-  include RuboCop::Cop::VisibilityHelp
+  include RuboCop::Cop::Kata::Exposure
 
   MACRO = "`attr_reader` exposes %s as a getter; tell the object what to do with its fields, or have it print itself."
   READER = "`%s` is a getter; tell the object what to do with `%s`, or have it print itself."
   BAG = "`%s` mints a getter for every field, a data bag; write a class whose methods do the work with its fields."
-  HIDDEN = %i[private protected].freeze
 
   RESTRICT_ON_SEND = %i[attr_reader attr new define].freeze
 
@@ -34,22 +33,4 @@ class RuboCop::Cop::Kata::NoGetter < RuboCop::Cop::Base
   end
 
   def fields(node) = node.arguments.map { "`#{it.source.delete_prefix(":")}`" }.join(", ")
-
-  def hidden?(node)
-    holder = node.parent
-    return true if holder&.send_type? && HIDDEN.include?(holder.method_name) && holder.receiver.nil?
-    HIDDEN.include?(node_visibility(node)) || named_hidden?(node)
-  end
-
-  def named_hidden?(node)
-    names = node.def_type? ? [node.method_name] : node.arguments.select(&:sym_type?).map(&:value)
-    node.each_ancestor(:class, :module).first(1).flat_map { hiders(it) }.intersect?(names)
-  end
-
-  def hiders(scope)
-    body = scope.body
-    statements = body&.begin_type? ? body.children : [body].compact
-    hiding = statements.select { it.send_type? && HIDDEN.include?(it.method_name) }
-    hiding.flat_map { |call| call.arguments.select(&:sym_type?).map(&:value) }
-  end
 end

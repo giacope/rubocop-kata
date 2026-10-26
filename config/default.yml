@@ -925,6 +925,76 @@ Kata/FieldCount:
     - "app/views/**/*"
     - "*/app/views/**/*"
 
+Kata/PublicSurface:
+  Description: >-
+    A class exposes at most `Max` public instance methods (four by default,
+    Elegant Objects' "fewer than five public methods"): its public `def`s and
+    the methods its public `attr_*` macros mint. A short interface is a
+    small object; more methods than that is several objects in one, so move
+    some to an object of their own. The protocols Ruby dispatches to
+    (`to_s`, `==`, `<=>`, `each`, `call`, `[]`; `Protocols`) and the
+    callbacks a dispatcher names (RuboCop's and Prism's `on_*`;
+    `AllowedPatterns`) are not counted. Rails controllers, whose actions are
+    routes, mailers, helpers and views are not judged.
+  Enabled: true
+  VersionAdded: "0.11"
+  Max: 4
+  AllowedPatterns:
+    - "\\Aon_\\w+\\z"
+    - "\\Avisit_\\w+\\z"
+  Protocols:
+    - "!="
+    - "%"
+    - "*"
+    - "+"
+    - "-"
+    - "/"
+    - "<"
+    - "<="
+    - "<=>"
+    - "=="
+    - "==="
+    - "=~"
+    - ">"
+    - ">="
+    - "[]"
+    - "[]="
+    - as_json
+    - call
+    - coerce
+    - each
+    - eql?
+    - equal?
+    - hash
+    - initialize
+    - initialize_copy
+    - inspect
+    - method_missing
+    - respond_to_missing?
+    - to_a
+    - to_ary
+    - to_h
+    - to_hash
+    - to_json
+    - to_proc
+    - to_s
+    - to_str
+  Exclude:
+    - "spec/**/*"
+    - "test/**/*"
+    - "**/*_spec.rb"
+    - "**/*_test.rb"
+    - "db/**/*"
+    - "config/**/*"
+    - "app/controllers/**/*"
+    - "*/app/controllers/**/*"
+    - "app/mailers/**/*"
+    - "*/app/mailers/**/*"
+    - "app/helpers/**/*"
+    - "*/app/helpers/**/*"
+    - "app/views/**/*"
+    - "*/app/views/**/*"
+
 Kata/NoGetter:
   Description: >-
     No getters: a public `attr_reader`, or a method that only returns the
