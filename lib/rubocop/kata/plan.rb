@@ -8,7 +8,7 @@ class RuboCop::Kata::Plan
   STAGES = {
     "structure" => %w[
       Kata/ConstructorDiscipline Kata/NoClassMethodLogic Kata/NoHashAsObject
-      Kata/NoBooleanFlag Kata/IoDiscipline Kata/ClockDiscipline Kata/EnvDiscipline
+      Kata/NoBooleanFlag Kata/IoDiscipline Kata/ClockDiscipline Kata/EnvDiscipline Kata/FailFast
       Kata/ClassInModule Kata/NoRedundantVariable
       Kata/NoSetter Kata/FrozenState Kata/NoOutputArgument Kata/CommandQuery
       Kata/NoTypeCheck Kata/NoSingleton

@@ -38,6 +38,21 @@
   layer; `defined?(Rails.env)` reads nothing. 26 to 30 of 30 findings on the
   field-test codebases were configuration read in a method, the range being
   the controllers that read a webhook secret to check a request.
+- New `Kata/FailFast` (P25: `rescue JSON::ParserError, IOError => error;
+  @log.warn(...); {}` and `Integer(x) rescue 0` passed, the second reported
+  only for its syntax): a `rescue` that neither re-raises nor turns the error
+  into an object, answering a default (an empty body, `nil`, `false`, a
+  literal, `[]`, `{}`) or a log line, swallows the error; the message asks to
+  let it raise or to answer an object that says what failed. A boolean
+  answering a question about the errors a rescue names, `==`/`<=>`, the end
+  of a stream or a process, an optional library's `LoadError` and a resource
+  released on the way out pass; a `rescue` modifier is reported whatever it
+  answers. It replaces `Lint/SuppressedException`, which passed `rescue;
+  nil`, and `Style/RescueModifier`, whose correction (`begin ... rescue 0
+  end`) still swallowed; both are off. On thirty field-test codebases, 37 of
+  45 sampled findings were swallowed errors; the rest were deliberate (a 409
+  Conflict taken as done, a lock another process holds, a best-effort
+  release).
 - `Kata/NoComments` prices documentation by default: `AllowDocumentation`
   is `false` again, as when the option was added, so a comment above a
   public class, module, method or constant is prose like any other, YARD

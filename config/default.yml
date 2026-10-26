@@ -1187,6 +1187,53 @@ Kata/EnvDiscipline:
     - "lib/generators/**/*"
     - "*/lib/generators/**/*"
 
+Kata/FailFast:
+  Description: >-
+    A `rescue` that does not re-raise (`raise`, `fail`, `retry`, `exit`,
+    `abort`; `RaisingMethods`) answers something: when that is a default — an
+    empty body, `nil`, `false`, a literal, `[]`, `{}` — or a log line
+    (`@log.warn(...)`, logged or not before the default), the error is
+    swallowed and the caller goes on with a value that hides it. Let it raise,
+    or rescue the one error you expect and answer an object that says what
+    failed (`rescue KeyError; Absent.new(key)`, a null object, passes). A
+    rescue that answers a boolean is a question's answer when it names the
+    errors it expects (`rescue URI::InvalidURIError; false`), or sits in a
+    predicate and names no bug (`def numeric? = Integer(x) rescue false`;
+    `rescue NoMethodError` is a bug); `==`, `eql?` and `<=>` answer a
+    foreign object. The ends of a stream or a process (`EOFError`,
+    `Errno::EPIPE`, `Errno::ESRCH`, an empty queue's `ThreadError`), and an
+    optional library's `LoadError` (`ExpectedErrors`) are not failures, and
+    neither is a resource released on the way out (`socket.close rescue nil`, in an
+    `ensure` or a rescue that re-raises). A `rescue` modifier catches every
+    StandardError, bugs included, whatever it answers. It replaces
+    Lint/SuppressedException and Style/RescueModifier, whose advice
+    (`begin ... rescue 0 end`) still swallows.
+  Enabled: true
+  VersionAdded: "0.11"
+  Exclude:
+    - "spec/**/*"
+    - "test/**/*"
+  RaisingMethods:
+    - abort
+    - exit
+    - exit!
+    - fail
+    - raise
+  ExpectedErrors:
+    - EOFError
+    - Errno::EBADF
+    - Errno::ECHILD
+    - Errno::ECONNRESET
+    - Errno::EPIPE
+    - Errno::ESRCH
+    - Gem::LoadError
+    - IO::EAGAINWaitReadable
+    - IO::WaitReadable
+    - IOError
+    - LoadError
+    - StopIteration
+    - ThreadError
+
 Kata/NoSetter:
   Description: >-
     An object takes its state in the constructor and keeps it: `attr_writer`,
@@ -1837,6 +1884,16 @@ RSpec/Output:
 # Its message names a replacement that raises: Integer(x, 10) is only
 # valid when x is a String, and most `.to_i` receivers are not.
 Lint/NumberConversion:
+  Enabled: false
+
+# Kata/FailFast reports every rescue these two report, with advice that does
+# not swallow: Lint/SuppressedException passes `rescue; nil` and a commented
+# empty rescue, and Style/RescueModifier's correction (`begin ... rescue 0
+# end`) still answers 0 for every StandardError.
+Lint/SuppressedException:
+  Enabled: false
+
+Style/RescueModifier:
   Enabled: false
 
 # Alphabetizing requires breaks load-order-dependent boot sequences.

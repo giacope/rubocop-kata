@@ -289,3 +289,110 @@
         def key = Rails.application.credentials.dig(:stripe, :secret)
       end
     end
+- id: p25-empty-rescue
+  cop: Kata/FailFast
+  expect: offense
+  path: lib/shop/rates.rb
+  source: |
+    # frozen_string_literal: true
+
+    require "json"
+
+    module Shop
+      class Rates
+        def initialize(source)
+          @source = source
+        end
+
+        def table
+          JSON.parse(@source.read)
+        rescue StandardError
+        end
+      end
+    end
+- id: p25-logged-default-and-modifier
+  cop: Kata/FailFast
+  expect: offense
+  path: lib/shop/rates.rb
+  source: |
+    # frozen_string_literal: true
+
+    require "json"
+
+    module Shop
+      class Rates
+        def initialize(source, log)
+          @source = source
+          @log = log
+        end
+
+        def table
+          JSON.parse(@source.read)
+        rescue JSON::ParserError, IOError => error
+          @log.warn("rates unavailable: #{error.message}")
+          {}
+        end
+
+        def limit
+          Integer(@source.limit) rescue 0
+        end
+      end
+    end
+- id: p25-errors-raise
+  cop: Kata/FailFast
+  expect: clean
+  path: lib/shop/rates.rb
+  source: |
+    # frozen_string_literal: true
+
+    require "json"
+
+    module Shop
+      class Rates
+        def initialize(source)
+          @source = source
+        end
+
+        def table
+          JSON.parse(@source.read)
+        end
+
+        def limit
+          Integer(@source.limit)
+        end
+      end
+    end
+- id: p25-modifier-answering-zero-alone
+  cop: Kata/FailFast
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Limit
+        def initialize(text)
+          @text = text
+        end
+
+        def value = Integer(@text) rescue 0
+      end
+    end
+- id: p25-null-object-for-the-expected-error
+  cop: Kata/FailFast
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Catalog
+        def initialize(prices)
+          @prices = prices
+        end
+
+        def price(code)
+          @prices.fetch(code)
+        rescue KeyError
+          Unpriced.new(code)
+        end
+      end
+    end

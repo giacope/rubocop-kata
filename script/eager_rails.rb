@@ -8,8 +8,8 @@ reach =
       found =
         begin
           held.const_get(name)
-        rescue StandardError, ScriptError
-          next
+        rescue StandardError, ScriptError => error
+          error
         end
       reach.call(found) if found.is_a?(Module) && found.name.to_s.start_with?("#{held.name}::")
     end
