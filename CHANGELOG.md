@@ -75,6 +75,10 @@
   changing the caller's argument. The EO form of a secondary constructor,
   `def self.parse(text) = new(Integer(text.delete("$,.")), "USD")`, was
   reported.
+- `Kata/NoBooleanFlag` no longer advises "make it a keyword" (or "name the
+  argument"): `csv(header: false)` is the same flag, and hashira's
+  `control_parameter` reports it. The advice is to split the method, one per
+  value.
 - `Kata/NoComments` prices documentation by default: `AllowDocumentation`
   is `false` again, as when the option was added, so a comment above a
   public class, module, method or constant is prose like any other, YARD

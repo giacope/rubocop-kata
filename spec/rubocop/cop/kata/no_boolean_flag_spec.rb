@@ -8,7 +8,7 @@ RSpec.describe(RuboCop::Cop::Kata::NoBooleanFlag, :config) do
   it "flags positional boolean arguments" do
     expect_offense(<<~RUBY)
       process(items, true)
-                     ^^^^ A boolean flag is two methods trapped in one; split them or name the argument.
+                     ^^^^ A boolean flag is two methods trapped in one; call the method the flag chooses, split in two.
     RUBY
   end
 
@@ -42,25 +42,25 @@ RSpec.describe(RuboCop::Cop::Kata::NoBooleanFlag, :config) do
   it "still flags a flag passed on through send, or one before the setting's name" do
     expect_offense(<<~RUBY)
       record.send(:touch, true)
-                          ^^^^ A boolean flag is two methods trapped in one; split them or name the argument.
+                          ^^^^ A boolean flag is two methods trapped in one; call the method the flag chooses, split in two.
       register(true, :verbose)
-               ^^^^ A boolean flag is two methods trapped in one; split them or name the argument.
+               ^^^^ A boolean flag is two methods trapped in one; call the method the flag chooses, split in two.
       log("ready", false)
-                   ^^^^^ A boolean flag is two methods trapped in one; split them or name the argument.
+                   ^^^^^ A boolean flag is two methods trapped in one; call the method the flag chooses, split in two.
       log("Shelf::Ready", false)
-                          ^^^^^ A boolean flag is two methods trapped in one; split them or name the argument.
+                          ^^^^^ A boolean flag is two methods trapped in one; call the method the flag chooses, split in two.
       double.with(true)
-                  ^^^^ A boolean flag is two methods trapped in one; split them or name the argument.
+                  ^^^^ A boolean flag is two methods trapped in one; call the method the flag chooses, split in two.
     RUBY
   end
 
   it "flags a positional parameter that defaults to a boolean, on either kind of def" do
     expect_offense(<<~RUBY)
       def process(items, strict = false, verbose: true)
-                         ^^^^^^^^^^^^^^ `strict` defaults to a boolean flag, two methods trapped in one; split them or make it a keyword.
+                         ^^^^^^^^^^^^^^ `strict` defaults to a boolean flag, two methods trapped in one; split them, one method per value.
       end
       def self.build(items, strict = true)
-                            ^^^^^^^^^^^^^ `strict` defaults to a boolean flag, two methods trapped in one; split them or make it a keyword.
+                            ^^^^^^^^^^^^^ `strict` defaults to a boolean flag, two methods trapped in one; split them, one method per value.
       end
     RUBY
   end
