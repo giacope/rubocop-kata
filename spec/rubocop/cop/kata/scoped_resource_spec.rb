@@ -118,6 +118,16 @@ RSpec.describe(RuboCop::Cop::Kata::ScopedResource, :config) do
           total
         end
 
+        def other_close
+          stream = build
+          write
+          @other.close
+          reader = build
+          reader.read
+          write
+          reader.rewind
+        end
+
         def current
           Pool.current.lock
           Pool.current.unlock
