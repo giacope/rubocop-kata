@@ -166,3 +166,123 @@
         end
       end
     end
+- id: v1-p05-violation-min-no-hard-wiring
+  cop: Kata/NoHardWiring
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Checkout
+        def initialize(cents)
+          @cents = cents
+        end
+
+        def receipt
+          Gateway.new("live").charge(@cents)
+        end
+      end
+    end
+
+    module Shop
+      class Gateway
+        def initialize(key)
+          @key = key
+        end
+
+        def charge(cents)
+          "#{@key}:#{cents}"
+        end
+      end
+    end
+- id: v1-p05-violation-real-no-hard-wiring
+  cop: Kata/NoHardWiring
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Checkout
+        def initialize(cart)
+          @cart = cart
+        end
+
+        def complete
+          receipt = Gateway.new("live").charge(@cart.total)
+          Mailbox.new("smtp.example.com").deliver(receipt)
+        end
+      end
+    end
+
+    module Shop
+      class Gateway
+        def initialize(key)
+          @key = key
+        end
+
+        def charge(cents)
+          "#{@key}:#{cents}"
+        end
+      end
+    end
+
+    module Shop
+      class Mailbox
+        def initialize(host)
+          @host = host
+        end
+
+        def deliver(text)
+          "#{@host} <- #{text}"
+        end
+      end
+    end
+- id: v1-p05-compliant-no-hard-wiring
+  cop: Kata/NoHardWiring
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Checkout
+        def initialize(cart, gateway, mailbox)
+          @cart = cart
+          @gateway = gateway
+          @mailbox = mailbox
+        end
+
+        def complete
+          @mailbox.deliver(@gateway.charge(@cart.total))
+        end
+      end
+    end
+- id: v1-p05-compliant-alt-no-hard-wiring
+  cop: Kata/NoHardWiring
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Checkout
+        def initialize(cents, gateway = Gateway.new("live"))
+          @cents = cents
+          @gateway = gateway
+        end
+
+        def receipt
+          @gateway.charge(@cents)
+        end
+      end
+    end
+
+    module Shop
+      class Gateway
+        def initialize(key)
+          @key = key
+        end
+
+        def charge(cents)
+          "#{@key}:#{cents}"
+        end
+      end
+    end

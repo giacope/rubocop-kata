@@ -897,6 +897,69 @@ Kata/NoNilReturn:
 Elegant/NoNilReturn:
   Enabled: false
 
+Kata/NoHardWiring:
+  Description: >-
+    An instance method that builds one of the project's classes and talks to
+    it (`Gateway.new("live").charge(@cents)`, or a local it then sends
+    messages to) has wired that collaborator in: no caller can hand it
+    another implementation, and a test has to stub `new`. Take the
+    collaborator in the constructor; a parameter default
+    (`gateway = Gateway.new("live")`) is the seam, as Elegant Objects'
+    secondary constructor is. Building an object to return it or to pass it on
+    (`Cart.new(@items + [item])`, a decorator around another) is what objects
+    do, and so is the class building itself; class methods, constructors and
+    the composition roots a framework instantiates (controllers, jobs,
+    mailers, rake tasks, `bin/`, `config/`, and a subclass of one of the
+    `RootSuperclasses`, which the framework builds and so cannot be handed a
+    collaborator) are where objects are wired. Ruby's and other libraries'
+    classes are values or boundaries, and pass.
+  Enabled: true
+  VersionAdded: "0.11"
+  RootSuperclasses:
+    - ActionController::API
+    - ActionController::Base
+    - ActionMailer::Base
+    - ActiveJob::Base
+    - ApplicationController
+    - ApplicationJob
+    - ApplicationMailer
+    - Rails::Generators::Base
+    - Rails::Generators::NamedBase
+    - RuboCop::Cop::Base
+    - Thor
+    - Thor::Group
+  OwnedPaths:
+    - "app/**/*.rb"
+    - "*/app/**/*.rb"
+    - "lib/**/*.rb"
+    - "*/lib/**/*.rb"
+  Exclude:
+    - "spec/**/*"
+    - "test/**/*"
+    - "**/*_spec.rb"
+    - "**/*_test.rb"
+    - "app/controllers/**/*"
+    - "*/app/controllers/**/*"
+    - "app/jobs/**/*"
+    - "*/app/jobs/**/*"
+    - "app/mailers/**/*"
+    - "*/app/mailers/**/*"
+    - "app/workers/**/*"
+    - "**/*_controller.rb"
+    - "**/*_job.rb"
+    - "**/*_mailer.rb"
+    - "**/*_worker.rb"
+    - "db/**/*"
+    - "bin/**/*"
+    - "exe/**/*"
+    - "script/**/*"
+    - "config/**/*"
+    - "config.ru"
+    - "lib/tasks/**/*"
+    - "Rakefile"
+    - "**/*.rake"
+    - "*.gemspec"
+
 Kata/ConstructorDiscipline:
   Description: >-
     Constructors assign; they do not compute. Shaping what was passed in is

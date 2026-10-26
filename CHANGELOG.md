@@ -16,6 +16,18 @@
   value (`@items[code] if @open`) are nil returns too. A slice, a hash with a
   default, a conditional command and a method forwarding the protocol it is
   named after pass.
+- `Kata/NoHardWiring` (new, on): an instance method that builds one of the
+  project's classes and talks to it (`Gateway.new("live").charge(@cents)`,
+  `box = Mailbox.new(host); box.deliver(...)`) has wired that collaborator
+  in, and Elegant Objects' "always use interfaces" had no rule. The message
+  asks for a constructor parameter with the `new` as its default, the seam.
+  Returning or passing on a new object, the class building itself,
+  constructors, class methods and composition roots (controllers, jobs,
+  mailers, workers, `bin/`, `config/`, a subclass of a framework base that
+  builds it, such as `RuboCop::Cop::Base`; `RootSuperclasses`) pass, as do
+  Ruby's and other libraries' classes. The ownership test is
+  `Kata/NoTypeCheck`'s, now shared.
+
 - `Kata/NoComments` prices documentation by default: `AllowDocumentation`
   is `false` again, as when the option was added, so a comment above a
   public class, module, method or constant is prose like any other, YARD
