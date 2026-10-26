@@ -32,16 +32,11 @@ class RuboCop::Cop::Kata::NoClassMethodLogic < RuboCop::Cop::Base
     add_offense(node.loc.name, message: format(constant?(node) ? LITERAL : MSG, name))
   end
 
-  def constant?(node) = literal?(node.body) && node.arguments.empty? && !overridden?(node)
+  def constant?(node) = literal?(node.body) && node.arguments.empty? && !shared?(node)
 
   def literal?(body) = LITERALS.include?(body&.type) && body.each_node(:send, :lvar, :ivar).none?
 
-  def overridden?(node)
-    scope = node.each_ancestor(:class, :module).first
-    scope && project.heirs(RuboCop::Kata::Nesting.new(scope).qualified).any? do
-      project.defines?(it, "self.#{node.method_name}")
-    end
-  end
+  def shared?(node) = project.owners("self.#{node.method_name}").size > 1
 
   def constructor?(name) = name.start_with?("from_") || allowed?(name)
 

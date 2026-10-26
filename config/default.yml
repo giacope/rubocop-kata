@@ -913,9 +913,12 @@ Kata/NoClassMethodLogic:
     `module_function` or `extend self` is a bag of functions called on the
     module, the same logic with no class, and its declaration is reported.
     A class method that only returns a literal is a constant in disguise
-    when it takes nothing and no subclass under `OwnedPaths` redefines it;
-    a hook that takes an argument or that subclasses override
-    (`def self.for_class?(_model) = false`) is the class's logic.
+    when it takes nothing and no other class under `OwnedPaths` defines it;
+    a hook that takes an argument, that subclasses override
+    (`def self.for_class?(_model) = false`) or that sibling classes answer
+    alike (`def self.label = "Analytics"` in each request class a section
+    sends `label` to) is the class's logic, and a constant read through
+    `klass::LABEL` would be shared state in its place.
   Enabled: true
   VersionAdded: "0.3"
   VersionChanged: "0.11"

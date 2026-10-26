@@ -32,7 +32,7 @@ class RuboCop::Kata::Lineage
 
   def defines?(owner, method) = @records[owner]&.dig(:methods)&.key?(method) || false
 
-  def heirs(name) = @records.keys.select { it != name && ancestors(it).include?(name) }
+  def owners(method) = @records.keys.select { defines?(it, method) }
 
   def constructed(name, hooks) = @memo[[name, hooks]] ||= closure(family(name), CONSTRUCTORS | hooks)
 
@@ -52,6 +52,8 @@ class RuboCop::Kata::Lineage
     candidates = nesting.reverse.map { "#{it}::#{written}" } << written
     candidates.find { @records.key?(it) } || written
   end
+
+  def heirs(name) = @records.keys.select { it != name && ancestors(it).include?(name) }
 
   def family(name) = [name, *heirs(name)].flat_map { ancestors(it) }.uniq.filter_map { @records[it] }
 

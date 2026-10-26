@@ -7,6 +7,12 @@
   - `Kata/RealWords` knows `recency` and `proration`, the nouns of `recent`
     and `prorate` (searchkick's `boost_by_recency`, Stripe's
     `proration_behavior` in pay): there was no smash to undo.
+  - `Kata/NoClassMethodLogic` asks for a constant only when one class
+    answers the message: a literal class method that a sibling defines too
+    is a class-level duck type (support's twenty request classes each answer
+    `self.label`, which a section sends to the class it holds), so it gets
+    the plain "puts logic on the class", not "make it a constant", whose
+    `klass::LABEL` would be shared state and break the delegation.
   - `Kata/NoBooleanFlag` allows a boolean converted or rendered as a value:
     `quote`, `type_cast`, `cast`, `serialize` and `dump` join
     `AllowedMethods` (statesman's `connection.quote(type_cast(true))` renders

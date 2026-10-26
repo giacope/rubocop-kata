@@ -1,6 +1,7 @@
 # What the sixth field test found running kata in check mode on thirty more
 # codebases, five at a time: each case is a shape whose advice would have made
-# the code worse, or a fact kata misread, named after its finding.
+# the code worse, or a fact kata misread, named after its finding. `absent`
+# lists text no message of the case's cop may say.
 - id: r6b1-k6-recency-and-proration-are-words
   cop: Kata/RealWords
   expect: clean
@@ -49,5 +50,32 @@
         end
 
         def retry(id) = @gateway.retry_charge(id, nil, true)
+      end
+    end
+- id: r6b1-k1-class-message-siblings-answer-is-no-constant
+  cop: Kata/NoClassMethodLogic
+  expect: offense
+  absent: ["make it a constant"]
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Request
+      end
+
+      class AnalyticsRequest < Request
+        def self.label = "Analytics access"
+      end
+
+      class GeneralRequest < Request
+        def self.label = "Something else"
+      end
+
+      class Section
+        def initialize(kind)
+          @kind = kind
+        end
+
+        def label = @kind.label
       end
     end
