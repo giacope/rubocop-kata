@@ -1618,7 +1618,9 @@ Kata/ClassInModule:
   Description: >-
     A class lives in a module, a class, or a compact namespace, never at the
     top level. A file directly in a Zeitwerk root (`app/models/account.rb`,
-    `app/models/concerns/archivable.rb`) defines a top-level constant by
+    `app/models/concerns/archivable.rb`, and `lib/*.rb` when
+    config/application.rb autoloads lib/ through `config.autoload_lib` or
+    its autoload or eager-load paths) defines a top-level constant by
     design, so those are excluded; a subdirectory of a root is a namespace,
     and Zeitwerk already demands the matching module. Reopening one of the
     `CoreClasses` (`class String`) is a monkey patch: wrapping it in a module

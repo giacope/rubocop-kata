@@ -48,6 +48,28 @@ RSpec.describe(RuboCop::Kata::Profile) do
   end
 
   # camaleon-cms: an engine keeps no config/application.rb at its root.
+  def excluded(setting)
+    text = "module Shop\n  class Application < Rails::Application\n    #{setting}\n  end\nend\n"
+    project(["config/application.rb", text]) { described_class.new(it, {}).overlay["Kata/ClassInModule"] }
+  end
+
+  # content-tagger and support: `config.autoload_lib`, which `rails new` writes since 7.1, makes lib/ a Zeitwerk root.
+  it "takes lib/ for a Zeitwerk root where the application autoloads it" do
+    loading = [
+      "config.autoload_lib(ignore: %w[assets tasks])", "config.eager_load_paths << Rails.root.join(\"lib\")",
+      "config.autoload_paths += Dir[Rails.root.join('lib')]", "config.autoload_paths << \"\#{config.root}/lib\""
+    ]
+    expect(loading.map { excluded(it) }).to(eq([{ "Exclude" => ["lib/*.rb"] }] * 4))
+  end
+
+  it "leaves lib/ to the namespace rule where the application does not autoload it" do
+    other = [
+      "# config.autoload_lib(ignore: %w[assets tasks])", "config.eager_load_paths << Rails.root.join(\"lib\", \"x\")",
+      "config.autoload_paths << Rails.root.join(\"lib/extras\")", "config.add_autoload_paths_to_load_path = true"
+    ]
+    expect(other.map { excluded(it) }).to(eq([nil] * 4))
+  end
+
   it "takes a Rails engine for Rails" do
     engine = "module Shop\n  class Engine < ::Rails::Engine\n    isolate_namespace Shop\n  end\nend\n"
     project(["shop.gemspec", ""], ["lib/shop/engine.rb", engine]) do |root|

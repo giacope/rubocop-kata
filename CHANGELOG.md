@@ -23,6 +23,12 @@
     (`time_constraint_attributes=`) is judged by the words before it.
     A library that does not declare ActiveRecord (statesman) still hears
     about `rolledback!`: nothing tells kata it is Rails code.
+  - `Kata/ClassInModule` takes `lib/` for a Zeitwerk root where
+    `config/application.rb` autoloads it (`config.autoload_lib`, which
+    `rails new` writes since 7.1, or `lib` in the autoload or eager-load
+    paths): `lib/description_remover.rb` defines `DescriptionRemover` by
+    Zeitwerk's rules, as `app/models/account.rb` defines `Account`, and
+    wrapping it in a module makes eager loading raise.
   - `Kata/NoBooleanFlag` allows a boolean converted or rendered as a value:
     `quote`, `type_cast`, `cast`, `serialize` and `dump` join
     `AllowedMethods` (statesman's `connection.quote(type_cast(true))` renders
