@@ -859,3 +859,67 @@
         end
       end
     end
+- id: v1-p23-violation-min-no-reflection
+  cop: Kata/NoReflection
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Receipt
+        def initialize(order)
+          @order = order
+        end
+
+        def total
+          @order.instance_variable_get(:@total)
+        end
+      end
+    end
+- id: v1-p23-violation-real-no-reflection
+  cop: Kata/NoReflection
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Export
+        def initialize(record, fields)
+          @record = record
+          @fields = fields
+        end
+
+        def row
+          @fields.map { |field| @record.public_send(field) }
+        end
+
+        def secret
+          @record.send(:token)
+        end
+
+        def view
+          Object.const_get("Shop::#{@record.kind.capitalize}View").new(@record)
+        end
+      end
+    end
+- id: v1-p23-compliant-no-reflection
+  cop: Kata/NoReflection
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Export
+        def initialize(record)
+          @record = record
+        end
+
+        def row
+          @record.row
+        end
+
+        def view
+          @record.view
+        end
+      end
+    end

@@ -57,6 +57,13 @@
   Objects rules out and no rule reported. The message asks to ask the owner
   what the value means and make the constant private. Ruby's and other
   libraries' constants, a class's own, namespaces and `VERSION` pass.
+- `Kata/NoReflection` (new, on): `@order.instance_variable_get(:@total)`,
+  `@record.send(:token)` and `Object.const_get("Shop::#{kind}View")` reach
+  past another object's interface; the message asks for a public method, or
+  a map from names to objects. `Style/Send`, which caught only the `send` and
+  advised `__send__` or `public_send` (the same reflection), is off.
+  `public_send(field)` on a name the code is handed, reflection on `self`
+  and the boot layer pass.
 - `Kata/NoComments` prices documentation by default: `AllowDocumentation`
   is `false` again, as when the option was added, so a comment above a
   public class, module, method or constant is prose like any other, YARD
