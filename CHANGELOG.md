@@ -22,6 +22,15 @@
   to `initializer`, `to_prepare`, `after_initialize`, `on_load`), and the
   three leave `railtie.rb`, `engine.rb` and `lib/generators/` alone: hashie's
   railtie hands `Rails.logger` to `Hashie.logger` there.
+- `Kata/ClockDiscipline` reads randomness as it reads the clock (P34: an
+  invoice numbered with `SecureRandom.hex` passed): `SecureRandom.*`, `rand`,
+  `Random.rand`, `Random.new_seed`, an unseeded `Random.new`, and
+  `sample`/`shuffle` without `random:` ask for an injected generator; a
+  parameter default is still the seam. A `rand` the project defines
+  (ffaker's seeded `RandomUtils#rand`) and a draw one of its modules answers
+  (`ArrayUtils.shuffle`) are its own. 44 of 46 findings on the field-test
+  codebases were ambient randomness; ffaker's 19 are `sample` calls that
+  bypass its own seeded generator.
 - `Kata/NoComments` prices documentation by default: `AllowDocumentation`
   is `false` again, as when the option was added, so a comment above a
   public class, module, method or constant is prose like any other, YARD

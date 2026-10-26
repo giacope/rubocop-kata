@@ -110,3 +110,104 @@
         def write(text) = File.write(@path, text)
       end
     end
+- id: p34-ambient-clock
+  cop: Kata/ClockDiscipline
+  expect: offense
+  path: lib/shop/coupon.rb
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Coupon
+        def initialize(deadline)
+          @deadline = deadline
+        end
+
+        def expired?
+          Time.now > @deadline
+        end
+      end
+    end
+- id: p34-ambient-clock-and-randomness
+  cop: Kata/ClockDiscipline
+  expect: offense
+  path: lib/shop/invoice.rb
+  source: |
+    # frozen_string_literal: true
+
+    require "securerandom"
+
+    module Shop
+      class Invoice
+        def initialize(cents)
+          @cents = cents
+        end
+
+        def due
+          Date.today + 30
+        end
+
+        def number
+          "INV-#{SecureRandom.hex(4)}"
+        end
+
+        def stamp
+          "#{@cents} at #{Time.current.iso8601}"
+        end
+      end
+    end
+- id: p34-injected-clock-and-serial
+  cop: Kata/ClockDiscipline
+  expect: clean
+  path: lib/shop/invoice.rb
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Invoice
+        def initialize(cents, clock, serial)
+          @cents = cents
+          @clock = clock
+          @serial = serial
+        end
+
+        def due
+          @clock.today + 30
+        end
+
+        def number
+          "INV-#{@serial}"
+        end
+      end
+    end
+- id: p34-securerandom-alone
+  cop: Kata/ClockDiscipline
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Ticket
+        def initialize(event)
+          @event = event
+        end
+
+        def code = "#{@event}-#{SecureRandom.hex(4)}"
+      end
+    end
+- id: p34-draw-with-an-injected-generator
+  cop: Kata/ClockDiscipline
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Lottery
+        def initialize(names, random)
+          @names = names
+          @random = random
+        end
+
+        def winner = @names.sample(random: @random)
+      end
+    end

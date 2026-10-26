@@ -1100,12 +1100,24 @@ Kata/NoHashAsObject:
 
 Kata/ClockDiscipline:
   Description: >-
-    Read time from an injected clock, not the ambient one. A parameter
-    default is the seam, and code outside every class, module and method is a
-    script's boot layer.
+    Read time and randomness from an injected source, not the ambient one:
+    no `Time.now`, `Date.today`, `Process.clock_gettime`, and no
+    `SecureRandom`, `rand`, `Random.rand`, unseeded `Random.new`, or
+    `sample`/`shuffle` without `random:`. A `rand` the project defines
+    (ffaker's seeded `RandomUtils#rand`), or a `shuffle` one of its modules
+    answers (`ArrayUtils.shuffle`), under `OwnedPaths`, is its own. A
+    parameter default is the seam (`def initialize(id = SecureRandom.uuid)`;
+    `id || SecureRandom.uuid` is not one); code outside every class, module
+    and method is a script's boot layer, and so is a framework's boot hook
+    (`initializer`, `to_prepare`, `on_load`).
   Enabled: true
   VersionAdded: "0.3"
   VersionChanged: "0.11"
+  OwnedPaths:
+    - "app/**/*.rb"
+    - "*/app/**/*.rb"
+    - "lib/**/*.rb"
+    - "*/lib/**/*.rb"
   Exclude:
     - "spec/**/*"
     - "test/**/*"
