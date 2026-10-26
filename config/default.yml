@@ -1145,12 +1145,23 @@ Kata/ClockDiscipline:
 
 Kata/EnvDiscipline:
   Description: >-
-    ENV belongs in the boot layer; pass configuration in. A parameter default
-    is the seam, and code outside every class, module and method is a
-    script's boot layer.
+    ENV and the application's configuration belong in the boot layer; pass
+    configuration in. `Settings` lists the framework's spellings of the same
+    hidden global input: `Rails.env`, `Rails.configuration`,
+    `Rails.application.config`, `credentials`, `secrets` and `config_for`. A
+    parameter default is the seam; code outside every class, module and
+    method is a script's boot layer, and so is a framework's boot hook
+    (`initializer`, `to_prepare`, `on_load`).
   Enabled: true
   VersionAdded: "0.3"
   VersionChanged: "0.11"
+  Settings:
+    - Rails.application.config
+    - Rails.application.config_for
+    - Rails.application.credentials
+    - Rails.application.secrets
+    - Rails.configuration
+    - Rails.env
   Exclude:
     - "spec/**/*"
     - "test/**/*"

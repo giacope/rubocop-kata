@@ -211,3 +211,81 @@
         def winner = @names.sample(random: @random)
       end
     end
+- id: p35-env-in-a-method
+  cop: Kata/EnvDiscipline
+  expect: offense
+  path: lib/shop/gateway.rb
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Gateway
+        def initialize(cents)
+          @cents = cents
+        end
+
+        def request
+          "charge #{@cents} with #{ENV["API_KEY"]}"
+        end
+      end
+    end
+- id: p35-env-credentials-and-configuration
+  cop: Kata/EnvDiscipline
+  expect: offense
+  path: lib/shop/mailbox.rb
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Mailbox
+        def initialize(recipient)
+          @recipient = recipient
+        end
+
+        def envelope
+          "#{@recipient} via #{ENV.fetch("SMTP_HOST", "localhost")}"
+        end
+
+        def secret
+          Rails.application.credentials.dig(:smtp, :password)
+        end
+
+        def currency
+          Rails.configuration.x.shop.currency
+        end
+      end
+    end
+- id: p35-configuration-passed-in
+  cop: Kata/EnvDiscipline
+  expect: clean
+  path: lib/shop/mailbox.rb
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Mailbox
+        def initialize(recipient, host)
+          @recipient = recipient
+          @host = host
+        end
+
+        def envelope
+          "#{@recipient} via #{@host}"
+        end
+      end
+    end
+- id: p35-credentials-alone
+  cop: Kata/EnvDiscipline
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Gateway
+        def initialize(cents)
+          @cents = cents
+        end
+
+        def key = Rails.application.credentials.dig(:stripe, :secret)
+      end
+    end

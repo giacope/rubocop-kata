@@ -31,6 +31,13 @@
   (`ArrayUtils.shuffle`) are its own. 44 of 46 findings on the field-test
   codebases were ambient randomness; ffaker's 19 are `sample` calls that
   bypass its own seeded generator.
+- `Kata/EnvDiscipline` reads Rails' configuration as it reads `ENV` (P35:
+  `Rails.application.credentials.dig` and `Rails.configuration.x` passed):
+  `Rails.env`, `Rails.configuration`, `Rails.application.config`,
+  `credentials`, `secrets` and `config_for` (`Settings`) belong in the boot
+  layer; `defined?(Rails.env)` reads nothing. 26 to 30 of 30 findings on the
+  field-test codebases were configuration read in a method, the range being
+  the controllers that read a webhook secret to check a request.
 - `Kata/NoComments` prices documentation by default: `AllowDocumentation`
   is `false` again, as when the option was added, so a comment above a
   public class, module, method or constant is prose like any other, YARD
