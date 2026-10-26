@@ -51,9 +51,11 @@ RSpec.describe(RuboCop::Cop::Kata::IoDiscipline, :config) do
 
   it "leaves a p that cannot be Kernel#p: one given a block, or no argument" do
     expect_no_offenses(<<~RUBY)
-      p(class: "empty") { "No senders" }
-      p { "text" }
-      where { { p[:owner] => 1 } }
+      def show
+        p(class: "empty") { "No senders" }
+        p { "text" }
+        where { { p[:owner] => 1 } }
+      end
     RUBY
   end
 
