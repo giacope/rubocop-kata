@@ -923,3 +923,99 @@
         end
       end
     end
+- id: v1-p02-violation-min-constructor-discipline
+  cop: Kata/ConstructorDiscipline
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Money
+        def initialize(*parts)
+          if parts.size == 1
+            @cents = parts.first
+            @currency = "USD"
+          else
+            @cents, @currency = parts
+          end
+        end
+
+        def to_s
+          "#{@cents} #{@currency}"
+        end
+      end
+    end
+- id: v1-p02-violation-real-constructor-discipline
+  cop: Kata/ConstructorDiscipline
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Money
+        def initialize(cents = 0, currency = "USD", formatted: nil)
+          if formatted
+            @cents = (formatted.delete("$,").to_f * 100).round
+            @currency = "USD"
+          else
+            @cents = cents
+            @currency = currency
+          end
+        end
+
+        def self.from_hash(hash)
+          money = allocate
+          money.instance_variable_set(:@cents, hash.fetch("cents"))
+          money.instance_variable_set(:@currency, hash.fetch("currency"))
+          money
+        end
+
+        def to_s
+          "#{@cents} #{@currency}"
+        end
+      end
+    end
+- id: v1-p02-compliant-constructor-discipline
+  cop: Kata/ConstructorDiscipline
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Money
+        def self.parse(text)
+          new(Integer(text.delete("$,.")), "USD")
+        end
+
+        def initialize(cents, currency)
+          @cents = cents
+          @currency = currency
+        end
+
+        def to_s
+          "#{@cents} #{@currency}"
+        end
+      end
+    end
+- id: v1-p02-compliant-no-output-argument
+  cop: Kata/NoOutputArgument
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Money
+        def self.parse(text)
+          new(Integer(text.delete("$,.")), "USD")
+        end
+
+        def initialize(cents, currency)
+          @cents = cents
+          @currency = currency
+        end
+
+        def to_s
+          "#{@cents} #{@currency}"
+        end
+      end
+    end

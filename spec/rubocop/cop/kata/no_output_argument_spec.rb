@@ -114,4 +114,22 @@ RSpec.describe(RuboCop::Cop::Kata::NoOutputArgument, :config) do
       def plain = items << 1
     RUBY
   end
+
+  it "reads delete with a character set as String#delete, which returns a copy" do
+    expect_no_offenses(<<~RUBY)
+      def parse(text, code)
+        Integer(text.delete("$,.")) + code.delete("a-z").size + code.delete("^0-9").size
+      end
+    RUBY
+  end
+
+  it "still flags delete with a key" do
+    expect_offense(<<~RUBY)
+      def parse(options, row)
+        options.delete("name")
+        ^^^^^^^^^^^^^^^^^^^^^^ This method changes the caller's `options` (`delete`) and `row` (`delete`); return a new value, or move the change to the object that owns it.
+        row.delete
+      end
+    RUBY
+  end
 end

@@ -1148,7 +1148,11 @@ Kata/ConstructorDiscipline:
     passes. A guard may raise, through `raise` or one of the project's
     `RaisingMethods` (`UI.user_error!`). Assigning through the object's own
     writer (`self.project = project`) is assigning; Kata/NoSetter reports
-    the writer.
+    the writer. An `initialize` that branches on its arguments (`if
+    formatted`, `case parts`) is several constructors in one, reported once:
+    keep one primary constructor and give each other way a class method
+    that calls `new`. A class method that builds with `allocate` bypasses
+    `initialize`, a second primary constructor.
   Enabled: true
   Sorbet: false
   VersionAdded: "0.3"
@@ -1404,6 +1408,8 @@ Kata/NoOutputArgument:
     list.dup`) is a copy. `AllowedNames` holds the parameters that are sinks
     by convention, written to rather than returned (`io`, `out`, `buffer`),
     and `env`, which Rack and Faraday middleware is contracted to change.
+    `delete` given a character set (`text.delete("$,.")`, `"a-z"`) is
+    `String#delete`, which returns a copy.
   Enabled: true
   VersionAdded: "0.11"
   Exclude:

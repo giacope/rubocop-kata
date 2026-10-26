@@ -64,6 +64,17 @@
   advised `__send__` or `public_send` (the same reflection), is off.
   `public_send(field)` on a name the code is handed, reflection on `self`
   and the boot layer pass.
+- `Kata/ConstructorDiscipline` names Elegant Objects' "one primary
+  constructor": an `initialize` that branches on its arguments' count, type
+  or presence (`if parts.size == 1`, `if formatted`) is several constructors
+  in one, reported once with the arguments it asks about, and a class method
+  that builds with `allocate` (then `instance_variable_set`) bypasses
+  `initialize`. Before, both read only as "does not compute", or passed.
+- `Kata/NoOutputArgument` reads `text.delete("$,.")` as `String#delete`,
+  which returns a copy: a `delete` given a character set no longer counts as
+  changing the caller's argument. The EO form of a secondary constructor,
+  `def self.parse(text) = new(Integer(text.delete("$,.")), "USD")`, was
+  reported.
 - `Kata/NoComments` prices documentation by default: `AllowDocumentation`
   is `false` again, as when the option was added, so a comment above a
   public class, module, method or constant is prose like any other, YARD
