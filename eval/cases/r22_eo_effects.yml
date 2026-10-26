@@ -396,3 +396,71 @@
         end
       end
     end
+- id: p17-singleton-mixin
+  cop: Kata/NoSingleton
+  expect: offense
+  path: lib/shop/registry.rb
+  source: |
+    # frozen_string_literal: true
+
+    require "singleton"
+
+    module Shop
+      class Registry
+        include Singleton
+
+        def initialize
+          @entries = {}
+        end
+
+        def lookup(key)
+          @entries.fetch(key)
+        end
+      end
+    end
+- id: p17-current-attributes
+  cop: Kata/NoSingleton
+  expect: offense
+  path: lib/shop/current.rb
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Current < ActiveSupport::CurrentAttributes
+        attribute :account, :user
+      end
+    end
+- id: p17-entries-passed-in
+  cop: Kata/NoSingleton
+  expect: clean
+  path: lib/shop/ledger.rb
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Ledger
+        def initialize(month, entries)
+          @month = month
+          @entries = entries
+        end
+
+        def total
+          @entries.select { |entry| entry.month == @month }.sum(&:cents)
+        end
+      end
+    end
+- id: p17-thread-current-alone
+  cop: Kata/NoSingleton
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Lottery
+        def initialize(names)
+          @names = names
+        end
+
+        def owner = Thread.current[:user]
+      end
+    end

@@ -1468,7 +1468,15 @@ Kata/NoSingleton:
     what it holds, the value its expression returns: a class-level cache of
     a value (`@members ||= Set.new(...)`, a `Struct.new`, a `Pathname`, or
     `Codelist.new(...).map { ... }`, an array) is not an instance of the
-    class's service, and `AllowedConstructors` lists those classes.
+    class's service, and `AllowedConstructors` lists those classes. The
+    framework's globals are singletons too: a subclass of
+    `ActiveSupport::CurrentAttributes` (`Current.account` read from a
+    model), state kept in the thread, the fiber or the request store
+    (`Thread.current[:user]`, `Fiber[:state]`, `RequestStore.store[:user]`),
+    and a class-level setting behind an accessor (`cattr_accessor`,
+    `mattr_accessor`, their writers and thread variants; a reader is a
+    constant). Code outside every class, module and method is a script's
+    boot layer.
   Enabled: true
   VersionAdded: "0.11"
   AllowedConstructors:

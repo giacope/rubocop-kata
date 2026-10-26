@@ -53,6 +53,16 @@
   45 sampled findings were swallowed errors; the rest were deliberate (a 409
   Conflict taken as done, a lock another process holds, a best-effort
   release).
+- `Kata/NoSingleton` reads the framework's globals as singletons (P17:
+  `class Current < ActiveSupport::CurrentAttributes` read from a model
+  passed): a `CurrentAttributes` subclass, state kept in the thread, the
+  fiber or the request store (`Thread.current[:user]`, `Fiber[:state]`,
+  `RequestStore.store[:user]`), and a class-level setting behind
+  `cattr_accessor`/`mattr_accessor` (their writers and thread variants; a
+  reader is a constant) ask for the value to be passed in. Every one of a
+  25-finding sample on the field-test codebases was global state
+  (searchkick's, timecop's and counter_culture's thread switches, ahoy's and
+  mailboxer's module settings).
 - `Kata/NoComments` prices documentation by default: `AllowDocumentation`
   is `false` again, as when the option was added, so a comment above a
   public class, module, method or constant is prose like any other, YARD
