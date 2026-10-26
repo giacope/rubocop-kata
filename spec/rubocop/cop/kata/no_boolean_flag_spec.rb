@@ -106,5 +106,16 @@ RSpec.describe(RuboCop::Cop::Kata::NoBooleanFlag, :config) do
         actions.equal?(true)
       RUBY
     end
+
+    # statesman's `connection.quote(type_cast(true))`: the boolean is the SQL value rendered, not a switch.
+    it "allows a boolean converted or rendered as a value" do
+      expect_no_offenses(<<~RUBY)
+        connection.quote(type_cast(true))
+        model.connection.quote(false)
+        ActiveModel::Type::Boolean.new.cast(true)
+        JSON.dump(false)
+        coder.serialize(true)
+      RUBY
+    end
   end
 end

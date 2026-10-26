@@ -19,3 +19,35 @@
         def proration_behavior = @proration
       end
     end
+- id: r6b1-k5-boolean-rendered-as-sql-is-a-value
+  cop: Kata/NoBooleanFlag
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Literals
+        def initialize(connection)
+          @connection = connection
+        end
+
+        def truth = @connection.quote(@connection.type_cast(true))
+
+        def falsehood = @connection.quote(false)
+      end
+    end
+- id: r6b1-k5-flag-to-a-foreign-api-still-flagged
+  cop: Kata/NoBooleanFlag
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Charge
+        def initialize(gateway)
+          @gateway = gateway
+        end
+
+        def retry(id) = @gateway.retry_charge(id, nil, true)
+      end
+    end

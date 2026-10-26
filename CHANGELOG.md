@@ -7,6 +7,10 @@
   - `Kata/RealWords` knows `recency` and `proration`, the nouns of `recent`
     and `prorate` (searchkick's `boost_by_recency`, Stripe's
     `proration_behavior` in pay): there was no smash to undo.
+  - `Kata/NoBooleanFlag` allows a boolean converted or rendered as a value:
+    `quote`, `type_cast`, `cast`, `serialize` and `dump` join
+    `AllowedMethods` (statesman's `connection.quote(type_cast(true))` renders
+    the SQL literal; there are no two methods to split it into).
 - `Kata/NoComments` prices documentation by default: `AllowDocumentation`
   is `false` again, as when the option was added, so a comment above a
   public class, module, method or constant is prose like any other, YARD
