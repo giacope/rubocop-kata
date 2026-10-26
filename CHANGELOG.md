@@ -35,6 +35,14 @@
     step of two, so every layout of such a condition broke one rule, and
     `-a` walked searchkick's clean `if (\n a ||\n b\n)` into the conflict.
     MonotonicIndents keeps continued operations to the two-space step.
+  - `Layout/FirstArrayElementIndentation` runs in its `consistent` style.
+    Under rubocop-elegant's `Layout/ArrayAlignment: with_fixed_indentation`
+    its default style checks nothing, so no cop placed a `]` that starts a
+    `].compact` line, and `-a` left searchkick's `].compact.join("_")`
+    three columns in, under a `[` eight columns in, where a merged pass had
+    shifted the `[` (`Elegant/MonotonicIndents` then reported the step of
+    one). `consistent` puts the `]` at the indent of its opener's line, as
+    `Kata/PairedBrackets` does. kata's own specs had nine such brackets.
   - `Kata/NoBooleanFlag` allows a boolean converted or rendered as a value:
     `quote`, `type_cast`, `cast`, `serialize` and `dump` join
     `AllowedMethods` (statesman's `connection.quote(type_cast(true))` renders

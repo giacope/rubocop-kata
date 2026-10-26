@@ -158,7 +158,7 @@ RSpec.describe(RuboCop::Cop::Kata::NoRedundantVariable) do
       "inside_block_inlines" => [
         "def foo\n  arr.each do |e|\n    y = e.bar\n    baz(y)\n  end\nend",
         "def foo\n  arr.each do |e|\n    baz(e.bar)\n  end\nend"
-    ],
+      ],
       "multiple_redundant_inline_together" =>
       ["def foo\n  a = one\n  b = two\n  bar(a, b)\nend", "def foo\n  bar(one, two)\nend"],
       "class_method_inlines" =>
@@ -168,19 +168,19 @@ RSpec.describe(RuboCop::Cop::Kata::NoRedundantVariable) do
       "call_between_assignment_and_read_is_left_alone" => [
         "def foo\n  line = receive\n  reader.close\n  bar(line)\nend",
         "def foo\n  line = receive\n  reader.close\n  bar(line)\nend"
-    ],
+      ],
       "calls_before_read_in_array_are_left_alone" => [
         "def foo\n  returned = yield\n  [out.string, returned]\nend",
         "def foo\n  returned = yield\n  [out.string, returned]\nend"
-    ],
+      ],
       "read_inside_another_redundant_assignment_inlines_the_inner_one" => [
         "def foo\n  a = one\n  b = [a]\n  bar(b)\nend",
         "def foo\n  b = [one]\n  bar(b)\nend"
-    ],
+      ],
       "instance_variable_operand_before_read_is_left_alone" => [
         "def foo\n  x = bump\n  bar(@n, x)\nend",
         "def foo\n  x = bump\n  bar(@n, x)\nend"
-    ],
+      ],
       "hash_into_bare_send_arg_is_wrapped" =>
       ["def foo\n  x = { a: 1 }\n  baz x\nend", "def foo\n  baz ({ a: 1 })\nend"],
       "shorthand_pair_expands_to_long_form" =>
@@ -216,19 +216,19 @@ RSpec.describe(RuboCop::Cop::Kata::NoRedundantVariable) do
       "heredoc_is_left_alone" => [
         "def foo\n  sql = <<~SQL\n    x\n  SQL\n  run(sql)\nend",
         "def foo\n  sql = <<~SQL\n    x\n  SQL\n  run(sql)\nend"
-    ],
+      ],
       "interpolated_heredoc_receiver_is_left_alone" => [
         "def foo\n  sql = <<~SQL.squish\n    \#{x}\n  SQL\n  run(sql)\nend",
         "def foo\n  sql = <<~SQL.squish\n    \#{x}\n  SQL\n  run(sql)\nend"
-    ],
+      ],
       "command_heredoc_is_left_alone" => [
         "def foo\n  out = <<~`SH`\n    ls\n  SH\n  run(out)\nend",
         "def foo\n  out = <<~`SH`\n    ls\n  SH\n  run(out)\nend"
-    ],
+      ],
       "string_beside_heredoc_argument_is_left_alone" => [
         "def foo\n  sql = format(<<~SQL, 'x')\n    %s\n  SQL\n  run(sql)\nend",
         "def foo\n  sql = format(<<~SQL, 'x')\n    %s\n  SQL\n  run(sql)\nend"
-    ]
+      ]
     }
   )
 

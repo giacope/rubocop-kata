@@ -41,3 +41,33 @@
         end
       end
     end
+- id: r6b1-ka1-closing-bracket-a-merged-pass-drifted-returns-under-its-opener
+  cop: Layout/LineLength
+  expect: offense
+  correct: safe
+  becomes: |
+    # frozen_string_literal: true
+
+    module Demo
+      module Model
+        def index_name
+          @index_name ||=
+            [
+              options.key?(:index_prefix) ? options[:index_prefix] : Demo.index_prefix, model_name.plural, Demo.env,
+              Demo.index_suffix
+            ].compact.join("_")
+        end
+      end
+    end
+  source: |
+    # frozen_string_literal: true
+
+    module Demo
+      module Model
+        def index_name
+          @index_name ||= begin
+            [options.key?(:index_prefix) ? options[:index_prefix] : Demo.index_prefix, model_name.plural, Demo.env, Demo.index_suffix].compact.join("_")
+          end
+        end
+      end
+    end

@@ -29,7 +29,7 @@ Layout/EmptyLinesAroundModuleBody layout deletes blank lines at the edges of a m
 Layout/EndAlignment layout re-indents end
 Layout/ExtraSpacing layout deletes runs of spaces between tokens
 Layout/FirstArgumentIndentation layout re-indents the first argument
-Layout/FirstArrayElementIndentation layout re-indents the first element
+Layout/FirstArrayElementIndentation layout re-indents the first element and the closing bracket
 Layout/FirstHashElementIndentation layout re-indents the first pair
 Layout/FirstParameterIndentation layout re-indents the first parameter
 Layout/HashAlignment layout aligns keys and values with spaces

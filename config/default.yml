@@ -1529,6 +1529,15 @@ Layout/MultilineMethodCallBraceLayout:
 Layout/MultilineArrayBraceLayout:
   Enabled: true
 
+# Under rubocop-elegant's `Layout/ArrayAlignment: with_fixed_indentation` this
+# cop checks nothing in its default style, so no cop placed a `]` that starts
+# a `].compact` line, and `-a` left one where a merged pass had shifted its
+# `[` (searchkick's `@index_name ||= begin [...].compact.join("_") end`).
+# `consistent` indents the elements one step from the line of the `[` and
+# puts the `]` at that line's indent, as Kata/PairedBrackets does.
+Layout/FirstArrayElementIndentation:
+  EnforcedStyle: consistent
+
 Layout/MultilineHashBraceLayout:
   Enabled: true
 
