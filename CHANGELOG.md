@@ -52,6 +52,14 @@
   - `Kata/NoBooleanFlag` allows `try_set`: a `Concurrent::IVar` resolves to
     the boolean it stores (ferrum's `pending.try_set(true)`), as `set(true)`
     already passed.
+  - `Lint/SelfAssignment` no longer reports `Lazy = Lazy` inside a class or
+    module: Ruby resolves the right side through the lexical scopes, so it
+    names the outer constant in the nested namespace (dry-monads' eleven
+    `Mixin` re-exports, `Lazy = Lazy` and `Unit = Unit` in
+    `class Lazy; module Mixin`), and deleting it, as "Self-assignment
+    detected." asks, breaks every class that includes the mixin. A
+    top-level or qualified `X = X` is still reported (RuboCop compares the
+    two names only).
 - `Kata/NoComments` prices documentation by default: `AllowDocumentation`
   is `false` again, as when the option was added, so a comment above a
   public class, module, method or constant is prose like any other, YARD

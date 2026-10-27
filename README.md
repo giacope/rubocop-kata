@@ -299,7 +299,10 @@ are listed one by one, so a RuboCop upgrade adds no autocorrect nobody has
 read. The core Layout cops stay on, except the five that loop against the
 no-blank-lines rule and `Layout/MultilineOperationIndentation`, whose two
 styles both indent a multi-line `if` condition by a step `Elegant/MonotonicIndents`
-rejects. `rubocop -a` is an allowlist admitted by structure, not by
+rejects. `Lint/SelfAssignment` reads `Lazy = Lazy` inside a class or module as
+what Ruby makes of it, the outer `Lazy` named in the nested namespace (a mixin's
+re-export, in `lib/rubocop/kata/outer_constant.rb`); at the top level, or
+qualified, it is still a self-assignment. `rubocop -a` is an allowlist admitted by structure, not by
 evidence: a suite that stays green proves a correction safe on the code it met,
 not on the next codebase ([data/autocorrect.txt](data/autocorrect.txt);
 `script/autocorrect` writes [config/autocorrect.yml](config/autocorrect.yml)

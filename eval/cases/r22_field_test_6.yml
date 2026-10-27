@@ -134,3 +134,23 @@
         def attached(id) = @pendings.put_if_absent(id, Concurrent::IVar.new).try_set(true)
       end
     end
+- id: r6b2-k4-constant-named-into-a-nested-namespace-is-no-self-assignment
+  cop: Lint/SelfAssignment
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Lazy
+        module Mixin
+          Lazy = Lazy
+        end
+      end
+    end
+- id: r6b2-k4-top-level-self-assignment-still-reported
+  cop: Lint/SelfAssignment
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    Lazy = Lazy
