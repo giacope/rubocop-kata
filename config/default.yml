@@ -1063,10 +1063,13 @@ Kata/NoReflection:
     (`Object.const_get("Shop::#{kind}View")`, `"#{kind}View".constantize`) tie
     the caller to internals no interface names. Ask the object through a
     public method, or map the names to objects. Dispatch on a name the code is
-    handed (`public_send(field)`) is a protocol, and an object reflecting on
-    itself and the boot layer pass. Off by default: config/strict.yml turns it
-    on in place of `Style/Send`, whose advice (`__send__`, `public_send`)
-    keeps the reflection.
+    handed (`public_send(field)`) is a protocol; sent with `send` or
+    `__send__` (`controller.send(@method)`) it reaches private methods too,
+    and is reported with the advice to use `public_send`. An object
+    reflecting on itself and the boot layer pass. Off by default:
+    config/strict.yml turns it on in place of `Style/Send`, whose advice
+    (`__send__`) keeps the reflection; the `send` an object makes to itself,
+    which `Style/Send` also reports, is not judged.
   Enabled: false
   VersionAdded: "0.11"
   Exclude:

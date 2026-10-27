@@ -25,6 +25,18 @@ RSpec.describe(RuboCop::Cop::Kata::NoReflection, :config) do
     RUBY
   end
 
+  # ahoy's `controller.send(Ahoy.user_method)`, mechanize's `servlet.send "do_#{req.method}"`: Style/Send's sites.
+  it "flags a computed name sent past another object's interface with send" do
+    expect_offense(<<~RUBY)
+      class Store
+        def user(controller) = controller.send(@method)
+                                          ^^^^ `send` sends a computed name to another object, private methods included; `public_send` keeps the dispatch to its interface.
+        def dispatch(servlet) = servlet.__send__("do_\#{@verb}", @request)
+                                        ^^^^^^^^ `__send__` sends a computed name to another object, private methods included; `public_send` keeps the dispatch to its interface.
+      end
+    RUBY
+  end
+
   it "flags a constant name built at run time" do
     expect_offense(<<~RUBY)
       class Export
@@ -43,7 +55,8 @@ RSpec.describe(RuboCop::Cop::Kata::NoReflection, :config) do
         def mine = instance_variable_get(:@total)
         def own = self.send(:secret)
         def name = send(:secret)
-        def dynamic = @record.send(@name)
+        def dynamic = @record.public_send(@name)
+        def computed = send("do_\#{@verb}")
         def fixed = Object.const_get("Shop::View")
         def seam(kind = Object.const_get("Shop::\#{KIND}")) = kind
         def bare = @record.send

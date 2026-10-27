@@ -550,3 +550,35 @@
         end
       end
     end
+- id: r6b3-k8-computed-send-to-another-object-is-reflection
+  cop: Kata/NoReflection
+  strict: true
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Store
+        def initialize(method)
+          @method = method
+        end
+
+        def user(controller) = controller.send(@method)
+      end
+    end
+- id: r6b3-k8-computed-public-send-is-a-protocol
+  cop: Kata/NoReflection
+  strict: true
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Store
+        def initialize(method)
+          @method = method
+        end
+
+        def user(controller) = controller.public_send(@method)
+      end
+    end

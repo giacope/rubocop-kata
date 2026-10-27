@@ -5,6 +5,8 @@ class RuboCop::Cop::Kata::NoReflection < RuboCop::Cop::Base
 
   FIELD = "`%s` reaches into another object's fields; ask it for what you need through a method it exposes."
   CALL = "`%s` calls `%s` past another object's interface; send it a message it answers in public."
+  COMPUTED = "`%s` sends a computed name to another object, private methods included; " \
+    "`public_send` keeps the dispatch to its interface."
   LOOKUP = "`%s` builds a constant's name at run time, hidden coupling; map the names to objects, or inject one."
   FIELDS = %i[instance_variable_get instance_variable_set instance_variables remove_instance_variable].freeze
   DISPATCH = %i[send __send__].freeze
@@ -30,8 +32,10 @@ class RuboCop::Cop::Kata::NoReflection < RuboCop::Cop::Base
 
   def call(node)
     target = node.first_argument
-    return unless other?(node) && target&.type?(:sym, :str)
-    add_offense(node.loc.selector, message: format(CALL, node.method_name, target.value))
+    return unless other?(node) && target
+    name = node.method_name
+    message = target.type?(:sym, :str) ? format(CALL, name, target.value) : format(COMPUTED, name)
+    add_offense(node.loc.selector, message: message)
   end
 
   def lookup(node)

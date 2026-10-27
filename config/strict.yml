@@ -89,7 +89,9 @@ Kata/NoPublicConstant:
 Kata/NoReflection:
   Enabled: true
 
-# Kata/NoReflection reports the `send` this one does, and its advice does not
-# keep the reflection (`__send__`, `public_send`).
+# Kata/NoReflection reports the `send` this one does to another object, a
+# named method or a computed name, and its advice does not keep the
+# reflection (`__send__`). A `send` an object makes to itself is not
+# reflection on another object, and is not reported.
 Style/Send:
   Enabled: false

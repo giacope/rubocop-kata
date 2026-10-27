@@ -169,6 +169,15 @@
     plain assignment is `@x = nil` in `reset` (and `Link` its `@text` and
     `@uri`) as fields. A cache that a method also sets to a value, and a
     field that is only ever cleared, still count.
+  - The strict profile's claim that `Kata/NoReflection` reports the `send`
+    `Style/Send` did, which it switches off, is now true for a `send` to
+    another object: a computed name sent with `send` or `__send__` (ahoy's
+    `controller.send(Ahoy.user_method)`, meant to reach a private method;
+    mechanize's `servlet.send "do_#{req.method}", req, res`) reaches private
+    methods too, and is reported with the advice to use `public_send`, the
+    protocol form that already passed. A `send` an object makes to itself is
+    not reflection on another object; `config/strict.yml` and the README now
+    say the profile does not report it.
 - A strict Elegant Objects profile, `config/strict.yml`, for a project that
   wants the whole of Elegant Objects (`inherit_gem: { rubocop-kata:
   config/strict.yml }` beside `plugins: [rubocop-kata]`). The rules the V1
