@@ -182,3 +182,40 @@
 
     class Slug < ActiveRecord::Base
     end
+- id: r6b2-k1-command-answering-true-is-told-to-return-nothing
+  cop: Naming/PredicateMethod
+  expect: offense
+  absent: ["should end with `?`"]
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Headers
+        def initialize(headers)
+          @headers = headers
+        end
+
+        def clear
+          @headers = {}
+          true
+        end
+      end
+    end
+- id: r6b2-k1-computed-answer-still-asked-for-a-question-mark
+  cop: Naming/PredicateMethod
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Queue
+        def initialize(jobs)
+          @jobs = jobs
+        end
+
+        def ready
+          return false unless @jobs
+          @jobs.empty?
+        end
+      end
+    end

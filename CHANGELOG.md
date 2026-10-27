@@ -66,6 +66,15 @@
     top-level name camelized from its file, so friendly_id's template, which
     its generator copies to the host's db/migrate, would make `db:migrate`
     raise once wrapped in a module.
+  - `Naming/PredicateMethod` no longer asks a command to take a `?`. A
+    method that acts before it answers a boolean (ferrum's nineteen, from
+    `def clear; @headers = {}; true; end` to `close`, `activate` and
+    `execute`) was told "Predicate method names should end with `?`", and
+    `clear?` is a query that changes state, which `Kata/CommandQuery`
+    rejects: the two rules looped. Such a method now hears that a command
+    returns nothing (or `self`) and raises when it fails. A method whose
+    statements only compute its answer (locals, `return false unless …`)
+    keeps RuboCop's advice.
 - `Kata/NoComments` prices documentation by default: `AllowDocumentation`
   is `false` again, as when the option was added, so a comment above a
   public class, module, method or constant is prose like any other, YARD

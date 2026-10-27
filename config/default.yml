@@ -2052,6 +2052,10 @@ Naming/BlockForwarding:
 
 # A runner's `run` answers whether the run passed, by contract: Minitest.run
 # and Test::Unit's AutoRunner.run return the boolean their exit hook reads.
+# A method that acts before it answers a boolean (`@headers = {}; true`) is
+# a command with a success token: kata tells it to return nothing, not to
+# take a `?` that would make it a query changing state, which
+# Kata/CommandQuery rejects (lib/rubocop/kata/success_token.rb).
 Naming/PredicateMethod:
   Enabled: true
   AllowedMethods:
