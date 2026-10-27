@@ -35,27 +35,30 @@ RSpec.describe(RuboCop::Cop::Kata::NoHardWiring, :config) do
           end
 
           def complete
-            box = Shop::Mailbox.new(host) { |config| config.tls }
-                  ^^^^^^^^^^^^^^^^^^^^^^^ `complete` builds the `Shop::Mailbox` it talks to; %{seam}
+            box = Shop::Mailbox.new { |config| config.tls }
+                  ^^^^^^^^^^^^^^^^^ `complete` builds the `Shop::Mailbox` it talks to; %{seam}
             box&.deliver(receipt)
             true
           end
 
           def plain = Gateway.new.charge
                       ^^^^^^^^^^^ `plain` builds the `Gateway` it talks to; %{seam}
-          def save = Gateway.new(@rows).save!
-                     ^^^^^^^^^^^^^^^^^^ `save` builds the `Gateway` it talks to; %{seam}
-          def limit = Gateway.new(@rows).limit = 3
-                      ^^^^^^^^^^^^^^^^^^ `limit` builds the `Gateway` it talks to; %{seam}
-          def sweep = @rows.each { Gateway.new(it).clear }
-                                   ^^^^^^^^^^^^^^^ `sweep` builds the `Gateway` it talks to; %{seam}
-          def count = 3.times { Gateway.new(it).tick }
-                                ^^^^^^^^^^^^^^^ `count` builds the `Gateway` it talks to; %{seam}
-          def total
-            Gateway.new(@key).total
-            ^^^^^^^^^^^^^^^^^ `total` builds the `Gateway` it talks to; %{seam}
-            rate = 1
-            Mailbox.new(rate)
+          def save = Gateway.new(KEY).save!
+                     ^^^^^^^^^^^^^^^^ `save` builds the `Gateway` it talks to; %{seam}
+          def sweep = @rows.each { Gateway.new("live").clear(it) }
+                                   ^^^^^^^^^^^^^^^^^^^ `sweep` builds the `Gateway` it talks to; %{seam}
+
+          def fetch
+            client = Gateway.new
+                     ^^^^^^^^^^^ `fetch` builds the `Gateway` it talks to; %{seam}
+            client.fetch(@url)
+          end
+
+          def configured
+            buffer = Gateway.new("utf-8")
+                     ^^^^^^^^^^^^^^^^^^^^ `configured` builds the `Gateway` it talks to; %{seam}
+            buffer.write(@text)
+            buffer.content
           end
 
           def checkout
@@ -150,6 +153,188 @@ RSpec.describe(RuboCop::Cop::Kata::NoHardWiring, :config) do
           nesting = Nesting.new(@node)
           nesting.names.size + nesting.depth
         end
+      end
+    RUBY
+  end
+
+  # transition's entries built per row and saved or collected; support's `Paths` record saved and read back.
+  it "allows an object built from the method's own inputs and dropped or returned, whatever the method does to it" do
+    expect_no_offenses(<<~RUBY)
+      module Shop
+        class Gateway
+        end
+
+        class Batch
+          def complete
+            box = Shop::Mailbox.new(host) { |config| config.tls }
+            box&.deliver(receipt)
+            true
+          end
+
+          def save = Gateway.new(@rows).save!
+          def limit = Gateway.new(@rows).limit = 3
+          def sweep = @rows.each { Gateway.new(it).clear }
+          def count = 3.times { Gateway.new(it).tick }
+          def total
+            Gateway.new(@key).total
+            @key
+          end
+
+          def entries
+            records = @paths.map do |path|
+              entry = Gateway.new(path:)
+              entry.batch = self
+              entry
+            end
+            Gateway.import(records)
+          end
+
+          def import
+            @rows.each do |row|
+              entry = Gateway.new(path: row.path)
+              entry.batch = self
+              entry.save!
+            end
+          end
+
+          def redirect
+            saved = Gateway.new(paths)
+            saved.save
+            saved.id
+          end
+        end
+      end
+    RUBY
+  end
+
+  # unparser's `Buffer`: built empty, filled through the writer it is handed to (or by the method), read back.
+  it "allows an empty object the call fills and reads back" do
+    expect_no_offenses(<<~RUBY)
+      class Buffer
+      end
+
+      class Writer
+      end
+
+      class Source
+        def render(take)
+          buffer = Buffer.new
+          Writer.new(buffer:, parts: @parts.take(take)).emit
+          buffer.content
+        end
+
+        def heredoc
+          buffer = Buffer.new
+          writer = Writer.new(buffer, @node)
+          writer.emit
+          buffer.flush
+          buffer.content
+        end
+
+        def round_trips?(source)
+          buffer = Buffer.new
+          buffer.write(source)
+          @node.eql?(parse(buffer.content), @strict)
+        end
+
+        def encoded(source)
+          buffer = Buffer.new
+          buffer.write!(source) if source
+          buffer.content
+        end
+
+        def lines
+          buffer = Buffer.new
+          @rows.each { buffer.write(it) }
+          @rows.map { buffer.line(it) }
+        end
+
+        def rows
+          @paths.map do |path|
+            row = Buffer.new
+            row.path = path
+            row
+          end
+        end
+
+        def last
+          row = Buffer.new
+          row.path = @path
+          @paths.map { row }
+        end
+      end
+    RUBY
+  end
+
+  it "still flags an empty object asked before anything filled it" do
+    expect_offense(<<~RUBY, seam: seam)
+      class Buffer
+      end
+
+      class Source
+        def status
+          buffer = Buffer.new
+                   ^^^^^^^^^^ `status` builds the `Buffer` it talks to; %{seam}
+          size = buffer.size; buffer.clear!
+          size
+        end
+      end
+    RUBY
+  end
+
+  # searchkick's `Results.new(nil, nil, nil).respond_to?(...)` in `respond_to_missing?`.
+  it "allows a prototype asked what its class answers" do
+    expect_no_offenses(<<~RUBY)
+      class Results
+      end
+
+      class Relation
+        def respond_to_missing?(...) = Results.new(nil, nil).respond_to?(...) || super
+        def reader(name) = Results.new.method(name)
+      end
+    RUBY
+  end
+
+  it "flags an object kept through a local, and a value handed into an object the method keeps" do
+    expect_offense(<<~RUBY, seam: seam)
+      class Gateway
+      end
+
+      class Order
+      end
+
+      class Checkout
+        def gateway
+          gateway = Gateway.new(@key)
+                    ^^^^^^^^^^^^^^^^^ `gateway` builds the `Gateway` it keeps in `@gateway`; %{seam}
+          gateway.load
+          @gateway = gateway
+        end
+
+        def pool
+          pool = Gateway.new(@size)
+                 ^^^^^^^^^^^^^^^^^^ `pool` builds the `Gateway` it keeps in `@@pool`; %{seam}
+          @@pool ||= pool
+        end
+
+        def log = @log ||= Logger.new(Gateway.new(@key))
+                                      ^^^^^^^^^^^^^^^^^ `log` builds the `Gateway` it hands to `Logger.new`; %{seam}
+
+        def client
+          options = Gateway.new(@url)
+                    ^^^^^^^^^^^^^^^^^ `client` builds the `Gateway` it hands to `Faraday.new`; %{seam}
+          connection = Faraday.new(options)
+          $connection = connection
+        end
+
+        def attempt
+          pace = Gateway.new(@timings)
+                 ^^^^^^^^^^^^^^^^^^^^^ `attempt` builds the `Gateway` it hands to `Memory.new`; %{seam}
+          @attempt ||= Attempt.new(killers: Memory.new(pace))
+        end
+
+        def order = @order = Order.new(Gateway.new(@key))
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `order` builds the `Order` it keeps in `@order`; %{seam}
       end
     RUBY
   end
@@ -285,6 +470,13 @@ RSpec.describe(RuboCop::Cop::Kata::NoHardWiring, :config) do
         def inline(link)
           page = link.page
           page.check; page = Page.new
+          @log.count
+        end
+
+        def blank(link)
+          page = link.page
+          page.check
+          page = Page.new("about:blank")
           @log.count
         end
       end

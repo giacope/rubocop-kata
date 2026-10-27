@@ -207,6 +207,28 @@
     slash that changes every auth realm key. kata marked the correction
     unsafe, but the message itself asked for the change. A string literal
     on the left (`"a" + b`) is still reported.
+- From a sixth field test, batch four (transition, WebsiteOne, unparser,
+  strong_migrations, hashie), in check mode and under the strict profile:
+  - `Kata/NoHardWiring` reads a collaborator by how long it lives and what
+    it carries, not by the shape of the code around it. One that outlives
+    the call (kept in a field, a class variable or a global, now also
+    through a local, or handed to the constructor of an object that
+    outlives the call) or that carries configuration the caller cannot
+    change (built from literals, from nothing, or from a constant or global
+    the method does not own, and talked to or handed to another
+    constructor) is still reported. One that lives only inside the call is
+    the call's own data, whatever the method does to it: built from the
+    method's own inputs (transition's `BulkAddBatchEntry.new(path:)` built
+    for each path in a `map`, filled with writers and collected, and
+    `ImportBatchEntry` saved for each CSV row), or built empty, filled and
+    read back (unparser's `buffer = Buffer.new`, handed to the
+    `Segmented` writer and read with `buffer.content`). Taken in the
+    constructor, as the advice asked, one buffer carried every candidate
+    segmentation's text into the next, and every row saved one shared
+    record. Two batches running the cop missed this way on new shapes, so
+    the reading is now the lifetime itself. A fresh object asked what its
+    class answers (searchkick's `Results.new(nil, nil, nil).respond_to?`)
+    is not talked to.
 - A strict Elegant Objects profile, `config/strict.yml`, for a project that
   wants the whole of Elegant Objects (`inherit_gem: { rubocop-kata:
   config/strict.yml }` beside `plugins: [rubocop-kata]`). The rules the V1

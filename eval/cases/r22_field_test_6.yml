@@ -695,3 +695,111 @@
         def label = "realm " + @name
       end
     end
+- id: r6b4-k1-entries-per-row-and-a-scratch-buffer-are-the-calls-own
+  cop: Kata/NoHardWiring
+  strict: true
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Buffer
+        def initialize
+          @text = +""
+        end
+
+        def write(part) = @text << part
+
+        def content = @text.dup
+      end
+
+      class Entry
+        def initialize(path)
+          @path = path
+          @batch = nil
+        end
+
+        def batch=(batch)
+          @batch = batch
+        end
+      end
+
+      class Segments
+        def initialize(buffer, parts)
+          @buffer = buffer
+          @parts = parts
+        end
+
+        def emit = @parts.each { @buffer.write(it) }
+      end
+
+      class Source
+        def initialize(parts)
+          @parts = parts
+        end
+
+        def render(take)
+          buffer = Buffer.new
+          Segments.new(buffer, @parts.take(take)).emit
+          buffer.content
+        end
+
+        def entries
+          @parts.map do |path|
+            entry = Entry.new(path)
+            entry.batch = self
+            entry
+          end
+        end
+      end
+    end
+- id: r6b4-k1-collaborator-kept-through-a-local-still-flagged
+  cop: Kata/NoHardWiring
+  strict: true
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Gateway
+        def initialize(key)
+          @key = key
+        end
+
+        def charge(cents) = cents
+      end
+
+      class Checkout
+        def initialize(key)
+          @key = key
+        end
+
+        def gateway
+          gateway = Gateway.new(@key)
+          @gateway = gateway
+        end
+      end
+    end
+- id: r6b4-k1-empty-collaborator-talked-to-still-flagged
+  cop: Kata/NoHardWiring
+  strict: true
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Gateway
+        def charge(cents) = cents
+      end
+
+      class Checkout
+        def initialize(cents)
+          @cents = cents
+        end
+
+        def complete
+          gateway = Gateway.new
+          gateway.charge(@cents)
+        end
+      end
+    end

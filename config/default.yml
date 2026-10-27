@@ -1230,28 +1230,35 @@ Kata/NoHardWiring:
   Description: >-
     An instance method that builds one of the project's classes as a
     collaborator has wired it in: no caller can hand it another
-    implementation, and a test has to stub `new`. A collaborator is an object
-    built to be used for its effects (`Gateway.new("live").charge(@cents)`,
-    built from literals alone, from nothing, or from a constant or global the
-    method does not own; `box = Mailbox.new(host); box.deliver(text)`, a
-    message whose value is thrown away; a bang or a writer), kept in a field
-    (`@gateway ||= Gateway.new`), or handed on as another object's dependency
-    (`Order.new(Gateway.new("live"))`). Take it in the constructor; a
-    parameter default (`gateway = Gateway.new("live")`) is the seam, as
-    Elegant Objects' secondary constructor is. A value wrapper is composition,
-    not wiring: an object built from the method's own values (its arguments,
-    locals, fields, the class's own constants and literals) and asked a
-    question on the spot (`Nesting.new(node).qualified`, `Table.new(COLUMNS,
-    @rows).csv`) passes, and so does an object built to be returned or passed
-    to a method (`Cart.new(@items + [item])`, a local filled and returned, or
-    filled and handed on: `form = Form.new(node); form.add(upload);
-    submit(form)`, `Jar.new.tap { it.parse(text) }`), which is the call's own
-    data, not a collaborator: injected, one instance would carry every call's
-    contents. A message sent to a name before it was bound to the new object
-    goes to the name's earlier value. The class building itself passes too.
-    Class methods, constructors and the composition roots a framework
-    instantiates are where objects are wired: controllers, view helpers,
-    jobs, mailers, tests, rake tasks, `bin/`, `config/`, a subclass of one of
+    implementation, and a test has to stub `new`. How long the object lives
+    and what it carries decide. One that outlives the call is a
+    collaborator: kept in a field, a class variable or a global
+    (`@gateway ||= Gateway.new`, directly or through a local), or handed to
+    the constructor of an object that outlives the call (`@log ||=
+    Logger.new(Format.new(@name))`). So is one that carries configuration
+    the caller cannot change: built from literals alone, from nothing, or
+    from a constant or global the method does not own, and talked to
+    (`Gateway.new("live").charge(@cents)`, `Repo.new(DB).find(id)`) or
+    handed to another object's constructor (`Order.new(Gateway.new("live"))`).
+    Take it in the constructor; a parameter default (`gateway =
+    Gateway.new("live")`) is the seam, as Elegant Objects' secondary
+    constructor is. An object that lives only inside one call is the call's
+    own data, whatever the method does to it, and passes: one built from the
+    method's own inputs (its arguments, a block's arguments, its locals and
+    fields, `self`, the class's own constants; `Nesting.new(node).qualified`,
+    an entry built per row, filled and saved, `Writer.new(buffer:,
+    parts:).emit`), one returned, passed to a method or left as a block's
+    value (`Cart.new(@items + [item])`, `form = Form.new; form.add(upload);
+    submit(form)`, `Jar.new.tap { it.parse(text) }`), and an empty one the
+    call fills and reads back (`buffer = Buffer.new;
+    Writer.new(buffer:).emit; buffer.content`). Injected, one instance would
+    carry every call's contents. Asking a fresh object what its class
+    answers (`respond_to?`, `method`) is not talking to it, and a message
+    sent to a name before it was bound to the new object goes to the name's
+    earlier value. The class building itself passes too. Class methods,
+    constructors and the composition roots a framework instantiates are
+    where objects are wired: controllers, view helpers, jobs, mailers,
+    tests, rake tasks, `bin/`, `config/`, a subclass of one of
     the `RootSuperclasses`, and a module a load hook in `RootHooks` mixes into
     the framework's class (`ActiveSupport.on_load(:action_controller) {
     include Tracking }`); the framework builds them, so they cannot be handed
