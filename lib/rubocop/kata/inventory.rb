@@ -32,6 +32,12 @@ class RuboCop::Kata::Inventory
 
   def hooks = @_hooks ||= texts.flat_map { RuboCop::Kata::Kinship.parse(it).hooks }
 
+  def defining(name)
+    spelled = /\bdef\s+(?:self\.)?#{Regexp.escape(name)}(?![\w?!=])/
+    files.select { spelled.match?(it.last) }.flat_map { trees[it.first].each_node(:def, :defs).to_a }
+      .select { it.method_name.to_s == name }
+  end
+
   def lineage
     @_lineage ||= texts.map { RuboCop::Kata::Lineage.parse(it) }.reduce(RuboCop::Kata::Lineage.new({}), :merge)
   end
@@ -57,6 +63,14 @@ class RuboCop::Kata::Inventory
   def scanned(patterns) = texts.flat_map { |text| patterns.flat_map { text.scan(it) } }.flatten.to_set
 
   def texts = files.map(&:last)
+
+  def trees
+    @_trees ||=
+      Hash.new do |trees, path|
+        parsed = RuboCop::ProcessedSource.new(files.to_h.fetch(path), 3.4, path, parser_engine: :parser_prism)
+        trees[path] = parsed.ast || RuboCop::AST::Node.new(:begin)
+      end
+  end
 
   def files
     @_files ||= @patterns.flat_map { Dir.glob(it, base: @root) }.uniq

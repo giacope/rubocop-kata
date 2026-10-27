@@ -1801,7 +1801,11 @@ Kata/CommandQuery:
     `**options`) is the method's own, as `Kata/NoOutputArgument` reads them.
     Memoizing the answer (`@valid ||= ...`) is not a change, and neither is a
     guard whose only branch is a bang on a constant (`UI.user_error!("...")
-    unless key`) or one of the `RaisingMethods`: it raises, it does not
+    unless key`) or one of the `RaisingMethods`, nor a call on itself to a
+    method of the project (in the file, or among the files `OwnedPaths`
+    matches) whose every definition only raises through one of them, after
+    a guard or locals at most (`assert_known!(key)`, defined as
+    `fail_unknown!(key) unless known?(key)`): it raises, it does not
     mutate. With
     `CheckEveryQuery: true` (config/strict.yml) any method whose last
     expression is a value (a literal, a field, a sum, a lookup, a new object:
@@ -1817,6 +1821,11 @@ Kata/CommandQuery:
   RaisingMethods:
     - fail
     - raise
+  OwnedPaths:
+    - "app/**/*.rb"
+    - "*/app/**/*.rb"
+    - "lib/**/*.rb"
+    - "*/lib/**/*.rb"
   Exclude:
     - "spec/**/*"
     - "test/**/*"

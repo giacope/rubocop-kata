@@ -803,3 +803,58 @@
         end
       end
     end
+- id: r6b4-k2-assertion-on-self-that-only-raises-is-not-acting
+  cop: Kata/CommandQuery
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Record
+        def initialize(fields)
+          @fields = fields
+        end
+
+        def known?(key)
+          assert_known!(key)
+          true
+        end
+
+        private
+
+        def assert_known!(key)
+          fail_unknown!(key) unless @fields.include?(key)
+        end
+
+        def fail_unknown!(key)
+          message = "unknown field #{key}"
+          raise ArgumentError, message
+        end
+      end
+    end
+- id: r6b4-k2-bang-on-self-that-writes-still-flagged
+  cop: Kata/CommandQuery
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Record
+        def initialize(fields)
+          @fields = fields
+          @seen = []
+        end
+
+        def known?(key)
+          remember!(key)
+          true
+        end
+
+        private
+
+        def remember!(key)
+          raise ArgumentError, "no key" unless key
+          @seen << key
+        end
+      end
+    end

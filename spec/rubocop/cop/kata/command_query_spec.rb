@@ -123,6 +123,122 @@ RSpec.describe(RuboCop::Cop::Kata::CommandQuery, :config) do
     RUBY
   end
 
+  # hashie's `_assert_property_exists!(property)`, which calls `_fail_no_property_error!`, which raises.
+  it "allows a call to a method of the project that only raises, directly or through another" do
+    expect_no_offenses(<<~RUBY)
+      class Record
+        def [](key)
+          assert_known!(key)
+          self.check!(key)
+          @values.fetch(key)
+        end
+
+        def known?(key)
+          assert_known!(key)
+          check!(key)
+          true
+        end
+
+        private
+
+        def assert_known!(key)
+          fail_unknown!(key) unless @fields.include?(key)
+        end
+
+        def fail_unknown!(key)
+          message = "unknown field \#{key}"
+          raise ArgumentError, message
+        end
+
+        def check!(key)
+          if key.nil?
+            raise ArgumentError, "no key"
+          end
+        end
+      end
+    RUBY
+  end
+
+  it "still flags a bang on itself that changes state too, or that another definition of its name does" do
+    expect_offense(<<~RUBY)
+      class Record
+        def known?(key)
+          load!(key)
+          ^^^^^^^^^^ `known?` asks a question and changes state with `load!`; a query answers, a command acts.
+          reset!
+          ^^^^^^ `known?` asks a question and changes state with `reset!`; a query answers, a command acts.
+          @store.assert!(key)
+          ^^^^^^^^^^^^^^^^^^^ `known?` asks a question and changes state with `assert!`; a query answers, a command acts.
+          guard!(key)
+          ^^^^^^^^^^^ `known?` asks a question and changes state with `guard!`; a query answers, a command acts.
+          close!
+          ^^^^^^ `known?` asks a question and changes state with `close!`; a query answers, a command acts.
+          spin!(key)
+          ^^^^^^^^^^ `known?` asks a question and changes state with `spin!`; a query answers, a command acts.
+          true
+        end
+
+        private
+
+        def load!(key)
+          raise ArgumentError, "no key" unless key
+          @values[key] = @loader.call(key)
+        end
+
+        def reset!
+          raise "closed" if @closed
+        end
+
+        def assert!(key) = raise(ArgumentError, key)
+
+        def close!
+          @closed = true
+          raise "closed"
+        end
+
+        def spin!(key) = turn!(key)
+
+        def turn!(key) = spin!(key)
+
+        def guard!(key)
+          raise ArgumentError, "no key" unless key
+        rescue ArgumentError
+          @errors << key
+        end
+      end
+
+      class Cache
+        def reset! = @rows.clear
+      end
+    RUBY
+  end
+
+  context "with the project's other files" do
+    include TabledCop
+
+    let(:root) { Dir.mktmpdir("kata-raising") }
+    let(:cop) do
+      shipped = RuboCop::ConfigLoader.default_configuration.for_cop("Kata/CommandQuery")
+      raising = { "Kata/CommandQuery" => shipped.merge("OwnedPaths" => ["lib/**/*.rb"]) }
+      described_class.new(RuboCop::Config.new(raising, File.join(root, ".rubocop.yml")))
+    end
+
+    before do
+      FileUtils.mkdir_p(File.join(root, "lib"))
+      dash = "class Dash\n  def assert_exists!(key)\n    fail_missing!(key) unless key?(key)\n  end\n\n  " \
+        "def fail_missing!(key)\n    raise NoMethodError, key.to_s\n  end\n\n  def touch!(key) = @seen << key\nend\n"
+      File.write(File.join(root, "lib", "dash.rb"), dash)
+    end
+
+    after { FileUtils.rm_rf(root) }
+
+    it "reads a method another file defines to raise as raising" do
+      translation = "module Translation\n  def exists?(key)\n    assert_exists!(key)\n    true\n  end\nend\n"
+      other = "module Translation\n  def exists?(key)\n    fail_other!(key)\n    touch!(key)\n    true\n  end\nend\n"
+      expect([offenses(translation), offenses(other).map(&:line)]).to(eq([[], [3, 4]]))
+    end
+  end
+
   it "still flags a bang on a constant that is not a guard's only branch" do
     expect_offense(<<~RUBY)
       def stale?

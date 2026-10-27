@@ -229,6 +229,16 @@
     the reading is now the lifetime itself. A fresh object asked what its
     class answers (searchkick's `Results.new(nil, nil, nil).respond_to?`)
     is not talked to.
+  - `Kata/CommandQuery` reads a call on itself to a method of the project
+    that only raises as raising, as it reads `raise` and the other
+    `RaisingMethods`: hashie's `_assert_property_exists!(property)`
+    (`_fail_no_property_error!(property) unless ...`, which raises) in
+    `property_exists?` and `Dash#[]` was told it "changes state", and
+    splitting the query from its assertion moves a fail-fast check out of
+    it. Every definition of the name, in the file or among the files
+    `OwnedPaths` matches, must end in one of the `RaisingMethods` or in
+    such a method, after a guard or locals at most; one that also writes
+    (`raise ... unless key; @seen << key`) still acts.
 - A strict Elegant Objects profile, `config/strict.yml`, for a project that
   wants the whole of Elegant Objects (`inherit_gem: { rubocop-kata:
   config/strict.yml }` beside `plugins: [rubocop-kata]`). The rules the V1

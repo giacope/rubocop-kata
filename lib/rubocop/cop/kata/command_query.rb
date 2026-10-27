@@ -5,6 +5,7 @@ class RuboCop::Cop::Kata::CommandQuery < RuboCop::Cop::Base
   include RuboCop::Cop::Kata::Roster
   include RuboCop::Cop::Kata::Answer
   include RuboCop::Cop::Kata::Lending
+  include RuboCop::Cop::Kata::Raising
 
   MSG = "`%s` asks a question and changes state with `%s`; a query answers, a command acts."
   VALUE = "`%s` answers with a value and acts with `%s`; a query answers, a command acts. %s"
@@ -54,7 +55,7 @@ class RuboCop::Cop::Kata::CommandQuery < RuboCop::Cop::Base
 
   def order?(call, method)
     return false if call.block_node || answer?(call) || raising?(call)
-    !listed?("RaisingMethods", call.method_name.to_s) && owned?(root(call), method)
+    owned?(root(call), method)
   end
 
   def building?(call, method)
@@ -76,6 +77,7 @@ class RuboCop::Cop::Kata::CommandQuery < RuboCop::Cop::Base
 
   def raising?(call)
     holder = call.parent
+    return true if raises?(call)
     call.receiver&.const_type? && holder&.if_type? && holder.branches.compact.all? { it.equal?(call) }
   end
 
