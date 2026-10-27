@@ -178,6 +178,14 @@
     protocol form that already passed. A `send` an object makes to itself is
     not reflection on another object; `config/strict.yml` and the README now
     say the profile does not report it.
+  - `Kata/NoBooleanFlag` allows a boolean that the method the same file
+    defines stores: ahoy's `set_cookie("ahoy_track", true, nil, false)` puts
+    `true` in the cookie (`def set_cookie(name, value, duration = nil,
+    use_domain = true)` keeps `value: value`). A parameter assigned to a
+    field, used as a hash value or written through a writer or `[]=` is a
+    value; one the method also tests (counter_culture's `was`, passed on as
+    `was: was` and read by `if was`) is a flag, and so is the `false` that
+    lands in `use_domain`.
 - A strict Elegant Objects profile, `config/strict.yml`, for a project that
   wants the whole of Elegant Objects (`inherit_gem: { rubocop-kata:
   config/strict.yml }` beside `plugins: [rubocop-kata]`). The rules the V1

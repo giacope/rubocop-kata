@@ -892,8 +892,11 @@ Kata/NoBooleanFlag:
     `update_attribute(:spam, false)`; not `send(:name, true)`, which passes
     a flag on), a bind after a SQL string with a placeholder
     (`where("active = ?", true)`), an expectation (`eq(true)`,
-    `receive(:x).with(false)`), a hash value, and an attribute writer
-    (`config.x = true`). `AllowedMethods` holds the calls whose boolean is a
+    `receive(:x).with(false)`), a hash value, an attribute writer
+    (`config.x = true`), and the argument of a method the same file defines
+    that stores the parameter it lands in and never tests it
+    (`set_cookie("track", true)` where `def set_cookie(name, value)` keeps
+    `{ value: value }`). `AllowedMethods` holds the calls whose boolean is a
     protocol or a value rather than a flag — Ruby's reflection
     (`respond_to?(name, true)`), a default (`fetch(:ssl, false)`), a value
     searched for or compared (`flags.index(true)`, `eql?(false)`), a stored

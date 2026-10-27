@@ -7,6 +7,7 @@ class RuboCop::Cop::Kata::NoBooleanFlag < RuboCop::Cop::Base
   DEFAULT_MSG = "`%s` defaults to a boolean flag, two methods trapped in one; split them, one method per value."
   PLACEHOLDER = /\?|(?<!:):\w/
   DISPATCH = %i[send public_send __send__].freeze
+  STORES = %i[ivasgn cvasgn gvasgn pair].freeze
 
   def_node_matcher :expected?, "(send (send nil? :receive ...) :with ...)"
 
@@ -29,7 +30,33 @@ class RuboCop::Cop::Kata::NoBooleanFlag < RuboCop::Cop::Base
   def flag?(node, argument, index)
     return false unless argument.boolean_type?
     before = node.arguments.first(index)
-    before.none? { bound?(it) } && !(before.first&.sym_type? && !DISPATCH.include?(node.method_name))
+    before.none? { bound?(it) } && !(before.first&.sym_type? && !DISPATCH.include?(node.method_name)) &&
+      !stored?(node, index)
+  end
+
+  def stored?(node, index)
+    return false unless node.receiver.nil? || node.receiver.self_type?
+    callees = processed_source.ast.each_node(:def).select { it.method?(node.method_name) }
+    !callees.empty? && callees.all? { kept?(it, index) }
+  end
+
+  def kept?(callee, index)
+    name = positional(callee, index)&.name
+    uses = callee.each_node(:lvar).select { it.children.first == name }
+    uses.any? { store?(it) } && uses.none? { tested?(it) }
+  end
+
+  def positional(callee, index)
+    parameters = callee.arguments.first(index + 1)
+    parameters.last if parameters.size > index && parameters.all? { it.type?(:arg, :optarg) }
+  end
+
+  def tested?(use) = use.parent.conditional? || use.parent.operator_keyword?
+
+  def store?(use)
+    holder = use.parent
+    return true if holder.type?(*STORES)
+    holder.send_type? && (holder.setter_method? || holder.method?(:[]=)) && holder.last_argument.equal?(use)
   end
 
   def bound?(argument) = argument.type?(:str, :dstr) && PLACEHOLDER.match?(argument.source)

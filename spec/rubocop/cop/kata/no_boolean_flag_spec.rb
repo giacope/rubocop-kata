@@ -54,6 +54,74 @@ RSpec.describe(RuboCop::Cop::Kata::NoBooleanFlag, :config) do
     RUBY
   end
 
+  # ahoy's `set_cookie("ahoy_track", true, nil, false)`: `value` is stored in the cookie, `use_domain` is a flag.
+  it "allows a boolean the method it calls in the same file stores, and flags one it branches on" do
+    expect_offense(<<~RUBY)
+      class Tracker
+        def defer
+          set_cookie("ahoy_track", true, nil, false)
+                                              ^^^^^ A boolean flag is two methods trapped in one; call the method the flag chooses, split in two.
+          self.remember(true)
+          keep(1, true)
+          mark(true)
+          tag(true)
+          glob(false)
+          @jar.set_cookie("other", true)
+                                   ^^^^ A boolean flag is two methods trapped in one; call the method the flag chooses, split in two.
+          late(true)
+               ^^^^ A boolean flag is two methods trapped in one; call the method the flag chooses, split in two.
+          spread(true)
+                 ^^^^ A boolean flag is two methods trapped in one; call the method the flag chooses, split in two.
+          twice(true)
+                ^^^^ A boolean flag is two methods trapped in one; call the method the flag chooses, split in two.
+          unknown(true)
+                  ^^^^ A boolean flag is two methods trapped in one; call the method the flag chooses, split in two.
+          short(1, true)
+                   ^^^^ A boolean flag is two methods trapped in one; call the method the flag chooses, split in two.
+          key(true)
+              ^^^^ A boolean flag is two methods trapped in one; call the method the flag chooses, split in two.
+          opt(true)
+          lookup(1, true)
+                    ^^^^ A boolean flag is two methods trapped in one; call the method the flag chooses, split in two.
+          either(true)
+                 ^^^^ A boolean flag is two methods trapped in one; call the method the flag chooses, split in two.
+        end
+
+        private
+
+        def set_cookie(name, value, duration = nil, use_domain = nil)
+          options = { value: value }
+          options[:domain] = @domain if use_domain
+          @cookies[name] = options
+        end
+
+        def remember(value) = @remembered = value
+        def keep(key, value) = @store[key] = value
+        def mark(value) = @record.marked = value
+        def tag(value) = @@tag = value
+        def glob(value) = $glob = value
+        def late(value) = @log.write(value)
+        def spread(*values) = @values = values
+        def twice(value) = @twice = value
+        def short(value) = @short = value
+        def key(value) = @store[value] = 1
+        def opt(value = nil) = @opt = value
+
+        def lookup(record, was)
+          @was = was
+          value = record.find(was: was) if was
+          value
+        end
+
+        def either(value) = @either = value || @fallback
+      end
+
+      class Other
+        def twice(value) = value ? 1 : 2
+      end
+    RUBY
+  end
+
   it "flags a positional parameter that defaults to a boolean, on either kind of def" do
     expect_offense(<<~RUBY)
       def process(items, strict = false, verbose: true)

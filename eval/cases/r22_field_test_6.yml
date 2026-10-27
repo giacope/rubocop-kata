@@ -582,3 +582,43 @@
         def user(controller) = controller.public_send(@method)
       end
     end
+- id: r6b3-k9-boolean-the-local-callee-stores-is-a-value
+  cop: Kata/NoBooleanFlag
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Tracker
+        def initialize(jar)
+          @jar = jar
+        end
+
+        def defer = write_cookie("track", true)
+
+        private
+
+        def write_cookie(name, value) = @jar.store(name, { value: value })
+      end
+    end
+- id: r6b3-k9-boolean-the-local-callee-branches-on-still-flagged
+  cop: Kata/NoBooleanFlag
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Tracker
+        def initialize(jar)
+          @jar = jar
+        end
+
+        def defer = write_cookie("track", true)
+
+        private
+
+        def write_cookie(name, domain)
+          domain ? @jar.store(name, @domain) : @jar.store(name, nil)
+        end
+      end
+    end
