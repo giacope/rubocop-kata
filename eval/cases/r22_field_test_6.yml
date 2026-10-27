@@ -637,3 +637,31 @@
         def pin = @cookies.each { it.expires = it.expires }
       end
     end
+- id: r6b3-k11-webrick-servlet-methods-are-its-protocol
+  cop: Kata/RealWords
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class VerbServlet < WEBrick::HTTPServlet::AbstractServlet
+        def do_GET(request, response)
+          response.body = request.request_method
+        end
+
+        alias do_HEAD do_GET
+      end
+    end
+- id: r6b3-k11-webrick-servlet-method-names-are-not-priced
+  cop: Kata/GoodMethodName
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class FormServlet < WEBrick::HTTPServlet::AbstractServlet
+        def do_POST(request, response)
+          response.body = request.body
+        end
+      end
+    end

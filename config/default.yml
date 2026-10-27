@@ -270,7 +270,9 @@ Kata/GoodMethodName:
     wants it. A Minitest `test_` method in a test class is a sentence, like
     an RSpec description, and goes unpriced. A name a dispatcher dictates is
     a contract, not a choice: `AllowedPatterns` holds those patterns, Prism's
-    `on_call_node_enter` listeners among them.
+    `on_call_node_enter` listeners among them, and `AllowedNames` the names,
+    WEBrick's servlet methods (`do_GET`, which `AbstractServlet#service`
+    calls by the request's method) among them.
   Enabled: true
   OwnedPaths:
     - "app/**/*.rb"
@@ -425,6 +427,14 @@ Kata/GoodMethodName:
     - default_scope
     - define_method
     - delete_if
+    - do_DELETE
+    - do_GET
+    - do_HEAD
+    - do_OPTIONS
+    - do_PATCH
+    - do_POST
+    - do_PUT
+    - do_TRACE
     - email_required
     - failure_message
     - failure_message_when_negated
@@ -774,7 +784,8 @@ Kata/RealWords:
     out, and the message names the word (`req` is `request`); `foo` and `qux`
     are placeholders. The shipped table is data/clippings.txt; `BannedWords`
     adds a project's own, `Terms` re-allows one as reviewed jargon, and
-    `AllowedNames` exempts names a protocol dictates (`to_str`). English is
+    `AllowedNames` exempts names a protocol dictates (`to_str`, WEBrick's
+    `do_GET`). English is
     English: British, Canadian and Australian spellings (`organisation`,
     `colour`, `offence`, `labelled`, `metre`) are words; `Spelling: en-US`
     accepts American spelling only. The project's own name is its
@@ -804,6 +815,14 @@ Kata/RealWords:
     - "lib/**/*.rb"
     - "*/lib/**/*.rb"
   AllowedNames:
+    - do_DELETE
+    - do_GET
+    - do_HEAD
+    - do_OPTIONS
+    - do_PATCH
+    - do_POST
+    - do_PUT
+    - do_TRACE
     - to_ary
     - to_int
     - to_str

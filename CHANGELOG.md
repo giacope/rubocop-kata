@@ -194,6 +194,12 @@
     writer stores what its reader answers is the receiver's business, which
     Ruby cannot see; an attribute copied onto itself is still reported
     through `self` when the file defines neither its reader nor its writer.
+  - `Kata/RealWords` and `Kata/GoodMethodName` allow WEBrick's servlet
+    methods (`do_GET`, `do_POST`, `do_PUT`, `do_DELETE`, `do_HEAD`,
+    `do_OPTIONS`, `do_PATCH`, `do_TRACE`): `AbstractServlet#service` calls
+    `do_` and the request's method by name, so mechanize's thirty-five test
+    servlet methods cannot be renamed; renamed `get`, a servlet answers
+    404.
 - A strict Elegant Objects profile, `config/strict.yml`, for a project that
   wants the whole of Elegant Objects (`inherit_gem: { rubocop-kata:
   config/strict.yml }` beside `plugins: [rubocop-kata]`). The rules the V1
