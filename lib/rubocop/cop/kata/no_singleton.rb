@@ -8,11 +8,13 @@ class RuboCop::Cop::Kata::NoSingleton < RuboCop::Cop::Base
   CACHE = "`%s ||=` keeps one global instance on the class; build the object where it is needed and pass it in."
   CURRENT = "`%s` is a global with a class name, reset per request; pass what it holds to what needs it."
   THREAD = "`%s` is global state keyed by the thread; pass the value to what needs it."
+  FIBER = "`%s` is global state keyed by the fiber; pass the value to what needs it."
   SETTING = "`%s` keeps one value on the class for every caller; pass it to the object that needs it."
   ACCESS = %i[[] []= fetch store key? delete thread_variable_get thread_variable_set thread_variable?].freeze
-  SETTINGS = %i[
-    cattr_accessor mattr_accessor cattr_writer mattr_writer thread_cattr_accessor thread_mattr_accessor
-  ].freeze
+  SETTINGS = {
+    cattr_accessor: SETTING, mattr_accessor: SETTING, cattr_writer: SETTING, mattr_writer: SETTING,
+    thread_cattr_accessor: THREAD, thread_mattr_accessor: THREAD
+  }.freeze
 
   def_node_matcher :singleton?, "(send nil? :include (const {nil? cbase} :Singleton))"
   KEEPS = %i[freeze tap].freeze
@@ -25,11 +27,13 @@ class RuboCop::Cop::Kata::NoSingleton < RuboCop::Cop::Base
 
   def_node_matcher :keyed?, "(send (const {nil? cbase} {:Fiber :RequestStore}) {:[] :[]=} ...)"
 
+  def_node_matcher :fiber?, "(send (const {nil? cbase} :Fiber) ...)"
+
   def on_send(node)
     return add_offense(node, message: MIXIN) if singleton?(node)
     return unless globals?
-    return add_offense(node, message: format(SETTING, named(node))) if setting?(node)
-    add_offense(node, message: format(THREAD, slot(node))) if shared?(node) && !seam?(node)
+    return add_offense(node, message: setting(node)) if setting?(node)
+    add_offense(node, message: state(node)) if shared?(node) && !seam?(node)
   end
 
   def on_class(node)
@@ -49,14 +53,17 @@ class RuboCop::Cop::Kata::NoSingleton < RuboCop::Cop::Base
 
   def globals? = cop_config["CheckGlobals"]
 
-  def named(node) = "#{node.method_name} #{node.first_argument&.source}#{", …" if node.arguments.size > 1}"
-
-  def slot(node)
-    held = node.receiver.source
-    node.method?(:[]) || node.method?(:[]=) ? "#{held}[#{node.first_argument&.source}]" : "#{held}.#{node.method_name}"
+  def setting(node)
+    named = "#{node.method_name} #{node.first_argument&.source}#{", …" if node.arguments.size > 1}"
+    format(SETTINGS.fetch(node.method_name), named)
   end
 
-  def setting?(node) = node.receiver.nil? && SETTINGS.include?(node.method_name) && !seam?(node)
+  def state(node)
+    slot = node.method?(:[]) || node.method?(:[]=) ? "[#{node.first_argument&.source}]" : ".#{node.method_name}"
+    format(fiber?(node) ? FIBER : THREAD, node.receiver.source + slot)
+  end
+
+  def setting?(node) = node.receiver.nil? && SETTINGS.key?(node.method_name) && !seam?(node)
 
   def shared?(node) = keyed?(node) || (ambient?(node.receiver) && ACCESS.include?(node.method_name))
 

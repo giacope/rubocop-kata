@@ -147,7 +147,7 @@ RSpec.describe(RuboCop::Cop::Kata::NoSingleton, :config) do
           Thread.current.thread_variable_get(:state)
           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `Thread.current.thread_variable_get` is global state keyed by the thread; pass the value to what needs it.
           Fiber[:state] = 1
-          ^^^^^^^^^^^^^^^^^ `Fiber[:state]` is global state keyed by the thread; pass the value to what needs it.
+          ^^^^^^^^^^^^^^^^^ `Fiber[:state]` is global state keyed by the fiber; pass the value to what needs it.
           RequestStore.store[:user]
           ^^^^^^^^^^^^^^^^^^^^^^^^^ `RequestStore.store[:user]` is global state keyed by the thread; pass the value to what needs it.
           RequestStore[:user]
@@ -170,8 +170,9 @@ RSpec.describe(RuboCop::Cop::Kata::NoSingleton, :config) do
     RUBY
   end
 
-  # ahoy, mailboxer, delayed_job: settings kept in class variables behind accessors.
-  it "flags a class-level setting every caller shares" do
+  # ahoy, mailboxer, delayed_job: settings kept in class variables behind accessors; turbo-rails keeps
+  # its request id per thread (R6B5-K3).
+  it "flags a class-level setting every caller shares, or every thread" do
     expect_offense(<<~RUBY)
       module Ahoy
         mattr_accessor :visit_duration
@@ -179,7 +180,7 @@ RSpec.describe(RuboCop::Cop::Kata::NoSingleton, :config) do
         cattr_writer :quiet, :geocode
         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `cattr_writer :quiet, …` keeps one value on the class for every caller; pass it to the object that needs it.
         thread_mattr_accessor :request_id
-        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `thread_mattr_accessor :request_id` keeps one value on the class for every caller; pass it to the object that needs it.
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `thread_mattr_accessor :request_id` is global state keyed by the thread; pass the value to what needs it.
       end
     RUBY
   end

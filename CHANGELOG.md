@@ -307,6 +307,11 @@
     `unless @rate&.present?` (`Kata/CommandQuery`), and a constructor
     `@orders&.new(...)` an object is handed to (`Kata/NoHardWiring`) were
     each read as no such call.
+  - `Kata/NoSingleton` (strict) names the scope a global keeps its value
+    in: a `thread_mattr_accessor` (turbo-rails' `current_request_id`) is
+    global state keyed by the thread, not "one value on the class for every
+    caller", and `Fiber[:bullet_state]` (bullet) is keyed by the fiber, not
+    the thread. The verdicts are the same.
 - A strict Elegant Objects profile, `config/strict.yml`, for a project that
   wants the whole of Elegant Objects (`inherit_gem: { rubocop-kata:
   config/strict.yml }` beside `plugins: [rubocop-kata]`). The rules the V1

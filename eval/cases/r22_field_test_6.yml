@@ -1105,3 +1105,31 @@
         end
       end
     end
+- id: r6b5-k3-thread-accessor-keeps-a-value-per-thread
+  cop: Kata/NoSingleton
+  strict: true
+  expect: offense
+  absent: ["for every caller"]
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class RequestContext
+        thread_mattr_accessor :request_id
+      end
+    end
+- id: r6b5-k3-fiber-storage-keeps-a-value-per-fiber
+  cop: Kata/NoSingleton
+  strict: true
+  expect: offense
+  absent: ["keyed by the thread"]
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Tracker
+        def start
+          Fiber[:tracker_state] = :on
+        end
+      end
+    end
