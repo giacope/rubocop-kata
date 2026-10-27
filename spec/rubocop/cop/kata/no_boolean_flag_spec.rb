@@ -88,12 +88,14 @@ RSpec.describe(RuboCop::Cop::Kata::NoBooleanFlag, :config) do
   context "with the shipped allowed calls" do
     let(:cop_config) { {} }
 
+    # ferrum's `pending.try_set(true)`: a Concurrent::IVar resolves to the boolean it stores.
     it "allows RSpec's matchers, queries and stored settings" do
       expect_no_offenses(<<~RUBY)
         expect(subject.enabled?(:beta)).to eq(true)
         expect(flag).to be(false)
         @store.where("settings.email_new_tracks = ?", true)
         @store.set(reader, true)
+        pending.try_set(true)
         allow(gate).to receive(:open?).and_return(false)
       RUBY
     end

@@ -777,11 +777,11 @@ Kata/NoBooleanFlag:
     protocol or a value rather than a flag — Ruby's reflection
     (`respond_to?(name, true)`), a default (`fetch(:ssl, false)`), a value
     searched for or compared (`flags.index(true)`, `eql?(false)`), a stored
-    value (`instance_variable_set(:@done, false)`, `set`), a value
-    converted or rendered (`quote(true)`, `type_cast(false)`, `cast`,
-    `serialize`, `dump`), a query (`where`, `find_by`, `exists?`,
-    `update`), RSpec's matchers — and the defs whose signature Ruby dictates
-    (`respond_to_missing?`).
+    value (`instance_variable_set(:@done, false)`, `set`, a
+    `Concurrent::IVar`'s `try_set(true)`), a value converted or rendered
+    (`quote(true)`, `type_cast(false)`, `cast`, `serialize`, `dump`), a
+    query (`where`, `find_by`, `exists?`, `update`), RSpec's matchers — and
+    the defs whose signature Ruby dictates (`respond_to_missing?`).
   Enabled: true
   VersionAdded: "0.3"
   VersionChanged: "0.11"
@@ -843,6 +843,7 @@ Kata/NoBooleanFlag:
     - store
     - to
     - to_not
+    - try_set
     - type_cast
     - update
     - update_all

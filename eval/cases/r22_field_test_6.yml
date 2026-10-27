@@ -119,3 +119,18 @@
         end
       end
     end
+- id: r6b2-k6-ivar-try-set-stores-a-value
+  cop: Kata/NoBooleanFlag
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Targets
+        def initialize(pendings)
+          @pendings = pendings
+        end
+
+        def attached(id) = @pendings.put_if_absent(id, Concurrent::IVar.new).try_set(true)
+      end
+    end

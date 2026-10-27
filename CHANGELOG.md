@@ -47,6 +47,11 @@
     `quote`, `type_cast`, `cast`, `serialize` and `dump` join
     `AllowedMethods` (statesman's `connection.quote(type_cast(true))` renders
     the SQL literal; there are no two methods to split it into).
+- From a sixth field test, batch two (manuals-publisher, places-manager,
+  ferrum, friendly_id, dry-monads), in check mode:
+  - `Kata/NoBooleanFlag` allows `try_set`: a `Concurrent::IVar` resolves to
+    the boolean it stores (ferrum's `pending.try_set(true)`), as `set(true)`
+    already passed.
 - `Kata/NoComments` prices documentation by default: `AllowDocumentation`
   is `false` again, as when the option was added, so a comment above a
   public class, module, method or constant is prose like any other, YARD
