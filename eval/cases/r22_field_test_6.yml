@@ -272,3 +272,31 @@
         def self.description = "General: #{Time.now.year}"
       end
     end
+- id: r6b2-k5-matcher-match-block-classifies-any-object
+  cop: Kata/NoTypeCheck
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Tuple
+      end
+    end
+
+    RSpec::Matchers.define :be_tuple do
+      match { |actual| actual.is_a?(Shelf::Tuple) }
+    end
+- id: r6b2-k5-instance-applies-to-still-flagged
+  cop: Kata/NoTypeCheck
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Book
+      end
+
+      class Discount
+        def applies_to?(item) = item.is_a?(Book)
+      end
+    end

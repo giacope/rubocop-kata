@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 class RuboCop::Cop::Kata::NoTypeCheck < RuboCop::Cop::Base
+  include RuboCop::Cop::Kata::Ancestry
   include RuboCop::Cop::Kata::Roster
   include RuboCop::Cop::Kata::Territory
 
@@ -21,6 +22,10 @@ class RuboCop::Cop::Kata::NoTypeCheck < RuboCop::Cop::Base
 
   def_node_matcher :class_of?, "(send _ :class)"
   def_node_matcher :class_name?, "(send (send _ :class) :name)"
+  def_node_matcher :verdict?, "(any_block (send nil? {:match :match_when_negated} ...) ...)"
+  def_node_matcher :matcher?, <<~PATTERN
+    (any_block {(send nil? :matcher _) (send (const (const {nil? cbase} :RSpec) :Matchers) :define _)} ...)
+  PATTERN
 
   def on_send(node)
     label = probe(node)
@@ -45,8 +50,14 @@ class RuboCop::Cop::Kata::NoTypeCheck < RuboCop::Cop::Base
   private
 
   def report(node, range, label)
+    add_offense(range, message: format(MSG, label)) unless protocol?(node)
+  end
+
+  def protocol?(node)
     method = node.each_ancestor(:def, :defs).first
-    add_offense(range, message: format(MSG, label)) unless method && listed?("AllowedMethods", method.method_name.to_s)
+    return listed?("AllowedMethods", method.method_name.to_s) || hook?(method) if method
+    holder = node.each_ancestor(:any_block).find { verdict?(it) }&.each_ancestor(:any_block)&.first
+    !holder.nil? && matcher?(holder)
   end
 
   def probe(node)

@@ -1213,8 +1213,14 @@ Kata/NoTypeCheck:
     decide. The boot layer and the protocols that compare or convert values
     are exempt: `AllowedMethods` holds `==`, `eql?`, `<=>`, `===`, `coerce`
     and `respond_to_missing?`, whose contract is to accept any object and
-    check what it was handed. Only the project's own types are judged: a
-    check against a class or module the project defines (in the file, or in
+    check what it was handed. So do an RSpec matcher's `match` and
+    `match_when_negated` blocks (in `RSpec::Matchers.define` or `matcher`),
+    and a class-level hook a foreign superclass's framework calls, as
+    Kata/NoClassMethodLogic reads one (SuperDiff's `applies_to?(value)`):
+    the framework hands them any object, and only adding a method to every
+    class could let polymorphism choose. Only the project's own types are
+    judged: a check against a class or module the project defines (in the
+    file, or in
     `OwnedPaths`; a constant assigned `Class.new`, `Module.new`, `Struct.new`
     or `Data.define` counts), or a `respond_to?` probe for a method the
     project defines. A type ladder in any spelling is the same question:

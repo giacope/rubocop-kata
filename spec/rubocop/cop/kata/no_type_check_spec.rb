@@ -132,6 +132,52 @@ RSpec.describe(RuboCop::Cop::Kata::NoTypeCheck, :config) do
     RUBY
   end
 
+  # dry-monads' `matcher :be_none do match { |actual| actual.is_a?(None) } end`: RSpec hands the block any object.
+  it "allows a matcher's match block, whose contract is to check what it was handed" do
+    expect_no_offenses(<<~RUBY)
+      class Tuple; end
+      RSpec::Matchers.define :be_tuple do
+        match { |actual| actual.is_a?(Tuple) }
+        match_when_negated { |actual| !actual.is_a?(Tuple) }
+      end
+      matcher :be_pair do
+        description { "a pair" }
+        match { |actual| actual.is_a?(Tuple) }
+      end
+    RUBY
+  end
+
+  it "still flags a check elsewhere in a matcher, and a match block outside one" do
+    expect_offense(<<~RUBY)
+      class Tuple; end
+      RSpec::Matchers.define :be_tuple do
+        failure_message { |actual| actual.is_a?(Tuple) ? "a" : "b" }
+                                          ^^^^^ `is_a?` asks an object what it is; tell it what to do, and let polymorphism choose.
+      end
+      Shelf::Matchers.define :be_tuple do
+        match { |actual| actual.is_a?(Tuple) }
+                                ^^^^^ `is_a?` asks an object what it is; tell it what to do, and let polymorphism choose.
+      end
+      match { |actual| actual.is_a?(Tuple) }
+                              ^^^^^ `is_a?` asks an object what it is; tell it what to do, and let polymorphism choose.
+    RUBY
+  end
+
+  # dry-monads' SuperDiff extension: SuperDiff asks each registered tree class `applies_to?` about any value.
+  it "allows a class-level hook that classes under a foreign superclass answer, and flags an instance method" do
+    expect_offense(<<~RUBY)
+      class Tuple; end
+      class TupleTree < ::SuperDiff::Trees::Array
+        def self.applies_to?(value) = value.is_a?(Tuple)
+      end
+      class DictTree < ::SuperDiff::Trees::Hash
+        def self.applies_to?(value) = value.is_a?(Tuple)
+        def applies_to?(value) = value.is_a?(Tuple)
+                                       ^^^^^ `is_a?` asks an object what it is; tell it what to do, and let polymorphism choose.
+      end
+    RUBY
+  end
+
   it "leaves other predicates, and a probe it cannot name, alone" do
     expect_no_offenses(<<~RUBY)
       class Money; end

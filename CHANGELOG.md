@@ -101,6 +101,13 @@
     unregister the extension. A class method under a foreign mixin only
     (`include ActiveModel::Model`), one the project sends itself, and one a
     single class defines without `super` are still the class's logic.
+  - `Kata/NoTypeCheck` leaves the bodies whose contract is to classify any
+    object a framework hands them: an RSpec matcher's `match` and
+    `match_when_negated` blocks (dry-monads' `matcher :be_none do match {
+    |actual| actual.is_a?(None) } end`, where `actual.none?` would pass for
+    `[]`), and a class-level hook as `Kata/NoClassMethodLogic` reads one
+    (SuperDiff's `applies_to?(value)`). The value is foreign, so
+    polymorphism could only choose once every class answered the question.
 - `Kata/NoComments` prices documentation by default: `AllowDocumentation`
   is `false` again, as when the option was added, so a comment above a
   public class, module, method or constant is prose like any other, YARD
