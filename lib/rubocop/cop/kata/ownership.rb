@@ -10,7 +10,11 @@ module RuboCop::Cop::Kata::Ownership
 
   def owners(probe) = candidates(probe).select { owned?(it) }
 
-  def candidates(probe) = RuboCop::Kata::Nesting.new(probe).candidates(probe.const_name, absolute: probe.absolute?)
+  def candidates(probe) = probe.absolute? ? [probe.const_name] : spellings(probe.const_name, probe)
+
+  def spellings(name, node) = RuboCop::Kata::Nesting.new(node).candidates(name)
+
+  def own_name?(name, node) = spellings(name, node).any? { owned?(it) }
 
   def namespace?(name) = local_types.any? { it.start_with?("#{name}::") } || inventory.namespace?(name)
 

@@ -68,10 +68,8 @@ class RuboCop::Cop::Kata::NoTypeCheck < RuboCop::Cop::Base
     sides = [node.receiver, node.first_argument]
     return "class #{node.method_name}" if sides.any? { class_of?(it) } && sides.any? { own?(it) }
     named = sides.find { it&.str_type? }
-    "class.name #{node.method_name}" if named && sides.any? { class_name?(it) } && owned_name?(named.value, named)
+    "class.name #{node.method_name}" if named && sides.any? { class_name?(it) } && own_name?(named.value, named)
   end
-
-  def owned_name?(name, node) = RuboCop::Kata::Nesting.new(node).candidates(name, absolute: false).any? { owned?(it) }
 
   def message?(name, hidden)
     return false if PROTOCOL.match?(name) || RuboCop::Kata::Protocols.new(list("Protocols")).include?(name)

@@ -15,12 +15,12 @@ module RuboCop::Cop::Kata::Exposure
 
   def named_hidden?(node)
     names = node.arguments.select(&:sym_type?).map(&:value)
-    node.each_ancestor(:class, :module).first(1).flat_map { hiders(it) }.intersect?(names)
+    node.each_ancestor(:class, :module).first(1).flat_map { named(it, HIDDEN) }.intersect?(names)
   end
 
-  def hiders(scope)
-    hiding = statements(scope).select { it.send_type? && HIDDEN.include?(it.method_name) }
-    hiding.flat_map { |call| call.arguments.select(&:sym_type?).map(&:value) }
+  def named(scope, macros)
+    calls = statements(scope).select { it.send_type? && it.receiver.nil? && macros.include?(it.method_name) }
+    calls.flat_map { |call| call.arguments.select(&:sym_type?).map(&:value) }
   end
 
   def statements(scope)

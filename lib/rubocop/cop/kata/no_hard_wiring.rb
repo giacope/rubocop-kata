@@ -30,44 +30,32 @@ class RuboCop::Cop::Kata::NoHardWiring < RuboCop::Cop::Base
   def candidate?(node, method)
     return false unless instance?(method) && node.each_ancestor(:optarg, :kwoptarg).none?
     target = node.receiver
-    home = home(method)
+    home = method.each_ancestor(:class, :module).first&.then { RuboCop::Kata::Nesting.new(it).qualified }.to_s
     own?(target) && !owners(target).include?(home) && !root?(home)
   end
 
   def finding(node, method)
-    built = built(node)
+    holder = node.parent
+    built = holder.any_block_type? && holder.send_node.equal?(node) ? holder : node
     holder = built.parent
-    place = kept(holder)
-    return [KEPT, place] if place
-    wraps?(node) ? acted(built, holder, method) : wired(built, holder, method)
-  end
-
-  def acted(built, holder, method)
-    [MSG] if talked?(built, holder, method) && asked(holder, method).any? { command?(it) }
-  end
-
-  def wired(built, holder, method)
-    place = handed(built, holder, method)
-    return [HANDED, place] if place
-    [MSG] if talked?(built, holder, method)
-  end
-
-  def kept(holder)
     store = holder.or_asgn_type? ? holder.children.first : holder
-    store.children.first if STORES.include?(store.type)
+    return [KEPT, store.children.first] if STORES.include?(store.type)
+    wired(node, built, method)
   end
 
-  def handed(built, holder, method) = passed(built, holder) || relayed(holder, method)
-
-  def passed(built, holder)
-    holder = holder.parent while holder.type?(:pair, :hash)
-    "#{holder.receiver.source}.new" if maker?(holder) && given(holder).any? { it.equal?(built) }
+  def wired(node, built, method)
+    holder = built.parent
+    wrapper = wraps?(node)
+    found = maker(built, holder, method) unless wrapper
+    return [HANDED, "#{found.receiver.source}.new"] if found
+    [MSG] if talked?(built, holder, method) && (!wrapper || asked(holder, method).any? { command?(it) })
   end
 
-  def relayed(holder, method)
-    return unless holder.lvasgn_type?
-    maker = method.each_node(:send).find { |call| maker?(call) && handing?(call, holder) }
-    "#{maker.receiver.source}.new" if maker
+  def maker(built, holder, method)
+    outer = holder
+    outer = outer.parent while outer.type?(:pair, :hash)
+    return outer if maker?(outer) && given(outer).any? { it.equal?(built) }
+    method.each_node(:send).find { |call| maker?(call) && handing?(call, holder) } if holder.lvasgn_type?
   end
 
   def handing?(call, holder)
@@ -108,19 +96,12 @@ class RuboCop::Cop::Kata::NoHardWiring < RuboCop::Cop::Base
     method.def_type? && !CONSTRUCTORS.include?(method.method_name) && method.each_ancestor(:sclass).none?
   end
 
-  def home(method) = method.each_ancestor(:class, :module).first&.then { RuboCop::Kata::Nesting.new(it).qualified }.to_s
-
   def talked?(built, holder, method)
     return holder.receiver.equal?(built) if CALLS.include?(holder.type)
     holder.lvasgn_type? && !product?(holder, method) && asked(holder, method).any?
   end
 
   def product?(holder, method) = local?(method.body.children.last, holder.name)
-
-  def built(node)
-    holder = node.parent
-    holder&.any_block_type? && holder.send_node.equal?(node) ? holder : node
-  end
 
   def local?(receiver, name) = receiver&.lvar_type? && receiver.children.first == name
 end

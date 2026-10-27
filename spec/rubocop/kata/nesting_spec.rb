@@ -18,11 +18,7 @@ RSpec.describe(RuboCop::Kata::Nesting) do
   end
 
   it "names each constant a reference could resolve to, innermost first" do
-    expect(described_class.new(line).candidates("Item", absolute: false)).to(eq(%w[Shop::Cart::Item Shop::Item Item]))
-  end
-
-  it "names only the constant itself when the reference is absolute" do
-    expect(described_class.new(line).candidates("Item", absolute: true)).to(eq(%w[Item]))
+    expect(described_class.new(line).candidates("Item")).to(eq(%w[Shop::Cart::Item Shop::Item Item]))
   end
 
   it "starts over at an absolute name" do

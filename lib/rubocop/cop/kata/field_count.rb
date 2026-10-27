@@ -17,10 +17,7 @@ class RuboCop::Cop::Kata::FieldCount < RuboCop::Cop::Base
     node.each_descendant(:ivasgn).select { mine?(it, node) && !memoized?(it) }.map { it.children.first }
   end
 
-  def minted(node)
-    macros = statements(node).select { it.send_type? && it.receiver.nil? && MACROS.include?(it.method_name) }
-    macros.flat_map { |call| call.arguments.select(&:sym_type?).map { :"@#{it.value}" } }
-  end
+  def minted(node) = named(node, MACROS).map { :"@#{it}" }
 
   def mine?(field, node)
     field.each_ancestor(:def).any? && field.each_ancestor(*SCOPES).first.equal?(node)
