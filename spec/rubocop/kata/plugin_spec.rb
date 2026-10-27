@@ -84,6 +84,12 @@ RSpec.describe(RuboCop::Kata::Plugin) do
     end
   end
 
+  it "reads `+` as string concatenation only when a string literal starts it" do
+    effective do |config|
+      expect(config.for_cop("Style/StringConcatenation")["Mode"]).to(eq("conservative"))
+    end
+  end
+
   it "leaves type annotations alone, as Kata/NoComments promises" do
     effective do |config|
       expect(config.for_cop("Layout/LeadingCommentSpace").slice("AllowRBSInlineAnnotation", "AllowSteepAnnotation"))

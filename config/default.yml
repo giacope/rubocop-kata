@@ -1962,6 +1962,13 @@ Style/StringLiterals:
 Style/StringLiteralsInInterpolation:
   EnforcedStyle: double_quotes
 
+# `+` joins strings only when a string literal starts it: mechanize's
+# `uri + "/"` is URI#+, which merges a reference (the site root), and the
+# interpolation the aggressive mode asks for builds a String of the whole path
+# plus a slash. Conservative mode reports `"a" + b` and leaves `x + "b"`.
+Style/StringConcatenation:
+  Mode: conservative
+
 Style/ItBlockParameter:
   Enabled: true
   EnforcedStyle: only_numbered_parameters

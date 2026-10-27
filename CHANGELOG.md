@@ -200,6 +200,13 @@
     `do_` and the request's method by name, so mechanize's thirty-five test
     servlet methods cannot be renamed; renamed `get`, a servlet answers
     404.
+  - `Style/StringConcatenation` runs in its `conservative` mode: the
+    aggressive default reported any `+` with a string literal on either side,
+    so mechanize's `uri + '/'` (URI#+, which merges a reference into the site
+    root) was told to become `"#{uri}/"`, a String of the full path and a
+    slash that changes every auth realm key. kata marked the correction
+    unsafe, but the message itself asked for the change. A string literal
+    on the left (`"a" + b`) is still reported.
 - A strict Elegant Objects profile, `config/strict.yml`, for a project that
   wants the whole of Elegant Objects (`inherit_gem: { rubocop-kata:
   config/strict.yml }` beside `plugins: [rubocop-kata]`). The rules the V1

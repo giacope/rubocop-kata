@@ -665,3 +665,33 @@
         end
       end
     end
+- id: r6b3-k12-uri-plus-is-not-string-concatenation
+  cop: Style/StringConcatenation
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Realm
+        def initialize(uri)
+          @uri = uri
+        end
+
+        def base = @uri + "/"
+      end
+    end
+- id: r6b3-k12-string-literal-plus-still-flagged
+  cop: Style/StringConcatenation
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Realm
+        def initialize(name)
+          @name = name
+        end
+
+        def label = "realm " + @name
+      end
+    end
