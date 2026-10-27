@@ -11,7 +11,13 @@
 # It switches on every house cop kata ships off and every stricter reading of
 # a cop kata ships on, and switches off the cops a strict one replaces, so no
 # rescue, nil or reflection is reported twice. A project can still turn any
-# one of them back off in its own .rubocop.yml.
+# one of them back off in its own .rubocop.yml. The file names the plugin
+# too: RuboCop checks an inherited file's cops before it loads the plugins a
+# parent file lists, so without it a project whose plugins sit in another
+# inherited file would be told Kata's cops are unrecognized.
+
+plugins:
+  - rubocop-kata
 
 # No hidden effects: files, the network, the shell, global streams and
 # services; randomness; the framework's configuration; the framework's

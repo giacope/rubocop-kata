@@ -259,7 +259,8 @@ method that answers a value, not only `?` methods) and
 is reported twice: `Lint/SuppressedException` and `Style/RescueModifier`
 (`Kata/FailFast`), `Elegant/NoNilReturn` (`Kata/NoNilReturn`) and
 `Style/Send` (`Kata/NoReflection`). Any of them can still be turned back off
-in the project's own `.rubocop.yml`. Expect a large backlog on most code:
+in the project's own `.rubocop.yml`. The profile names the plugin itself, so
+it also works where the project's `plugins:` sit in another inherited file. Expect a large backlog on most code:
 the profile flags inelegant code by design.
 
 ## Dead configuration

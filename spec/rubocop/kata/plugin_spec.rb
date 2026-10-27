@@ -147,6 +147,26 @@ RSpec.describe(RuboCop::Kata::Plugin) do
     expect(changed.reject { |_, values| values.empty? }).to(eq(strict_profile))
   end
 
+  # A project whose plugins sit in a parent file: RuboCop checks an inherited file's cops before that parent's plugins.
+  it "runs the strict profile where the project's plugins sit in another inherited file" do
+    expect(linted(parented, "--only", "Kata/FailFast")).to(include("1 file inspected, 1 offense detected"))
+  end
+
+  def parented
+    {
+      "base.yml" => "plugins:\n  - rubocop-kata\nAllCops:\n  TargetRubyVersion: 3.4\n",
+      ".rubocop.yml" => "inherit_from: base.yml\ninherit_gem:\n  rubocop-kata: config/strict.yml\n",
+      "count.rb" => "def count = Integer(@text) rescue 0\n"
+    }
+  end
+
+  def linted(files, *options)
+    Dir.mktmpdir("kata-config") do |root|
+      files.each { |path, text| File.write(File.join(root, path), text) }
+      Open3.capture2e(RbConfig.ruby, Gem.bin_path("rubocop", "rubocop"), *options, chdir: root).first
+    end
+  end
+
   def settings(extra)
     Dir.mktmpdir("kata-config") do |root|
       File.write(File.join(root, ".rubocop.yml"), "plugins:\n  - rubocop-kata\n#{extra}")
