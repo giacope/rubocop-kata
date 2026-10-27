@@ -1,0 +1,121 @@
+# What the sixth field test found running kata in check mode on thirty more
+# codebases, five at a time: each case is a shape whose advice would have made
+# the code worse, or a fact kata misread, named after its finding. `absent`
+# lists text no message of the case's cop may say.
+- id: r6b1-k6-recency-and-proration-are-words
+  cop: Kata/RealWords
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Boost
+        def initialize(recency, proration)
+          @recency = recency
+          @proration = proration
+        end
+
+        def by_recency = @recency
+
+        def proration_behavior = @proration
+      end
+    end
+- id: r6b1-k5-boolean-rendered-as-sql-is-a-value
+  cop: Kata/NoBooleanFlag
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Literals
+        def initialize(connection)
+          @connection = connection
+        end
+
+        def truth = @connection.quote(@connection.type_cast(true))
+
+        def falsehood = @connection.quote(false)
+      end
+    end
+- id: r6b1-k5-flag-to-a-foreign-api-still-flagged
+  cop: Kata/NoBooleanFlag
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Charge
+        def initialize(gateway)
+          @gateway = gateway
+        end
+
+        def retry(id) = @gateway.retry_charge(id, nil, true)
+      end
+    end
+- id: r6b1-k1-class-message-siblings-answer-is-no-constant
+  cop: Kata/NoClassMethodLogic
+  expect: offense
+  absent: ["make it a constant"]
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Request
+      end
+
+      class AnalyticsRequest < Request
+        def self.label = "Analytics access"
+      end
+
+      class GeneralRequest < Request
+        def self.label = "Something else"
+      end
+
+      class Section
+        def initialize(kind)
+          @kind = kind
+        end
+
+        def label = @kind.label
+      end
+    end
+- id: r6b1-k3-condition-continued-two-columns-in-is-aligned-enough
+  cop: Layout/MultilineOperationIndentation
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Failure
+        def initialize(message)
+          @message = message
+        end
+
+        def unsupported?
+          if @message.include?("bool query does not support [filter]") ||
+            @message.include?("[bool] filter does not support [filter]")
+            true
+          end
+        end
+      end
+    end
+- id: r6b1-k3-condition-continued-three-columns-in-breaks-the-step
+  cop: Elegant/MonotonicIndents
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Failure
+        def initialize(message)
+          @message = message
+        end
+
+        def unsupported?
+          if @message.include?("bool query does not support [filter]") ||
+             @message.include?("[bool] filter does not support [filter]")
+            true
+          end
+        end
+      end
+    end

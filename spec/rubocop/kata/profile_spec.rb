@@ -48,6 +48,28 @@ RSpec.describe(RuboCop::Kata::Profile) do
   end
 
   # camaleon-cms: an engine keeps no config/application.rb at its root.
+  def excluded(setting)
+    text = "module Shop\n  class Application < Rails::Application\n    #{setting}\n  end\nend\n"
+    project(["config/application.rb", text]) { described_class.new(it, {}).overlay["Kata/ClassInModule"] }
+  end
+
+  # content-tagger and support: `config.autoload_lib`, which `rails new` writes since 7.1, makes lib/ a Zeitwerk root.
+  it "takes lib/ for a Zeitwerk root where the application autoloads it" do
+    loading = [
+      "config.autoload_lib(ignore: %w[assets tasks])", "config.eager_load_paths << Rails.root.join(\"lib\")",
+      "config.autoload_paths += Dir[Rails.root.join('lib')]", "config.autoload_paths << \"\#{config.root}/lib\""
+    ]
+    expect(loading.map { excluded(it) }).to(eq([{ "Exclude" => ["lib/*.rb"] }] * 4))
+  end
+
+  it "leaves lib/ to the namespace rule where the application does not autoload it" do
+    other = [
+      "# config.autoload_lib(ignore: %w[assets tasks])", "config.eager_load_paths << Rails.root.join(\"lib\", \"x\")",
+      "config.autoload_paths << Rails.root.join(\"lib/extras\")", "config.add_autoload_paths_to_load_path = true"
+    ]
+    expect(other.map { excluded(it) }).to(eq([nil] * 4))
+  end
+
   it "takes a Rails engine for Rails" do
     engine = "module Shop\n  class Engine < ::Rails::Engine\n    isolate_namespace Shop\n  end\nend\n"
     project(["shop.gemspec", ""], ["lib/shop/engine.rb", engine]) do |root|
@@ -383,7 +405,8 @@ RSpec.describe(RuboCop::Kata::Profile) do
   it "keeps the Rails setting to framework contracts, generated files and the server's threads" do
     setting = YAML.load_file(rails)
     names = setting.dig("Kata/GoodMethodName", "AllowedNames")
-    cops = %w[GoodMethodName NoComments NoHashAsObject NoTypeCheck NoClassMethodLogic FrozenState].map { "Kata/#{it}" }
+    cops = %w[GoodMethodName RealWords NoComments NoHashAsObject NoTypeCheck NoClassMethodLogic FrozenState]
+      .map { "Kata/#{it}" }
     cops << "ThreadSafety/NewThread"
     expect([setting.keys, names.include?("default_url_options"), setting.dig("Kata/NoComments", "Exclude")])
       .to(eq([cops, true, %w[bin/**/* db/**/*]]))
@@ -394,6 +417,46 @@ RSpec.describe(RuboCop::Kata::Profile) do
     patterns = YAML.load_file(rails).dig("Kata/GoodMethodName", "AllowedPatterns").map { Regexp.new(it) }
     names = %w[permitted_attributes_for_create permitted_attributes_for_update permitted_attributes]
     expect(names.map { |name| patterns.any? { name.match?(it) } }).to(eq([true, true, false]))
+  end
+
+  # content-tagger's `Taxonomy.table_name_prefix`, support's `fields_for :time_constraint`, statesman's commit hook.
+  it "leaves the names Rails calls by name to Rails, and still judges the words a project chose" do
+    source = <<~RUBY
+      module Taxonomy
+        def self.table_name_prefix = "taxonomy_"
+
+        class Hook
+          def time_constraint_attributes=(value)
+            @value = value
+          end
+
+          def customer_billing_address_attributes=(value)
+            @value = value
+          end
+
+          def trigger_transactional_callbacks? = true
+          def has_transactional_callbacks? = true
+          def add_to_transaction(*) = nil
+          def committed!(*) = nil
+          def rolledback!(*) = nil
+        end
+      end
+    RUBY
+    path = "app/models/taxonomy.rb"
+    found = project(["config/application.rb", ""], [path, source]) { judged(it, path) }
+    expect(found).to(eq([[9, "Kata/GoodMethodName"]]))
+  end
+
+  def judged(root, path)
+    cops = %w[NoClassMethodLogic GoodMethodName RealWords].map { RuboCop::Cop::Kata.const_get(it).new(profiled(root)) }
+    parsed = RuboCop::ProcessedSource.from_file(File.join(root, path), 3.4)
+    found = RuboCop::Cop::Commissioner.new(cops, [], raise_error: true).investigate(parsed).offenses
+    found.map { [it.line, it.cop_name] }
+  end
+
+  def profiled(root)
+    setting = YAML.load_file(described_class.new(root, {}).path, aliases: true)
+    RuboCop::Config.new(setting, File.join(root, ".rubocop.yml"))
   end
 
   context "with the autocorrect allowlist" do

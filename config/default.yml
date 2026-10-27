@@ -777,9 +777,11 @@ Kata/NoBooleanFlag:
     protocol or a value rather than a flag — Ruby's reflection
     (`respond_to?(name, true)`), a default (`fetch(:ssl, false)`), a value
     searched for or compared (`flags.index(true)`, `eql?(false)`), a stored
-    value (`instance_variable_set(:@done, false)`, `set`), a query
-    (`where`, `find_by`, `exists?`, `update`), RSpec's matchers — and the
-    defs whose signature Ruby dictates (`respond_to_missing?`).
+    value (`instance_variable_set(:@done, false)`, `set`), a value
+    converted or rendered (`quote(true)`, `type_cast(false)`, `cast`,
+    `serialize`, `dump`), a query (`where`, `find_by`, `exists?`,
+    `update`), RSpec's matchers — and the defs whose signature Ruby dictates
+    (`respond_to_missing?`).
   Enabled: true
   VersionAdded: "0.3"
   VersionChanged: "0.11"
@@ -795,11 +797,13 @@ Kata/NoBooleanFlag:
     - and_return
     - any?
     - be
+    - cast
     - const_defined?
     - const_get
     - const_source_location
     - content_security_policy
     - count
+    - dump
     - eq
     - eql
     - eql?
@@ -829,14 +833,17 @@ Kata/NoBooleanFlag:
     - public_method_defined?
     - public_methods
     - push
+    - quote
     - respond_to?
     - respond_to_missing?
     - rindex
+    - serialize
     - set
     - singleton_methods
     - store
     - to
     - to_not
+    - type_cast
     - update
     - update_all
     - where
@@ -906,9 +913,12 @@ Kata/NoClassMethodLogic:
     `module_function` or `extend self` is a bag of functions called on the
     module, the same logic with no class, and its declaration is reported.
     A class method that only returns a literal is a constant in disguise
-    when it takes nothing and no subclass under `OwnedPaths` redefines it;
-    a hook that takes an argument or that subclasses override
-    (`def self.for_class?(_model) = false`) is the class's logic.
+    when it takes nothing and no other class under `OwnedPaths` defines it;
+    a hook that takes an argument, that subclasses override
+    (`def self.for_class?(_model) = false`) or that sibling classes answer
+    alike (`def self.label = "Analytics"` in each request class a section
+    sends `label` to) is the class's logic, and a constant read through
+    `klass::LABEL` would be shared state in its place.
   Enabled: true
   VersionAdded: "0.3"
   VersionChanged: "0.11"
@@ -1519,6 +1529,15 @@ Layout/MultilineMethodCallBraceLayout:
 Layout/MultilineArrayBraceLayout:
   Enabled: true
 
+# Under rubocop-elegant's `Layout/ArrayAlignment: with_fixed_indentation` this
+# cop checks nothing in its default style, so no cop placed a `]` that starts
+# a `].compact` line, and `-a` left one where a merged pass had shifted its
+# `[` (searchkick's `@index_name ||= begin [...].compact.join("_") end`).
+# `consistent` indents the elements one step from the line of the `[` and
+# puts the `]` at that line's indent, as Kata/PairedBrackets does.
+Layout/FirstArrayElementIndentation:
+  EnforcedStyle: consistent
+
 Layout/MultilineHashBraceLayout:
   Enabled: true
 
@@ -1537,6 +1556,15 @@ Layout/RescueEnsureAlignment:
 # an arbitrary step Elegant/MonotonicIndents rejects; a fixed step is +2.
 Layout/ArgumentAlignment:
   EnforcedStyle: with_fixed_indentation
+
+# Neither of its styles agrees with Elegant/MonotonicIndents in a condition:
+# `aligned` puts the continuation of a multi-line `if` condition under its
+# first operand (3 columns in, 6 after `elsif`), `indented` 4 columns in, so
+# every layout of such a condition broke one rule or the other, and `-a`
+# walked a clean `if (\n a ||\n b\n)` into the conflict. MonotonicIndents
+# keeps a continued operation to the two-space step.
+Layout/MultilineOperationIndentation:
+  Enabled: false
 
 Layout/EmptyLinesAroundAttributeAccessor:
   Enabled: false
@@ -1608,7 +1636,9 @@ Kata/ClassInModule:
   Description: >-
     A class lives in a module, a class, or a compact namespace, never at the
     top level. A file directly in a Zeitwerk root (`app/models/account.rb`,
-    `app/models/concerns/archivable.rb`) defines a top-level constant by
+    `app/models/concerns/archivable.rb`, and `lib/*.rb` when
+    config/application.rb autoloads lib/ through `config.autoload_lib` or
+    its autoload or eager-load paths) defines a top-level constant by
     design, so those are excluded; a subdirectory of a root is a namespace,
     and Zeitwerk already demands the matching module. Reopening one of the
     `CoreClasses` (`class String`) is a monkey patch: wrapping it in a module

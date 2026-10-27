@@ -98,6 +98,25 @@ RSpec.describe(RuboCop::Kata::Plugin) do
     end
   end
 
+  def layout(source)
+    effective do |config|
+      cops = RuboCop::Cop::Registry.global.cops.select { %i[Layout Elegant].include?(it.department) }
+      running = cops.select { config.cop_enabled?(it.cop_name) }.map { it.new(config) }
+      investigated(running, RuboCop::ProcessedSource.new(source, 3.4, File.join(Dir.pwd, "lib/pick.rb")), config)
+    end
+  end
+
+  def investigated(cops, parsed, config)
+    parsed.config = config
+    RuboCop::Cop::Commissioner.new(cops, [], raise_error: true).investigate(parsed).offenses.map(&:cop_name)
+  end
+
+  # searchkick: `-a` took a clean `if (\n a ||\n b\n)` to `if a ||\n   b`, a step of three, which nothing then fixed.
+  it "lets a multi-line condition continue two columns in, the step every layout cop it runs accepts" do
+    condition = "def pick(a, b)\n  if a.present? ||\n    b.present?\n    a\n  end\nend\n"
+    expect(layout("# frozen_string_literal: true\n\n#{condition}")).to(be_empty)
+  end
+
   # refinerycms: an engine's own Zeitwerk root, core/app/controllers/application_controller.rb.
   it "leaves a top-level class in a Zeitwerk root to Rails, an engine's included, and nowhere else" do
     paths = %w[

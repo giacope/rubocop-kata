@@ -17,7 +17,7 @@ class Assay::Verdict
     )
   end
 
-  def faults = [expectation, *survival].compact
+  def faults = [expectation, *worded, *survival].compact
 
   private
 
@@ -28,6 +28,11 @@ class Assay::Verdict
     when "offense" then "expected an offense, found none" if mine.empty?
     when "clean" then "expected no offense, found #{mine.size}" unless mine.empty?
     end
+  end
+
+  def worded
+    @item.fetch("absent", []).select { |text| mine.any? { it["message"].include?(text) } }
+      .map { "a message says #{it.inspect}" }
   end
 
   def survival

@@ -195,4 +195,27 @@ RSpec.describe(RuboCop::Cop::Kata::NoClassMethodLogic, :config) do
       end
     RUBY
   end
+
+  # support: twenty `Support::Requests::*Request` classes answer `self.label`, which a section sends to the class it
+  # holds; a constant read through `klass::LABEL` would replace that message with shared state.
+  context "with the project's other classes" do
+    include ProjectFiles
+
+    let(:setting) { { "Kata/NoClassMethodLogic" => { "OwnedPaths" => ["app/**/*.rb"] } } }
+    let(:files) do
+      {
+        "app/models/analytics_request.rb" => "class AnalyticsRequest < Request\n  def self.label = \"A\"\nend\n",
+        "app/models/general_request.rb" => "class GeneralRequest < Request\n  def self.label = \"B\"\nend\n",
+        "app/models/section.rb" => "class Section\n  def name = @kind.label\nend\n",
+        "app/models/wizard.rb" => "class Wizard\n  def self.steps = %i[name email]\nend\n"
+      }
+    end
+
+    it "asks for no constant where another class answers the same class-level message" do
+      shared = "`label` puts logic on the class; classes construct, instances work."
+      alone = "`steps` only returns a literal; make it a constant."
+      found = files.keys.map { |path| project_offenses(files, path).map(&:message) }
+      expect(found).to(eq([[shared], [shared], [], [alone]]))
+    end
+  end
 end

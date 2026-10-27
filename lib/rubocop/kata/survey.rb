@@ -9,6 +9,7 @@ class RuboCop::Kata::Survey
   SORBET = %w[sorbet sorbet-runtime sorbet-static].freeze
   ENGINE = /<\s*(::)?Rails::Engine\b|^\s*isolate_namespace\b/
   APPLICATION = File.join("config", "application.rb")
+  AUTOLOADED = /^\s*config\.(?:autoload_lib|(?:autoload|eager_load)_paths\b.*\blib["']?\s*(?:[)\]]|$))/
   NAMESPACE = /^\s*module\s+([A-Z]\w*)/
   DEFINITION = /^\s*(?:class|module)\s+([A-Z][\w:]*)/
   PARSER = /\.add_(?:runtime_)?dependency[\s(]*["'](?:parser|rubocop|rubocop-ast|unparser)["']/
@@ -35,6 +36,8 @@ class RuboCop::Kata::Survey
   def rails? = File.file?(File.join(@root, APPLICATION)) || sources(*ENGINES).any? { ENGINE.match?(read(it)) }
 
   def packaged? = Dir.glob(GEMSPECS, base: @root).any?
+
+  def autoloads? = AUTOLOADED.match?(setup)
 
   def parser? = depends?(PARSER)
 
@@ -68,11 +71,9 @@ class RuboCop::Kata::Survey
 
   def gems = Dir.glob(GEMSPECS, base: @root).map { File.basename(it, ".gemspec") }
 
-  def application
-    path = File.join(@root, APPLICATION)
-    return [] unless File.file?(path)
-    read(path).scan(NAMESPACE).flatten.first(1)
-  end
+  def application = setup.scan(NAMESPACE).flatten.first(1)
+
+  def setup = Dir.glob(APPLICATION, base: @root).map { read(File.join(@root, it)) }.join
 
   def root(gemspec)
     gem = File.basename(gemspec, ".gemspec")

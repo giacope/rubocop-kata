@@ -2,6 +2,51 @@
 
 ## [Unreleased]
 
+- From a sixth field test, batch one (content-tagger, support, searchkick,
+  statesman, pay), in check mode and under `rubocop -a`:
+  - `Kata/RealWords` knows `recency` and `proration`, the nouns of `recent`
+    and `prorate` (searchkick's `boost_by_recency`, Stripe's
+    `proration_behavior` in pay): there was no smash to undo.
+  - `Kata/NoClassMethodLogic` asks for a constant only when one class
+    answers the message: a literal class method that a sibling defines too
+    is a class-level duck type (support's twenty request classes each answer
+    `self.label`, which a section sends to the class it holds), so it gets
+    the plain "puts logic on the class", not "make it a constant", whose
+    `klass::LABEL` would be shared state and break the delegation.
+  - The Rails profile names what ActiveRecord and ActionView call by name:
+    a namespace's `table_name_prefix` and `table_name_suffix` (the module
+    `rails generate model` writes; a constant in their place renames every
+    table under it), the transaction-record protocol (`rolledback!`,
+    `trigger_transactional_callbacks?`, `has_transactional_callbacks?`,
+    `add_to_transaction`), and `attributes` as a role suffix, so the
+    nested-attributes writer `fields_for` checks for
+    (`time_constraint_attributes=`) is judged by the words before it.
+    A library that does not declare ActiveRecord (statesman) still hears
+    about `rolledback!`: nothing tells kata it is Rails code.
+  - `Kata/ClassInModule` takes `lib/` for a Zeitwerk root where
+    `config/application.rb` autoloads it (`config.autoload_lib`, which
+    `rails new` writes since 7.1, or `lib` in the autoload or eager-load
+    paths): `lib/description_remover.rb` defines `DescriptionRemover` by
+    Zeitwerk's rules, as `app/models/account.rb` defines `Account`, and
+    wrapping it in a module makes eager loading raise.
+  - `Layout/MultilineOperationIndentation` is off: its `aligned` style puts
+    a multi-line `if` condition's continuation three columns in (six after
+    `elsif`) and `indented` four, while `Elegant/MonotonicIndents` allows a
+    step of two, so every layout of such a condition broke one rule, and
+    `-a` walked searchkick's clean `if (\n a ||\n b\n)` into the conflict.
+    MonotonicIndents keeps continued operations to the two-space step.
+  - `Layout/FirstArrayElementIndentation` runs in its `consistent` style.
+    Under rubocop-elegant's `Layout/ArrayAlignment: with_fixed_indentation`
+    its default style checks nothing, so no cop placed a `]` that starts a
+    `].compact` line, and `-a` left searchkick's `].compact.join("_")`
+    three columns in, under a `[` eight columns in, where a merged pass had
+    shifted the `[` (`Elegant/MonotonicIndents` then reported the step of
+    one). `consistent` puts the `]` at the indent of its opener's line, as
+    `Kata/PairedBrackets` does. kata's own specs had nine such brackets.
+  - `Kata/NoBooleanFlag` allows a boolean converted or rendered as a value:
+    `quote`, `type_cast`, `cast`, `serialize` and `dump` join
+    `AllowedMethods` (statesman's `connection.quote(type_cast(true))` renders
+    the SQL literal; there are no two methods to split it into).
 - `Kata/NoComments` prices documentation by default: `AllowDocumentation`
   is `false` again, as when the option was added, so a comment above a
   public class, module, method or constant is prose like any other, YARD

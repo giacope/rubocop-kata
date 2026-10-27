@@ -13,6 +13,7 @@ class RuboCop::Kata::Profile
   BRANDS = { "RuboCop" => "Rubocop", "RSpec" => "Rspec" }.freeze
   SPELLED = { "RuboCop" => "rubocop", "RSpec" => "rspec" }.freeze
   WORD = /\A[a-z][a-z0-9]+\z/
+  LIBRARY = { "Kata/ClassInModule" => { "Exclude" => ["lib/*.rb"] } }.freeze
   def initialize(root, options, shelf: Dir.tmpdir)
     @root = root
     @options = options
@@ -33,7 +34,7 @@ class RuboCop::Kata::Profile
     { "Packaging" => :packaged?, "RSpec" => :rspec? }.each do |department, found|
       layer[department] = { "Enabled" => false } unless chosen(department.downcase) { survey.public_send(found) }
     end
-    layer.merge(skipped(survey), spoken(survey), owned(survey))
+    layer.merge(skipped(survey), spoken(survey), owned(survey), survey.autoloads? ? LIBRARY : {})
   end
 
   private

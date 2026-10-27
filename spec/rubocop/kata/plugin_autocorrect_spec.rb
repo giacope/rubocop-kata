@@ -102,6 +102,23 @@ RSpec.describe(RuboCop::Kata::Plugin) do
     }
   end
 
+  def index
+    elements = "options.key?(:index_prefix) ? options[:index_prefix] : Shelf.prefix, model_name.plural, Shelf.env"
+    <<~RUBY
+      # frozen_string_literal: true
+
+      module Shelf
+        module Model
+          def index_name
+            @index_name ||= begin
+              [#{elements}, Shelf.suffix].compact.join("_")
+            end
+          end
+        end
+      end
+    RUBY
+  end
+
   def correct(flag, picked)
     Dir.mktmpdir("kata-autocorrect") do |root|
       lib = plant(root, picked)
@@ -153,6 +170,11 @@ RSpec.describe(RuboCop::Kata::Plugin) do
     correct("-a", shapes.slice("functions.rb")) do |fixed, _|
       expect(fixed.fetch("functions.rb")).to(include("SQL\n      )\n"))
     end
+  end
+
+  # searchkick: `-a` left `].compact.join("_")` three columns in, under a `[` eight columns in.
+  it "puts a closing bracket a merged pass drifted back at the indent of its opener's line" do
+    correct("-a", "index.rb" => index) { |fixed, _| expect(fixed.fetch("index.rb")).to(include("\n        ].compact")) }
   end
 
   context "with the -a post-check" do

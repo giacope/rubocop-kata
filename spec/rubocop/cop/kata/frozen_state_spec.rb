@@ -218,6 +218,18 @@ RSpec.describe(RuboCop::Cop::Kata::FrozenState, :config) do
     RUBY
   end
 
+  it "allows a superclass's helper that only a subclass's constructor calls" do
+    expect_no_offenses(<<~RUBY)
+      class Page
+        def load(raw) = @raw = raw
+      end
+
+      class Article < Page
+        def initialize(raw) = load(raw)
+      end
+    RUBY
+  end
+
   it "still flags the same hook name in a class that does not inherit it" do
     expect_offense(<<~RUBY)
       class Model

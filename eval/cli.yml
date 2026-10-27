@@ -123,3 +123,32 @@
     status: [1]
     stdout: ["was renamed to `Naming/PredicatePrefix`; rename the entry", "0 dead entries, 1 entry to rename"]
     stdout_absent: ["does nothing"]
+- id: r6b1-k2-plan-leaves-the-names-rails-calls-to-rails
+  gap: R22
+  command: plan
+  files:
+    .rubocop.yml: "plugins:\n  - rubocop-kata\n\nAllCops:\n  TargetRubyVersion: 3.4\n"
+    config/application.rb: "module Shop\n  class Application < Rails::Application\n  end\nend\n"
+    app/models/taxonomy.rb: "# frozen_string_literal: true\n\nmodule Taxonomy\n  def self.table_name_prefix = \"taxonomy_\"\nend\n"
+    app/models/hook.rb: "# frozen_string_literal: true\n\nclass Hook\n  def initialize(callback)\n    @callback = callback\n  end\n\n  def time_constraint_attributes=(value)\n    @callback.call(value)\n  end\n\n  def committed!(*) = @callback.call\n\n  def rolledback!(*) = @callback\nend\n"
+  expect:
+    stdout_absent: ["Kata/NoClassMethodLogic", "Kata/GoodMethodName", "Kata/RealWords"]
+- id: r6b1-k4-plan-takes-an-autoloaded-lib-for-a-zeitwerk-root
+  gap: R22
+  command: plan
+  files:
+    .rubocop.yml: "plugins:\n  - rubocop-kata\n\nAllCops:\n  TargetRubyVersion: 3.4\n"
+    config/application.rb: "module Shop\n  class Application < Rails::Application\n    config.autoload_lib(ignore: %w[assets tasks])\n  end\nend\n"
+    lib/description_remover.rb: "# frozen_string_literal: true\n\nclass DescriptionRemover\n  def initialize(taxon)\n    @taxon = taxon\n  end\nend\n"
+  expect:
+    stdout_absent: ["Kata/ClassInModule"]
+- id: r6b1-k4-plan-still-wants-a-module-around-a-class-in-a-plain-lib
+  gap: R22
+  command: plan
+  files:
+    .rubocop.yml: "plugins:\n  - rubocop-kata\n\nAllCops:\n  TargetRubyVersion: 3.4\n"
+    config/application.rb: "module Shop\n  class Application < Rails::Application\n  end\nend\n"
+    lib/description_remover.rb: "# frozen_string_literal: true\n\nclass DescriptionRemover\n  def initialize(taxon)\n    @taxon = taxon\n  end\nend\n"
+  expect:
+    status: [1]
+    stdout: ["Kata/ClassInModule"]
