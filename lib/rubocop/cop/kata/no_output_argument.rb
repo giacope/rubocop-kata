@@ -11,6 +11,7 @@ class RuboCop::Cop::Kata::NoOutputArgument < RuboCop::Cop::Base
   WRITES = %i[op_asgn or_asgn and_asgn].freeze
 
   def on_def(node)
+    return if listed?("AllowedMethods", node.method_name.to_s)
     names = lent(node) - list("AllowedNames").map(&:to_sym)
     changes = node.body ? node.body.each_node(:send, :csend).select { changed?(it, names, node) } : []
     report(changes) unless changes.empty?

@@ -896,3 +896,48 @@
         end
       end
     end
+- id: r6b4-k4-psych-fills-the-coder-it-hands-encode-with
+  cop: Kata/NoOutputArgument
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Options
+        def initialize(limit)
+          @limit = limit
+        end
+
+        def encode_with(coder)
+          coder["limit"] = @limit
+        end
+      end
+    end
+- id: r6b4-k4-serialization-hooks-are-not-public-surface
+  cop: Kata/PublicSurface
+  strict: true
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Options
+        def initialize(limit)
+          @limit = limit
+        end
+
+        def limit = @limit
+
+        def finish = @limit.zero?
+
+        def to_h = { limit: @limit }
+
+        def encode_with(coder) = coder.map = to_h
+
+        def init_with(coder) = @limit = coder["limit"]
+
+        def marshal_dump = to_h
+
+        def marshal_load(data) = @limit = data[:limit]
+      end
+    end

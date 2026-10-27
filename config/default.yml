@@ -1151,7 +1151,9 @@ Kata/PublicSurface:
     the methods its public `attr_*` macros mint. A short interface is a small
     object; more methods than that is several objects in one, so move some to
     an object of their own. The protocols Ruby dispatches to (`to_s`, `==`,
-    `<=>`, `each`, `call`, `[]`; `Protocols`) and the callbacks a dispatcher
+    `<=>`, `each`, `call`, `[]`, and the hooks Psych and Marshal call by name
+    to dump and load an object: `encode_with`, `init_with`, `marshal_dump`,
+    `marshal_load`, `_dump`; `Protocols`) and the callbacks a dispatcher
     names (RuboCop's and Prism's `on_*`; `AllowedPatterns`) are not counted.
     Rails controllers, whose actions are routes, mailers, helpers and views
     are not judged. Off by default: config/strict.yml turns it on.
@@ -1178,16 +1180,21 @@ Kata/PublicSurface:
     - ">="
     - "[]"
     - "[]="
+    - _dump
     - as_json
     - call
     - coerce
     - each
+    - encode_with
     - eql?
     - equal?
     - hash
+    - init_with
     - initialize
     - initialize_copy
     - inspect
+    - marshal_dump
+    - marshal_load
     - method_missing
     - respond_to_missing?
     - to_a
@@ -1737,7 +1744,10 @@ Kata/NoOutputArgument:
     is a fresh collection, and a parameter reassigned first (`list =
     list.dup`) is a copy. `AllowedNames` holds the parameters that are sinks
     by convention, written to rather than returned (`io`, `out`, `buffer`),
-    and `env`, which Rack and Faraday middleware is contracted to change.
+    and `env`, which Rack and Faraday middleware is contracted to change;
+    `AllowedMethods` holds the serialization hooks whose argument the
+    protocol hands in to be filled or read (Psych's `encode_with(coder)`
+    fills the coder it dumps; `init_with`, `marshal_load`).
     `delete` given a character set (`text.delete("$,.")`, `"a-z"`) is
     `String#delete`, which returns a copy.
   Enabled: true
@@ -1748,6 +1758,10 @@ Kata/NoOutputArgument:
     - "**/*_spec.rb"
     - "**/*_test.rb"
     - "**/*.jbuilder"
+  AllowedMethods:
+    - encode_with
+    - init_with
+    - marshal_load
   AllowedNames:
     - buffer
     - env

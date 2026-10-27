@@ -253,6 +253,13 @@
     forward inside an object's own `send` (strong_migrations'
     `WrappedConnection#send`, which Rails' schema dumper calls with private
     names) is the protocol it overrides, and passes.
+  - The hooks Psych and Marshal call by name to dump and load an object
+    (`encode_with`, `init_with`, `marshal_dump`, `marshal_load`, `_dump`)
+    are protocol, not interface: `Kata/PublicSurface` no longer counts them
+    (hashie's `Clash` "exposed 5 public methods", three of its own), and
+    `Kata/NoOutputArgument` leaves the argument such a hook is handed
+    (`AllowedMethods`): Psych hands `encode_with` the coder to fill, so
+    "return a new value" breaks `YAML.dump`.
 - A strict Elegant Objects profile, `config/strict.yml`, for a project that
   wants the whole of Elegant Objects (`inherit_gem: { rubocop-kata:
   config/strict.yml }` beside `plugins: [rubocop-kata]`). The rules the V1
