@@ -3,8 +3,9 @@
 RSpec.describe(RuboCop::Cop::Kata::IoDiscipline, :config) do
   let(:ruby_version) { 3.4 }
   let(:cop_config) do
-    YAML.load_file("config/default.yml", aliases: true).fetch("Kata/IoDiscipline").merge("OwnedPaths" => [])
+    shipped.merge("OwnedPaths" => [], "CheckEffects" => true)
   end
+  let(:shipped) { YAML.load_file("config/default.yml", aliases: true).fetch("Kata/IoDiscipline") }
 
   def fixed(call, noun)
     "`#{call}` reaches a #{noun} written into the code: hidden I/O. " \
@@ -323,6 +324,27 @@ RSpec.describe(RuboCop::Cop::Kata::IoDiscipline, :config) do
         "lib/cli/options.rb" => "module Cli\n  class Options\n    def read = File.read(\"x\")\n  end\nend\n"
       }
       expect(project_offenses(files, "lib/cli/options.rb")).to(be_empty)
+    end
+  end
+
+  context "without CheckEffects, as kata ships it" do
+    let(:cop_config) { shipped.merge("OwnedPaths" => []) }
+
+    it "reads the bare terminal writers only" do
+      expect_offense(<<~RUBY)
+        class Report
+          def show
+            puts "report"
+            ^^^^^^^^^^^^^ Inject the stream `puts` writes to (`def initialize(io: $stdout)`) and write through it.
+            print "report"
+            printf("%d", 1)
+            $stdout.puts "report"
+            File.write("log/audit.log", "report")
+            Rails.logger.info("report")
+            `git rev-parse HEAD`
+          end
+        end
+      RUBY
     end
   end
 

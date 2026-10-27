@@ -2,7 +2,9 @@
 
 RSpec.describe(RuboCop::Cop::Kata::FailFast, :config) do
   let(:ruby_version) { 3.4 }
-  let(:cop_config) { YAML.load_file("config/default.yml", aliases: true).fetch("Kata/FailFast") }
+  let(:cop_config) do
+    YAML.load_file("config/default.yml", aliases: true).fetch("Kata/FailFast").merge("Enabled" => true)
+  end
 
   def swallow(value)
     "This `rescue` swallows the error and answers `#{value}` instead: let it raise (fail fast), or rescue " \

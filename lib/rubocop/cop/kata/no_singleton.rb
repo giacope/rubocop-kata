@@ -27,12 +27,14 @@ class RuboCop::Cop::Kata::NoSingleton < RuboCop::Cop::Base
 
   def on_send(node)
     return add_offense(node, message: MIXIN) if singleton?(node)
+    return unless globals?
     return add_offense(node, message: format(SETTING, named(node))) if setting?(node)
     add_offense(node, message: format(THREAD, slot(node))) if shared?(node) && !seam?(node)
   end
 
   def on_class(node)
-    add_offense(node.parent_class, message: format(CURRENT, node.identifier.source)) if current?(node.parent_class)
+    return unless globals? && current?(node.parent_class)
+    add_offense(node.parent_class, message: format(CURRENT, node.identifier.source))
   end
 
   def on_ivasgn(node)
@@ -44,6 +46,8 @@ class RuboCop::Cop::Kata::NoSingleton < RuboCop::Cop::Base
   def on_cvasgn(node) = check(node)
 
   private
+
+  def globals? = cop_config["CheckGlobals"]
 
   def named(node) = "#{node.method_name} #{node.first_argument&.source}#{", …" if node.arguments.size > 1}"
 

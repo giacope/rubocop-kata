@@ -1,0 +1,89 @@
+# The strict Elegant Objects profile. kata ships the rules below off, so a
+# `bundle update` changes no verdict a project has; a project that wants the
+# whole of Elegant Objects inherits this file on top of the plugin:
+#
+#   plugins:
+#     - rubocop-kata
+#
+#   inherit_gem:
+#     rubocop-kata: config/strict.yml
+#
+# It switches on every house cop kata ships off and every stricter reading of
+# a cop kata ships on, and switches off the cops a strict one replaces, so no
+# rescue, nil or reflection is reported twice. A project can still turn any
+# one of them back off in its own .rubocop.yml.
+
+# No hidden effects: files, the network, the shell, global streams and
+# services; randomness; the framework's configuration; the framework's
+# global state; a resource released by hand; a swallowed error.
+Kata/IoDiscipline:
+  CheckEffects: true
+
+Kata/ClockDiscipline:
+  CheckRandomness: true
+
+Kata/EnvDiscipline:
+  CheckSettings: true
+
+Kata/NoSingleton:
+  CheckGlobals: true
+
+Kata/ScopedResource:
+  Enabled: true
+
+Kata/FailFast:
+  Enabled: true
+
+# Kata/FailFast reports every rescue these two report, with advice that does
+# not swallow: Lint/SuppressedException passes `rescue; nil` and a commented
+# empty rescue, and Style/RescueModifier's correction (`begin ... rescue 0
+# end`) still answers 0 for every StandardError.
+Lint/SuppressedException:
+  Enabled: false
+
+Style/RescueModifier:
+  Enabled: false
+
+# Objects: one primary constructor, no NULL in or out, injected
+# collaborators, no getters or data bags, few fields, a short public
+# interface, no public constants as shared values, no reflection, and
+# command-query separation for every method.
+Kata/ConstructorDiscipline:
+  CheckPaths: true
+
+Kata/CommandQuery:
+  CheckEveryQuery: true
+
+Kata/NoNilArgument:
+  Enabled: true
+
+Kata/NoNilReturn:
+  Enabled: true
+
+# Kata/NoNilReturn reports the literal nil this one sees, and the nil a
+# lookup or a missing branch passes on.
+Elegant/NoNilReturn:
+  Enabled: false
+
+Kata/NoHardWiring:
+  Enabled: true
+
+Kata/NoGetter:
+  Enabled: true
+
+Kata/FieldCount:
+  Enabled: true
+
+Kata/PublicSurface:
+  Enabled: true
+
+Kata/NoPublicConstant:
+  Enabled: true
+
+Kata/NoReflection:
+  Enabled: true
+
+# Kata/NoReflection reports the `send` this one does, and its advice does not
+# keep the reflection (`__send__`, `public_send`).
+Style/Send:
+  Enabled: false

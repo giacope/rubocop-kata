@@ -3,7 +3,7 @@
 RSpec.describe(RuboCop::Cop::Kata::NoSingleton, :config) do
   let(:ruby_version) { 3.4 }
 
-  let(:cop_config) { { "AllowedConstructors" => %w[Set Struct] } }
+  let(:cop_config) { { "AllowedConstructors" => %w[Set Struct], "CheckGlobals" => true } }
 
   it "flags the Singleton mixin" do
     expect_offense(<<~RUBY)
@@ -193,5 +193,20 @@ RSpec.describe(RuboCop::Cop::Kata::NoSingleton, :config) do
         config.mattr_accessor(:visit)
       end
     RUBY
+  end
+
+  context "without CheckGlobals, as kata ships it" do
+    let(:cop_config) { { "AllowedConstructors" => %w[Set Struct] } }
+
+    it "reads the Singleton mixin and class-level instance caches only" do
+      expect_offense(<<~RUBY)
+        class Current < ActiveSupport::CurrentAttributes
+          include Singleton
+          ^^^^^^^^^^^^^^^^^ `include Singleton` makes one global instance; build the object where it is needed and pass it in.
+          mattr_accessor :user
+          def user = Thread.current[:user]
+        end
+      RUBY
+    end
   end
 end

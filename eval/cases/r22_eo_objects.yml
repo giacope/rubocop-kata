@@ -1,8 +1,10 @@
 # The V1 conformance cases (round 6) for the object principles of Elegant
 # Objects: each principle's minimal and realistic violation is flagged, and its
-# EO form is clean.
+# EO form is clean. A case marked `strict` runs under config/strict.yml, which
+# turns on the rules kata ships off; the others run under the shipped defaults.
 - id: v1-p19-violation-min-no-nil-argument
   cop: Kata/NoNilArgument
+  strict: true
   expect: offense
   source: |
     # frozen_string_literal: true
@@ -21,6 +23,7 @@
     end
 - id: v1-p19-violation-real-no-nil-argument
   cop: Kata/NoNilArgument
+  strict: true
   expect: offense
   source: |
     # frozen_string_literal: true
@@ -44,6 +47,7 @@
     end
 - id: v1-p19-compliant-no-nil-argument
   cop: Kata/NoNilArgument
+  strict: true
   expect: clean
   source: |
     # frozen_string_literal: true
@@ -66,6 +70,7 @@
     end
 - id: v1-p24-violation-min-no-nil-return
   cop: Kata/NoNilReturn
+  strict: true
   expect: offense
   source: |
     # frozen_string_literal: true
@@ -84,6 +89,7 @@
     end
 - id: v1-p24-violation-real-no-nil-return
   cop: Kata/NoNilReturn
+  strict: true
   expect: offense
   source: |
     # frozen_string_literal: true
@@ -117,6 +123,7 @@
     end
 - id: v1-p24-compliant-no-nil-return
   cop: Kata/NoNilReturn
+  strict: true
   expect: clean
   source: |
     # frozen_string_literal: true
@@ -134,6 +141,7 @@
     end
 - id: v1-p24-compliant-alt-no-nil-return
   cop: Kata/NoNilReturn
+  strict: true
   expect: clean
   source: |
     # frozen_string_literal: true
@@ -168,6 +176,7 @@
     end
 - id: v1-p05-violation-min-no-hard-wiring
   cop: Kata/NoHardWiring
+  strict: true
   expect: offense
   source: |
     # frozen_string_literal: true
@@ -197,6 +206,7 @@
     end
 - id: v1-p05-violation-real-no-hard-wiring
   cop: Kata/NoHardWiring
+  strict: true
   expect: offense
   source: |
     # frozen_string_literal: true
@@ -239,6 +249,7 @@
     end
 - id: v1-p05-compliant-no-hard-wiring
   cop: Kata/NoHardWiring
+  strict: true
   expect: clean
   source: |
     # frozen_string_literal: true
@@ -258,6 +269,7 @@
     end
 - id: v1-p05-compliant-alt-no-hard-wiring
   cop: Kata/NoHardWiring
+  strict: true
   expect: clean
   source: |
     # frozen_string_literal: true
@@ -288,6 +300,7 @@
     end
 - id: v1-p07-violation-min-command-query
   cop: Kata/CommandQuery
+  strict: true
   expect: offense
   source: |
     # frozen_string_literal: true
@@ -306,6 +319,7 @@
     end
 - id: v1-p07-violation-real-command-query
   cop: Kata/CommandQuery
+  strict: true
   expect: offense
   source: |
     # frozen_string_literal: true
@@ -330,6 +344,7 @@
     end
 - id: v1-p07-compliant-command-query
   cop: Kata/CommandQuery
+  strict: true
   expect: clean
   source: |
     # frozen_string_literal: true
@@ -351,6 +366,7 @@
     end
 - id: v1-p20-violation-min-no-getter
   cop: Kata/NoGetter
+  strict: true
   expect: offense
   source: |
     # frozen_string_literal: true
@@ -370,6 +386,7 @@
     end
 - id: v1-p20-violation-real-no-getter
   cop: Kata/NoGetter
+  strict: true
   expect: offense
   source: |
     # frozen_string_literal: true
@@ -403,6 +420,7 @@
     end
 - id: v1-p20-compliant-no-getter
   cop: Kata/NoGetter
+  strict: true
   expect: clean
   source: |
     # frozen_string_literal: true
@@ -426,6 +444,7 @@
     end
 - id: v1-p20-compliant-alt-no-getter
   cop: Kata/NoGetter
+  strict: true
   expect: clean
   source: |
     # frozen_string_literal: true
@@ -461,6 +480,7 @@
     end
 - id: v1-p28-violation-min-no-getter
   cop: Kata/NoGetter
+  strict: true
   expect: offense
   source: |
     # frozen_string_literal: true
@@ -477,6 +497,7 @@
     end
 - id: v1-p28-violation-real-no-getter
   cop: Kata/NoGetter
+  strict: true
   expect: offense
   source: |
     # frozen_string_literal: true
@@ -514,6 +535,7 @@
     end
 - id: v1-p28-compliant-no-getter
   cop: Kata/NoGetter
+  strict: true
   expect: clean
   source: |
     # frozen_string_literal: true
@@ -547,6 +569,7 @@
     end
 - id: v1-p04-violation-min-field-count
   cop: Kata/FieldCount
+  strict: true
   expect: offense
   source: |
     # frozen_string_literal: true
@@ -568,6 +591,7 @@
     end
 - id: v1-p04-violation-real-field-count
   cop: Kata/FieldCount
+  strict: true
   expect: offense
   source: |
     # frozen_string_literal: true
@@ -589,6 +613,7 @@
     end
 - id: v1-p04-compliant-field-count
   cop: Kata/FieldCount
+  strict: true
   expect: clean
   source: |
     # frozen_string_literal: true
@@ -621,6 +646,7 @@
     end
 - id: v1-p14-violation-min-public-surface
   cop: Kata/PublicSurface
+  strict: true
   expect: offense
   source: |
     # frozen_string_literal: true
@@ -659,6 +685,7 @@
     end
 - id: v1-p14-violation-real-public-surface
   cop: Kata/PublicSurface
+  strict: true
   expect: offense
   source: |
     # frozen_string_literal: true
@@ -707,6 +734,7 @@
     end
 - id: v1-p14-compliant-public-surface
   cop: Kata/PublicSurface
+  strict: true
   expect: clean
   source: |
     # frozen_string_literal: true
@@ -753,6 +781,7 @@
     end
 - id: v1-p09-violation-min-no-public-constant
   cop: Kata/NoPublicConstant
+  strict: true
   expect: offense
   source: |
     # frozen_string_literal: true
@@ -784,6 +813,7 @@
     end
 - id: v1-p09-violation-real-no-public-constant
   cop: Kata/NoPublicConstant
+  strict: true
   expect: offense
   source: |
     # frozen_string_literal: true
@@ -829,6 +859,7 @@
     end
 - id: v1-p09-compliant-no-public-constant
   cop: Kata/NoPublicConstant
+  strict: true
   expect: clean
   source: |
     # frozen_string_literal: true
@@ -861,6 +892,7 @@
     end
 - id: v1-p23-violation-min-no-reflection
   cop: Kata/NoReflection
+  strict: true
   expect: offense
   source: |
     # frozen_string_literal: true
@@ -878,6 +910,7 @@
     end
 - id: v1-p23-violation-real-no-reflection
   cop: Kata/NoReflection
+  strict: true
   expect: offense
   source: |
     # frozen_string_literal: true
@@ -904,6 +937,7 @@
     end
 - id: v1-p23-compliant-no-reflection
   cop: Kata/NoReflection
+  strict: true
   expect: clean
   source: |
     # frozen_string_literal: true
@@ -925,6 +959,7 @@
     end
 - id: v1-p02-violation-min-constructor-discipline
   cop: Kata/ConstructorDiscipline
+  strict: true
   expect: offense
   source: |
     # frozen_string_literal: true
@@ -947,6 +982,7 @@
     end
 - id: v1-p02-violation-real-constructor-discipline
   cop: Kata/ConstructorDiscipline
+  strict: true
   expect: offense
   source: |
     # frozen_string_literal: true
@@ -977,6 +1013,7 @@
     end
 - id: v1-p02-compliant-constructor-discipline
   cop: Kata/ConstructorDiscipline
+  strict: true
   expect: clean
   source: |
     # frozen_string_literal: true

@@ -2,6 +2,7 @@
 
 RSpec.describe(RuboCop::Cop::Kata::CommandQuery, :config) do
   let(:ruby_version) { 3.4 }
+  let(:cop_config) { { "CheckEveryQuery" => true } }
 
   it "flags a query that assigns state" do
     expect_offense(<<~RUBY)
@@ -202,6 +203,26 @@ RSpec.describe(RuboCop::Cop::Kata::CommandQuery, :config) do
         def plain = @rows.size
         def single
           @rows.size
+        end
+      RUBY
+    end
+  end
+
+  context "without CheckEveryQuery, as kata ships it" do
+    let(:cop_config) { {} }
+
+    it "judges the `?` methods only, by the state they change" do
+      expect_offense(<<~RUBY)
+        def empty?
+          @audit.record("asked")
+          @count = 1
+          ^^^^^^^^^^ `empty?` asks a question and changes state with `@count =`; a query answers, a command acts.
+          @items.empty?
+        end
+
+        def balance
+          @audit.record("balance read")
+          @entries.sum
         end
       RUBY
     end

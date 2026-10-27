@@ -2,6 +2,7 @@
 
 RSpec.describe(RuboCop::Cop::Kata::ClockDiscipline, :config) do
   let(:ruby_version) { 3.4 }
+  let(:cop_config) { { "CheckRandomness" => true } }
 
   it "flags reads of the ambient clock" do
     expect_offense(<<~RUBY)
@@ -166,10 +167,26 @@ RSpec.describe(RuboCop::Cop::Kata::ClockDiscipline, :config) do
     RUBY
   end
 
+  context "without CheckRandomness, as kata ships it" do
+    let(:cop_config) { {} }
+
+    it "reads the clock only" do
+      expect_offense(<<~RUBY)
+        def number
+          Time.now
+          ^^^^^^^^ Inject a clock; `Time.now` reads the ambient time.
+          SecureRandom.hex(4)
+          rand(10)
+          @names.sample
+        end
+      RUBY
+    end
+  end
+
   context "with the project's files" do
     include ProjectFiles
 
-    let(:setting) { { "Kata/ClockDiscipline" => { "OwnedPaths" => ["lib/**/*.rb"] } } }
+    let(:setting) { { "Kata/ClockDiscipline" => cop_config.merge("OwnedPaths" => ["lib/**/*.rb"]) } }
 
     it "leaves a rand and a module's draw the project defines in another file" do
       files = {

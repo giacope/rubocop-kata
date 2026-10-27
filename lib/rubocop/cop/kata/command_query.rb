@@ -16,7 +16,7 @@ class RuboCop::Cop::Kata::CommandQuery < RuboCop::Cop::Base
     body = node.body
     return unless body
     return judge(node, body, MSG) if node.predicate_method?
-    judge(node, body, VALUE) if answers?(node, body)
+    judge(node, body, VALUE) if every? && answers?(node, body)
   end
 
   alias on_defs on_def
@@ -40,8 +40,10 @@ class RuboCop::Cop::Kata::CommandQuery < RuboCop::Cop::Base
     !(CONSTRUCTORS.include?(name) || name.end_with?("!", "=")) && value?(tail(body))
   end
 
+  def every? = cop_config["CheckEveryQuery"]
+
   def discarded(body)
-    return [] unless body.begin_type?
+    return [] unless every? && body.begin_type?
     body.children[0...-1].flat_map { statements(it) }
   end
 

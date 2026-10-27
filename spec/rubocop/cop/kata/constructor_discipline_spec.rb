@@ -69,7 +69,6 @@ RSpec.describe(RuboCop::Cop::Kata::ConstructorDiscipline, :config) do
     expect_offense(<<~RUBY)
       def initialize(name)
         if name.empty?
-        ^^ `initialize` picks a way to build itself from `name`: several constructors in one. Keep one primary constructor, and give each other way a class method that calls `new`.
            ^^^^^^^^^^^ A constructor assigns; it does not compute. Move `empty?`, `ready?` and `done?` out of `initialize`.
           raise ArgumentError
         else
@@ -195,7 +194,6 @@ RSpec.describe(RuboCop::Cop::Kata::ConstructorDiscipline, :config) do
         def initialize(path)
           UI.important("missing") unless path
           ^^^^^^^^^^^^^^^^^^^^^^^ A constructor assigns; it does not compute. Move `important` out of `initialize`.
-                                  ^^^^^^ `initialize` picks a way to build itself from `path`: several constructors in one. Keep one primary constructor, and give each other way a class method that calls `new`.
           @path = path
         end
       RUBY
@@ -247,7 +245,7 @@ RSpec.describe(RuboCop::Cop::Kata::ConstructorDiscipline, :config) do
 
   context "with several ways to build" do
     let(:ruby_version) { 3.4 }
-    let(:cop_config) { { "RaisingMethods" => %w[raise] } }
+    let(:cop_config) { { "RaisingMethods" => %w[raise], "CheckPaths" => true } }
     let(:paths) { "several constructors in one. #{primary}" }
     let(:primary) { "Keep one primary constructor, and give each other way a class method that calls `new`." }
 
@@ -313,6 +311,22 @@ RSpec.describe(RuboCop::Cop::Kata::ConstructorDiscipline, :config) do
           def own = allocate
         end
         allocate
+      RUBY
+    end
+
+    it "reads one way to build without CheckPaths, as kata ships it" do
+      cop_config.delete("CheckPaths")
+      expect_no_offenses(<<~RUBY)
+        class Money
+          def initialize(cents, formatted: false)
+            @cents = formatted ? cents : cents
+            if formatted
+              @label = cents
+            end
+          end
+
+          def self.load(row) = allocate
+        end
       RUBY
     end
   end

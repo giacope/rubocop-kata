@@ -2,7 +2,9 @@
 # hides: I/O, the clock and randomness, configuration, swallowed errors, global
 # state reached through the framework, and resources released by hand. Each
 # principle's violating spellings are flagged by the rule that owns it, and its
-# compliant version stays clean.
+# compliant version stays clean. A case marked `strict` runs under
+# config/strict.yml, which turns on the rules kata ships off; the others run
+# under the shipped defaults.
 - id: p33-hidden-output-puts
   cop: Kata/IoDiscipline
   expect: offense
@@ -23,6 +25,7 @@
     end
 - id: p33-hidden-io-file-log-webhook
   cop: Kata/IoDiscipline
+  strict: true
   expect: offense
   path: lib/shop/audit.rb
   source: |
@@ -45,6 +48,7 @@
     end
 - id: p33-io-through-an-injected-stream
   cop: Kata/IoDiscipline
+  strict: true
   expect: clean
   path: lib/shop/audit.rb
   source: |
@@ -64,6 +68,7 @@
     end
 - id: p33-file-write-to-a-literal-path-alone
   cop: Kata/IoDiscipline
+  strict: true
   expect: offense
   source: |
     # frozen_string_literal: true
@@ -79,6 +84,7 @@
     end
 - id: p33-rails-logger-alone
   cop: Kata/IoDiscipline
+  strict: true
   expect: offense
   source: |
     # frozen_string_literal: true
@@ -97,6 +103,7 @@
     end
 - id: p33-adapter-writing-an-injected-path
   cop: Kata/IoDiscipline
+  strict: true
   expect: clean
   source: |
     # frozen_string_literal: true
@@ -130,6 +137,7 @@
     end
 - id: p34-ambient-clock-and-randomness
   cop: Kata/ClockDiscipline
+  strict: true
   expect: offense
   path: lib/shop/invoice.rb
   source: |
@@ -158,6 +166,7 @@
     end
 - id: p34-injected-clock-and-serial
   cop: Kata/ClockDiscipline
+  strict: true
   expect: clean
   path: lib/shop/invoice.rb
   source: |
@@ -182,6 +191,7 @@
     end
 - id: p34-securerandom-alone
   cop: Kata/ClockDiscipline
+  strict: true
   expect: offense
   source: |
     # frozen_string_literal: true
@@ -197,6 +207,7 @@
     end
 - id: p34-draw-with-an-injected-generator
   cop: Kata/ClockDiscipline
+  strict: true
   expect: clean
   source: |
     # frozen_string_literal: true
@@ -231,6 +242,7 @@
     end
 - id: p35-env-credentials-and-configuration
   cop: Kata/EnvDiscipline
+  strict: true
   expect: offense
   path: lib/shop/mailbox.rb
   source: |
@@ -257,6 +269,7 @@
     end
 - id: p35-configuration-passed-in
   cop: Kata/EnvDiscipline
+  strict: true
   expect: clean
   path: lib/shop/mailbox.rb
   source: |
@@ -276,6 +289,7 @@
     end
 - id: p35-credentials-alone
   cop: Kata/EnvDiscipline
+  strict: true
   expect: offense
   source: |
     # frozen_string_literal: true
@@ -291,6 +305,7 @@
     end
 - id: p25-empty-rescue
   cop: Kata/FailFast
+  strict: true
   expect: offense
   path: lib/shop/rates.rb
   source: |
@@ -312,6 +327,7 @@
     end
 - id: p25-logged-default-and-modifier
   cop: Kata/FailFast
+  strict: true
   expect: offense
   path: lib/shop/rates.rb
   source: |
@@ -340,6 +356,7 @@
     end
 - id: p25-errors-raise
   cop: Kata/FailFast
+  strict: true
   expect: clean
   path: lib/shop/rates.rb
   source: |
@@ -364,6 +381,7 @@
     end
 - id: p25-modifier-answering-zero-alone
   cop: Kata/FailFast
+  strict: true
   expect: offense
   source: |
     # frozen_string_literal: true
@@ -379,6 +397,7 @@
     end
 - id: p25-null-object-for-the-expected-error
   cop: Kata/FailFast
+  strict: true
   expect: clean
   source: |
     # frozen_string_literal: true
@@ -420,6 +439,7 @@
     end
 - id: p17-current-attributes
   cop: Kata/NoSingleton
+  strict: true
   expect: offense
   path: lib/shop/current.rb
   source: |
@@ -432,6 +452,7 @@
     end
 - id: p17-entries-passed-in
   cop: Kata/NoSingleton
+  strict: true
   expect: clean
   path: lib/shop/ledger.rb
   source: |
@@ -451,6 +472,7 @@
     end
 - id: p17-thread-current-alone
   cop: Kata/NoSingleton
+  strict: true
   expect: offense
   source: |
     # frozen_string_literal: true
@@ -466,6 +488,7 @@
     end
 - id: p27-lock-released-by-hand
   cop: Kata/ScopedResource
+  strict: true
   expect: offense
   path: lib/shop/archive.rb
   source: |
@@ -489,6 +512,7 @@
     end
 - id: p27-lock-and-file-held-for-a-block
   cop: Kata/ScopedResource
+  strict: true
   expect: clean
   path: lib/shop/archive.rb
   source: |
@@ -508,6 +532,7 @@
     end
 - id: p27-socket-closed-by-hand
   cop: Kata/ScopedResource
+  strict: true
   expect: offense
   source: |
     # frozen_string_literal: true

@@ -33,11 +33,15 @@ class RuboCop::Cop::Kata::ClockDiscipline < RuboCop::Cop::Base
   def on_send(node)
     return if seam?(node)
     return add_offense(node, message: format(MSG, node.source)) if ambient?(node)
-    return add_offense(node, message: format(RANDOM_MSG, label(node))) if random?(node) || bare?(node)
-    draw?(node) { |held, name| add_offense(node, message: format(DRAW_MSG, name)) unless seeded?(node) || own?(held) }
+    judge(node) if cop_config["CheckRandomness"]
   end
 
   private
+
+  def judge(node)
+    return add_offense(node, message: format(RANDOM_MSG, label(node))) if random?(node) || bare?(node)
+    draw?(node) { |held, name| add_offense(node, message: format(DRAW_MSG, name)) unless seeded?(node) || own?(held) }
+  end
 
   def label(node) = [node.receiver&.source, node.method_name].compact.join(".")
 

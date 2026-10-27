@@ -13,6 +13,7 @@ class RuboCop::Cop::Kata::IoDiscipline < RuboCop::Cop::Base
     "is hidden I/O."
   STREAMS = %i[@io @out @output @stdout @stderr @stream @err @error].freeze
   ELEMENTS = %i[p print printf].freeze
+  PRINTS = %i[print printf].freeze
   SEAMS = %i[ivar lvar self].freeze
   COMMAND = "command"
   PLACES = %i[base chdir].freeze
@@ -21,18 +22,20 @@ class RuboCop::Cop::Kata::IoDiscipline < RuboCop::Cop::Base
 
   def on_send(node)
     bare_output?(node) do |method|
-      return add_offense(node, message: message(node, method)) unless element?(node) || seam?(node)
+      return add_offense(node, message: message(node, method)) unless element?(node) || seam?(node) || quiet?(method)
     end
+    return unless effects?
     global(node, "#{node.receiver&.const_name}.#{node.method_name}")
     effect(node)
   end
 
-  def on_gvar(node) = global(node, node.source)
+  def on_gvar(node) = effects? && global(node, node.source)
 
-  def on_const(node) = global(node, node.const_name)
+  def on_const(node) = effects? && global(node, node.const_name)
 
   def on_xstr(node)
-    reach(node, "%x(#{node.each_child_node(:str).first&.value.to_s[/\S+/]})", COMMAND, node.children) unless seam?(node)
+    return unless effects? && !seam?(node)
+    reach(node, "%x(#{node.each_child_node(:str).first&.value.to_s[/\S+/]})", COMMAND, node.children)
   end
 
   private
@@ -47,6 +50,10 @@ class RuboCop::Cop::Kata::IoDiscipline < RuboCop::Cop::Base
     scope = node.each_ancestor(:class, :module).first
     scope ? scope.each_descendant(:ivasgn).map { it.children.first }.find { STREAMS.include?(it) } : nil
   end
+
+  def effects? = cop_config["CheckEffects"]
+
+  def quiet?(method) = PRINTS.include?(method) && !effects?
 
   def element?(node) = ELEMENTS.include?(node.method_name) && (!node.arguments? || !node.block_node.nil?)
 

@@ -18,15 +18,17 @@ class RuboCop::Cop::Kata::ConstructorDiscipline < RuboCop::Cop::Base
   def on_def(node)
     return unless node.method?(:initialize) && node.body
     computed(node)
-    paths(node)
+    paths(node) if paths?
   end
 
   def on_send(node)
-    return unless node.receiver.nil? || node.receiver.self_type?
+    return unless paths? && (node.receiver.nil? || node.receiver.self_type?)
     add_offense(node, message: BYPASS) if node.each_ancestor(:defs, :sclass).any?
   end
 
   private
+
+  def paths? = cop_config["CheckPaths"]
 
   def computed(node)
     moved = node.body.each_node(:send, :csend).reject { allowed?(it) || exempt?(it, node) || typing?(it) }

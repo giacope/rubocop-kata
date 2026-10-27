@@ -13,7 +13,12 @@ class RuboCop::Cop::Kata::EnvDiscipline < RuboCop::Cop::Base
 
   def on_send(node)
     name = "#{node.receiver&.source&.delete_prefix("::")}.#{node.method_name}"
-    return unless listed?("Settings", name) && !seam?(node) && !node.parent&.defined_type?
-    add_offense(node, message: format(MSG, name))
+    add_offense(node, message: format(MSG, name)) if setting?(node, name)
+  end
+
+  private
+
+  def setting?(node, name)
+    cop_config["CheckSettings"] && listed?("Settings", name) && !seam?(node) && !node.parent&.defined_type?
   end
 end

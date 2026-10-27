@@ -18,7 +18,7 @@ RSpec.describe(RuboCop::Kata::Checkup) do
   end
 
   let(:switched_off) do
-    ".rubocop.yml:5: `DisabledByDefault: true` leaves 35 of kata's 36 cops off: RuboCop runs only the cops the " \
+    ".rubocop.yml:5: `DisabledByDefault: true` leaves 25 of kata's 26 cops off: RuboCop runs only the cops the " \
       "project's files enable by name; enable each by name (`Kata/GoodMethodName:` with `Enabled: true`), or drop " \
       "the key.\n1 dead entry\n"
   end
@@ -236,7 +236,7 @@ RSpec.describe(RuboCop::Kata::Checkup) do
 
   it "names the configuration file when it cannot point at the line that sets DisabledByDefault" do
     project("AllCops: { DisabledByDefault: true }\n") do |root|
-      expect(report(root).first).to(start_with(".rubocop.yml: `DisabledByDefault: true` leaves 36 of kata's 36 cops"))
+      expect(report(root).first).to(start_with(".rubocop.yml: `DisabledByDefault: true` leaves 26 of kata's 26 cops"))
     end
   end
 

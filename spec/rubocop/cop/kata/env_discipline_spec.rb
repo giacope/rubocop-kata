@@ -61,7 +61,19 @@ RSpec.describe(RuboCop::Cop::Kata::EnvDiscipline, :config) do
   end
 
   context "with the shipped Settings" do
-    let(:cop_config) { YAML.load_file("config/default.yml", aliases: true).fetch("Kata/EnvDiscipline") }
+    let(:cop_config) { shipped.merge("CheckSettings" => true) }
+    let(:shipped) { YAML.load_file("config/default.yml", aliases: true).fetch("Kata/EnvDiscipline") }
+
+    it "reads ENV only without CheckSettings, as kata ships it" do
+      cop_config.replace(shipped)
+      expect_offense(<<~RUBY)
+        class Mailbox
+          def secret = Rails.application.credentials.dig(:smtp, :password)
+          def live? = ENV.fetch("LIVE")
+                      ^^^ `ENV` belongs in the boot layer; pass configuration in.
+        end
+      RUBY
+    end
 
     # The V1 conformance case P35: a mailbox reading credentials and configuration in its methods.
     it "flags the application's configuration read in a method" do

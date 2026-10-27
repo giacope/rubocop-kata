@@ -139,6 +139,39 @@ RSpec.describe(RuboCop::Kata::Plugin) do
     expect(listed).to(eq(%w[Gemfile lib/shelf.rb]))
   end
 
+  # config/strict.yml: the strict Elegant Objects profile a project inherits on top of the plugin.
+  it "switches on exactly the rules it ships off, and the cops they replace off, under the strict profile" do
+    plain = settings("")
+    strict = settings("inherit_gem:\n  rubocop-kata: config/strict.yml\n")
+    changed = strict.to_h { |name, values| [name, values.reject { |key, value| plain.dig(name, key) == value }] }
+    expect(changed.reject { |_, values| values.empty? }).to(eq(strict_profile))
+  end
+
+  def settings(extra)
+    Dir.mktmpdir("kata-config") do |root|
+      File.write(File.join(root, ".rubocop.yml"), "plugins:\n  - rubocop-kata\n#{extra}")
+      config = RuboCop::ConfigStore.new.for_dir(root)
+      RuboCop::Cop::Registry.global.names.to_h { [it, config.for_cop(it)] }
+    end
+  end
+
+  def strict_profile
+    added = %w[
+      FailFast ScopedResource NoNilArgument NoNilReturn NoHardWiring NoGetter FieldCount PublicSurface
+      NoPublicConstant NoReflection
+    ]
+    readings = {
+      "IoDiscipline" => "CheckEffects", "ClockDiscipline" => "CheckRandomness", "EnvDiscipline" => "CheckSettings",
+      "NoSingleton" => "CheckGlobals", "CommandQuery" => "CheckEveryQuery", "ConstructorDiscipline" => "CheckPaths"
+    }
+    replaced = %w[Lint/SuppressedException Style/RescueModifier Elegant/NoNilReturn Style/Send]
+    [
+      *added.map { ["Kata/#{it}", { "Enabled" => true }] },
+      *readings.map { |cop, key| ["Kata/#{cop}", { key => true }] },
+      *replaced.map { [it, { "Enabled" => false }] }
+    ].to_h
+  end
+
   def targets(files)
     Dir.mktmpdir("kata-config") do |root|
       files.each do |path, text|
