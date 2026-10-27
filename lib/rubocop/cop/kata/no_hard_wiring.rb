@@ -3,12 +3,11 @@
 class RuboCop::Cop::Kata::NoHardWiring < RuboCop::Cop::Base
   include RuboCop::Cop::Kata::Roster
   include RuboCop::Cop::Kata::Ownership
-  include RuboCop::Cop::Kata::Ancestry
+  include RuboCop::Cop::Kata::Assembly
 
-  SEAM = "take one in the constructor, with this `new` as the parameter's default."
-  MSG = "`%s` builds the `%s` it talks to; #{SEAM}".freeze
-  KEPT = "`%s` builds the `%s` it keeps in `%s`; #{SEAM}".freeze
-  HANDED = "`%s` builds the `%s` it hands to `%s`; #{SEAM}".freeze
+  MSG = "`%s` builds the `%s` it talks to; "
+  KEPT = "`%s` builds the `%s` it keeps in `%s`; "
+  HANDED = "`%s` builds the `%s` it hands to `%s`; "
   CONSTRUCTORS = %i[initialize initialize_copy].freeze
   CALLS = %i[send csend].freeze
   STORES = %i[ivasgn cvasgn gvasgn].freeze
@@ -24,7 +23,7 @@ class RuboCop::Cop::Kata::NoHardWiring < RuboCop::Cop::Base
     return unless method && candidate?(node, method)
     message, place = finding(node, method)
     return unless message
-    add_offense(node, message: format(message, method.method_name, node.receiver.const_name, place))
+    add_offense(node, message: format(message, method.method_name, node.receiver.const_name, place) + seam(method))
   end
 
   private
@@ -32,7 +31,7 @@ class RuboCop::Cop::Kata::NoHardWiring < RuboCop::Cop::Base
   def candidate?(node, method)
     return false unless instance?(method) && node.each_ancestor(:optarg, :kwoptarg).none?
     target = node.receiver
-    home = method.each_ancestor(:class, :module).first&.then { RuboCop::Kata::Nesting.new(it).qualified }.to_s
+    home = home(method)
     own?(target) && !owners(target).include?(home) && !root?(home)
   end
 
@@ -101,8 +100,6 @@ class RuboCop::Cop::Kata::NoHardWiring < RuboCop::Cop::Base
   end
 
   def iterated?(block, body) = block.any_block_type? && block.body.equal?(body) && ITERATORS.include?(block.method_name)
-
-  def root?(home) = project.ancestors(home).intersect?(list("RootSuperclasses"))
 
   def instance?(method)
     method.def_type? && !CONSTRUCTORS.include?(method.method_name) && method.each_ancestor(:sclass).none?

@@ -374,3 +374,64 @@
         end
       end
     end
+- id: r6b3-k5-model-gets-a-method-parameter-seam
+  cop: Kata/NoHardWiring
+  strict: true
+  expect: offense
+  absent:
+    - take one in the constructor
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Shelving
+        def initialize(tag)
+          @tag = tag
+        end
+
+        def count = 0
+      end
+
+      class Tag < ApplicationRecord
+        def shelving = @shelving ||= Shelving.new(self)
+      end
+    end
+- id: r6b3-k5-test-case-and-hooked-mixin-are-roots
+  cop: Kata/NoHardWiring
+  strict: true
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Tracker
+        def initialize(owner)
+          @owner = owner
+        end
+      end
+
+      class TrackerTest < Minitest::Test
+        def setup = @tracker = Tracker.new(nil)
+      end
+
+      module Tracking
+        def tracker = @tracker ||= Tracker.new(self)
+      end
+    end
+
+    ActiveSupport.on_load(:action_controller) { include Shelf::Tracking }
+- id: r6b3-k5-view-helper-is-a-root
+  cop: Kata/NoHardWiring
+  strict: true
+  expect: clean
+  path: app/helpers/shelf_helper.rb
+  source: |
+    # frozen_string_literal: true
+
+    class Parser
+      def paths(text) = text.lines
+    end
+
+    module ShelfHelper
+      def links?(step) = Parser.new.paths(step).any?
+    end

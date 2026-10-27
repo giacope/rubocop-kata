@@ -30,6 +30,8 @@ class RuboCop::Kata::Inventory
 
   def openings(name) = opened.fetch(name, [])
 
+  def hooks = @_hooks ||= texts.flat_map { RuboCop::Kata::Kinship.parse(it).hooks }
+
   def lineage
     @_lineage ||= texts.map { RuboCop::Kata::Lineage.parse(it) }.reduce(RuboCop::Kata::Lineage.new({}), :merge)
   end

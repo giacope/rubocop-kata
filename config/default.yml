@@ -1222,27 +1222,55 @@ Kata/NoHardWiring:
     submit(form)`, `Jar.new.tap { it.parse(text) }`), which is the call's own
     data, not a collaborator: injected, one instance would carry every call's
     contents. A message sent to a name before it was bound to the new object
-    goes to the name's earlier value. The class building itself passes too; class methods, constructors and the composition
-    roots a framework instantiates (controllers, jobs, mailers, rake tasks,
-    `bin/`, `config/`, and a subclass of one of the `RootSuperclasses`, which
-    the framework builds and so cannot be handed a collaborator) are where
-    objects are wired. Ruby's and other libraries' classes are values or
-    boundaries, and pass. Off by default: config/strict.yml turns it on.
+    goes to the name's earlier value. The class building itself passes too.
+    Class methods, constructors and the composition roots a framework
+    instantiates are where objects are wired: controllers, view helpers,
+    jobs, mailers, tests, rake tasks, `bin/`, `config/`, a subclass of one of
+    the `RootSuperclasses`, and a module a load hook in `RootHooks` mixes into
+    the framework's class (`ActiveSupport.on_load(:action_controller) {
+    include Tracking }`); the framework builds them, so they cannot be handed
+    a collaborator. A class under one of the `BuiltSuperclasses` (an
+    ActiveRecord or Mongoid model: a loaded record is allocated past
+    `initialize`) and a module have no constructor to take one in either, but
+    they are not roots: they are reported with the seam they have, a
+    parameter of the method with the `new` as its default, or the object
+    built where the model is used. Ruby's and other libraries' classes are
+    values or boundaries, and pass. Off by default: config/strict.yml turns
+    it on.
   Enabled: false
   VersionAdded: "0.11"
   RootSuperclasses:
     - ActionController::API
     - ActionController::Base
+    - ActionController::TestCase
+    - ActionDispatch::IntegrationTest
     - ActionMailer::Base
+    - ActionMailer::TestCase
+    - ActionView::TestCase
     - ActiveJob::Base
+    - ActiveJob::TestCase
+    - ActiveSupport::TestCase
     - ApplicationController
     - ApplicationJob
     - ApplicationMailer
+    - Minitest::Test
     - Rails::Generators::Base
     - Rails::Generators::NamedBase
     - RuboCop::Cop::Base
+    - Test::Unit::TestCase
     - Thor
     - Thor::Group
+  RootHooks:
+    - action_controller
+    - action_controller_api
+    - action_controller_base
+    - action_mailer
+    - action_view
+    - active_job
+  BuiltSuperclasses:
+    - ActiveRecord::Base
+    - ApplicationRecord
+    - Mongoid::Document
   OwnedPaths:
     - "app/**/*.rb"
     - "*/app/**/*.rb"
@@ -1255,6 +1283,8 @@ Kata/NoHardWiring:
     - "**/*_test.rb"
     - "app/controllers/**/*"
     - "*/app/controllers/**/*"
+    - "app/helpers/**/*"
+    - "*/app/helpers/**/*"
     - "app/jobs/**/*"
     - "*/app/jobs/**/*"
     - "app/mailers/**/*"

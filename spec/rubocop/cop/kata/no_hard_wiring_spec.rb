@@ -6,6 +6,11 @@ RSpec.describe(RuboCop::Cop::Kata::NoHardWiring, :config) do
 
   def seam = "take one in the constructor, with this `new` as the parameter's default."
 
+  def built(home, method)
+    "`#{home}` cannot take one in a constructor (a framework builds it past `initialize`, or it is mixed in): " \
+      "take one as a parameter of `#{method}`, with this `new` as its default, or build it where `#{home}` is used."
+  end
+
   it "flags a collaborator built to be talked to for its effects" do
     expect_offense(<<~RUBY, seam: seam)
       module Shop
@@ -352,16 +357,131 @@ RSpec.describe(RuboCop::Cop::Kata::NoHardWiring, :config) do
     RUBY
   end
 
-  it "judges a module's instance methods too" do
-    expect_offense(<<~RUBY)
+  it "judges a module's instance methods too, with the seam a module has" do
+    expect_offense(<<~RUBY, built: built("Billing", "charge"))
       class Gateway
       end
 
       module Billing
         def charge = Gateway.new.charge
-                     ^^^^^^^^^^^ `charge` builds the `Gateway` it talks to; take one in the constructor, with this `new` as the parameter's default.
+                     ^^^^^^^^^^^ `charge` builds the `Gateway` it talks to; %{built}
       end
     RUBY
+  end
+
+  # hashira's `Options = Data.define(...) do def pipeline ... end` inside `module Hashira::CLI`.
+  it "keeps the constructor seam for a class a module's block defines" do
+    expect_offense(<<~RUBY, seam: seam)
+      class Notices
+      end
+
+      module Cli
+        Options = Data.define(:mode) do
+          def pipeline = Notices.new.scanning(mode)
+                         ^^^^^^^^^^^ `pipeline` builds the `Notices` it talks to; %{seam}
+        end
+      end
+    RUBY
+  end
+
+  # collections-publisher's Tag and LinkReport: ActiveRecord allocates a loaded record past `initialize`.
+  it "gives a model its framework builds the seam it has, a method parameter" do
+    expect_offense(<<~RUBY, built: built("Tag", "tagged_documents"), report: built("LinkReport", "links"))
+      class TaggedDocuments
+      end
+
+      class Tag < ApplicationRecord
+        def tagged_documents
+          @tagged_documents ||= TaggedDocuments.new(self)
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^ `tagged_documents` builds the `TaggedDocuments` it keeps in `@tagged_documents`; %{built}
+        end
+      end
+
+      class Record < ActiveRecord::Base
+      end
+
+      class LinkReport < Record
+        def links = TaggedDocuments.new.all_paths(@step)
+                    ^^^^^^^^^^^^^^^^^^^ `links` builds the `TaggedDocuments` it talks to; %{report}
+      end
+    RUBY
+  end
+
+  it "keeps the constructor seam for a class the project builds" do
+    expect_offense(<<~RUBY, seam: seam)
+      class TaggedDocuments
+      end
+
+      class Tag < Struct
+        def tagged_documents = @tagged_documents ||= TaggedDocuments.new(self)
+                                                     ^^^^^^^^^^^^^^^^^^^^^^^^^ `tagged_documents` builds the `TaggedDocuments` it keeps in `@tagged_documents`; %{seam}
+      end
+    RUBY
+  end
+
+  # mechanize's Minitest test case and ahoy's controller mixin: composition roots a framework builds.
+  it "allows the test classes and the modules a load hook mixes into a framework's root class" do
+    cop_config.delete("RootSuperclasses")
+    expect_no_offenses(<<~RUBY)
+      class Tracker
+      end
+
+      class TestCase < Minitest::Test
+        def setup = @tracker = Tracker.new(nil)
+      end
+
+      class RailsCase < ActiveSupport::TestCase
+        def setup = @tracker = Tracker.new(nil)
+      end
+
+      module Tracking
+        def tracker = @tracker ||= Tracker.new(self)
+      end
+
+      ActiveSupport.on_load(:action_controller) do
+        include Tracking
+      end
+    RUBY
+  end
+
+  it "still judges a module a load hook mixes into a model" do
+    expect_offense(<<~RUBY, built: built("Visits", "visit"))
+      class Tracker
+      end
+
+      module Visits
+        def visit = @visit ||= Tracker.new(self)
+                               ^^^^^^^^^^^^^^^^^ `visit` builds the `Tracker` it keeps in `@visit`; %{built}
+      end
+
+      ActiveSupport.on_load(:active_record) { include Visits }
+    RUBY
+  end
+
+  context "with the project's other files" do
+    include TabledCop
+
+    let(:root) { Dir.mktmpdir("kata-wiring") }
+    let(:cop) do
+      shipped = RuboCop::ConfigLoader.default_configuration.for_cop("Kata/NoHardWiring")
+      wiring = { "Kata/NoHardWiring" => shipped.merge("OwnedPaths" => ["lib/**/*.rb"]) }
+      described_class.new(RuboCop::Config.new(wiring, File.join(root, ".rubocop.yml")))
+    end
+
+    before do
+      FileUtils.mkdir_p(File.join(root, "lib", "demo"))
+      hook = "ActiveSupport.on_load(:action_controller) { include Demo::Controller }\n"
+      File.write(File.join(root, "lib", "demo.rb"), hook)
+      File.write(File.join(root, "lib", "demo", "tracker.rb"), "class Demo::Tracker\nend\n")
+    end
+
+    after { FileUtils.rm_rf(root) }
+
+    it "reads the load hooks in the project's other files" do
+      mixin = "module Demo::Controller\n  def ahoy = @ahoy ||= Demo::Tracker.new(self)\nend\n"
+      other = "module Demo::Visits\n  def ahoy = @ahoy ||= Demo::Tracker.new(self)\nend\n"
+      expect([offenses(mixin), offenses(other).map(&:line)]).to(eq([[], [2]]))
+    end
   end
 
   it "allows a class the framework builds, which cannot be handed a collaborator" do

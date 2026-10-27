@@ -130,6 +130,20 @@
     before the name was bound to the new object (`referer.nofollow?`, then
     `referer = Page.new`) now goes to the earlier value. An object kept
     through `tap` (`@jar ||= Jar.new.tap { ... }`) is reported as kept.
+  - `Kata/NoHardWiring` no longer asks a class its framework builds to take
+    a collaborator in its constructor. Test cases (`Minitest::Test`,
+    `ActiveSupport::TestCase` and Rails' other test bases join
+    `RootSuperclasses`), view helpers (`app/helpers`), and a module a load
+    hook mixes into a controller, mailer, job or view (ahoy's
+    `ActiveSupport.on_load(:action_controller) { include Ahoy::Controller }`,
+    new `RootHooks`) are composition roots and pass, as controllers do. A
+    model is not a root, so it is still reported, but ActiveRecord allocates
+    a loaded record past `initialize` (collection-publisher's `Tag`: the
+    injected `TaggedDocuments` was nil on every `find`), so a class under the
+    new `BuiltSuperclasses` (`ActiveRecord::Base`, `ApplicationRecord`,
+    `Mongoid::Document`) and a module, which has no constructor, are told the
+    seam they have: a parameter of the method with the `new` as its default,
+    or the object built where the model is used.
 - A strict Elegant Objects profile, `config/strict.yml`, for a project that
   wants the whole of Elegant Objects (`inherit_gem: { rubocop-kata:
   config/strict.yml }` beside `plugins: [rubocop-kata]`). The rules the V1

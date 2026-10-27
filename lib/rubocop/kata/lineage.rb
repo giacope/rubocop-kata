@@ -8,7 +8,7 @@ class RuboCop::Kata::Lineage
   CONSTRUCTORS = %w[initialize initialize_copy initialize_dup initialize_clone].freeze
   CALLERS = [NilClass, Prism::SelfNode].freeze
 
-  def self.parse(source) = new(RuboCop::Kata::Kinship.new(Prism.parse(source).value).records)
+  def self.parse(source) = new(RuboCop::Kata::Kinship.parse(source).records)
 
   def initialize(records)
     @records = records
