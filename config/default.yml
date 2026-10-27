@@ -907,10 +907,21 @@ Kata/NoClassMethodLogic:
     constructor whatever its name. `AllowedNames` holds the constructor names
     (`build`, `parse`, `of`, `from`, `from_*`, `new`, `[]`), the hooks and
     protocol methods Ruby calls on a class by name (`included`, `inherited`,
-    `method_added`, `name`, `to_s`, `inspect`, `===`, `method_missing`), and the
+    `method_added`, `name`, `to_s`, `inspect`, `===`, `method_missing`, and
+    `to_proc`, which `map(&Maybe)` sends to the class), and the
     serialization protocols a framework calls on the class: a coder for
     ActiveRecord `serialize` or YAML answers `load`/`dump`, Marshal `_load`,
-    the JSON additions `json_create`. A module declared with
+    the JSON additions `json_create`. A hook a foreign superclass's framework
+    calls on the class is the framework's design, not the class's logic: a
+    class method that calls `super` where no class of the project between it
+    and the foreign superclass defines it (an override of the superclass's
+    own: `def self.columns = super.reject { ... }` in an ActiveRecord model),
+    and one that several of the project's classes define, under superclasses
+    that lead out of the project, and that the project never sends by name
+    (SuperDiff asks each registered tree class `applies_to?`, Rails each
+    generator `next_migration_number`). A foreign mixin is not a superclass:
+    a class method sibling classes answer under `include ActiveModel::Model`
+    is still the class's logic. A module declared with
     `module_function` or `extend self` is a bag of functions called on the
     module, the same logic with no class, and its declaration is reported.
     A class method that only returns a literal is a constant in disguise
@@ -959,6 +970,7 @@ Kata/NoClassMethodLogic:
     - ransackable_scopes
     - respond_to_missing?
     - singleton_method_added
+    - to_proc
     - to_s
 
 Kata/NoHashAsObject:

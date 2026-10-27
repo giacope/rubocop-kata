@@ -30,6 +30,12 @@ class RuboCop::Kata::Lineage
     found
   end
 
+  def superclasses(name, found = [])
+    written = @records.dig(name, :superclass)
+    parent = written && resolved(*written)
+    parent.nil? || found.include?(parent) ? found : superclasses(parent, [*found, parent])
+  end
+
   def defines?(owner, method) = @records[owner]&.dig(:methods)&.key?(method) || false
 
   def owners(method) = @records.keys.select { defines?(it, method) }
@@ -39,7 +45,8 @@ class RuboCop::Kata::Lineage
   private
 
   def joined(mine, theirs)
-    { parents: mine[:parents] | theirs[:parents], methods: mine[:methods].merge(theirs[:methods]) { |_, a, b| a | b } }
+    methods = mine[:methods].merge(theirs[:methods]) { |_, a, b| a | b }
+    { parents: mine[:parents] | theirs[:parents], methods:, superclass: mine[:superclass] || theirs[:superclass] }
   end
 
   def parents(name)

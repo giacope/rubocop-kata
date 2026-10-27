@@ -10,6 +10,7 @@ class RuboCop::Kata::Kinship
   def records
     facts(@tree, []).each_with_object({}) do |(scope, kind, *rest), found|
       held = found[scope] ||= { parents: [], methods: {} }
+      next held[:superclass] = rest if kind == :superclass
       kind == :parent ? held[:parents] << rest : (held[:methods][rest.first] ||= []).concat(rest.drop(1))
     end
   end
@@ -31,7 +32,9 @@ class RuboCop::Kata::Kinship
     path = node.constant_path.slice
     name = path.start_with?("::") || scope.empty? ? path.delete_prefix("::") : "#{scope.last}::#{path}"
     parent = node.superclass if node.is_a?(Prism::ClassNode)
-    [[name, :method, nil], *written(parent, node).map { [name, :parent, it, scope] }, *inner(node, [*scope, name], nil)]
+    lineage = written(parent, node).map { [name, :parent, it, scope] }
+    lineage << [name, :superclass, parent.slice, scope] if parent
+    [[name, :method, nil], *lineage, *inner(node, [*scope, name], nil)]
   end
 
   def defined(node, scope)

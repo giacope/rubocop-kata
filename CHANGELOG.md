@@ -87,6 +87,20 @@
     declares activerecord, but only an app or an engine got the Rails
     profile, so its `FriendlyId.table_name_prefix`, which names the slugs
     table, was "logic on the class". `rails: false` opts out of both files.
+  - `Kata/NoClassMethodLogic` leaves the class methods Ruby or a foreign
+    superclass's framework calls on the class by name: `to_proc`, which
+    `map(&Maybe)` sends (dry-monads' `Maybe`, `Success`, `Failure`), and a
+    hook the superclass's framework dispatches on: an override that calls
+    `super` where no class of the project above it defines the method
+    (transition's `def self.columns = super().reject { ... }`), or a method
+    several of the project's classes define under superclasses that lead
+    out of the project and that the project never sends by name
+    (dry-monads' sixteen `def self.applies_to?` in its SuperDiff
+    extension, mailboxer's generators' `next_migration_number`). Moved to
+    instances, as "classes construct, instances work" asked, they would
+    unregister the extension. A class method under a foreign mixin only
+    (`include ActiveModel::Model`), one the project sends itself, and one a
+    single class defines without `super` are still the class's logic.
 - `Kata/NoComments` prices documentation by default: `AllowDocumentation`
   is `false` again, as when the option was added, so a comment above a
   public class, module, method or constant is prose like any other, YARD

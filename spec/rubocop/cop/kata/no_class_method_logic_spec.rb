@@ -150,6 +150,7 @@ RSpec.describe(RuboCop::Cop::Kata::NoClassMethodLogic, :config) do
           def self.===(other) = other.is_a?(Hash)
           def self.respond_to_missing?(name, all) = name.start_with?("of_") || super
           def self.method_missing(name, *) = name.start_with?("of_") ? new : super
+          def self.to_proc = method(:new).to_proc
         end
       RUBY
     end
@@ -216,6 +217,76 @@ RSpec.describe(RuboCop::Cop::Kata::NoClassMethodLogic, :config) do
       alone = "`steps` only returns a literal; make it a constant."
       found = files.keys.map { |path| project_offenses(files, path).map(&:message) }
       expect(found).to(eq([[shared], [shared], [], [alone]]))
+    end
+  end
+
+  # dry-monads: SuperDiff asks each registered tree class `applies_to?`; `Maybe.to_proc` serves `map(&Maybe)`.
+  context "with a foreign framework's hooks" do
+    include ProjectFiles
+
+    let(:setting) { { "Kata/NoClassMethodLogic" => { "OwnedPaths" => ["lib/**/*.rb"], "AllowedNames" => [] } } }
+    let(:trees) do
+      <<~RUBY
+        module Trees
+          class Tuple < ::SuperDiff::Trees::Array
+            def self.applies_to?(value) = value.frozen?
+          end
+          class Dict < ::SuperDiff::Trees::Hash
+            def self.applies_to?(value) = value.frozen?
+          end
+          class Pair < Tuple
+            def self.applies_to?(value) = super && value.size == 2
+          end
+          class Lone < ::SuperDiff::Trees::Object
+            def self.inspectable?(value) = super(value) && value.frozen?
+            def self.printable?(value) = super && value.frozen?
+            def self.tally(rows) = rows.size
+            class << self
+              def wrap(value) = super
+            end
+          end
+          class Record < ::ActiveRecord::Base
+            def self.search(query) = where(query)
+            def self.export(rows) = rows
+          end
+          class User < Record
+            def self.search(query) = super.limit(1)
+            def self.export(rows) = rows
+          end
+          class Plain
+            def self.listed(value) = super
+            def self.shown(value) = value
+          end
+          class Other
+            def self.shown(value) = value
+          end
+          module Mixin
+            include ::SuperDiff::Hooks
+            def self.hooked(value) = super
+          end
+          class Request
+            include ::ActiveModel::Model
+          end
+          class Analytics < Request
+            def self.described = "a"
+          end
+          class General < Request
+            def self.described = "b"
+          end
+        end
+      RUBY
+    end
+    let(:caller) { "module Trees\n  class Finder\n    def find(text) = User.search(text).export(text)\n  end\nend\n" }
+
+    it "leaves a hook that overrides a foreign ancestor's, or that classes under one answer unsent" do
+      found = project_offenses({ "lib/trees.rb" => trees, "lib/finder.rb" => caller }, "lib/trees.rb")
+      expect(found.map(&:line)).to(eq([14, 16, 20, 21, 24, 25, 28, 29, 32, 36, 42, 45]))
+    end
+
+    it "reads the superclass a class is defined with where another file reopens it" do
+      reopened = "module Trees\n  class Lone\n    def self.shown?(value) = super\n  end\nend\n"
+      files = { "lib/trees.rb" => trees, "lib/trees/lone.rb" => reopened, "lib/finder.rb" => caller }
+      expect(project_offenses(files, "lib/trees/lone.rb")).to(be_empty)
     end
   end
 end
