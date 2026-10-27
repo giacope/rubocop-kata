@@ -475,4 +475,68 @@ RSpec.describe(RuboCop::Cop::Kata::FrozenState, :config) do
       end
     RUBY
   end
+
+  context "with the names a collection's mutators share with a collaborator's commands" do
+    let(:other_cops) do
+      shipped = YAML.load_file("config/default.yml", aliases: true).fetch("Kata/NoOutputArgument")
+      { "Kata/NoOutputArgument" => shipped.slice("MutatingMethods") }
+    end
+
+    # The V1 conformance case P32: telling an injected store to insert is a command, not a change of state.
+    it "passes a command a collaborator shares a name with a collection's mutator" do
+      expect_no_offenses(<<~RUBY)
+        class Archive
+          def initialize
+            @store = []
+          end
+        end
+
+        class Registration
+          def initialize(store, client)
+            @store = store
+            @client = client
+            @gateway = Gateway.new
+            @rows = []
+          end
+
+          def submit(params)
+            @store.insert(params[:email])
+            @client.delete(path: "/assistants/1")
+            @client.update(params)
+            @gateway.update(@rows)
+          end
+        end
+      RUBY
+    end
+
+    it "still flags those names on a collection the object built or uses as one" do
+      expect_offense(<<~RUBY)
+        class Registry
+          def initialize(seed)
+            @items = []
+            @index = Set.new
+            @copy = seed.dup
+            @seen = seed
+          end
+
+          def expectations = @expectations ||= []
+
+          def reset
+            @items.delete(1)
+            ^^^^^^^^^^^^^^^^ `@items` changes after construction; set state once in `initialize` and return a new object to change it.
+            @index.clear
+            ^^^^^^^^^^^^ `@index` changes after construction; set state once in `initialize` and return a new object to change it.
+            @copy.insert(0, 1)
+            ^^^^^^^^^^^^^^^^^^ `@copy` changes after construction; set state once in `initialize` and return a new object to change it.
+            @expectations.clear
+            ^^^^^^^^^^^^^^^^^^^ `@expectations` changes after construction; set state once in `initialize` and return a new object to change it.
+            @seen.shift if @seen[0]
+            ^^^^^^^^^^^ `@seen` changes after construction; set state once in `initialize` and return a new object to change it.
+            @store.push(1)
+            ^^^^^^^^^^^^^^ `@store` changes after construction; set state once in `initialize` and return a new object to change it.
+          end
+        end
+      RUBY
+    end
+  end
 end

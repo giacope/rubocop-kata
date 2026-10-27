@@ -3,7 +3,7 @@
 class RuboCop::Cop::Kata::NoTypeCheck < RuboCop::Cop::Base
   include RuboCop::Cop::Kata::Ancestry
   include RuboCop::Cop::Kata::Roster
-  include RuboCop::Cop::Kata::Territory
+  include RuboCop::Cop::Kata::Ownership
 
   MSG = "`%s` asks an object what it is; tell it what to do, and let polymorphism choose."
   PROTOCOL = /
@@ -82,15 +82,6 @@ class RuboCop::Cop::Kata::NoTypeCheck < RuboCop::Cop::Base
     "class.name #{node.method_name}" if named && sides.any? { class_name?(it) } && own_name?(named.value, named)
   end
 
-  def own?(probe) = probe&.const_type? && own_name?(probe.const_name, probe, absolute: probe.absolute?)
-
-  def own_name?(name, node, absolute: false)
-    candidates = absolute ? [name] : [*RuboCop::Kata::Nesting.new(node).names.map { "#{it}::#{name}" }, name]
-    candidates.any? { !foreign?(it) && (local_types.include?(it) || inventory.type?(it)) }
-  end
-
-  def foreign?(name) = RuboCop::Kata::Dictionary::CORE.include?(name) || claimed?(name)
-
   def message?(name, hidden)
     return false if PROTOCOL.match?(name) || RuboCop::Kata::Protocols.new(list("Protocols")).include?(name)
     [*local_owners(name, hidden), *inventory.owners(name, hidden:)].any? { it && !foreign?(it) }
@@ -100,9 +91,5 @@ class RuboCop::Cop::Kata::NoTypeCheck < RuboCop::Cop::Base
     local_messages.filter_map { |owner, defined, shown| owner if defined == name && (hidden || shown == :public) }
   end
 
-  def local_types = @_local_types ||= RuboCop::Kata::Definitions.new(processed_source.raw_source).names
-
   def local_messages = @_local_messages ||= RuboCop::Kata::Messages.new(processed_source.raw_source).records
-
-  def inventory = RuboCop::Kata::Inventory.of(config.base_dir_for_path_parameters, list("OwnedPaths"))
 end

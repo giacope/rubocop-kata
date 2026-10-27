@@ -108,6 +108,199 @@
     `[]`), and a class-level hook as `Kata/NoClassMethodLogic` reads one
     (SuperDiff's `applies_to?(value)`). The value is foreign, so
     polymorphism could only choose once every class answered the question.
+- A strict Elegant Objects profile, `config/strict.yml`, for a project that
+  wants the whole of Elegant Objects (`inherit_gem: { rubocop-kata:
+  config/strict.yml }` beside `plugins: [rubocop-kata]`). The rules the V1
+  conformance cases found missing ship off, so the default configuration
+  reports what it reported before, bug fixes aside; the profile switches on
+  the ten new house cops (`Kata/FailFast`, `Kata/ScopedResource`,
+  `Kata/NoNilArgument`, `Kata/NoNilReturn`, `Kata/NoHardWiring`,
+  `Kata/NoGetter`, `Kata/FieldCount`, `Kata/PublicSurface`,
+  `Kata/NoPublicConstant`, `Kata/NoReflection`) and the stricter reading of
+  six (`CheckEffects`, `CheckRandomness`, `CheckSettings`, `CheckGlobals`,
+  `CheckEveryQuery`, `CheckPaths`, each `false` by default), and switches off
+  the four cops a strict one replaces (`Lint/SuppressedException`,
+  `Style/RescueModifier`, `Elegant/NoNilReturn`, `Style/Send`), so nothing is
+  reported twice. Under it every principle the V1 cases name for kata is
+  enforced.
+- With `CheckEffects: true` (strict), `Kata/IoDiscipline` reports the hidden
+  I/O beyond `puts` (the V1 conformance case P33: an audit record that wrote
+  `log/audit.log`, the Rails log and a webhook passed). A file, network or
+  shell call whose target is written into the code is hidden I/O:
+  `File.write("log/audit.log", …)`, `YAML.load_file("config/x.yml")`,
+  `Dir.pwd`, `Net::HTTP.post(URI("https://…"))`, `system("git", "fetch")`, a
+  backtick (`Effects`, by what each reaches: a path, a URL or a command);
+  one whose target holds a variable, an instance variable, a method's value,
+  an injected `base:`, a constant another file defines or a path anchored on
+  `__dir__` is the adapter whose job the effect is, and passes
+  (`File.write(@path, …)`). A global stream or service (`$stdout.puts`,
+  `STDERR`, `Rails.logger`, `Rails.cache`) asks to be injected, and bare
+  `print`/`printf` join `puts`. Path arithmetic (`File.join`) reaches
+  nothing, and a constant or command the project defines (rubycritic's
+  `Options::File`, kimera's own `spawn`) is not Ruby's. On thirty field-test
+  codebases, 27 of a 28-finding sample were hidden I/O.
+- The boot layer `Kata/IoDiscipline`, `Kata/ClockDiscipline` and
+  `Kata/EnvDiscipline` share takes in a framework's boot hooks (a block given
+  to `initializer`, `to_prepare`, `after_initialize`, `on_load`), and the
+  three leave `railtie.rb`, `engine.rb` and `lib/generators/` alone: hashie's
+  railtie hands `Rails.logger` to `Hashie.logger` there.
+- With `CheckRandomness: true` (strict), `Kata/ClockDiscipline` reads
+  randomness as it reads the clock (P34: an invoice numbered with
+  `SecureRandom.hex` passed): `SecureRandom.*`, `rand`, `Random.rand`,
+  `Random.new_seed`, an unseeded `Random.new`, and `sample`/`shuffle`
+  without `random:` ask for an injected generator; a parameter default is
+  still the seam. A `rand` the project defines (ffaker's seeded
+  `RandomUtils#rand`) and a draw one of its modules answers
+  (`ArrayUtils.shuffle`) are its own. 44 of 46 findings on the field-test
+  codebases were ambient randomness; ffaker's 19 are `sample` calls that
+  bypass its own seeded generator.
+- With `CheckSettings: true` (strict), `Kata/EnvDiscipline` reads Rails'
+  configuration as it reads `ENV` (P35: `Rails.application.credentials.dig`
+  and `Rails.configuration.x` passed): `Rails.env`, `Rails.configuration`,
+  `Rails.application.config`, `credentials`, `secrets` and `config_for`
+  (`Settings`) belong in the boot layer; `defined?(Rails.env)` reads
+  nothing. 26 to 30 of 30 findings on the field-test codebases were
+  configuration read in a method, the range being the controllers that read
+  a webhook secret to check a request.
+- New `Kata/FailFast` (strict; P25: `rescue JSON::ParserError, IOError =>
+  error; @log.warn(...); {}` and `Integer(x) rescue 0` passed, the second
+  reported only for its syntax): a `rescue` that neither re-raises nor turns
+  the error into an object, answering a default (an empty body, `nil`,
+  `false`, a literal, `[]`, `{}`) or a log line, swallows the error; the
+  message asks to let it raise or to answer an object that says what failed.
+  A boolean answering a question about the errors a rescue names,
+  `==`/`<=>`, the end of a stream or a process, an optional library's
+  `LoadError` and a resource released on the way out pass; a `rescue`
+  modifier is reported whatever it answers. The strict profile runs it in
+  place of `Lint/SuppressedException`, which passes `rescue; nil`, and
+  `Style/RescueModifier`, whose correction (`begin ... rescue 0 end`) still
+  swallows, and switches both off. On thirty field-test codebases, 37 of 45
+  sampled findings were swallowed errors; the rest were deliberate (a 409
+  Conflict taken as done, a lock another process holds, a best-effort
+  release).
+- `Kata/FrozenState` no longer reads a command to an injected collaborator
+  as the object changing its own state (P32: the Elegant Objects version,
+  `@store.insert(params.merge(...))`, was reported because `insert` is in
+  the mutating list). A name a collection's mutator shares with a
+  collaborator's command (`insert`, `delete`, `clear`, `update`, `store`,
+  `pop`, `shift`, ...) is a change of state only on a collection the object
+  built (`[]`, `{}`, `Set.new`, `x.dup`, memoized or not) or uses as one
+  (`[]`, `<<`, `each`); `<<`, `[]=`, `push` and every `!` stay mutations.
+  On the field-test codebases this drops ruby-openai's ten
+  `@client.delete(path: ...)` and ferrum's `@headers.clear` (a CDP command),
+  and keeps every collection's `delete`/`clear`.
+- New `Kata/ScopedResource` (strict; P27: `@lock.lock` ... `@lock.unlock`
+  with no `ensure` passed; only `File.open` without a block was reported): a
+  lock taken and released by hand, or a handle opened into a local and
+  closed by hand, with the release outside an `ensure`, stays held when
+  anything between them raises; the message asks for the block form or an
+  `ensure`. On the field-test codebases it finds two, both leaks on the
+  error path (ffaker's `Tempfile`, rack-mini-profiler's `GzipWriter`);
+  mechanize's `Mechanize.start`, which releases in the method's own
+  `ensure`, passes.
+- With `CheckGlobals: true` (strict), `Kata/NoSingleton` reads the
+  framework's globals as singletons (P17: `class Current <
+  ActiveSupport::CurrentAttributes` read from a model passed): a
+  `CurrentAttributes` subclass, state kept in the thread, the fiber or the
+  request store (`Thread.current[:user]`, `Fiber[:state]`,
+  `RequestStore.store[:user]`), and a class-level setting behind
+  `cattr_accessor`/`mattr_accessor` (their writers and thread variants; a
+  reader is a constant) ask for the value to be passed in. Every one of a
+  25-finding sample on the field-test codebases was global state
+  (searchkick's, timecop's and counter_culture's thread switches, ahoy's and
+  mailboxer's module settings).
+- `Kata/NoNilArgument` (new, strict): a parameter that defaults to nil and
+  that the method then asks about (`return @cents if coupon.nil?`,
+  `coupon&.cents`, `coupon || NONE`, `amount ||= total`) is two methods in
+  one; the message asks to split them or default to a null object. A
+  constructor's nil default kept in a field the class asks about
+  (`@referrer.nil?`) is two objects in one. Elegant Objects' "never accept
+  NULL arguments" had no rule: hashira's `nil_check` reads such a default as
+  the caller's option.
+- `Kata/NoNilReturn` (new, strict; the profile runs it in place of
+  `Elegant/NoNilReturn`, which reports only a literal `nil` though its
+  description says "on any code path"): the nil a lookup passes on
+  (`@items.detect { ... }`, `find_by`, `first`, `[]`, `dig`, `&.`) and the
+  missing branch of a conditional that answers with a value (`@items[code]
+  if @open`) are nil returns too. A slice (`rows[1..]`, `bio[0, 40]`), a
+  hash with a default, a conditional command and a method forwarding the
+  protocol it is named after pass.
+- `Kata/NoHardWiring` (new, strict): an instance method that builds one of
+  the project's classes as a collaborator has wired it in, and Elegant
+  Objects' "always use interfaces" had no rule. A collaborator is an object
+  used for its effects (`Gateway.new("live").charge(@cents)`, built from
+  literals, from nothing, or from a constant or global the method does not
+  own; `box = Mailbox.new(host); box.deliver(text)` with the value thrown
+  away; a bang or a writer), kept in a field (`@gateway ||= Gateway.new`),
+  or handed on as another object's dependency
+  (`Order.new(Gateway.new("live"))`). The message asks for a constructor
+  parameter with the `new` as its default, the seam. A value wrapper built
+  from the method's own values and asked a question on the spot
+  (`Nesting.new(node).qualified`, `Syntax.new(node).opening`) is Elegant
+  Objects composition and passes, as do an object built to be returned or
+  passed to a method, the class building itself, constructors, class
+  methods, composition roots (controllers, jobs, mailers, workers, `bin/`,
+  `config/`, a subclass of a framework base that builds it, such as
+  `RuboCop::Cop::Base`; `RootSuperclasses`), and Ruby's and other libraries'
+  classes. On the five batch-one codebases it reports 32, 30 of them a
+  service built in place, kept or handed on (content-tagger's
+  `Taxonomy::TaxonomyQuery.new` and `Linkables.new`); the two misses are a
+  prototype probe and a wrapper built to raise. The ownership test is
+  `Kata/NoTypeCheck`'s, now shared.
+- With `CheckEveryQuery: true` (strict), `Kata/CommandQuery` judges every
+  query, not only `?` methods: a method whose last expression is a value
+  (`@entries.sum`, a literal, a lookup, a new object) and that also acts —
+  assigns state, calls a bang on its state or parameters, or sends a message
+  whose value it throws away to itself, its state, its parameters or a
+  constant (`@audit.record("balance read")`, `Rails.logger.info`) — is
+  reported, and so is a `?` method that acts through a discarded message.
+  Guards that raise, a helper filling one of the method's own locals,
+  iterations and a method returning `self` pass.
+- `Kata/NoGetter` (new, strict): a public `attr_reader`, a method that only
+  returns the field of its name, and `Struct.new`/`Data.define` (a getter for
+  every field, a data bag) are getters, which Elegant Objects rules out and
+  no rule reported (`Kata/NoSetter` saw only writers). The message asks to
+  tell the object what to do with its fields, or to have it print itself.
+  Private and protected readers pass.
+- `Kata/FieldCount` (new, strict): at most four fields per class, counting the
+  instance variables its methods assign and the fields its `attr_*` macros
+  name, memoized answers aside. `Metrics/ParameterLists` counted only
+  constructor parameters, so a form object with six `attr_accessor` fields
+  passed.
+- `Kata/PublicSurface` (new, strict): at most four public instance methods per
+  class, Elegant Objects' "fewer than five", counting `attr_*`-minted
+  methods and leaving Ruby's protocols (`to_s`, `==`, `each`, `call` …) and
+  `on_*` callbacks out. Nothing counted public methods before.
+- `Kata/NoPublicConstant` (new, strict): a read of another of the project's
+  classes' value constant (`Cart::MAX_ITEMS` in `Order`, a `Settings`
+  module's `TAX_RATE` read by two classes) is shared state, which Elegant
+  Objects rules out and no rule reported. The message asks to ask the owner
+  what the value means and make the constant private. Ruby's and other
+  libraries' constants, a class's own, namespaces and `VERSION` pass.
+- `Kata/NoReflection` (new, strict): `@order.instance_variable_get(:@total)`,
+  `@record.send(:token)` and `Object.const_get("Shop::#{kind}View")` reach
+  past another object's interface; the message asks for a public method, or
+  a map from names to objects. The strict profile switches off `Style/Send`,
+  which catches only the `send` and advises `__send__` or `public_send` (the
+  same reflection).
+  `public_send(field)` on a name the code is handed, reflection on `self`
+  and the boot layer pass.
+- With `CheckPaths: true` (strict), `Kata/ConstructorDiscipline` names
+  Elegant Objects' "one primary constructor": an `initialize` that branches
+  on its arguments' count, type or presence (`if parts.size == 1`, `if
+  formatted`) is several constructors in one, reported once with the
+  arguments it asks about, and a class method that builds with `allocate`
+  (then `instance_variable_set`) bypasses `initialize`. Before, both read
+  only as "does not compute", or passed.
+- `Kata/NoOutputArgument` reads `text.delete("$,.")` as `String#delete`,
+  which returns a copy: a `delete` given a character set no longer counts as
+  changing the caller's argument. The EO form of a secondary constructor,
+  `def self.parse(text) = new(Integer(text.delete("$,.")), "USD")`, was
+  reported.
+- `Kata/NoBooleanFlag` no longer advises "make it a keyword" (or "name the
+  argument"): `csv(header: false)` is the same flag, and hashira's
+  `control_parameter` reports it. The advice is to split the method, one per
+  value.
 - `Kata/NoComments` prices documentation by default: `AllowDocumentation`
   is `false` again, as when the option was added, so a comment above a
   public class, module, method or constant is prose like any other, YARD
@@ -519,8 +712,8 @@
     inherits against the cops it knows, and the oldest release kata supports
     knows fewer cops than kata lists.
   - Kata cops skip `.jbuilder` templates.
-- Known upstream: `Naming/RescuedExceptionsVariableName` raises on
-  `x = begin ... rescue => e ... end.size` whether or not it may correct, since
+- Known upstream: `Naming/RescuedExceptionsVariableName` raises on `x =
+  begin ... rescue => e ... end.size` whether or not it may correct, since
   RuboCop builds the correction to mark the offense correctable.
 
 - Fixes found by running kata on 37signals' Campfire:
@@ -614,18 +807,18 @@
 - Methods may run to 10 lines and names may take two words. A blind
   readability study compared kimera and hashira, written to kata's rules,
   with rubocop, faraday and rubygems.org: two samples of 60 entry methods,
-  two independent AI reviewers each, agreeing on 54 and 55 of 60 calls. Readers judged 14–16
-  of 30 house-style items over-fragmented against 0–2 of 30 in the control,
-  and scored readability about 3.0 against 4.0 and name clarity about 2.5
-  against 4.1. House-style methods averaged 3.0 lines, the control 6.3.
-  `Metrics/MethodLength` goes from 5 to RuboCop's 10, and logic density is
-  bounded by the complexity cops at RuboCop's defaults instead of Elegant's:
-  `AbcSize` 17, `CyclomaticComplexity` 7 and `PerceivedComplexity` 8.
-  `Kata/GoodMethodName` and `Kata/GoodVariableName` allow two words by
-  default, role words uncounted. Three or more words, chained actions,
-  smashes and clippings still fail, and `MaxWords: 1` restores one word. The
-  messages now say that three words, not two, mean a missing concept, and a
-  segment the `Pattern` rejects gets its own message.
+  two independent AI reviewers each, agreeing on 54 and 55 of 60 calls.
+  Readers judged 14–16 of 30 house-style items over-fragmented against 0–2
+  of 30 in the control, and scored readability about 3.0 against 4.0 and
+  name clarity about 2.5 against 4.1. House-style methods averaged 3.0
+  lines, the control 6.3. `Metrics/MethodLength` goes from 5 to RuboCop's
+  10, and logic density is bounded by the complexity cops at RuboCop's
+  defaults instead of Elegant's: `AbcSize` 17, `CyclomaticComplexity` 7 and
+  `PerceivedComplexity` 8. `Kata/GoodMethodName` and `Kata/GoodVariableName`
+  allow two words by default, role words uncounted. Three or more words,
+  chained actions, smashes and clippings still fail, and `MaxWords: 1`
+  restores one word. The messages now say that three words, not two, mean a
+  missing concept, and a segment the `Pattern` rejects gets its own message.
 
 Measured with the new `eval/run`, which scores a checkout as users install it;
 [eval/results](eval/results/README.md) has the full before/after. Snippet cases

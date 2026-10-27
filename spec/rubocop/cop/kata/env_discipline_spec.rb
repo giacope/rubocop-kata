@@ -59,4 +59,52 @@ RSpec.describe(RuboCop::Cop::Kata::EnvDiscipline, :config) do
       Sandbox::ENV.fetch("HOME")
     RUBY
   end
+
+  context "with the shipped Settings" do
+    let(:cop_config) { shipped.merge("CheckSettings" => true) }
+    let(:shipped) { YAML.load_file("config/default.yml", aliases: true).fetch("Kata/EnvDiscipline") }
+
+    it "reads ENV only without CheckSettings, as kata ships it" do
+      cop_config.replace(shipped)
+      expect_offense(<<~RUBY)
+        class Mailbox
+          def secret = Rails.application.credentials.dig(:smtp, :password)
+          def live? = ENV.fetch("LIVE")
+                      ^^^ `ENV` belongs in the boot layer; pass configuration in.
+        end
+      RUBY
+    end
+
+    # The V1 conformance case P35: a mailbox reading credentials and configuration in its methods.
+    it "flags the application's configuration read in a method" do
+      expect_offense(<<~RUBY)
+        class Mailbox
+          def secret = Rails.application.credentials.dig(:smtp, :password)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `Rails.application.credentials` belongs in the boot layer; pass configuration in.
+          def currency = Rails.configuration.x.shop.currency
+                         ^^^^^^^^^^^^^^^^^^^ `Rails.configuration` belongs in the boot layer; pass configuration in.
+          def live? = ::Rails.env.production?
+                      ^^^^^^^^^^^ `Rails.env` belongs in the boot layer; pass configuration in.
+          def mail = Rails.application.config_for(:mail)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `Rails.application.config_for` belongs in the boot layer; pass configuration in.
+        end
+      RUBY
+    end
+
+    it "passes a test for the constant, a parameter default and a framework's boot hook" do
+      expect_no_offenses(<<~RUBY)
+        class Engine < Rails::Engine
+          initializer "shop.currency" do
+            Shop.currency = Rails.configuration.x.currency
+          end
+
+          def self.rails? = !defined?(Rails.env).nil?
+
+          def currency(setting = Rails.configuration.x.currency) = setting
+
+          def root = Rails.root
+        end
+      RUBY
+    end
+  end
 end

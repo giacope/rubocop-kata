@@ -26,10 +26,11 @@ class Assay::Session
     "human" => ->(bundle, home, options) { Assay::Agreement.new(bundle, home, options[:labels] || SHEET) }
   }.freeze
 
-  def initialize(arguments, io:, env:)
+  def initialize(arguments, io:, env:, scratch: Dir.tmpdir)
     @arguments = arguments
     @io = io
     @env = env
+    @scratch = scratch
   end
 
   def run
@@ -78,7 +79,7 @@ class Assay::Session
     options[:only].each_with_object({ "kata" => bundle.to_h }) { |name, data| data[name] = section(name, bundle) }
   end
 
-  def work = options[:work] || File.join(Dir.tmpdir, "assay", File.basename(options[:kata]))
+  def work = options[:work] || File.join(@scratch, "assay", File.basename(options[:kata]))
 
   def section(name, bundle)
     @io.puts("assay: #{name}")

@@ -3,8 +3,8 @@
 class RuboCop::Cop::Kata::NoBooleanFlag < RuboCop::Cop::Base
   include RuboCop::Cop::Kata::Roster
 
-  MSG = "A boolean flag is two methods trapped in one; split them or name the argument."
-  DEFAULT_MSG = "`%s` defaults to a boolean flag, two methods trapped in one; split them or make it a keyword."
+  MSG = "A boolean flag is two methods trapped in one; call the method the flag chooses, split in two."
+  DEFAULT_MSG = "`%s` defaults to a boolean flag, two methods trapped in one; split them, one method per value."
   PLACEHOLDER = /\?|(?<!:):\w/
   DISPATCH = %i[send public_send __send__].freeze
 

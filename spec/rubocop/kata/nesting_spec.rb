@@ -17,6 +17,10 @@ RSpec.describe(RuboCop::Kata::Nesting) do
     expect(described_class.new(line).qualified).to(eq("Shop::Cart::Line"))
   end
 
+  it "names each constant a reference could resolve to, innermost first" do
+    expect(described_class.new(line).candidates("Item")).to(eq(%w[Shop::Cart::Item Shop::Item Item]))
+  end
+
   it "starts over at an absolute name" do
     ledger = definition("module Shop\n  class ::Ledger; end\nend\n", "Ledger")
     expect(described_class.new(ledger).qualified).to(eq("Ledger"))
