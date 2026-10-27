@@ -1022,3 +1022,44 @@
         remove_column: "Removing a column breaks running code."
       }.freeze
     end
+- id: r6b5-k4-release-where-no-error-is-in-flight-swallows
+  cop: Kata/FailFast
+  strict: true
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Link
+        def initialize(sockets)
+          @sockets = sockets
+        end
+
+        def reset(key)
+          old = @sockets.delete(key)
+          old.close rescue nil
+        end
+      end
+    end
+- id: r6b5-k4-rescue-on-the-way-out-keeps-the-error-in-flight
+  cop: Kata/FailFast
+  strict: true
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Link
+        def initialize(socket)
+          @socket = socket
+        end
+
+        def send_line(line)
+          @socket.write(line)
+        rescue Errno::EPIPE => error
+          response = @socket.read rescue ""
+          @socket&.close rescue nil
+          raise IOError, "#{response}#{error.message}"
+        end
+      end
+    end

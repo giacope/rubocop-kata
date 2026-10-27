@@ -15,7 +15,6 @@ class RuboCop::Cop::Kata::FailFast < RuboCop::Cop::Base
   EMPTY = %i[array hash].freeze
   BROAD = %w[Exception StandardError RuntimeError ScriptError NoMethodError NameError TypeError].freeze
   BUGS = %w[Exception StandardError NoMethodError].freeze
-  RELEASES = %i[close close_read close_write shutdown kill terminate disconnect finish unlink].freeze
   COMPARISONS = %i[== eql? equal? <=> ===].freeze
 
   def on_resbody(node)
@@ -27,7 +26,8 @@ class RuboCop::Cop::Kata::FailFast < RuboCop::Cop::Base
   private
 
   def verdict(node)
-    lines = statements(node.body)
+    body = node.body
+    lines = body&.begin_type? ? body.children : [body]
     return LOG_MSG if lines.all? { log?(it) }
     value = answer(lines.last)
     return swallow(node, value) if lines[0...-1].all? { log?(it) } && default?(value)
@@ -43,11 +43,9 @@ class RuboCop::Cop::Kata::FailFast < RuboCop::Cop::Base
   end
 
   def cleanup?(node)
-    node.each_ancestor(:resbody).any? { escapes?(it.body) } || release?(node.parent.body) ||
+    node.each_ancestor(:resbody).any? { escapes?(it.body) } ||
       node.each_ancestor(:ensure).any? { it.children.last&.source_range&.contains?(node.source_range) }
   end
-
-  def release?(body) = statements(body).all? { it&.send_type? && RELEASES.include?(it.method_name) }
 
   def expected?(node)
     names = classes(node)
@@ -55,8 +53,6 @@ class RuboCop::Cop::Kata::FailFast < RuboCop::Cop::Base
   end
 
   def classes(node) = node.exceptions.map { it.source.delete_prefix("::") }
-
-  def statements(body) = body&.begin_type? ? body.children : [body]
 
   def answer(last) = EXITS.include?(last&.type) ? last.children.first : last
 

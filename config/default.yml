@@ -1646,10 +1646,15 @@ Kata/FailFast:
     `rescue NoMethodError` is a bug); `==`, `eql?` and `<=>` answer a foreign
     object. The ends of a stream or a process (`EOFError`, `Errno::EPIPE`,
     `Errno::ESRCH`, an empty queue's `ThreadError`), and an optional library's
-    `LoadError` (`ExpectedErrors`) are not failures, and neither is a resource
-    released on the way out (`socket.close rescue nil`, in an `ensure` or a
-    rescue that re-raises). A `rescue` modifier catches every StandardError,
-    bugs included, whatever it answers. Off by default: config/strict.yml
+    `LoadError` (`ExpectedErrors`) are not failures. On the way out of a
+    failure, in an `ensure` or inside a rescue that re-raises, a rescue
+    keeps the error in flight from being replaced, and passes
+    (`socket.close rescue nil`, a diagnostic `socket.read rescue ""`).
+    Anywhere else a release swallows like any other call: `def reset =
+    @socket.close rescue nil` goes on when the close fails, or when
+    `@socket` is nil; let it raise, or rescue the end you expect (`rescue
+    IOError`). A `rescue` modifier catches every StandardError, bugs
+    included, whatever it answers. Off by default: config/strict.yml
     turns it on in place of Lint/SuppressedException and Style/RescueModifier,
     whose advice (`begin ... rescue 0 end`) still swallows.
   Enabled: false

@@ -40,10 +40,15 @@ Kata/ScopedResource:
 Kata/FailFast:
   Enabled: true
 
-# Kata/FailFast reports every rescue these two report, with advice that does
-# not swallow: Lint/SuppressedException passes `rescue; nil` and a commented
-# empty rescue, and Style/RescueModifier's correction (`begin ... rescue 0
-# end`) still answers 0 for every StandardError.
+# Kata/FailFast reports every rescue these two report that swallows an
+# error, with advice that does not swallow: Lint/SuppressedException passes
+# `rescue; nil` and a commented empty rescue, and Style/RescueModifier's
+# correction (`begin ... rescue 0 end`) still answers 0 for every
+# StandardError. It passes the ones that hide no failure: a rescue that
+# re-raises, retries or exits; one in an `ensure` or inside a rescue that
+# re-raises, which keeps the error in flight; the end of a stream or a
+# process and a missing optional library (`ExpectedErrors`); and a boolean
+# that answers a question, or a comparison's answer.
 Lint/SuppressedException:
   Enabled: false
 

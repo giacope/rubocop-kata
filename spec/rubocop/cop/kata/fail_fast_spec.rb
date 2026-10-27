@@ -226,12 +226,46 @@ RSpec.describe(RuboCop::Cop::Kata::FailFast, :config) do
         @socket.write("x")
       rescue IOError => error
         @audit.record(error) rescue nil
+        @socket&.close rescue nil
         raise error
       ensure
         @cache.write(:done) rescue nil
       end
 
+      def send_line(line)
+        @socket.write(line)
+      rescue Errno::EPIPE => error
+        response = @socket.read rescue ""
+        raise IOError, "\#{response}\#{error.message}"
+      end
+
+      def reset
+        @socket.close
+      rescue IOError
+        nil
+      end
+    RUBY
+  end
+
+  # R6B5-K4: excon's `reset` and its connect loop; no error is in flight there.
+  it "flags a release that swallows where no error is in flight" do
+    expect_offense(<<~RUBY, message: swallow("nil"))
       def reset = @socket.close rescue nil
+                                ^^^^^^ %{message}
+
+      def connect
+        @addresses.each do |address|
+          socket = address.open
+          socket.handshake
+          return socket
+        rescue SystemCallError
+          socket.close rescue nil
+                       ^^^^^^ %{message}
+          socket&.close rescue nil
+                        ^^^^^^ %{message}
+        end
+        raise Errno::ECONNREFUSED
+      end
     RUBY
   end
 

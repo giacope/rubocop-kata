@@ -282,6 +282,20 @@
     literal spans (its first line too when the literal starts it), and the
     next line is measured from the code before it. A one-line string at
     column 0 is code, and still measured.
+- From a sixth field test, batch five (local-links-manager, bullet, excon,
+  counter_culture, turbo-rails), in check mode, under the strict profile and
+  under `rubocop -a`:
+  - `Kata/FailFast` passes a release only on the way out of a failure, as
+    its description said: in an `ensure` or inside a rescue that re-raises,
+    where a rescue keeps the error in flight from being replaced. Anywhere
+    else a release swallows like any other call: excon's `reset`
+    (`old_socket.close rescue nil`) and its connect loop, which closes a
+    failed socket and tries the next address, went on when the close
+    failed, or when the socket was nil, and passed. config/strict.yml no longer says FailFast
+    reports every rescue `Lint/SuppressedException` and
+    `Style/RescueModifier` report: it reports the ones that swallow, and the
+    comment names the ones it passes (a re-raise, a rescue on the way out,
+    the `ExpectedErrors`, a question's boolean).
 - A strict Elegant Objects profile, `config/strict.yml`, for a project that
   wants the whole of Elegant Objects (`inherit_gem: { rubocop-kata:
   config/strict.yml }` beside `plugins: [rubocop-kata]`). The rules the V1
