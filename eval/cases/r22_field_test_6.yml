@@ -154,3 +154,31 @@
     # frozen_string_literal: true
 
     Lazy = Lazy
+- id: r6b2-k3-migration-template-is-loaded-by-its-top-level-name
+  cop: Kata/ClassInModule
+  expect: clean
+  path: lib/shelf/migration.rb
+  source: |
+    # frozen_string_literal: true
+
+    MIGRATION_CLASS =
+      if ActiveRecord::VERSION::MAJOR >= 5
+        ActiveRecord::Migration["#{ActiveRecord::VERSION::MAJOR}.#{ActiveRecord::VERSION::MINOR}"]
+      else
+        ActiveRecord::Migration
+      end
+
+    class CreateShelfSlugs < MIGRATION_CLASS
+      def change
+        create_table :shelf_slugs
+      end
+    end
+- id: r6b2-k3-top-level-record-still-wants-a-module
+  cop: Kata/ClassInModule
+  expect: offense
+  path: lib/shelf/slug.rb
+  source: |
+    # frozen_string_literal: true
+
+    class Slug < ActiveRecord::Base
+    end

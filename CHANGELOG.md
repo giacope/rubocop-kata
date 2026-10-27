@@ -60,6 +60,12 @@
     detected." asks, breaks every class that includes the mixin. A
     top-level or qualified `X = X` is still reported (RuboCop compares the
     two names only).
+  - `Kata/ClassInModule` leaves a migration class at the top level
+    (`< ActiveRecord::Migration`, `< ActiveRecord::Migration[7.1]`, or under
+    a constant the file assigns one): ActiveRecord loads a migration by the
+    top-level name camelized from its file, so friendly_id's template, which
+    its generator copies to the host's db/migrate, would make `db:migrate`
+    raise once wrapped in a module.
 - `Kata/NoComments` prices documentation by default: `AllowDocumentation`
   is `false` again, as when the option was added, so a comment above a
   public class, module, method or constant is prose like any other, YARD

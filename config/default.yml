@@ -1641,10 +1641,14 @@ Kata/ClassInModule:
     config/application.rb autoloads lib/ through `config.autoload_lib` or
     its autoload or eager-load paths) defines a top-level constant by
     design, so those are excluded; a subdirectory of a root is a namespace,
-    and Zeitwerk already demands the matching module. Reopening one of the
-    `CoreClasses` (`class String`) is a monkey patch: wrapping it in a module
-    would define a new class, so the message asks for a refinement or a
-    decorator instead. The project's own root constant (`class Roda` in the
+    and Zeitwerk already demands the matching module. A migration
+    (`class CreateSlugs < ActiveRecord::Migration[7.1]`, or under a constant
+    the file assigns one) is loaded the same way wherever its template lives:
+    ActiveRecord loads the file and constantizes the top-level name camelized
+    from it, so a module around it makes `db:migrate` raise. Reopening one of
+    the `CoreClasses` (`class String`) is a monkey patch: wrapping it in a
+    module would define a new class, so the message asks for a refinement or
+    a decorator instead. The project's own root constant (`class Roda` in the
     roda gem, from the gemspec's name or the Rails application's module, in
     the `Kata` department's `Roots`) is its one top-level name and passes. A
     class reopened in several files is one decision, judged once: in the
