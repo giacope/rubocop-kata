@@ -33,7 +33,7 @@ module RuboCop::Cop::Kata::Lifetime
     outer = holder
     outer = outer.parent while outer.type?(:pair, :hash)
     return outer if maker?(outer) && given(outer).any? { it.equal?(built) }
-    method.each_node(:send).find { |call| maker?(call) && handing?(call, holder) } if holder.lvasgn_type?
+    method.each_node(*CALLS).find { |call| maker?(call) && handing?(call, holder) } if holder.lvasgn_type?
   end
 
   def talked?(node, built, method)
@@ -77,7 +77,7 @@ module RuboCop::Cop::Kata::Lifetime
     call.send_type? && call.method?(:tap) && call.receiver.equal?(built)
   end
 
-  def maker?(call) = call.send_type? && call.method?(:new) && !call.receiver.nil?
+  def maker?(call) = call.call_type? && call.method?(:new) && !call.receiver.nil?
 
   def given(call) = call.arguments.flat_map { it.hash_type? ? it.values : [it] }
 

@@ -5,7 +5,7 @@ module RuboCop::Cop::Kata::Memoization
 
   LOGIC = %i[and or].freeze
 
-  def_node_matcher :vacancy?, "{(ivar %1) (send (ivar %1) {:nil? :! :present? :blank?})}"
+  def_node_matcher :vacancy?, "{(ivar %1) (call (ivar %1) {:nil? :! :present? :blank?})}"
   def_node_matcher :probe?, "{(:defined? (ivar %1)) (send {nil? self} :instance_variable_defined? (sym %1))}"
 
   private

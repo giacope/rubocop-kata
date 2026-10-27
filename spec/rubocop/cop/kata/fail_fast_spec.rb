@@ -78,6 +78,26 @@ RSpec.describe(RuboCop::Cop::Kata::FailFast, :config) do
     RUBY
   end
 
+  # R6B5-K2: a log line through `&.` is the same log line.
+  it "reads a log line written through safe navigation" do
+    expect_offense(<<~RUBY, logged: logged, hash: swallow("{}"))
+      def rates
+        JSON.parse(@source.read)
+      rescue JSON::ParserError => error
+      ^^^^^^ %{logged}
+        @log&.warn(error.message)
+      end
+
+      def cached
+        JSON.parse(@source.read)
+      rescue JSON::ParserError => error
+      ^^^^^^ %{hash}
+        @log&.warn(error.message)
+        {}
+      end
+    RUBY
+  end
+
   it "flags a rescue modifier whatever it answers" do
     expect_offense(<<~RUBY, message: modifier)
       def parsed = JSON.parse(@text) rescue Absent.new(@text)

@@ -11,7 +11,7 @@ class RuboCop::Cop::Kata::ClockDiscipline < RuboCop::Cop::Base
   def_node_matcher :ambient?, <<~PATTERN
     {
       (send (const {nil? cbase} {:Time :Date :DateTime}) {:now :today :current :yesterday :tomorrow})
-      (send (send (const {nil? cbase} :Time) :zone) {:now :today})
+      (call (send (const {nil? cbase} :Time) :zone) {:now :today})
       (send (const {nil? cbase} :Time) :new)
       (send (const {nil? cbase} :Process) :clock_gettime ...)
     }
@@ -28,13 +28,15 @@ class RuboCop::Cop::Kata::ClockDiscipline < RuboCop::Cop::Base
 
   def_node_matcher :kernel?, "(send nil? $:rand ...)"
 
-  def_node_matcher :draw?, "(send $!nil? ${:sample :shuffle :shuffle!} ...)"
+  def_node_matcher :draw?, "(call $!nil? ${:sample :shuffle :shuffle!} ...)"
 
   def on_send(node)
     return if seam?(node)
     return add_offense(node, message: format(MSG, node.source)) if ambient?(node)
     judge(node) if cop_config["CheckRandomness"]
   end
+
+  alias on_csend on_send
 
   private
 

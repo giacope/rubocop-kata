@@ -65,6 +65,20 @@ RSpec.describe(RuboCop::Cop::Kata::ScopedResource, :config) do
     RUBY
   end
 
+  # R6B5-K2: a call through `&.` is the same call.
+  it "reads a handle opened through safe navigation as opened" do
+    expect_offense(<<~RUBY, message: held("@dialer&.open(@host)", "socket.close"))
+      class Client
+        def ping
+          socket = @dialer&.open(@host)
+                   ^^^^^^^^^^^^^^^^^^^^ %{message}
+          socket.write("ping")
+          socket.close
+        end
+      end
+    RUBY
+  end
+
   it "passes a release in an ensure or a rescue, and a block that holds the resource" do
     expect_no_offenses(<<~RUBY)
       class Archive

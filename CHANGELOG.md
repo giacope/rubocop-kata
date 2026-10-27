@@ -296,6 +296,17 @@
     `Style/RescueModifier` report: it reports the ones that swallow, and the
     comment names the ones it passes (a re-raise, a rescue on the way out,
     the `ExpectedErrors`, a question's boolean).
+  - The strict cops read a call made through `&.` as the call it is. excon's
+    `socket&.close rescue nil` was read by `Kata/FailFast` as swallowing
+    while `socket.close rescue nil` three lines up was a release (both now
+    share one verdict, by where they stand); and a log line `@log&.warn(...)`
+    (FailFast), `Time.zone&.now` and `@names&.sample`
+    (`Kata/ClockDiscipline`), `Rails.application&.config`
+    (`Kata/EnvDiscipline`), a handle opened as `@dialer&.open(...)`
+    (`Kata/ScopedResource`), an answer `@entries&.sum` and a memo's guard
+    `unless @rate&.present?` (`Kata/CommandQuery`), and a constructor
+    `@orders&.new(...)` an object is handed to (`Kata/NoHardWiring`) were
+    each read as no such call.
 - A strict Elegant Objects profile, `config/strict.yml`, for a project that
   wants the whole of Elegant Objects (`inherit_gem: { rubocop-kata:
   config/strict.yml }` beside `plugins: [rubocop-kata]`). The rules the V1

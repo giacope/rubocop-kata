@@ -16,6 +16,8 @@ class RuboCop::Cop::Kata::EnvDiscipline < RuboCop::Cop::Base
     add_offense(node, message: format(MSG, name)) if setting?(node, name)
   end
 
+  alias on_csend on_send
+
   private
 
   def setting?(node, name)

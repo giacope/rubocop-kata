@@ -327,6 +327,22 @@ RSpec.describe(RuboCop::Cop::Kata::CommandQuery, :config) do
       RUBY
     end
 
+    # R6B5-K2: an answer through `&.` is still an answer, and so is a memo's guard.
+    it "reads an answer through safe navigation" do
+      expect_offense(<<~RUBY)
+        def total
+          @audit.record("total read")
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^ `total` answers with a value and acts with `record`; #{advice}
+          @entries&.sum
+        end
+
+        def rate
+          @rate = fetch unless @rate&.present?
+          @rate
+        end
+      RUBY
+    end
+
     it "flags a state change and a bang on its state" do
       expect_offense(<<~RUBY)
         def label

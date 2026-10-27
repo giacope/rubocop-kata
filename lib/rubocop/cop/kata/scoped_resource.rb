@@ -27,7 +27,7 @@ class RuboCop::Cop::Kata::ScopedResource < RuboCop::Cop::Base
 
   def opened(assignment, calls)
     value = assignment.expression
-    return unless value&.send_type? && !covered?(value)
+    return unless value&.call_type? && !covered?(value)
     report(value, calls.select { closing?(it, assignment.name) }, calls)
   end
 

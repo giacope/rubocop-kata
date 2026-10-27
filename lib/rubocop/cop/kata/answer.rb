@@ -13,7 +13,7 @@ module RuboCop::Cop::Kata::Answer
 
   private
 
-  def value?(node) = VALUES.include?(node.type) || (node.send_type? && answer?(node))
+  def value?(node) = VALUES.include?(node.type) || (node.call_type? && answer?(node))
 
   def answer?(call) = QUERIES.include?(call.method_name) || call.predicate_method?
 

@@ -36,6 +36,19 @@ RSpec.describe(RuboCop::Cop::Kata::ClockDiscipline, :config) do
     RUBY
   end
 
+  # R6B5-K2: a call through `&.` is the same call.
+  it "reads a clock or a draw through safe navigation" do
+    expect_offense(<<~RUBY)
+      def stamp
+        Time.zone&.now
+        ^^^^^^^^^^^^^^ Inject a clock; `Time.zone&.now` reads the ambient time.
+        @names&.sample
+        ^^^^^^^^^^^^^^ Pass `sample` an injected generator (`random: @random`); without one it draws from the ambient source.
+        @names&.shuffle(random: @random)
+      end
+    RUBY
+  end
+
   it "flags Time.new without arguments, which is now, and the process clock" do
     expect_offense(<<~RUBY)
       def stamp

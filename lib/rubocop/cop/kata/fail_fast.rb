@@ -56,7 +56,7 @@ class RuboCop::Cop::Kata::FailFast < RuboCop::Cop::Base
 
   def answer(last) = EXITS.include?(last&.type) ? last.children.first : last
 
-  def log?(line) = line&.send_type? && LEVELS.include?(line.method_name) && line.arguments?
+  def log?(line) = line&.call_type? && LEVELS.include?(line.method_name) && line.arguments?
 
   def default?(value) = value.nil? || value.basic_literal? || (EMPTY.include?(value.type) && value.children.empty?)
 

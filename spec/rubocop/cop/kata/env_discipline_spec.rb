@@ -91,6 +91,16 @@ RSpec.describe(RuboCop::Cop::Kata::EnvDiscipline, :config) do
       RUBY
     end
 
+    # R6B5-K2: a call through `&.` is the same call.
+    it "reads the configuration through safe navigation" do
+      expect_offense(<<~RUBY)
+        class Mailbox
+          def delivery = Rails.application&.config&.action_mailer
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^ `Rails.application.config` belongs in the boot layer; pass configuration in.
+        end
+      RUBY
+    end
+
     it "passes a test for the constant, a parameter default and a framework's boot hook" do
       expect_no_offenses(<<~RUBY)
         class Engine < Rails::Engine

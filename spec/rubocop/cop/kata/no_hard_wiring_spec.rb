@@ -129,6 +129,24 @@ RSpec.describe(RuboCop::Cop::Kata::NoHardWiring, :config) do
     RUBY
   end
 
+  # R6B5-K2: a constructor called through `&.` is the same constructor.
+  it "reads a constructor called through safe navigation as the one it is handed to" do
+    expect_offense(<<~RUBY, seam: seam)
+      class Gateway
+      end
+
+      class Checkout
+        def order = @orders&.new(Gateway.new("live"), @items)
+                                 ^^^^^^^^^^^^^^^^^^^ `order` builds the `Gateway` it hands to `@orders.new`; %{seam}
+        def local
+          gateway = Gateway.new
+                    ^^^^^^^^^^^ `local` builds the `Gateway` it hands to `@orders.new`; %{seam}
+          @orders&.new(@items, gateway:).place
+        end
+      end
+    RUBY
+  end
+
   it "allows a value wrapper built from the method's own values and queried on the spot" do
     expect_no_offenses(<<~RUBY)
       class Nesting

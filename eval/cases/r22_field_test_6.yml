@@ -1063,3 +1063,45 @@
         end
       end
     end
+- id: r6b5-k2-log-line-through-safe-navigation-swallows
+  cop: Kata/FailFast
+  strict: true
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Rates
+        def initialize(source, log)
+          @source = source
+          @log = log
+        end
+
+        def table
+          JSON.parse(@source.read)
+        rescue JSON::ParserError => error
+          @log&.warn(error.message)
+          {}
+        end
+      end
+    end
+- id: r6b5-k2-answer-through-safe-navigation-is-judged
+  cop: Kata/CommandQuery
+  strict: true
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Ledger
+        def initialize(entries, audit)
+          @entries = entries
+          @audit = audit
+        end
+
+        def total
+          @audit.record("total read")
+          @entries&.sum
+        end
+      end
+    end
