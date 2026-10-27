@@ -1201,20 +1201,28 @@ Kata/NoGetter:
 
 Kata/NoHardWiring:
   Description: >-
-    An instance method that builds one of the project's classes and talks to
-    it (`Gateway.new("live").charge(@cents)`, or a local it then sends
-    messages to) has wired that collaborator in: no caller can hand it another
-    implementation, and a test has to stub `new`. Take the collaborator in the
-    constructor; a parameter default (`gateway = Gateway.new("live")`) is the
-    seam, as Elegant Objects' secondary constructor is. Building an object to
-    return it or to pass it on (`Cart.new(@items + [item])`, a decorator
-    around another) is what objects do, and so is the class building itself;
-    class methods, constructors and the composition roots a framework
-    instantiates (controllers, jobs, mailers, rake tasks, `bin/`, `config/`,
-    and a subclass of one of the `RootSuperclasses`, which the framework
-    builds and so cannot be handed a collaborator) are where objects are
-    wired. Ruby's and other libraries' classes are values or boundaries, and
-    pass. Off by default: config/strict.yml turns it on.
+    An instance method that builds one of the project's classes as a
+    collaborator has wired it in: no caller can hand it another
+    implementation, and a test has to stub `new`. A collaborator is an object
+    built to be used for its effects (`Gateway.new("live").charge(@cents)`,
+    built from literals alone, from nothing, or from a constant or global the
+    method does not own; `box = Mailbox.new(host); box.deliver(text)`, a
+    message whose value is thrown away; a bang or a writer), kept in a field
+    (`@gateway ||= Gateway.new`), or handed on as another object's dependency
+    (`Order.new(Gateway.new("live"))`). Take it in the constructor; a
+    parameter default (`gateway = Gateway.new("live")`) is the seam, as
+    Elegant Objects' secondary constructor is. A value wrapper is composition,
+    not wiring: an object built from the method's own values (its arguments,
+    locals, fields, the class's own constants and literals) and asked a
+    question on the spot (`Nesting.new(node).qualified`, `Table.new(COLUMNS,
+    @rows).csv`) passes, and so does an object built to be returned or passed
+    to a method (`Cart.new(@items + [item])`, a local filled and returned) and
+    the class building itself; class methods, constructors and the composition
+    roots a framework instantiates (controllers, jobs, mailers, rake tasks,
+    `bin/`, `config/`, and a subclass of one of the `RootSuperclasses`, which
+    the framework builds and so cannot be handed a collaborator) are where
+    objects are wired. Ruby's and other libraries' classes are values or
+    boundaries, and pass. Off by default: config/strict.yml turns it on.
   Enabled: false
   VersionAdded: "0.11"
   RootSuperclasses:

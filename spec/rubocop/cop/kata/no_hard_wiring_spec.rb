@@ -4,8 +4,10 @@ RSpec.describe(RuboCop::Cop::Kata::NoHardWiring, :config) do
   let(:ruby_version) { 3.4 }
   let(:cop_config) { { "OwnedPaths" => [], "RootSuperclasses" => ["RuboCop::Cop::Base"] } }
 
-  it "flags an instance method that builds a collaborator of the project's and talks to it" do
-    expect_offense(<<~RUBY)
+  def seam = "take one in the constructor, with this `new` as the parameter's default."
+
+  it "flags a collaborator built to be talked to for its effects" do
+    expect_offense(<<~RUBY, seam: seam)
       module Shop
         class Gateway
         end
@@ -16,20 +18,144 @@ RSpec.describe(RuboCop::Cop::Kata::NoHardWiring, :config) do
         class Checkout
           def receipt
             Gateway.new("live").charge(@cents)
-            ^^^^^^^^^^^^^^^^^^^ `receipt` builds the `Gateway` it talks to; take one in the constructor, with this `new` as the parameter's default.
+            ^^^^^^^^^^^^^^^^^^^ `receipt` builds the `Gateway` it talks to; %{seam}
           end
 
           def complete
             box = Shop::Mailbox.new(host) { |config| config.tls }
-                  ^^^^^^^^^^^^^^^^^^^^^^^ `complete` builds the `Shop::Mailbox` it talks to; take one in the constructor, with this `new` as the parameter's default.
+                  ^^^^^^^^^^^^^^^^^^^^^^^ `complete` builds the `Shop::Mailbox` it talks to; %{seam}
             box&.deliver(receipt)
+            true
+          end
+
+          def plain = Gateway.new.charge
+                      ^^^^^^^^^^^ `plain` builds the `Gateway` it talks to; %{seam}
+          def save = Gateway.new(@rows).save!
+                     ^^^^^^^^^^^^^^^^^^ `save` builds the `Gateway` it talks to; %{seam}
+          def limit = Gateway.new(@rows).limit = 3
+                      ^^^^^^^^^^^^^^^^^^ `limit` builds the `Gateway` it talks to; %{seam}
+          def sweep = @rows.each { Gateway.new(it).clear }
+                                   ^^^^^^^^^^^^^^^ `sweep` builds the `Gateway` it talks to; %{seam}
+          def count = 3.times { Gateway.new(it).tick }
+                                ^^^^^^^^^^^^^^^ `count` builds the `Gateway` it talks to; %{seam}
+          def total
+            Gateway.new(@key).total
+            ^^^^^^^^^^^^^^^^^ `total` builds the `Gateway` it talks to; %{seam}
+            1
           end
         end
       end
     RUBY
   end
 
-  it "allows an object built to be returned, passed on or kept" do
+  it "flags a collaborator built from what the method does not own: a constant, a global or a class variable" do
+    expect_offense(<<~RUBY, seam: seam)
+      class Gateway
+      end
+
+      class Checkout
+        def find = Gateway.new(DB).find(@id)
+                   ^^^^^^^^^^^^^^^ `find` builds the `Gateway` it talks to; %{seam}
+        def log = Gateway.new(@key, out: $stderr).line
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `log` builds the `Gateway` it talks to; %{seam}
+        def pool = Gateway.new(@@size).take
+                   ^^^^^^^^^^^^^^^^^^^ `pool` builds the `Gateway` it talks to; %{seam}
+        def url = Gateway.new(Settings::URL).host
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^ `url` builds the `Gateway` it talks to; %{seam}
+      end
+    RUBY
+  end
+
+  it "flags a collaborator built in a method and kept in a field" do
+    expect_offense(<<~RUBY, seam: seam)
+      class Gateway
+      end
+
+      class Checkout
+        def gateway = @gateway ||= Gateway.new("live")
+                                   ^^^^^^^^^^^^^^^^^^^ `gateway` builds the `Gateway` it keeps in `@gateway`; %{seam}
+        def nesting = @nesting = Gateway.new(@node)
+                                 ^^^^^^^^^^^^^^^^^^ `nesting` builds the `Gateway` it keeps in `@nesting`; %{seam}
+        def shared = @@pool = Gateway.new(@size)
+                              ^^^^^^^^^^^^^^^^^^ `shared` builds the `Gateway` it keeps in `@@pool`; %{seam}
+        def global = $pool = Gateway.new(@size)
+                             ^^^^^^^^^^^^^^^^^^ `global` builds the `Gateway` it keeps in `$pool`; %{seam}
+      end
+    RUBY
+  end
+
+  it "flags a collaborator built in a method and handed on as another object's dependency" do
+    expect_offense(<<~RUBY, seam: seam)
+      class Gateway
+      end
+
+      class Checkout
+        def order = Order.new(Gateway.new("live"), @items)
+                              ^^^^^^^^^^^^^^^^^^^ `order` builds the `Gateway` it hands to `Order.new`; %{seam}
+        def keyed = Order.new(@items, gateway: Gateway.new(KEY))
+                                               ^^^^^^^^^^^^^^^^ `keyed` builds the `Gateway` it hands to `Order.new`; %{seam}
+        def wrapped = Gateway.new(Gateway.new("live"))
+                                  ^^^^^^^^^^^^^^^^^^^ `wrapped` builds the `Gateway` it hands to `Gateway.new`; %{seam}
+        def local
+          gateway = Gateway.new
+                    ^^^^^^^^^^^ `local` builds the `Gateway` it hands to `Shop::Order.new`; %{seam}
+          Shop::Order.new(@items, gateway:).place
+        end
+      end
+    RUBY
+  end
+
+  it "allows a value wrapper built from the method's own values and queried on the spot" do
+    expect_no_offenses(<<~RUBY)
+      class Nesting
+      end
+
+      class Checkout
+        COLUMNS = %w[number date].freeze
+
+        def qualified(node) = Nesting.new(node).qualified
+        def opening = Nesting.new(@node).opening
+        def charge(cents) = Nesting.new(cents, "USD").charge
+        def csv = Nesting.new(COLUMNS, @rows, %w[a b]).csv
+        def own = Nesting.new(self).valid? ? 1 : 0
+        def names(nodes) = nodes.map { Nesting.new(it).qualified }
+        def helper = Nesting.new(source.lines).size
+        def invoice = Invoice.new(@cents, Nesting.new(@cents, 5_000))
+        def handed
+          rate = Nesting.new(@cents)
+          Invoice.new(rate).total
+        end
+        def depth
+          nesting = Nesting.new(@node)
+          nesting.names.size + nesting.depth
+        end
+      end
+    RUBY
+  end
+
+  # content-tagger: a tree node built, filled and returned; a parameter rebound to the wrapper built from it.
+  it "allows the object a method builds and returns, filled on the way, and a local rebound to its wrapper" do
+    expect_no_offenses(<<~RUBY)
+      class Gateway
+      end
+
+      class Tree
+        def parse(row)
+          item = Gateway.new(row["title"])
+          row["children"].each { item << parse(it) }
+          item.save
+          item
+        end
+
+        def check(taxon)
+          taxon = Gateway.new(taxon, prefix: "/")
+          Gateway.new(taxon.path).valid? && taxon.valid?
+        end
+      end
+    RUBY
+  end
+
+  it "allows an object built to be returned, or passed to a method that is not a constructor" do
     expect_no_offenses(<<~RUBY)
       module Shop
         class Gateway
@@ -37,7 +163,6 @@ RSpec.describe(RuboCop::Cop::Kata::NoHardWiring, :config) do
 
         class Cart
           def with(item) = Cart.new(@items + [item])
-          def wrapped = Gateway.new(Gateway.new("live"))
           def handed = @log.push(Gateway.new("live"))
           def named
             gateway = Gateway.new("live")
@@ -49,27 +174,12 @@ RSpec.describe(RuboCop::Cop::Kata::NoHardWiring, :config) do
             ready.go
           end
           def again = self.class.new(@items).size
-          def csv = Gateway.new(%w[a b], @rows, @separator).csv
           def plain = new.size
-        end
-      end
-    RUBY
-  end
-
-  it "still flags a relay that builds from something other than its own state, or answers another message" do
-    expect_offense(<<~RUBY)
-      class Gateway
-      end
-
-      class Checkout
-        def charge(cents) = Gateway.new(cents).charge
-                            ^^^^^^^^^^^^^^^^^^ `charge` builds the `Gateway` it talks to; take one in the constructor, with this `new` as the parameter's default.
-        def receipt = Gateway.new(@key).charge(@cents)
-                      ^^^^^^^^^^^^^^^^^ `receipt` builds the `Gateway` it talks to; take one in the constructor, with this `new` as the parameter's default.
-        def total
-          Gateway.new(@key).total
-          ^^^^^^^^^^^^^^^^^ `total` builds the `Gateway` it talks to; take one in the constructor, with this `new` as the parameter's default.
-          1
+          def bare = new(Gateway.new("live"))
+          def lazy
+            gateway ||= Gateway.new("live")
+            gateway
+          end
         end
       end
     RUBY

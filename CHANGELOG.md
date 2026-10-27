@@ -164,20 +164,28 @@
   if @open`) are nil returns too. A slice (`rows[1..]`, `bio[0, 40]`), a
   hash with a default, a conditional command and a method forwarding the
   protocol it is named after pass.
-- `Kata/NoHardWiring` (new, strict): an instance method that builds one of the
-  project's classes and talks to it (`Gateway.new("live").charge(@cents)`,
-  `box = Mailbox.new(host); box.deliver(...)`) has wired that collaborator
-  in, and Elegant Objects' "always use interfaces" had no rule. The message
-  asks for a constructor parameter with the `new` as its default, the seam.
-  Returning or passing on a new object, the class building itself,
-  constructors, class methods and composition roots (controllers, jobs,
-  mailers, workers, `bin/`, `config/`, a subclass of a framework base that
-  builds it, such as `RuboCop::Cop::Base`; `RootSuperclasses`) pass, as do
-  Ruby's and other libraries' classes, and so does a method that answers
-  its own message by relaying it to an object built from its own fields
-  (`def csv = Table.new(COLUMNS, @orders, @separator).csv`, composition).
-  The ownership test is `Kata/NoTypeCheck`'s, now shared.
-
+- `Kata/NoHardWiring` (new, strict): an instance method that builds one of
+  the project's classes as a collaborator has wired it in, and Elegant
+  Objects' "always use interfaces" had no rule. A collaborator is an object
+  used for its effects (`Gateway.new("live").charge(@cents)`, built from
+  literals, from nothing, or from a constant or global the method does not
+  own; `box = Mailbox.new(host); box.deliver(text)` with the value thrown
+  away; a bang or a writer), kept in a field (`@gateway ||= Gateway.new`),
+  or handed on as another object's dependency
+  (`Order.new(Gateway.new("live"))`). The message asks for a constructor
+  parameter with the `new` as its default, the seam. A value wrapper built
+  from the method's own values and asked a question on the spot
+  (`Nesting.new(node).qualified`, `Syntax.new(node).opening`) is Elegant
+  Objects composition and passes, as do an object built to be returned or
+  passed to a method, the class building itself, constructors, class
+  methods, composition roots (controllers, jobs, mailers, workers, `bin/`,
+  `config/`, a subclass of a framework base that builds it, such as
+  `RuboCop::Cop::Base`; `RootSuperclasses`), and Ruby's and other libraries'
+  classes. On the five batch-one codebases it reports 32, 30 of them a
+  service built in place, kept or handed on (content-tagger's
+  `Taxonomy::TaxonomyQuery.new` and `Linkables.new`); the two misses are a
+  prototype probe and a wrapper built to raise. The ownership test is
+  `Kata/NoTypeCheck`'s, now shared.
 - With `CheckEveryQuery: true` (strict), `Kata/CommandQuery` judges every
   query, not only `?` methods: a method whose last expression is a value
   (`@entries.sum`, a literal, a lookup, a new object) and that also acts —
