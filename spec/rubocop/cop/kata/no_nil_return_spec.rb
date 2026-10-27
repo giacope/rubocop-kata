@@ -219,6 +219,36 @@ RSpec.describe(RuboCop::Cop::Kata::NoNilReturn, :config) do
     RUBY
   end
 
+  # strong_migrations' `def e.cause; nil; end`: the end of the cause chain every reader stops on.
+  context "with the shipped AllowedMethods" do
+    let(:cop_config) { {} }
+
+    it "allows an override of a core method whose contract answers nil" do
+      expect_no_offenses(<<~RUBY)
+        def error.cause
+          nil
+        end
+
+        class Version
+          def <=>(other) = (@parts <=> other.parts if other.respond_to?(:parts))
+          def =~(other) = nil
+          def to_ary = nil
+          def gets = @lines.shift
+          def backtrace = @raised ? @trace : nil
+        end
+      RUBY
+    end
+
+    it "still flags the nil of a method whose name is not a core protocol" do
+      expect_offense(<<~RUBY)
+        def error.reason
+          nil
+          ^^^ `reason` returns nil; return a null object, or fail fast.
+        end
+      RUBY
+    end
+  end
+
   it "allows predicates, writers, the protocol a method forwards, and AllowedMethods" do
     expect_no_offenses(<<~RUBY)
       def open? = @items.first

@@ -260,6 +260,17 @@
     `Kata/NoOutputArgument` leaves the argument such a hook is handed
     (`AllowedMethods`): Psych hands `encode_with` the coder to fill, so
     "return a new value" breaks `YAML.dump`.
+  - An override of a core method whose contract answers nil keeps that
+    contract: `Kata/NoNilReturn` and `Elegant/NoNilReturn` (through a
+    narrow override, as it has no option of its own) pass `cause` (the end
+    of an exception's cause chain: strong_migrations' `def e.cause; nil;
+    end`, which strips the cause before Rails prints it; a null object put
+    a bogus cause in every chain, failing fast broke every walker), `<=>`
+    (incomparable), `=~` (no match), `backtrace` and `backtrace_locations`
+    (not raised yet), `to_ary` (no conversion), `gets` (end of the stream)
+    and `dig`, beside `[]` and `method_missing`, which the strict cop
+    already passed (the default profile now passes them too: mechanize's
+    file response `[]`).
 - A strict Elegant Objects profile, `config/strict.yml`, for a project that
   wants the whole of Elegant Objects (`inherit_gem: { rubocop-kata:
   config/strict.yml }` beside `plugins: [rubocop-kata]`). The rules the V1

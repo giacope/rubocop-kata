@@ -1030,10 +1030,18 @@ Kata/NoNilReturn:
     block's literal `nil` is reported too. A predicate's falsy nil answers its
     question, a writer's value is its argument, and a method that forwards the
     protocol it is named after (`def first = @rows.first`) keeps that
-    protocol's contract; `AllowedMethods` holds the protocols whose contract
-    is nil (`[]`, `method_missing`). Off by default: config/strict.yml turns
-    it on in place of `Elegant/NoNilReturn`, which sees only the literal
-    `nil`.
+    protocol's contract; `AllowedMethods` holds the core methods whose
+    contract answers nil, so an override that answers nil keeps it and a
+    null object or a raise would break Ruby's own readers: `[]` and `dig`
+    (no such key), `method_missing`, `<=>` (incomparable: `sort`, `max` and
+    `Comparable` turn it into their own error, where a null 0 would claim
+    equality), `=~` (no match), `cause` (the end of an exception's cause
+    chain, where every walker stops), `backtrace` and `backtrace_locations`
+    (not raised yet), `to_ary` (no implicit conversion: `flatten` and
+    multiple assignment go on), and `gets` (end of the stream). The same
+    list passes `Elegant/NoNilReturn`. Off by default: config/strict.yml
+    turns it on in place of `Elegant/NoNilReturn`, which sees only the
+    literal `nil`.
   Enabled: false
   VersionAdded: "0.11"
   Exclude:
@@ -1042,9 +1050,23 @@ Kata/NoNilReturn:
     - "**/*_spec.rb"
     - "**/*_test.rb"
     - "db/*migrate/**/*"
-  AllowedMethods:
+  AllowedMethods: &nil_answers
+    - "<=>"
+    - "=~"
     - "[]"
+    - backtrace
+    - backtrace_locations
+    - cause
+    - dig
+    - gets
     - method_missing
+    - to_ary
+
+# An override of a core method whose contract answers nil keeps it (the
+# list and the reasons are Kata/NoNilReturn's); kata reads this list for the
+# bundled cop, which has no option of its own.
+Elegant/NoNilReturn:
+  AllowedMethods: *nil_answers
 
 Kata/NoPublicConstant:
   Description: >-

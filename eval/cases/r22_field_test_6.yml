@@ -941,3 +941,53 @@
         def marshal_load(data) = @limit = data[:limit]
       end
     end
+- id: r6b4-k5-cause-override-ends-the-chain-default
+  cop: Elegant/NoNilReturn
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Migration
+        def stripped(error)
+          def error.cause
+            nil
+          end
+          error
+        end
+      end
+    end
+- id: r6b4-k5-cause-override-ends-the-chain-strict
+  cop: Kata/NoNilReturn
+  strict: true
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Migration
+        def stripped(error)
+          def error.cause
+            nil
+          end
+          error
+        end
+      end
+    end
+- id: r6b4-k5-other-nil-still-flagged
+  cop: Elegant/NoNilReturn
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Migration
+        def initialize(error)
+          @error = error
+        end
+
+        def reason
+          nil
+        end
+      end
+    end
