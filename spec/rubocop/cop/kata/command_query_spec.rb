@@ -35,14 +35,32 @@ RSpec.describe(RuboCop::Cop::Kata::CommandQuery, :config) do
         ^^^^^^^^^^^^^ `ready?` asks a question and changes state with `flatten!`; a query answers, a command acts.
         record&.lock!
         ^^^^^^^^^^^^^ `ready?` asks a question and changes state with `lock!`; a query answers, a command acts.
-        log(reload!)
-            ^^^^^^^ `ready?` asks a question and changes state with `reload!`; a query answers, a command acts.
+        @rows.each { @cache.clear! }
+                     ^^^^^^^^^^^^^ `ready?` asks a question and changes state with `clear!`; a query answers, a command acts.
+        @rows.select! { it }
+        ^^^^^^^^^^^^^ `ready?` asks a question and changes state with `select!`; a query answers, a command acts.
+        begin
+          @rows.sort!
+          ^^^^^^^^^^^ `ready?` asks a question and changes state with `sort!`; a query answers, a command acts.
+          true
+        end
+        flag && @rows.shuffle!
+                ^^^^^^^^^^^^^^ `ready?` asks a question and changes state with `shuffle!`; a query answers, a command acts.
+        flag || @name.squeeze!
+                ^^^^^^^^^^^^^^ `ready?` asks a question and changes state with `squeeze!`; a query answers, a command acts.
+        @name.strip! if flag
+        ^^^^^^^^^^^^ `ready?` asks a question and changes state with `strip!`; a query answers, a command acts.
+        case flag
+        when 1 then @rows.reverse!
+                    ^^^^^^^^^^^^^^ `ready?` asks a question and changes state with `reverse!`; a query answers, a command acts.
+        end
+        record.valid?
       end
     RUBY
   end
 
-  # mechanize's `visited?` and `resolve`, ahoy's `group_prop(*props)`.
-  it "reads a change to a copy, a rebound name or a splat as the method's own" do
+  # mechanize's `visited?` and `resolve`, ahoy's `group_prop(*props)`, collections-publisher's `I18n.t!`.
+  it "reads a change to a copy or a splat as the method's own, and a bang whose value is used as a query" do
     expect_no_offenses(<<~RUBY)
       def visited?(uri, link, *props, **options)
         uri = uri.dup
@@ -52,7 +70,45 @@ RSpec.describe(RuboCop::Cop::Kata::CommandQuery, :config) do
         link.host!
         props.flatten!
         options.compact!
-        @index.include?(uri.to_s)
+        seen = [reload!]
+        @index.include?(uri.to_s) && seen.any?
+      end
+
+      def rows?(url)
+        rows = { "Status" => I18n.t!("statuses") }
+        link = url ? secure_resolve!(url) : @home
+        case url
+        when String then resolve!(url)
+        end.then { fetch!(url).to_s }
+        found = url && resolve!(url)
+        kept = begin
+          resolve!(url)
+        end
+        @rows.uniq! || @rows
+        @rows.compact! ? 1 : 2
+        @rows.map { it }.first!
+        names = @rows.map { @cache.fetch!(it) }
+        rows.size > link.size + names.size
+      end
+    RUBY
+  end
+
+  it "flags a bang that is the query's own answer" do
+    expect_offense(<<~RUBY)
+      def verified?(code)
+        return false unless code
+        save!(validate: false)
+        ^^^^^^^^^^^^^^^^^^^^^^ `verified?` asks a question and changes state with `save!`; a query answers, a command acts.
+      end
+
+      def ready? = Cache.ready!
+                   ^^^^^^^^^^^^ `ready?` asks a question and changes state with `ready!`; a query answers, a command acts.
+
+      def done?
+        return @rows.compact! if @rows
+               ^^^^^^^^^^^^^^ `done?` asks a question and changes state with `compact!`; a query answers, a command acts.
+        @rows.any? { @cache.clear! }
+                     ^^^^^^^^^^^^^ `done?` asks a question and changes state with `clear!`; a query answers, a command acts.
       end
     RUBY
   end

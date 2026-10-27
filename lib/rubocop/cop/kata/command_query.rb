@@ -11,6 +11,8 @@ class RuboCop::Cop::Kata::CommandQuery < RuboCop::Cop::Base
   ADVICE = "Split them, or return a new object instead of acting."
   OWNED = %i[ivar cvar gvar const self].freeze
   CONSTRUCTORS = %i[initialize initialize_copy].freeze
+  BRANCHES = %i[if case when and or].freeze
+  ANSWERS = %i[def defs return].freeze
 
   def on_def(node)
     body = node.body
@@ -69,7 +71,7 @@ class RuboCop::Cop::Kata::CommandQuery < RuboCop::Cop::Base
 
   def command?(call, method)
     name = call.method_name.to_s
-    name.end_with?("!") && name != "!" && owned?(call.receiver, method) && !lookup?(call) && !raising?(call)
+    name.end_with?("!") && name != "!" && owned?(call.receiver, method) && !used?(call) && !raising?(call)
   end
 
   def raising?(call)
@@ -77,9 +79,12 @@ class RuboCop::Cop::Kata::CommandQuery < RuboCop::Cop::Base
     call.receiver&.const_type? && holder&.if_type? && holder.branches.compact.all? { it.equal?(call) }
   end
 
-  def lookup?(call)
-    holder = call.parent
-    !holder.nil? && (holder.assignment? || (holder.call_type? && holder.receiver.equal?(call)))
+  def used?(node)
+    holder = node.parent
+    return holder.children.last.equal?(node) && used?(holder) if holder.type?(:begin, :kwbegin)
+    return used?(holder) if holder.any_block_type?
+    return used?(holder) if holder.type?(*BRANCHES) && !holder.children.first.equal?(node)
+    !holder.type?(*ANSWERS)
   end
 
   def owned?(target, method)

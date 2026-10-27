@@ -460,3 +460,46 @@
         end
       end
     end
+- id: r6b3-k3-bang-whose-value-is-read-is-a-lookup
+  cop: Kata/CommandQuery
+  strict: true
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Summary
+        def initialize(status, home)
+          @status = status
+          @home = home
+        end
+
+        def rows
+          { "Status" => I18n.t!("statuses.#{@status}") }
+        end
+
+        def target(url)
+          link = url ? I18n.t!(url) : @home
+          link.to_s
+        end
+      end
+    end
+- id: r6b3-k3-bang-thrown-away-still-flagged
+  cop: Kata/CommandQuery
+  strict: true
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Summary
+        def initialize(rows)
+          @rows = rows
+        end
+
+        def count
+          @rows.compact!
+          @rows.size
+        end
+      end
+    end

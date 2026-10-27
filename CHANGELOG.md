@@ -150,6 +150,15 @@
     `uri.host =` in `resolve`) and a splat Ruby builds for the call (ahoy's
     `props.flatten!` on `*props`, searchkick's `**options`) are the method's
     own, not the caller's state. Both cops now share that reading.
+  - `Kata/CommandQuery` reads a bang by what happens to its value: one the
+    method reads (collections-publisher's `"Status" =>
+    I18n.t!("...")`, mechanize's `url ? secure_resolve!(url, page) : uri`,
+    an argument, an interpolation, a branch of a value the method uses) is a
+    lookup that raises, as an assigned one already was; one whose value is
+    thrown away (a statement, a branch or block of one), or that is the
+    method's own answer (`def verified? = save!`), still acts.
+    `I18n.t!` translates or raises, and changes nothing; the spelling of the
+    use decided the verdict before.
 - A strict Elegant Objects profile, `config/strict.yml`, for a project that
   wants the whole of Elegant Objects (`inherit_gem: { rubocop-kata:
   config/strict.yml }` beside `plugins: [rubocop-kata]`). The rules the V1

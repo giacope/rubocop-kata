@@ -1760,9 +1760,12 @@ Kata/CommandQuery:
     A method answers or acts, never both. A method whose name ends in `?`
     answers a question and changes nothing: it assigns no instance variable
     and calls no `!` method on itself, its state or its parameters for its
-    effect. A parameter the method rebound to its own copy (`uri =
-    uri.dup`) or a splat Ruby builds for the call (`*props`, `**options`) is
-    the method's own, as `Kata/NoOutputArgument` reads them.
+    effect. A bang whose value the method reads (`{ "Status" =>
+    I18n.t!(key) }`, `url ? resolve!(url) : home`, `found = fetch!(id)`) is
+    a lookup that raises; one that is the method's answer (`def saved? =
+    save!`) still acts. A parameter the method rebound to its own copy
+    (`uri = uri.dup`) or a splat Ruby builds for the call (`*props`,
+    `**options`) is the method's own, as `Kata/NoOutputArgument` reads them.
     Memoizing the answer (`@valid ||= ...`) is not a change, and neither is a
     guard whose only branch is a bang on a constant (`UI.user_error!("...")
     unless key`) or one of the `RaisingMethods`: it raises, it does not
