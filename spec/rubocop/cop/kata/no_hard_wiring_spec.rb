@@ -201,6 +201,112 @@ RSpec.describe(RuboCop::Cop::Kata::NoHardWiring, :config) do
     RUBY
   end
 
+  # mechanize: a form, its uploads, an auth challenge, a test response and a cookie jar, built per call and handed on.
+  it "allows a value the method builds per call, fills and hands on" do
+    expect_no_offenses(<<~RUBY)
+      class Form
+      end
+
+      class Client
+        def post(query)
+          form = Form.new({ "method" => "POST" })
+          query.each do |name, io|
+            form.enctype = "multipart"
+            upload = Form.new(name)
+            upload.data = io
+            form.add(upload)
+          end
+          @transport.submit(form)
+        end
+
+        def keyed
+          form = Form.new
+          form.fill(@fields)
+          @transport.submit(@uri, form: form)
+        end
+
+        def listed
+          form = Form.new
+          form.fill(@fields)
+          @transport.submit([form])
+        end
+
+        def safe
+          form = Form.new
+          form.fill(@fields)
+          @transport&.submit(form)
+        end
+
+        def upward
+          form = Form.new
+          form.fill(@fields)
+          super(form)
+        end
+
+        def yielded
+          form = Form.new
+          form.fill(@fields)
+          yield form
+        end
+
+        def early
+          form = Form.new
+          form.fill(@fields)
+          return form if @fields
+          @fields
+        end
+
+        def jar(text) = Form.new.tap { |jar| jar.parse(text) }
+        def tapped = Form.new.tap(&:load)
+        def logged = @log.tap(Form.new).flush
+      end
+    RUBY
+  end
+
+  # mechanize's `click`: the message goes to the page the name held before; the new blank page is only handed on.
+  it "reads a message sent before the local is rebound as the earlier value's" do
+    expect_no_offenses(<<~RUBY)
+      class Page
+      end
+
+      class Client
+        def click(link)
+          page = link.page
+          page.check
+          page = Page.new
+          @log.count
+        end
+
+        def inline(link)
+          page = link.page
+          page.check; page = Page.new
+          @log.count
+        end
+      end
+    RUBY
+  end
+
+  it "still flags a collaborator talked to through tap, kept through tap, or handed on before it was built" do
+    expect_offense(<<~RUBY, seam: seam)
+      class Gateway
+      end
+
+      class Checkout
+        def loaded = Gateway.new("live").tap { it.load }.charge
+                     ^^^^^^^^^^^^^^^^^^^ `loaded` builds the `Gateway` it talks to; %{seam}
+        def jar = @jar ||= Gateway.new("live").tap { it.load }
+                           ^^^^^^^^^^^^^^^^^^^ `jar` builds the `Gateway` it keeps in `@jar`; %{seam}
+
+        def renew(gateway)
+          @log.write(gateway)
+          gateway = Gateway.new("live")
+                    ^^^^^^^^^^^^^^^^^^^ `renew` builds the `Gateway` it talks to; %{seam}
+          gateway.charge
+        end
+      end
+    RUBY
+  end
+
   it "allows the seams: constructors, parameter defaults and class methods" do
     expect_no_offenses(<<~RUBY)
       module Shop

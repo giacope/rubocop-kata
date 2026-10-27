@@ -119,6 +119,17 @@
     condition the constructor tests, whatever the shape (`if`, `unless`, a
     modifier, a ternary, `case`), and a `case ... in` on an argument is a
     way to build too. `&&` and `||` stay values and guards.
+  - `Kata/NoHardWiring` leaves a value the method builds for this call,
+    fills and hands on: a local passed to a method (mechanize's `form =
+    Form.new(node)`, filled with this call's fields and uploads, then
+    `post_form(uri, form, headers)`; each `AuthChallenge` filled and pushed
+    onto the returned list), and an object filled in `tap` (`CookieJar.new.tap
+    { |jar| jar.parse(str, uri) }`). It is the call's data, not a
+    collaborator: taken in the constructor, as the advice asked, one form
+    carried every post's uploads into the next. A message sent to a name
+    before the name was bound to the new object (`referer.nofollow?`, then
+    `referer = Page.new`) now goes to the earlier value. An object kept
+    through `tap` (`@jar ||= Jar.new.tap { ... }`) is reported as kept.
 - A strict Elegant Objects profile, `config/strict.yml`, for a project that
   wants the whole of Elegant Objects (`inherit_gem: { rubocop-kata:
   config/strict.yml }` beside `plugins: [rubocop-kata]`). The rules the V1

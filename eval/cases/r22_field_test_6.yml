@@ -315,3 +315,62 @@
         end
       end
     end
+- id: r6b3-k4-value-built-filled-and-handed-on
+  cop: Kata/NoHardWiring
+  strict: true
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Form
+        def initialize(node)
+          @node = node
+          @uploads = []
+        end
+
+        def add(upload) = @uploads << upload
+      end
+
+      class Client
+        def initialize(transport)
+          @transport = transport
+        end
+
+        def post(query)
+          form = Form.new(query.to_h)
+          query.each { |name| form.add(name) }
+          @transport.submit(form)
+        end
+
+        def jar(text) = Form.new(text).tap { it.add(text) }
+      end
+    end
+- id: r6b3-k4-collaborator-talked-to-still-flagged
+  cop: Kata/NoHardWiring
+  strict: true
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Gateway
+        def initialize(mode)
+          @mode = mode
+        end
+
+        def charge(cents) = cents
+      end
+
+      class Checkout
+        def initialize(cents)
+          @cents = cents
+        end
+
+        def complete
+          gateway = Gateway.new("live")
+          gateway.charge(@cents)
+          @cents
+        end
+      end
+    end

@@ -14,6 +14,8 @@ class RuboCop::Cop::Kata::NoHardWiring < RuboCop::Cop::Base
   STORES = %i[ivasgn cvasgn gvasgn].freeze
   GLOBALS = %i[const gvar cvar].freeze
   ITERATORS = %i[each each_with_index each_with_object times tap].freeze
+  ESCAPES = %i[send csend super yield return].freeze
+  COLLECTED = %i[pair hash array].freeze
 
   RESTRICT_ON_SEND = %i[new].freeze
 
@@ -35,8 +37,8 @@ class RuboCop::Cop::Kata::NoHardWiring < RuboCop::Cop::Base
   end
 
   def finding(node, method)
-    holder = node.parent
-    built = holder.any_block_type? && holder.send_node.equal?(node) ? holder : node
+    built = blocked(node)
+    built = blocked(built.parent) if tapped?(built)
     holder = built.parent
     store = holder.or_asgn_type? ? holder.children.first : holder
     return [KEPT, store.children.first] if STORES.include?(store.type)
@@ -59,7 +61,17 @@ class RuboCop::Cop::Kata::NoHardWiring < RuboCop::Cop::Base
   end
 
   def handing?(call, holder)
-    call.first_line > holder.last_line && given(call).any? { local?(it, holder.name) }
+    after?(call, holder) && given(call).any? { local?(it, holder.name) }
+  end
+
+  def blocked(call)
+    outer = call.parent
+    outer.any_block_type? && outer.send_node.equal?(call) ? outer : call
+  end
+
+  def tapped?(built)
+    call = built.parent
+    call.send_type? && call.method?(:tap) && call.receiver.equal?(built)
   end
 
   def maker?(call) = call.send_type? && call.method?(:new) && !call.receiver.nil?
@@ -77,7 +89,7 @@ class RuboCop::Cop::Kata::NoHardWiring < RuboCop::Cop::Base
 
   def asked(holder, method)
     return [holder] unless holder.lvasgn_type?
-    method.each_node(*CALLS).select { local?(it.receiver, holder.name) }
+    method.each_node(*CALLS).select { local?(it.receiver, holder.name) && after?(it, holder) }
   end
 
   def command?(call) = call.bang_method? || call.assignment_method? || discarded?(call)
@@ -101,7 +113,18 @@ class RuboCop::Cop::Kata::NoHardWiring < RuboCop::Cop::Base
     holder.lvasgn_type? && !product?(holder, method) && asked(holder, method).any?
   end
 
-  def product?(holder, method) = local?(method.body.children.last, holder.name)
+  def product?(holder, method)
+    local?(method.body.children.last, holder.name) || method.each_node(:lvar).any? { handed?(it, holder) }
+  end
+
+  def handed?(use, holder)
+    outer = use.parent
+    return false unless local?(use, holder.name) && after?(use, holder) && !outer.receiver.equal?(use)
+    outer = outer.parent while COLLECTED.include?(outer.type)
+    ESCAPES.include?(outer.type)
+  end
+
+  def after?(node, holder) = node.first_line > holder.last_line
 
   def local?(receiver, name) = receiver&.lvar_type? && receiver.children.first == name
 end

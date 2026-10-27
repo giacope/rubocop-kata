@@ -1217,8 +1217,12 @@ Kata/NoHardWiring:
     locals, fields, the class's own constants and literals) and asked a
     question on the spot (`Nesting.new(node).qualified`, `Table.new(COLUMNS,
     @rows).csv`) passes, and so does an object built to be returned or passed
-    to a method (`Cart.new(@items + [item])`, a local filled and returned) and
-    the class building itself; class methods, constructors and the composition
+    to a method (`Cart.new(@items + [item])`, a local filled and returned, or
+    filled and handed on: `form = Form.new(node); form.add(upload);
+    submit(form)`, `Jar.new.tap { it.parse(text) }`), which is the call's own
+    data, not a collaborator: injected, one instance would carry every call's
+    contents. A message sent to a name before it was bound to the new object
+    goes to the name's earlier value. The class building itself passes too; class methods, constructors and the composition
     roots a framework instantiates (controllers, jobs, mailers, rake tasks,
     `bin/`, `config/`, and a subclass of one of the `RootSuperclasses`, which
     the framework builds and so cannot be handed a collaborator) are where
