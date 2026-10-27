@@ -503,3 +503,22 @@
         end
       end
     end
+- id: r6b3-k6-acronym-namespace-is-not-a-value
+  cop: Kata/NoPublicConstant
+  strict: true
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Net
+    end
+
+    class Net::HTTP
+      def start = true
+    end
+
+    module Shelf
+      class Agent
+        def negotiate = Net::NTLM::Message::Type1.new.encode64
+      end
+    end

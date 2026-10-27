@@ -1034,8 +1034,9 @@ Kata/NoPublicConstant:
     the project's own namespaces are judged (Ruby's `Float::INFINITY` and a
     library's constants are its API), a class reading its own constants
     passes, and `AllowedNames` holds the constants a packaging tool reads
-    (`VERSION`). A class, module or error is not a value. Off by default:
-    config/strict.yml turns it on.
+    (`VERSION`). A class, module or error is not a value, and neither is a
+    constant that namespaces another (`Net::NTLM::Message`, however its
+    acronym is spelled). Off by default: config/strict.yml turns it on.
   Enabled: false
   VersionAdded: "0.11"
   OwnedPaths:

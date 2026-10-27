@@ -159,6 +159,11 @@
     method's own answer (`def verified? = save!`), still acts.
     `I18n.t!` translates or raises, and changes nothing; the spelling of the
     use decided the verdict before.
+  - `Kata/NoPublicConstant` no longer reads an acronym module as a value
+    when it namespaces another constant: mechanize's
+    `Net::NTLM::Message::Type1.new` names rubyntlm's module, through a `Net`
+    the project reopens in its test helper. A screaming name decided "value"
+    alone, and `NTLM`, `HTTP`, `API` and `JSON` are screaming.
 - A strict Elegant Objects profile, `config/strict.yml`, for a project that
   wants the whole of Elegant Objects (`inherit_gem: { rubocop-kata:
   config/strict.yml }` beside `plugins: [rubocop-kata]`). The rules the V1

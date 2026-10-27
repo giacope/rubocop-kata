@@ -73,6 +73,41 @@ RSpec.describe(RuboCop::Cop::Kata::NoPublicConstant, :config) do
     RUBY
   end
 
+  # mechanize: `Net::NTLM::Message` names rubyntlm's module through a `Net` the project reopens.
+  it "allows an acronym constant that is the namespace of another constant" do
+    expect_no_offenses(<<~RUBY)
+      module Net
+      end
+
+      class Net::HTTP
+        def start = true
+      end
+
+      class Agent
+        def negotiate = Net::NTLM::Message::Type1.new.encode64
+        def decode(text) = Net::NTLM::Message.decode64(text)
+      end
+    RUBY
+  end
+
+  it "still flags the acronym constant read as a value, or sent a message" do
+    expect_offense(<<~RUBY)
+      module Net
+      end
+
+      class Net::HTTP
+        def start = true
+      end
+
+      class Agent
+        def mode = Net::NTLM
+                   ^^^^^^^^^ `Net::NTLM` is another object's public constant, shared state; ask `Net` what it means, #{advice}
+        def size = Net::NTLM.size
+                   ^^^^^^^^^ `Net::NTLM` is another object's public constant, shared state; ask `Net` what it means, #{advice}
+      end
+    RUBY
+  end
+
   context "with the project's files" do
     include ProjectFiles
 

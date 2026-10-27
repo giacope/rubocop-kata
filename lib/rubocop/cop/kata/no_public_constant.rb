@@ -9,12 +9,18 @@ class RuboCop::Cop::Kata::NoPublicConstant < RuboCop::Cop::Base
 
   def on_const(node)
     holder = node.namespace
-    name = node.short_name.to_s
-    return unless holder&.const_type? && VALUE.match?(name) && name.size > 1 && !allowed?(name)
+    return unless holder&.const_type? && value?(node)
     add_offense(node, message: format(MSG, node.source, holder.source)) if foreign_owner?(holder, node)
   end
 
   private
+
+  def value?(node)
+    name = node.short_name.to_s
+    VALUE.match?(name) && name.size > 1 && !allowed?(name) && !scoping?(node)
+  end
+
+  def scoping?(node) = node.parent&.const_type? && node.parent.namespace.equal?(node)
 
   def foreign_owner?(holder, node)
     found = owners(holder)
