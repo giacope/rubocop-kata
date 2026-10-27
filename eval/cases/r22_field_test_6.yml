@@ -435,3 +435,28 @@
     module ShelfHelper
       def links?(step) = Parser.new.paths(step).any?
     end
+- id: r6b3-k2-change-to-a-copy-or-a-splat-is-the-methods-own
+  cop: Kata/CommandQuery
+  strict: true
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class History
+        def initialize(index)
+          @index = index
+        end
+
+        def visited?(uri)
+          uri = uri.dup
+          uri.path = "/" if uri.path.empty?
+          @index.include?(uri.to_s)
+        end
+
+        def grouped(*props)
+          props.flatten!
+          props.map(&:to_s)
+        end
+      end
+    end

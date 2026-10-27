@@ -31,14 +31,28 @@ RSpec.describe(RuboCop::Cop::Kata::CommandQuery, :config) do
         ^^^^^^^^^^^^ `ready?` asks a question and changes state with `clear!`; a query answers, a command acts.
         record.update!(seen: true)
         ^^^^^^^^^^^^^^^^^^^^^^^^^^ `ready?` asks a question and changes state with `update!`; a query answers, a command acts.
-        rest.shift!
-        ^^^^^^^^^^^ `ready?` asks a question and changes state with `shift!`; a query answers, a command acts.
         rows.flatten!
         ^^^^^^^^^^^^^ `ready?` asks a question and changes state with `flatten!`; a query answers, a command acts.
         record&.lock!
         ^^^^^^^^^^^^^ `ready?` asks a question and changes state with `lock!`; a query answers, a command acts.
         log(reload!)
             ^^^^^^^ `ready?` asks a question and changes state with `reload!`; a query answers, a command acts.
+      end
+    RUBY
+  end
+
+  # mechanize's `visited?` and `resolve`, ahoy's `group_prop(*props)`.
+  it "reads a change to a copy, a rebound name or a splat as the method's own" do
+    expect_no_offenses(<<~RUBY)
+      def visited?(uri, link, *props, **options)
+        uri = uri.dup
+        uri.path = "/" if uri.path.empty?
+        uri.normalize!
+        link = URI(link.to_s)
+        link.host!
+        props.flatten!
+        options.compact!
+        @index.include?(uri.to_s)
       end
     RUBY
   end

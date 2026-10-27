@@ -144,6 +144,12 @@
     `Mongoid::Document`) and a module, which has no constructor, are told the
     seam they have: a parameter of the method with the `new` as its default,
     or the object built where the model is used.
+  - `Kata/CommandQuery` reads a parameter as `Kata/NoOutputArgument` does:
+    one the method rebound to its own copy (mechanize's `uri = uri.dup`,
+    then `uri.path = "/"` in `visited?`; `uri = URI.parse(escaped)` before
+    `uri.host =` in `resolve`) and a splat Ruby builds for the call (ahoy's
+    `props.flatten!` on `*props`, searchkick's `**options`) are the method's
+    own, not the caller's state. Both cops now share that reading.
 - A strict Elegant Objects profile, `config/strict.yml`, for a project that
   wants the whole of Elegant Objects (`inherit_gem: { rubocop-kata:
   config/strict.yml }` beside `plugins: [rubocop-kata]`). The rules the V1

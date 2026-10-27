@@ -1759,10 +1759,14 @@ Kata/CommandQuery:
   Description: >-
     A method answers or acts, never both. A method whose name ends in `?`
     answers a question and changes nothing: it assigns no instance variable
-    and calls no `!` method on itself, its state or its parameters. Memoizing
-    the answer (`@valid ||= ...`) is not a change, and neither is a guard
-    whose only branch is a bang on a constant (`UI.user_error!("...") unless
-    key`) or one of the `RaisingMethods`: it raises, it does not mutate. With
+    and calls no `!` method on itself, its state or its parameters for its
+    effect. A parameter the method rebound to its own copy (`uri =
+    uri.dup`) or a splat Ruby builds for the call (`*props`, `**options`) is
+    the method's own, as `Kata/NoOutputArgument` reads them.
+    Memoizing the answer (`@valid ||= ...`) is not a change, and neither is a
+    guard whose only branch is a bang on a constant (`UI.user_error!("...")
+    unless key`) or one of the `RaisingMethods`: it raises, it does not
+    mutate. With
     `CheckEveryQuery: true` (config/strict.yml) any method whose last
     expression is a value (a literal, a field, a sum, a lookup, a new object:
     `def balance = ... @entries.sum`) is a query too, and a query sends no

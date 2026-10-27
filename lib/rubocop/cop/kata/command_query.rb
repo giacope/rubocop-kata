@@ -4,12 +4,12 @@ class RuboCop::Cop::Kata::CommandQuery < RuboCop::Cop::Base
   include RuboCop::Cop::Kata::Memoization
   include RuboCop::Cop::Kata::Roster
   include RuboCop::Cop::Kata::Answer
+  include RuboCop::Cop::Kata::Lending
 
   MSG = "`%s` asks a question and changes state with `%s`; a query answers, a command acts."
   VALUE = "`%s` answers with a value and acts with `%s`; a query answers, a command acts. %s"
   ADVICE = "Split them, or return a new object instead of acting."
   OWNED = %i[ivar cvar gvar const self].freeze
-  INPUTS = %i[arg optarg restarg kwarg kwoptarg kwrestarg blockarg].freeze
   CONSTRUCTORS = %i[initialize initialize_copy].freeze
 
   def on_def(node)
@@ -24,16 +24,13 @@ class RuboCop::Cop::Kata::CommandQuery < RuboCop::Cop::Base
   private
 
   def judge(method, body, message)
-    inputs = inputs(method)
-    changes = body.each_node(:ivasgn, :send, :csend).select { change?(it, inputs) }
-    orders = discarded(body).select { order?(it, inputs) && !building?(it, method) }
+    changes = body.each_node(:ivasgn, :send, :csend).select { change?(it, method) }
+    orders = discarded(body).select { order?(it, method) && !building?(it, method) }
     name = method.method_name
     (changes + orders).uniq(&:object_id).each { add_offense(it, message: format(message, name, label(it), ADVICE)) }
   end
 
-  def change?(found, inputs) = found.ivasgn_type? ? !memoized?(found) : command?(found, inputs)
-
-  def inputs(method) = method.arguments.each_node(*INPUTS).map(&:name)
+  def change?(found, method) = found.ivasgn_type? ? !memoized?(found) : command?(found, method)
 
   def answers?(method, body)
     name = method.method_name
@@ -53,9 +50,9 @@ class RuboCop::Cop::Kata::CommandQuery < RuboCop::Cop::Base
     node.call_type? ? [node] : []
   end
 
-  def order?(call, inputs)
+  def order?(call, method)
     return false if call.block_node || answer?(call) || raising?(call)
-    !listed?("RaisingMethods", call.method_name.to_s) && owned?(root(call), inputs)
+    !listed?("RaisingMethods", call.method_name.to_s) && owned?(root(call), method)
   end
 
   def building?(call, method)
@@ -70,9 +67,9 @@ class RuboCop::Cop::Kata::CommandQuery < RuboCop::Cop::Base
     target
   end
 
-  def command?(call, inputs)
+  def command?(call, method)
     name = call.method_name.to_s
-    name.end_with?("!") && name != "!" && owned?(call.receiver, inputs) && !lookup?(call) && !raising?(call)
+    name.end_with?("!") && name != "!" && owned?(call.receiver, method) && !lookup?(call) && !raising?(call)
   end
 
   def raising?(call)
@@ -85,8 +82,8 @@ class RuboCop::Cop::Kata::CommandQuery < RuboCop::Cop::Base
     !holder.nil? && (holder.assignment? || (holder.call_type? && holder.receiver.equal?(call)))
   end
 
-  def owned?(target, inputs)
-    target.nil? || OWNED.include?(target.type) || (target.lvar_type? && inputs.include?(target.children.first)) ||
+  def owned?(target, method)
+    target.nil? || OWNED.include?(target.type) || borrowed?(target, method) ||
       (target.send_type? && target.receiver.nil? && !target.arguments?)
   end
 
