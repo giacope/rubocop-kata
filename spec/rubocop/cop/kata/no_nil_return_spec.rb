@@ -95,6 +95,23 @@ RSpec.describe(RuboCop::Cop::Kata::NoNilReturn, :config) do
       ensure
         close
       end
+
+      def c
+        case @code
+        ^^^^ `c` returns nil when this `case` does not hold; answer that case with a null object, or fail fast.
+        when 1
+        else "other"
+        end
+      end
+    RUBY
+  end
+
+  it "reads a method whose body only ensures" do
+    expect_no_offenses(<<~RUBY)
+      def stop
+      ensure
+        @thread.kill
+      end
     RUBY
   end
 
@@ -157,6 +174,12 @@ RSpec.describe(RuboCop::Cop::Kata::NoNilReturn, :config) do
                 ^^^^^^^^^^^^^^ `c` passes on the nil `[]` can return; return a null object, or fail fast.
         def d = @text[PATTERN, 1]
                 ^^^^^^^^^^^^^^^^^ `d` passes on the nil `[]` can return; return a null object, or fail fast.
+        def e = @names[@key]
+                ^^^^^^^^^^^^ `e` passes on the nil `[]` can return; return a null object, or fail fast.
+
+        def initialize
+          @counts = Hash.new(0)
+        end
       end
     RUBY
   end

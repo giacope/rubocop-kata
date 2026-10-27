@@ -19,6 +19,14 @@ RSpec.describe(RuboCop::Cop::Kata::NoHardWiring, :config) do
           def receipt
             Gateway.new("live").charge(@cents)
             ^^^^^^^^^^^^^^^^^^^ `receipt` builds the `Gateway` it talks to; %{seam}
+            rate = 1
+            Mailbox.new(rate)
+          end
+
+          def check(taxon)
+            taxon = Gateway.new(taxon, prefix: PREFIX)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `check` builds the `Gateway` it talks to; %{seam}
+            taxon.valid?
           end
 
           def complete
@@ -41,7 +49,15 @@ RSpec.describe(RuboCop::Cop::Kata::NoHardWiring, :config) do
           def total
             Gateway.new(@key).total
             ^^^^^^^^^^^^^^^^^ `total` builds the `Gateway` it talks to; %{seam}
-            1
+            rate = 1
+            Mailbox.new(rate)
+          end
+
+          def checkout
+            gateway = Gateway.new("live")
+                      ^^^^^^^^^^^^^^^^^^^ `checkout` builds the `Gateway` it talks to; %{seam}
+            gateway.charge(@cents)
+            Mailbox.new(@cents)
           end
         end
       end

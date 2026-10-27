@@ -124,7 +124,19 @@ RSpec.describe(RuboCop::Cop::Kata::CommandQuery, :config) do
           ^^^^^ `withdraw` answers with a value and acts with `touch`; #{advice}
           cents.save
           ^^^^^^^^^^ `withdraw` answers with a value and acts with `save`; #{advice}
+          notify(cents)
+          ^^^^^^^^^^^^^ `withdraw` answers with a value and acts with `notify`; #{advice}
           @entries.sum - cents
+        end
+
+        def total
+          if @audited
+            @audit.record("total read")
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^ `total` answers with a value and acts with `record`; #{advice}
+            @log.info("total")
+            ^^^^^^^^^^^^^^^^^^ `total` answers with a value and acts with `info`; #{advice}
+          end
+          @entries.sum
         end
       RUBY
     end

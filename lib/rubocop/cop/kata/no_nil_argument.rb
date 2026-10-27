@@ -47,7 +47,6 @@ class RuboCop::Cop::Kata::NoNilArgument < RuboCop::Cop::Base
 
   def question?(found)
     holder = found.parent
-    return false unless holder
     return holder.or_asgn_type? if found.lvasgn_type?
     probed?(found, holder) || tested?(found, holder)
   end

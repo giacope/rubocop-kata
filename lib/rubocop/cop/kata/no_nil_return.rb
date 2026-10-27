@@ -76,14 +76,11 @@ class RuboCop::Cop::Kata::NoNilReturn < RuboCop::Cop::Base
   def branches(node)
     arms = node.if_type? ? [node.if_branch, node.else_branch] : [*node.when_branches.map(&:body), node.else_branch]
     found = arms.compact.flat_map { ends(it) }
-    return found unless open?(node, arms, found)
+    return found unless open?(arms, found)
     [*found, [node, node]]
   end
 
-  def open?(node, arms, found)
-    missing = node.if_type? ? arms.include?(nil) : arms.last.nil?
-    missing && found.any? && found.all? { |tail, branch| branch.nil? && valued?(tail) }
-  end
+  def open?(arms, found) = arms.include?(nil) && found.any? && found.all? { |value, arm| arm.nil? && valued?(value) }
 
   def valued?(node) = value?(node) || sources(node).any?
 
@@ -113,7 +110,6 @@ class RuboCop::Cop::Kata::NoNilReturn < RuboCop::Cop::Base
   def split?(holder) = holder&.send_type? && holder.method?(:split)
 
   def defaulted?(holder)
-    return false unless holder&.type?(:const, :ivar)
     name = holder.children.last
     processed_source.ast.each_node(:casgn, :ivasgn).any? { it.children[-2] == name && defaulted(it.children.last) }
   end

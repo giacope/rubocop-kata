@@ -71,7 +71,7 @@ class RuboCop::Cop::Kata::NoHardWiring < RuboCop::Cop::Base
   end
 
   def handing?(call, holder)
-    call.source_range.begin_pos > holder.source_range.end_pos && given(call).any? { local?(it, holder.name) }
+    call.first_line > holder.last_line && given(call).any? { local?(it, holder.name) }
   end
 
   def maker?(call) = call.send_type? && call.method?(:new) && !call.receiver.nil?
@@ -115,10 +115,7 @@ class RuboCop::Cop::Kata::NoHardWiring < RuboCop::Cop::Base
     holder.lvasgn_type? && !product?(holder, method) && asked(holder, method).any?
   end
 
-  def product?(holder, method)
-    body = method.body
-    local?(body.begin_type? ? body.children.last : body, holder.name)
-  end
+  def product?(holder, method) = local?(method.body.children.last, holder.name)
 
   def built(node)
     holder = node.parent

@@ -73,6 +73,18 @@ RSpec.describe(RuboCop::Cop::Kata::NoNilArgument, :config) do
     RUBY
   end
 
+  it "reads only a constructor's nil default kept in a field" do
+    expect_no_offenses(<<~RUBY)
+      class Signup
+        def refer(referrer = nil)
+          @referrer = referrer
+        end
+
+        def bonus = @referrer&.credit || 0
+      end
+    RUBY
+  end
+
   it "allows a nil default the method only passes on" do
     expect_no_offenses(<<~RUBY)
       def fetch(key, default = nil) = @rows.fetch(key, default)

@@ -14,7 +14,7 @@ module RuboCop::Cop::Kata::Exposure
   end
 
   def named_hidden?(node)
-    names = node.def_type? ? [node.method_name] : node.arguments.select(&:sym_type?).map(&:value)
+    names = node.arguments.select(&:sym_type?).map(&:value)
     node.each_ancestor(:class, :module).first(1).flat_map { hiders(it) }.intersect?(names)
   end
 
