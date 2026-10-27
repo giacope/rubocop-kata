@@ -254,7 +254,7 @@ RSpec.describe(RuboCop::Cop::Kata::ConstructorDiscipline, :config) do
         class Money
           def initialize(cents = 0, currency = "USD", formatted: nil)
             if formatted
-            ^^ `initialize` picks a way to build itself from `formatted` and `currency`: #{paths}
+               ^^^^^^^^^ `initialize` picks a way to build itself from `formatted` and `currency`: #{paths}
               @cents = formatted
             else
               @cents = cents
@@ -270,9 +270,77 @@ RSpec.describe(RuboCop::Cop::Kata::ConstructorDiscipline, :config) do
         class Money
           def initialize(*parts)
             case parts
-            ^^^^ `initialize` picks a way to build itself from `parts`: #{paths}
+                 ^^^^^ `initialize` picks a way to build itself from `parts`: #{paths}
             when [] then @cents = 0
             end
+          end
+        end
+      RUBY
+    end
+
+    it "flags every conditional shape on an argument, at the condition it tests" do
+      expect_offense(<<~RUBY)
+        class Ternary
+          def initialize(delay, api:)
+            @source = api ? :params : :header
+                      ^^^ `initialize` picks a way to build itself from `api`: #{paths}
+            @delay = delay
+          end
+        end
+
+        class Modifier
+          def initialize(name, label = nil)
+            @label = name if label
+                             ^^^^^ `initialize` picks a way to build itself from `label`: #{paths}
+          end
+        end
+
+        class Unless
+          def initialize(name, label = nil)
+            @label = name unless label
+                                 ^^^^^ `initialize` picks a way to build itself from `label`: #{paths}
+          end
+        end
+
+        class Pattern
+          def initialize(options)
+            case options
+                 ^^^^^^^ `initialize` picks a way to build itself from `options`: #{paths}
+            in {api: true} then @source = :params
+            in {} then @source = :header
+            end
+          end
+        end
+
+        class Both
+          def initialize(api, strict)
+            if api && strict
+               ^^^^^^^^^^^^^ `initialize` picks a way to build itself from `api` and `strict`: #{paths}
+              @mode = :strict
+            end
+          end
+        end
+
+        class Nested
+          def initialize(delay, api)
+            @delay = delay
+            @source = (:params if api) || :header
+                                  ^^^ `initialize` picks a way to build itself from `api`: #{paths}
+          end
+        end
+      RUBY
+    end
+
+    it "reads `&&` and `||` as values and guards, not as ways to build" do
+      expect_no_offenses(<<~RUBY)
+        class Defaults
+          def initialize(name, label = nil, port: nil)
+            raise ArgumentError, "no name" unless name && label
+            port || raise(ArgumentError, "no port")
+            label or raise ArgumentError
+            @label = label || name
+            @strict = name && label
+            @port = port
           end
         end
       RUBY

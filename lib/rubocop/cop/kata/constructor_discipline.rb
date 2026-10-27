@@ -8,7 +8,7 @@ class RuboCop::Cop::Kata::ConstructorDiscipline < RuboCop::Cop::Base
   PATHS = "`initialize` picks a way to build itself from %s: several constructors in one. %s"
   PRIMARY = "Keep one primary constructor, and give each other way a class method that calls `new`."
   BYPASS = "`allocate` builds an instance past `initialize`, a second primary constructor; call `new` instead."
-  BRANCHES = %i[if case].freeze
+  BRANCHES = %i[if case case_match].freeze
 
   RESTRICT_ON_SEND = %i[allocate].freeze
   CONVERSION = /\Ato_[a-z]+\z/
@@ -39,7 +39,7 @@ class RuboCop::Cop::Kata::ConstructorDiscipline < RuboCop::Cop::Base
     inputs = node.arguments.map(&:name)
     branches = node.body.each_node(*BRANCHES).reject { guard?(it) }.select { asked(it, inputs).any? }
     return if branches.empty?
-    add_offense(branches.first.loc.keyword, message: format(PATHS, named(branches, inputs), PRIMARY))
+    add_offense(branches.first.condition, message: format(PATHS, named(branches, inputs), PRIMARY))
   end
 
   def named(branches, inputs) = joined(branches.flat_map { asked(it, inputs) }.uniq.map { "`#{it}`" })

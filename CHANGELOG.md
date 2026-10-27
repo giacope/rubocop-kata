@@ -108,6 +108,17 @@
     `[]`), and a class-level hook as `Kata/NoClassMethodLogic` reads one
     (SuperDiff's `applies_to?(value)`). The value is foreign, so
     polymorphism could only choose once every class answered the question.
+- From a sixth field test, batch three (collections-publisher,
+  travel-advice-publisher, mechanize, ancestry, ahoy), in check mode and
+  under the strict profile:
+  - `Kata/ConstructorDiscipline` with `CheckPaths: true` no longer crashes
+    on a ternary that tests an argument (mechanize's `@delay =
+    delay.include?(?.) ? delay.to_f : delay.to_i`, ahoy's `@referrer = api ?
+    params["referrer"] : request.referer`): it reported at the branch's
+    keyword, which a ternary has none of. The offense now sits on the
+    condition the constructor tests, whatever the shape (`if`, `unless`, a
+    modifier, a ternary, `case`), and a `case ... in` on an argument is a
+    way to build too. `&&` and `||` stay values and guards.
 - A strict Elegant Objects profile, `config/strict.yml`, for a project that
   wants the whole of Elegant Objects (`inherit_gem: { rubocop-kata:
   config/strict.yml }` beside `plugins: [rubocop-kata]`). The rules the V1

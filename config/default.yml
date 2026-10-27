@@ -1286,9 +1286,10 @@ Kata/ConstructorDiscipline:
     `RaisingMethods` (`UI.user_error!`). Assigning through the object's own
     writer (`self.project = project`) is assigning; Kata/NoSetter reports the
     writer. With `CheckPaths: true` (config/strict.yml), an `initialize` that
-    branches on its arguments (`if formatted`, `case parts`) is several
-    constructors in one, reported once: keep one primary constructor and give
-    each other way a class method that calls `new`. A class method that builds
+    branches on its arguments (`if formatted`, `case parts`, a ternary, `case
+    ... in`) is several constructors in one, reported once at the tested
+    condition: keep one primary constructor and give each other way a class
+    method that calls `new`. `&&` and `||` are values, not branches. A class method that builds
     with `allocate` bypasses `initialize`, a second primary constructor.
   Enabled: true
   Sorbet: false

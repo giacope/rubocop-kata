@@ -300,3 +300,18 @@
         def applies_to?(item) = item.is_a?(Book)
       end
     end
+- id: r6b3-k1-ternary-on-an-argument-is-a-way-to-build
+  cop: Kata/ConstructorDiscipline
+  strict: true
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Visit
+        def initialize(delay, api:)
+          @source = api ? :params : :header
+          @delay = delay
+        end
+      end
+    end
