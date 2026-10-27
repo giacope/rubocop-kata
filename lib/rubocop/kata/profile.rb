@@ -8,6 +8,7 @@ class RuboCop::Kata::Profile
   SHELF = File.expand_path("../../../config", __dir__)
   BASE = File.join(SHELF, "default.yml")
   RAILS = File.join(SHELF, "rails.yml")
+  FRAMEWORK = File.join(SHELF, "framework.yml")
   SORBET = File.join(SHELF, "sorbet.yml")
   AUTOCORRECT = File.join(SHELF, "autocorrect.yml")
   BRANDS = { "RuboCop" => "Rubocop", "RSpec" => "Rspec" }.freeze
@@ -30,7 +31,7 @@ class RuboCop::Kata::Profile
 
   def overlay
     survey = RuboCop::Kata::Survey.new(@root)
-    layer = { "inherit_from" => [BASE, AUTOCORRECT, *(RAILS if chosen("rails") { survey.rails? }), *sorbet(survey)] }
+    layer = { "inherit_from" => [BASE, AUTOCORRECT, *rails(survey), *sorbet(survey)] }
     { "Packaging" => :packaged?, "RSpec" => :rspec? }.each do |department, found|
       layer[department] = { "Enabled" => false } unless chosen(department.downcase) { survey.public_send(found) }
     end
@@ -108,6 +109,11 @@ class RuboCop::Kata::Profile
     draft = "#{target}.#{Process.pid}"
     File.write(draft, text)
     File.rename(draft, target)
+  end
+
+  def rails(survey)
+    application = chosen("rails") { survey.rails? }
+    application || chosen("rails") { survey.framework? } ? [FRAMEWORK, *(RAILS if application)] : []
   end
 
   def sorbet(survey) = chosen("sorbet") { survey.sorbet? } ? [SORBET] : []

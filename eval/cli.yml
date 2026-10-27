@@ -152,3 +152,13 @@
   expect:
     status: [1]
     stdout: ["Kata/ClassInModule"]
+- id: r6b2-k2-plan-leaves-activerecord-names-to-a-library-built-on-it
+  gap: R22
+  command: plan
+  files:
+    .rubocop.yml: "plugins:\n  - rubocop-kata\n\nAllCops:\n  TargetRubyVersion: 3.4\n"
+    shelf.gemspec: "Gem::Specification.new do |s|\n  s.name = \"shelf\"\n  s.add_dependency \"activerecord\"\nend\n"
+    lib/shelf.rb: "# frozen_string_literal: true\n\nmodule Shelf\n  def self.table_name_prefix = \"shelf_\"\nend\n"
+    lib/shelf/finders.rb: "# frozen_string_literal: true\n\nmodule Shelf\n  module Finders\n    def relation_delegate_class(klass) = klass\n  end\nend\n"
+  expect:
+    stdout_absent: ["Kata/NoClassMethodLogic", "Kata/GoodMethodName"]

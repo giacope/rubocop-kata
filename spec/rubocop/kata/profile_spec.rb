@@ -17,6 +17,8 @@ RSpec.describe(RuboCop::Kata::Profile) do
   let(:rails) { described_class::RAILS }
   let(:autocorrect) { described_class::AUTOCORRECT }
 
+  def framework = described_class::FRAMEWORK
+
   def shelf = { "Kata" => { "Roots" => %w[Shelf] } }
 
   it "hands a gem that runs RSpec the shipped defaults, the -a allowlist and its name, nothing more" do
@@ -28,7 +30,7 @@ RSpec.describe(RuboCop::Kata::Profile) do
   it "adds the Rails setting, and leaves out packaging and RSpec, for a Rails app on Minitest" do
     project(["config/application.rb", ""]) do |root|
       off = { "Enabled" => false }
-      expected = { "inherit_from" => [base, autocorrect, rails], "Packaging" => off, "RSpec" => off }
+      expected = { "inherit_from" => [base, autocorrect, framework, rails], "Packaging" => off, "RSpec" => off }
       expect(described_class.new(root, {}).overlay).to(eq(expected))
     end
   end
@@ -73,7 +75,7 @@ RSpec.describe(RuboCop::Kata::Profile) do
   it "takes a Rails engine for Rails" do
     engine = "module Shop\n  class Engine < ::Rails::Engine\n    isolate_namespace Shop\n  end\nend\n"
     project(["shop.gemspec", ""], ["lib/shop/engine.rb", engine]) do |root|
-      expect(described_class.new(root, {}).overlay["inherit_from"]).to(eq([base, autocorrect, rails]))
+      expect(described_class.new(root, {}).overlay["inherit_from"]).to(eq([base, autocorrect, framework, rails]))
     end
   end
 
@@ -209,7 +211,7 @@ RSpec.describe(RuboCop::Kata::Profile) do
     project(["config/application.rb", ""], ["Gemfile", ""], ["app/models/user.rb", ""]) do |root|
       found = RuboCop::Kata::ProjectRoot.new(File.join(root, "app", "models")).path
       expect([found, described_class.new(found, {}).overlay["inherit_from"]])
-        .to(eq([File.realpath(root), [base, autocorrect, rails]]))
+        .to(eq([File.realpath(root), [base, autocorrect, framework, rails]]))
     end
   end
 
@@ -405,8 +407,7 @@ RSpec.describe(RuboCop::Kata::Profile) do
   it "keeps the Rails setting to framework contracts, generated files and the server's threads" do
     setting = YAML.load_file(rails)
     names = setting.dig("Kata/GoodMethodName", "AllowedNames")
-    cops = %w[GoodMethodName RealWords NoComments NoHashAsObject NoTypeCheck NoClassMethodLogic FrozenState]
-      .map { "Kata/#{it}" }
+    cops = %w[GoodMethodName NoComments NoHashAsObject NoTypeCheck NoClassMethodLogic FrozenState].map { "Kata/#{it}" }
     cops << "ThreadSafety/NewThread"
     expect([setting.keys, names.include?("default_url_options"), setting.dig("Kata/NoComments", "Exclude")])
       .to(eq([cops, true, %w[bin/**/* db/**/*]]))
@@ -447,15 +448,47 @@ RSpec.describe(RuboCop::Kata::Profile) do
     expect(found).to(eq([[9, "Kata/GoodMethodName"]]))
   end
 
-  def judged(root, path)
-    cops = %w[NoClassMethodLogic GoodMethodName RealWords].map { RuboCop::Cop::Kata.const_get(it).new(profiled(root)) }
+  # friendly_id (its gemspec depends on activerecord): `FriendlyId.table_name_prefix` names the slugs table, and
+  # `relation_delegate_class` is ActiveRecord's own method; manuals-publisher's view adapters answer `model_name`.
+  it "leaves the names ActiveRecord and ActiveModel send to a library built on them, without the app's setting" do
+    source = <<~RUBY
+      module Slugs
+        def self.table_name_prefix = "slugs_"
+
+        class Adapter < SimpleDelegator
+          def self.model_name = ActiveModel::Name.new(self, nil, "Manual")
+          def human_attribute_name(name, *) = name.to_s
+          def relation_delegate_class(klass) = klass
+          def rolledback!(*) = nil
+          def customer_billing_address_attributes = nil
+        end
+      end
+    RUBY
+    gemspec = ["slugs.gemspec", "Gem::Specification.new { it.add_dependency(\"activerecord\") }\n"]
+    found = project(gemspec, ["lib/slugs.rb", source]) { [judged(it, "lib/slugs.rb"), files(it)] }
+    expect(found).to(eq([[[9, "Kata/GoodMethodName"]], [base, autocorrect, framework]]))
+  end
+
+  it "judges those names in a library that does not depend on Rails, or opts out" do
+    source = "module Slugs\n  def self.table_name_prefix = \"slugs_\"\nend\n"
+    gemspec = ["slugs.gemspec", "Gem::Specification.new { it.add_dependency(\"activerecord\") }\n"]
+    plain = project(["slugs.gemspec", ""], ["lib/slugs.rb", source]) { judged(it, "lib/slugs.rb") }
+    opted = project(gemspec, ["lib/slugs.rb", source]) { judged(it, "lib/slugs.rb", "rails" => false) }
+    expect([plain, opted]).to(eq([[[2, "Kata/NoClassMethodLogic"]]] * 2))
+  end
+
+  def files(root) = described_class.new(root, {}).overlay["inherit_from"]
+
+  def judged(root, path, options = {})
+    setting = profiled(root, options)
+    cops = %w[NoClassMethodLogic GoodMethodName RealWords].map { RuboCop::Cop::Kata.const_get(it).new(setting) }
     parsed = RuboCop::ProcessedSource.from_file(File.join(root, path), 3.4)
     found = RuboCop::Cop::Commissioner.new(cops, [], raise_error: true).investigate(parsed).offenses
     found.map { [it.line, it.cop_name] }
   end
 
-  def profiled(root)
-    setting = YAML.load_file(described_class.new(root, {}).path, aliases: true)
+  def profiled(root, options)
+    setting = YAML.load_file(described_class.new(root, options).path, aliases: true)
     RuboCop::Config.new(setting, File.join(root, ".rubocop.yml"))
   end
 

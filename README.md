@@ -101,17 +101,24 @@ the configuration to match:
 - **A Rails app or engine** (`config/application.rb`, or any `lib/**/*.rb`
   or `<gem>/lib/**/*.rb` that subclasses `Rails::Engine` or calls
   `isolate_namespace`) gets
+  [config/framework.yml](config/framework.yml) and
   [config/rails.yml](config/rails.yml) on top of the defaults: the method names
   Rails, Devise, Turbo and Pundit call by name (`default_url_options`,
   `after_sign_up_path_for`, `broadcast_target_default`,
-  `permitted_attributes_for_create`, a namespace's `table_name_prefix`, a
-  transaction record's `rolledback!`), `attributes` as the role suffix of a
+  `permitted_attributes_for_create`), `attributes` as the role suffix of a
   nested-attributes writer (`time_constraint_attributes=` is judged as
   `time_constraint`), `enum` mappings read as lookup tables,
   and the generated `bin/` and `db/` files kept out of `Kata/NoComments`. It
   relaxes no rule for code the application writes: an association chain, a nil
   check, a query on a model class or `Time.current` in a model are still
   offenses.
+- **Code built on Rails' frameworks** (a Rails app or engine, or a library
+  whose gemspec depends on activerecord, activemodel, activesupport, railties
+  or rails, as friendly_id does) gets
+  [config/framework.yml](config/framework.yml): the names ActiveRecord and
+  ActiveModel send to the project's own classes and records (a namespace's
+  `table_name_prefix`, a class's `model_name` and `human_attribute_name`,
+  `relation_delegate_class`, a transaction record's `rolledback!`).
 
 Each choice can be made by hand:
 

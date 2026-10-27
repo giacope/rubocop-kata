@@ -1,0 +1,39 @@
+# Applied on top of default.yml for a Rails app or engine (under
+# config/rails.yml) and for a library whose gemspec depends on Rails'
+# frameworks (activerecord, activemodel, activesupport, railties or rails):
+# the names ActiveRecord and ActiveModel send to the project's own classes
+# and records, which the project answers by those names. `rails: false`
+# under the plugin opts out of both. Each list here is added to the shipped
+# one, not put in its place.
+
+# ActiveRecord asks a model's namespace for `table_name_prefix` and
+# `table_name_suffix` (the module `rails generate model taxonomy/node`
+# writes; friendly_id's `FriendlyId.table_name_prefix` names its slugs
+# table), and ActiveModel's form, route and i18n helpers ask a class for its
+# `model_name` (a view adapter that `extend`s ActiveModel::Naming).
+Kata/NoClassMethodLogic:
+  AllowedNames:
+    - model_name
+    - table_name_prefix
+    - table_name_suffix
+
+# ActiveModel translates an attribute through the class's
+# `human_attribute_name`. ActiveRecord asks an object handed to
+# `add_transaction_record` `trigger_transactional_callbacks?` (older Rails,
+# `has_transactional_callbacks?`) and hands it on through
+# `add_to_transaction`, and finds a model's relation class through
+# `relation_delegate_class` (friendly_id defines it where ActiveRecord 4.0
+# lacks it, and calls ActiveRecord's own elsewhere).
+Kata/GoodMethodName:
+  AllowedNames:
+    - add_to_transaction
+    - has_transactional_callbacks?
+    - human_attribute_name
+    - relation_delegate_class
+    - trigger_transactional_callbacks?
+
+# ActiveRecord's transaction calls `rolledback!` on each record it holds, by
+# that spelling; `rolled_back!` would never run.
+Kata/RealWords:
+  AllowedNames:
+    - rolledback!

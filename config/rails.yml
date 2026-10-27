@@ -1,5 +1,5 @@
-# Applied on top of default.yml when the project root holds
-# config/application.rb, or any lib/**/*.rb defines a Rails engine
+# Applied on top of default.yml and config/framework.yml when the project
+# root holds config/application.rb, or any lib/**/*.rb defines a Rails engine
 # (`< Rails::Engine` or `isolate_namespace`; opt out with `rails: false` under
 # the plugin, see README). It names what
 # Rails and its common gems dictate and the files they generate; it relaxes
@@ -11,11 +11,8 @@
 # `permitted_attributes_for_<action>`; ActionController calls
 # `append_info_to_payload` and `handle_unverified_request`; a Devise::Mailer
 # sends `reset_password_instructions`; InheritedResources (ActiveAdmin) builds
-# its scope through `begin_of_association_chain` and its siblings;
-# ActiveRecord asks an object handed to `add_transaction_record`
-# `trigger_transactional_callbacks?` (older Rails,
-# `has_transactional_callbacks?`) and hands it on through
-# `add_to_transaction`. `fields_for :time_constraint` writes through
+# its scope through `begin_of_association_chain` and its siblings.
+# `fields_for :time_constraint` writes through
 # `time_constraint_attributes=` (nested attributes), so `attributes` is a role
 # suffix there, as `Controller` is for a class: the words before it are the
 # name the project chose.
@@ -25,7 +22,6 @@ Kata/GoodMethodName:
   Suffixes:
     - attributes
   AllowedNames:
-    - add_to_transaction
     - after_confirmation_path_for
     - after_database_authentication
     - after_inactive_sign_up_path_for
@@ -43,22 +39,13 @@ Kata/GoodMethodName:
     - find_for_authentication
     - find_for_database_authentication
     - handle_unverified_request
-    - has_transactional_callbacks?
-    - human_attribute_name
     - method_for_association_chain
     - reset_password_instructions
     - send_confirmation_instructions
     - send_reset_password_instructions
     - send_reset_password_instructions_notification
     - signed_in_root_path
-    - trigger_transactional_callbacks?
     - will_save_change_to_email
-
-# ActiveRecord's transaction calls `rolledback!` on each record it holds, by
-# that spelling; `rolled_back!` would never run.
-Kata/RealWords:
-  AllowedNames:
-    - rolledback!
 
 # `rails new` and the generators write these files; their comments are the
 # framework's guidance, not the application's prose.
@@ -80,15 +67,11 @@ Kata/NoTypeCheck:
   Protocols:
     - rails
 
-# Devise finds a user through these class methods, by name; ActiveRecord
-# asks a model's namespace for `table_name_prefix` and `table_name_suffix`
-# (the module `rails generate model taxonomy/node` writes).
+# Devise finds a user through these class methods, by name.
 Kata/NoClassMethodLogic:
   AllowedNames:
     - find_for_authentication
     - find_for_database_authentication
-    - table_name_prefix
-    - table_name_suffix
 
 # Arbre (ActiveAdmin) builds a component by calling `build` after `new`.
 Kata/FrozenState:

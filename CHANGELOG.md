@@ -75,6 +75,18 @@
     returns nothing (or `self`) and raises when it fails. A method whose
     statements only compute its answer (locals, `return false unless …`)
     keeps RuboCop's advice.
+  - The names ActiveRecord and ActiveModel send to the project's classes
+    and records reach a library built on them, not only a Rails app:
+    config/framework.yml, applied for a Rails app or engine and for a gem
+    whose gemspec depends on Rails' frameworks, holds a namespace's
+    `table_name_prefix` and `table_name_suffix`, a class's `model_name`
+    (new: manuals-publisher's view adapters answer the ActiveModel::Naming
+    hook form and route helpers call), `human_attribute_name`, the
+    transaction-record protocol, `rolledback!`, and `relation_delegate_class`
+    (new: friendly_id backfills ActiveRecord's own method). friendly_id
+    declares activerecord, but only an app or an engine got the Rails
+    profile, so its `FriendlyId.table_name_prefix`, which names the slugs
+    table, was "logic on the class". `rails: false` opts out of both files.
 - `Kata/NoComments` prices documentation by default: `AllowDocumentation`
   is `false` again, as when the option was added, so a comment above a
   public class, module, method or constant is prose like any other, YARD
