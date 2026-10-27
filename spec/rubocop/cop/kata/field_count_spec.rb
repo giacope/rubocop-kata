@@ -68,6 +68,55 @@ RSpec.describe(RuboCop::Cop::Kata::FieldCount, :config) do
     RUBY
   end
 
+  # mechanize's Page: eight `@x ||= ...` caches whose only plain assignment is `@x = nil` in `reset`.
+  it "counts a memoized cache that a reset clears as a cache, not a field" do
+    expect_no_offenses(<<~RUBY)
+      class Page
+        def initialize(body, encoding)
+          @body = body
+          @encoding = encoding
+        end
+
+        def links = @links ||= @body.scan(/href/)
+        def forms = @forms ||= @body.scan(/form/)
+        def title = @title ||= @body[/title/]
+
+        def reencode(encoding)
+          @encoding = encoding
+          @links = nil
+          @forms = nil
+          @title = nil
+        end
+      end
+    RUBY
+  end
+
+  it "still counts a cache a method also sets, and a field only ever cleared" do
+    expect_offense(<<~RUBY)
+      class Page
+            ^^^^ `Page` encapsulates 5 fields (`@body`, `@encoding`, `@links`, `@forms` and `@title`); keep at most 4, and group the rest into an object of their own.
+        def initialize(body, encoding)
+          @body = body
+          @encoding = encoding
+        end
+
+        def links = @links ||= @body.scan(/href/)
+        def load = @links = @body.scan(/href/)
+        def forms = @forms ||= @body.scan(/form/)
+
+        def parse
+          @forms, @body = @body.split
+        end
+
+        def reencode(encoding)
+          @links = nil
+          @forms = nil
+          @title = nil
+        end
+      end
+    RUBY
+  end
+
   it "allows an empty class" do
     expect_no_offenses(<<~RUBY)
       class Place; end

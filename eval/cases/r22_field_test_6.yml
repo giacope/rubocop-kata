@@ -522,3 +522,31 @@
         def negotiate = Net::NTLM::Message::Type1.new.encode64
       end
     end
+- id: r6b3-k7-cache-cleared-by-a-reset-is-not-a-field
+  cop: Kata/FieldCount
+  strict: true
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Page
+        def initialize(body, encoding)
+          @body = body
+          @encoding = encoding
+        end
+
+        def links = @links ||= @body.scan(/href/)
+
+        def forms = @forms ||= @body.scan(/form/)
+
+        def title = @title ||= @body[/title/]
+
+        def reencode(encoding)
+          @encoding = encoding
+          @links = nil
+          @forms = nil
+          @title = nil
+        end
+      end
+    end

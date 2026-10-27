@@ -14,8 +14,12 @@ class RuboCop::Cop::Kata::FieldCount < RuboCop::Cop::Base
   private
 
   def assigned(node)
-    node.each_descendant(:ivasgn).select { mine?(it, node) && !memoized?(it) }.map { it.children.first }
+    caches, plain = node.each_descendant(:ivasgn).select { mine?(it, node) }.partition { memoized?(it) }
+    cached = caches.map { it.children.first }
+    plain.group_by { it.children.first }.reject { |name, writes| cached.include?(name) && cleared?(writes) }.keys
   end
+
+  def cleared?(writes) = writes.all? { it.children[1]&.nil_type? }
 
   def minted(node) = named(node, MACROS).map { :"@#{it}" }
 

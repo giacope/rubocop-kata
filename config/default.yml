@@ -1086,8 +1086,8 @@ Kata/FieldCount:
     A class encapsulates at most `Max` fields (four by default, Elegant
     Objects' "encapsulate as little as possible"): the instance variables its
     instance methods assign, and the fields its `attr_*` macros name, counted
-    once each. A memoized answer (`@total ||= ...`) is a cache, not a field.
-    More fields than that is several objects in one; group some into an object
+    once each. A memoized answer (`@total ||= ...`) is a cache, not a field,
+    and stays one when a reset clears it (`@total = nil`). More fields than that is several objects in one; group some into an object
     of their own. Rails controllers, mailers, helpers and views, which hand
     views their data through instance variables, are not judged. Off by
     default: config/strict.yml turns it on.

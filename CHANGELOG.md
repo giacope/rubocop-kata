@@ -164,6 +164,11 @@
     `Net::NTLM::Message::Type1.new` names rubyntlm's module, through a `Net`
     the project reopens in its test helper. A screaming name decided "value"
     alone, and `NTLM`, `HTTP`, `API` and `JSON` are screaming.
+  - `Kata/FieldCount` counts a memoized cache that a reset clears as a
+    cache: mechanize's `Page` listed eight `@x ||= ...` answers whose only
+    plain assignment is `@x = nil` in `reset` (and `Link` its `@text` and
+    `@uri`) as fields. A cache that a method also sets to a value, and a
+    field that is only ever cleared, still count.
 - A strict Elegant Objects profile, `config/strict.yml`, for a project that
   wants the whole of Elegant Objects (`inherit_gem: { rubocop-kata:
   config/strict.yml }` beside `plugins: [rubocop-kata]`). The rules the V1
