@@ -858,3 +858,41 @@
         end
       end
     end
+- id: r6b4-k3-computed-send-to-a-class-is-not-told-public-send
+  cop: Kata/NoReflection
+  strict: true
+  expect: offense
+  absent:
+    - public_send` keeps the dispatch
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Memo
+        def initialize(host, name)
+          @host = host
+          @name = name
+          @visibility = host.private_method_defined?(name) ? :private : :public
+        end
+
+        def restore = @host.__send__(@visibility, @name)
+      end
+    end
+- id: r6b4-k3-forward-inside-a-send-override-is-the-protocol
+  cop: Kata/NoReflection
+  strict: true
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Wrapped
+        def initialize(target)
+          @target = target
+        end
+
+        def send(name, ...)
+          respond_to?(name, true) ? super : @target.send(name, ...)
+        end
+      end
+    end

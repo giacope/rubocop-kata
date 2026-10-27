@@ -239,6 +239,20 @@
     `OwnedPaths` matches, must end in one of the `RaisingMethods` or in
     such a method, after a guard or locals at most; one that also writes
     (`raise ... unless key; @seen << key`) still acts.
+  - `Kata/NoReflection` no longer tells a computed `send` to use
+    `public_send` where `public_send` raises. unparser's memoizer restores
+    a method's visibility with `@descendant.__send__(@original_visibility,
+    @method_name)`: `private` and `protected` are private methods of
+    Module, so the advice broke every memoized private method. A computed
+    name sent to a class or module the code treats as one (the same name
+    gets `module_eval`, `instance_method`, `private_method_defined?`, ...)
+    is now told to let the class say it in its own body, or to decorate its
+    objects instead of changing the class from outside; one the code looks
+    up among the private methods (ahoy's `controller.respond_to?(name,
+    true)`) is told to send a message the object answers in public. The
+    forward inside an object's own `send` (strong_migrations'
+    `WrappedConnection#send`, which Rails' schema dumper calls with private
+    names) is the protocol it overrides, and passes.
 - A strict Elegant Objects profile, `config/strict.yml`, for a project that
   wants the whole of Elegant Objects (`inherit_gem: { rubocop-kata:
   config/strict.yml }` beside `plugins: [rubocop-kata]`). The rules the V1

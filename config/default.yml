@@ -1087,8 +1087,17 @@ Kata/NoReflection:
     public method, or map the names to objects. Dispatch on a name the code is
     handed (`public_send(field)`) is a protocol; sent with `send` or
     `__send__` (`controller.send(@method)`) it reaches private methods too,
-    and is reported with the advice to use `public_send`. An object
-    reflecting on itself and the boot layer pass. Off by default:
+    and is reported with the advice to use `public_send`, except where
+    `public_send` would raise: a computed name sent to a class or module
+    the code treats as one (`@base.module_eval`, `private_method_defined?`
+    on the same name), whose `private`, `module_function` and
+    `remove_const` only reflection reaches, is told to let the class say it
+    in its own body, or to decorate its objects instead of changing the
+    class from outside; one the code looks up among the private methods
+    (`respond_to?(name, true)`) is told to send a message the object
+    answers in public. The forward inside an object's own `send` or
+    `__send__` (a decorator that passes the protocol on) is that protocol,
+    and passes. An object reflecting on itself and the boot layer pass. Off by default:
     config/strict.yml turns it on in place of `Style/Send`, whose advice
     (`__send__`) keeps the reflection; the `send` an object makes to itself,
     which `Style/Send` also reports, is not judged.

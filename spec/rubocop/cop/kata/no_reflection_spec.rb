@@ -37,6 +37,63 @@ RSpec.describe(RuboCop::Cop::Kata::NoReflection, :config) do
     RUBY
   end
 
+  # unparser's memoizer restores a method's visibility through `@descendant.__send__(@original_visibility, name)`.
+  it "does not advise public_send for a computed name sent to a class the code treats as one" do
+    expect_offense(<<~RUBY)
+      class Memo
+        def initialize(host, name)
+          @host = host
+          @visibility = host.private_method_defined?(name) ? :private : :public
+        end
+
+        def restore = @host.__send__(@visibility, @name)
+                            ^^^^^^^^ `__send__` sends a computed name to a class or module, whose private methods (`private`, `module_function`, `remove_const`) `public_send` cannot reach; let the class say it in its own body, or decorate its objects instead of changing the class from outside.
+        def define(body) = target.send(@kind, @name, &body)
+                                  ^^^^ `send` sends a computed name to a class or module, whose private methods (`private`, `module_function`, `remove_const`) `public_send` cannot reach; let the class say it in its own body, or decorate its objects instead of changing the class from outside.
+        def defined? = target.method_defined?(@name)
+        def feature(name) = Features.send(name)
+                                     ^^^^ `send` sends a computed name to another object, private methods included; `public_send` keeps the dispatch to its interface.
+        def plain(name) = @host.reader.send(name)
+                                       ^^^^ `send` sends a computed name to another object, private methods included; `public_send` keeps the dispatch to its interface.
+      end
+
+      class Relay
+        def relay(name) = @host.send(name)
+                                ^^^^ `send` sends a computed name to another object, private methods included; `public_send` keeps the dispatch to its interface.
+      end
+    RUBY
+  end
+
+  # ahoy's `controller.send(Ahoy.user_method) if controller.respond_to?(Ahoy.user_method, true)`.
+  it "does not advise public_send for a computed name the code checks among the private methods" do
+    expect_offense(<<~RUBY)
+      class Store
+        def user
+          controller.send(@method) if controller.respond_to?(@method, true)
+                     ^^^^ `send` sends a computed name to another object to reach its private methods, which `public_send` cannot; send it a message it answers in public, or map the names to objects.
+        end
+
+        def visit(page)
+          page.send(@method) if page.respond_to?(@method)
+               ^^^^ `send` sends a computed name to another object, private methods included; `public_send` keeps the dispatch to its interface.
+        end
+      end
+    RUBY
+  end
+
+  # strong_migrations' `WrappedConnection#send`, which Rails' schema dumper calls with private names.
+  it "leaves the forward of the send an object overrides" do
+    expect_no_offenses(<<~RUBY)
+      class Wrapped
+        def send(name, ...)
+          respond_to?(name, true) ? super : @target.send(name, ...)
+        end
+
+        def __send__(name, *args) = @target.__send__(name, *args)
+      end
+    RUBY
+  end
+
   it "flags a constant name built at run time" do
     expect_offense(<<~RUBY)
       class Export
