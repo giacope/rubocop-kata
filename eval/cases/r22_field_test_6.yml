@@ -622,3 +622,18 @@
         end
       end
     end
+- id: r6b3-k10-attribute-copied-through-a-writer-is-a-message
+  cop: Lint/SelfAssignment
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Jar
+        def initialize(cookies)
+          @cookies = cookies
+        end
+
+        def pin = @cookies.each { it.expires = it.expires }
+      end
+    end

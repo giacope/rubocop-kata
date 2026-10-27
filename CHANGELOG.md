@@ -186,6 +186,14 @@
     value; one the method also tests (counter_culture's `was`, passed on as
     `was: was` and read by `if was`) is a flag, and so is the `false` that
     lands in `use_domain`.
+  - `Lint/SelfAssignment` no longer reports `cookie.expires =
+    cookie.expires` (mechanize's cookie jar, before it saves): http-cookie's
+    reader computes the expiry from `max_age` and its writer pins it and
+    clears `max_age`, so deleting the line, as "Self-assignment detected."
+    asks, makes a reloaded cookie live `max_age` past its load. Whether a
+    writer stores what its reader answers is the receiver's business, which
+    Ruby cannot see; an attribute copied onto itself is still reported
+    through `self` when the file defines neither its reader nor its writer.
 - A strict Elegant Objects profile, `config/strict.yml`, for a project that
   wants the whole of Elegant Objects (`inherit_gem: { rubocop-kata:
   config/strict.yml }` beside `plugins: [rubocop-kata]`). The rules the V1

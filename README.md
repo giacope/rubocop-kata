@@ -355,7 +355,11 @@ styles both indent a multi-line `if` condition by a step `Elegant/MonotonicInden
 rejects. `Lint/SelfAssignment` reads `Lazy = Lazy` inside a class or module as
 what Ruby makes of it, the outer `Lazy` named in the nested namespace (a mixin's
 re-export, in `lib/rubocop/kata/outer_constant.rb`); at the top level, or
-qualified, it is still a self-assignment. `Naming/PredicateMethod` tells a method
+qualified, it is still a self-assignment. It reads `cookie.expires =
+cookie.expires` as a message to a writer it cannot see (http-cookie's reader
+computes the expiry, its writer pins it), and reports an attribute copied onto
+itself only through `self` with no reader or writer the file defines
+(`lib/rubocop/kata/attribute_copy.rb`). `Naming/PredicateMethod` tells a method
 that acts and then answers a boolean (ferrum's `def clear; @headers = {}; true; end`)
 that a command returns nothing (or `self`) and raises when it fails, where RuboCop
 asked for `clear?`, a query that changes state, which `Kata/CommandQuery` then
