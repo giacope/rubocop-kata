@@ -7,8 +7,16 @@ module RuboCop::Kata::ForeignText
 
   def heredocs
     tree = processed_source.ast
-    texts = tree ? tree.each_node(:xstr).reject(&:heredoc?).flat_map { ((it.first_line + 1)..it.last_line).to_a } : []
+    texts = tree ? tree.each_node(:str, :dstr, :xstr, :regexp).flat_map { verbatim(it) } : []
     super | texts
+  end
+
+  def verbatim(node)
+    location = node.loc
+    return [] unless node.multiline? && location.respond_to?(:begin) && location.begin
+    first = node.first_line
+    first += 1 unless processed_source.lines[first - 1][0...location.column].strip.empty?
+    (first..node.last_line).to_a
   end
 end
 

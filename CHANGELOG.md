@@ -271,6 +271,17 @@
     and `dig`, beside `[]` and `method_missing`, which the strict cop
     already passed (the default profile now passes them too: mechanize's
     file response `[]`).
+  - `Elegant/MonotonicIndents` no longer measures a line's step from the
+    text of a multi-line string, regexp or command literal: it
+    skipped heredoc bodies only, "because their whitespace is part of the
+    literal value", so every key after one of strong_migrations' error
+    messages (written at column 0 so the text has no indent) and
+    transition's `.group` after a `.joins('...')` of SQL were told to step
+    two (the cop's heredoc rule of rubocop-elegant 0.8.0). kata's override,
+    which skipped an x-string's lines, now skips the lines any multi-line
+    literal spans (its first line too when the literal starts it), and the
+    next line is measured from the code before it. A one-line string at
+    column 0 is code, and still measured.
 - A strict Elegant Objects profile, `config/strict.yml`, for a project that
   wants the whole of Elegant Objects (`inherit_gem: { rubocop-kata:
   config/strict.yml }` beside `plugins: [rubocop-kata]`). The rules the V1

@@ -178,8 +178,12 @@ Kata reported four rubocop-elegant defects upstream
 nested break), so `Kata/NoRedundantVariable`, `Kata/PairedBrackets`, and
 `Kata/ClassInModule` stay, and the `Elegant/*` originals stay off.
 `Elegant/MonotonicIndents` stays on, taught (in `lib/rubocop/kata/foreign_text.rb`)
-to skip the lines that start inside an x-string, as it skips heredoc bodies:
-opal's `%x{}` holds JavaScript, a backtick holds shell. rubocop-elegant's
+to skip the lines a multi-line string, regexp or x-string spans, as it skips
+heredoc bodies (the first line too when the literal starts it): their
+whitespace is the literal's value, not program structure. opal's `%x{}` holds
+JavaScript, a backtick holds shell, strong_migrations' messages start at
+column 0 so their text has no indent, and the line after one is measured from
+the code before it. rubocop-elegant's
 configuration also switches off RuboCop cops RuboCop ships on; kata turns
 `Style/ClassVars` (global mutable state every subclass shares; another class's
 setting, `Minitest.class_variable_set(:@@installed_at_exit, …)`, passes) and

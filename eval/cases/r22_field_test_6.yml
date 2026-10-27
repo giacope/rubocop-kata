@@ -991,3 +991,34 @@
         end
       end
     end
+- id: r6b4-k6-text-of-a-multi-line-string-is-not-indentation
+  cop: Elegant/MonotonicIndents
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      MESSAGES = {
+        add_column:
+    "Adding a column rewrites the table.
+    Instead:
+
+    class AddSome < Migration
+    end",
+
+        add_index: "Adding an index locks the table."
+      }.freeze
+    end
+- id: r6b4-k6-code-after-a-one-line-string-at-column-zero-still-measured
+  cop: Elegant/MonotonicIndents
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      MESSAGES = {
+        add_index:
+    "Adding an index locks the table.",
+        remove_column: "Removing a column breaks running code."
+      }.freeze
+    end
