@@ -2612,6 +2612,41 @@ Kata/NoMonkeyPatch:
     - "**/*_spec.rb"
     - "**/*_test.rb"
 
+Kata/NoMock:
+  Description: >-
+    Don't mock; use fakes. A mock or a stub tells the test which calls the
+    object makes to its collaborator, so the test breaks when the object is
+    refactored and passes when the collaborator changes; a fake is a small
+    working class with the collaborator's interface (`FakeClock#now`),
+    shipped beside the real one, that the test passes in. Reported in the
+    test files the cop includes: RSpec's doubles and spies (`double`,
+    `instance_double`, `class_double`, `object_double`, `spy` and its
+    verified kinds), a message stubbed or expected (`allow(...).to receive`,
+    `expect(...).to receive`, `receive_messages`, `receive_message_chain`,
+    `have_received`, `allow_any_instance_of`), the older `obj.stub(:name)`,
+    `stub_chain` and `should_receive`, `Minitest::Mock.new` and Minitest's
+    `obj.stub(:name, value) { ... }`, and mocha's `mock(...)`, `stub(...)`,
+    `stub_everything`, `expects(:name)` and `stubs(:name)`. A builder or a
+    stub the project's own code defines (`Excon.stub`, under `OwnedPaths`)
+    is the library under test, and one the spec defines (a `def double`
+    helper, a `let(:stub)`) is the spec's own; both pass, and so does a
+    `receive` that is not an RSpec matcher (`socket.receive(1024)`). Off by default: config/strict.yml turns it on
+    in place of the rubocop-rspec cops that report the same mocks with
+    advice that keeps them (`RSpec/VerifiedDoubles` asks for another
+    double, `RSpec/MessageSpies` for a spy).
+  Enabled: false
+  VersionAdded: "0.11"
+  OwnedPaths:
+    - "app/**/*.rb"
+    - "*/app/**/*.rb"
+    - "lib/**/*.rb"
+    - "*/lib/**/*.rb"
+  Include:
+    - "**/*_spec.rb"
+    - "**/spec/**/*.rb"
+    - "**/*_test.rb"
+    - "**/test/**/*.rb"
+
 # Rewrites reopened classes into modules, clashing with the primary
 # class definition at boot.
 Style/StaticClass:

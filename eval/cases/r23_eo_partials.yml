@@ -142,6 +142,57 @@
         end
       end
     end
+- id: v1-p13-violation-min-no-mock
+  cop: Kata/NoMock
+  strict: true
+  expect: offense
+  path: spec/shop/greeting_spec.rb
+  source: |
+    # frozen_string_literal: true
+
+    require "shop/greeting"
+
+    RSpec.describe Shop::Greeting do
+      it "greets in the morning" do
+        clock = double("clock", now: Time.utc(2024, 1, 1, 9))
+        expect(described_class.new(clock).text).to eq("Good morning")
+      end
+    end
+- id: v1-p13-violation-real-no-mock
+  cop: Kata/NoMock
+  strict: true
+  expect: offense
+  path: spec/shop/greeting_spec.rb
+  source: |
+    # frozen_string_literal: true
+
+    require "shop/greeting"
+
+    RSpec.describe Shop::Greeting do
+      it "greets in the afternoon" do
+        clock = instance_double(Shop::Clock, now: Time.utc(2024, 1, 1, 15))
+        allow(Time).to receive(:now).and_return(Time.utc(2024, 1, 1, 15))
+        expect(described_class.new(clock).text).to eq("Good afternoon")
+        expect(clock).to have_received(:now)
+      end
+    end
+- id: v1-p13-compliant-no-mock
+  cop: Kata/NoMock
+  strict: true
+  expect: clean
+  path: spec/shop/greeting_spec.rb
+  source: |
+    # frozen_string_literal: true
+
+    require "shop/greeting"
+    require "shop/fake_clock"
+
+    RSpec.describe Shop::Greeting do
+      it "greets in the morning" do
+        clock = Shop::FakeClock.new(Time.utc(2024, 1, 1, 9))
+        expect(described_class.new(clock).text).to eq("Good morning")
+      end
+    end
 - id: v1-p37-violation-min-no-hash-as-object
   cop: Kata/NoHashAsObject
   strict: true

@@ -28,6 +28,12 @@
     send, `String.include(Slugs)`, `Integer.class_eval { def cents ... }`,
     `define_method`, `Object.send(:include, ...)`, its singleton class or
     `class << String`; only the `class String` reopen was reported.
+  - `Kata/NoMock` (new, strict): every mock and stub in the tests (RSpec
+    doubles, spies and `receive` stubs and expectations, Minitest::Mock and
+    `stub`, mocha) with the advice to pass a fake. Only `double` was
+    reported, by `RSpec/VerifiedDoubles`, whose advice is another mock; the
+    strict profile turns it off with the eleven other rubocop-rspec cops
+    that report the same mocks.
 - From a sixth field test, batch one (content-tagger, support, searchkick,
   statesman, pay), in check mode and under `rubocop -a`:
   - `Kata/RealWords` knows `recency` and `proration`, the nouns of `recent`

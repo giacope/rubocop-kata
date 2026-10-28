@@ -10,8 +10,8 @@
 #
 # It switches on every house cop kata ships off and every stricter reading of
 # a cop kata ships on, and switches off the cops a strict one replaces, so no
-# rescue, nil or reflection is reported twice. A project can still turn any
-# one of them back off in its own .rubocop.yml. The file names the plugin
+# rescue, nil, reflection or mock is reported twice. A project can still turn
+# any one of them back off in its own .rubocop.yml. The file names the plugin
 # too: RuboCop checks an inherited file's cops before it loads the plugins a
 # parent file lists, so without it a project whose plugins sit in another
 # inherited file would be told Kata's cops are unrecognized.
@@ -122,3 +122,45 @@ Kata/NoHashAsObject:
 # `String.include(Slugs)` to `Integer.class_eval { def cents ... }`.
 Kata/NoMonkeyPatch:
   Enabled: true
+
+# Tests: don't mock, use fakes. Kata/NoMock reports every mock and stub with
+# the advice to pass a fake; these report the same mocks with advice that
+# keeps one (another double, a spy, `receive_messages`, the style of a stub).
+Kata/NoMock:
+  Enabled: true
+
+RSpec/AnyInstance:
+  Enabled: false
+
+RSpec/InstanceSpy:
+  Enabled: false
+
+RSpec/MessageChain:
+  Enabled: false
+
+RSpec/MessageSpies:
+  Enabled: false
+
+RSpec/ReceiveCounts:
+  Enabled: false
+
+RSpec/ReceiveMessages:
+  Enabled: false
+
+RSpec/ReceiveNever:
+  Enabled: false
+
+RSpec/ReturnFromStub:
+  Enabled: false
+
+RSpec/StubbedMock:
+  Enabled: false
+
+RSpec/SubjectStub:
+  Enabled: false
+
+RSpec/VerifiedDoubleReference:
+  Enabled: false
+
+RSpec/VerifiedDoubles:
+  Enabled: false

@@ -45,7 +45,7 @@ RSpec.describe(RuboCop::Kata::Plugin) do
     paths = [*lists, RuboCop::Cop::Kata::Reopening::OWNED, RuboCop::Cop::Kata::Contract::OWNED]
     missing = paths.flat_map { |list| list.grep(%r{\Aapp/}).reject { list.include?("*/#{it}") } }
     expect(missing).to(be_empty)
-    expect(paths.count { it.include?("*/app/**/*.rb") }).to(eq(18))
+    expect(paths.count { it.include?("*/app/**/*.rb") }).to(eq(19))
   end
 
   it "keeps the parameter limit it advertises" do
@@ -184,14 +184,19 @@ RSpec.describe(RuboCop::Kata::Plugin) do
   def strict_profile
     added = %w[
       FailFast ScopedResource NoNilArgument NoNilReturn NoHardWiring NoGetter FieldCount PublicSurface
-      NoPublicConstant NoReflection NoMonkeyPatch
+      NoPublicConstant NoReflection NoMonkeyPatch NoMock
     ]
     readings = {
       "IoDiscipline" => "CheckEffects", "ClockDiscipline" => "CheckRandomness", "EnvDiscipline" => "CheckSettings",
       "NoSingleton" => "CheckGlobals", "CommandQuery" => "CheckEveryQuery", "ConstructorDiscipline" => "CheckPaths",
       "GoodClassName" => "CheckContracts", "BuilderNoun" => "CheckEveryBuilder", "NoHashAsObject" => "CheckTravel"
     }
-    replaced = %w[Lint/SuppressedException Style/RescueModifier Elegant/NoNilReturn Style/Send]
+    mocks = %w[
+      AnyInstance InstanceSpy MessageChain MessageSpies ReceiveCounts ReceiveMessages ReceiveNever ReturnFromStub
+      StubbedMock SubjectStub VerifiedDoubleReference VerifiedDoubles
+    ]
+    kept = %w[Lint/SuppressedException Style/RescueModifier Elegant/NoNilReturn Style/Send]
+    replaced = kept + mocks.map { "RSpec/#{it}" }
     [
       *added.map { ["Kata/#{it}", { "Enabled" => true }] },
       *readings.map { |cop, key| ["Kata/#{cop}", { key => true }] },

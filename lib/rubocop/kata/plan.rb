@@ -14,7 +14,7 @@ class RuboCop::Kata::Plan
       Kata/NoSetter Kata/FrozenState Kata/NoOutputArgument Kata/CommandQuery
       Kata/NoTypeCheck Kata/NoSingleton Kata/NoNilArgument Kata/NoNilReturn Kata/NoHardWiring
       Kata/NoGetter Kata/FieldCount Kata/PublicSurface Kata/NoPublicConstant Kata/NoReflection
-      Kata/NoMonkeyPatch
+      Kata/NoMonkeyPatch Kata/NoMock
     ],
     "naming" => %w[
       Kata/RealWords Kata/GoodMethodName Kata/GoodVariableName Kata/GoodClassName
