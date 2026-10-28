@@ -1133,3 +1133,34 @@
         end
       end
     end
+- id: r6b5-k5-a-call-to-the-class-own-pp-is-not-kernel-output
+  cop: Kata/IoDiscipline
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Printer
+        def self.pp(io, datum, indent = 0)
+          datum.each do |key, value|
+            io.write("#{" " * indent}#{key}:")
+            pp(io, value, indent + 2) if value.respond_to?(:each_pair)
+          end
+        end
+      end
+    end
+- id: r6b5-k5-kernel-output-beside-another-side-still-flagged
+  cop: Kata/IoDiscipline
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Printer
+        def self.pp(io, datum) = io.write(datum)
+
+        def show(datum)
+          pp(datum)
+        end
+      end
+    end

@@ -312,6 +312,15 @@
     global state keyed by the thread, not "one value on the class for every
     caller", and `Fiber[:bullet_state]` (bullet) is keyed by the fiber, not
     the thread. The verdicts are the same.
+  - `Kata/IoDiscipline` leaves a bare `puts`, `warn`, `pp`, `p`, `print` or
+    `printf` that calls the class's own method of that name: excon's
+    `PrettyPrinter.pp` recursing with `pp(io, value, indent)` (the form
+    `-a` leaves once `Style/RedundantSelf` drops its `self.`, a safe
+    correction: the singleton method wins the lookup either way) and
+    rubycritic's `print(...)` to its own `def print` writing to the stream
+    it holds were told to inject a stream. A definition on the other side
+    (an instance `def pp` for a call in a class method), in a nested class
+    or in another class does not count.
 - A strict Elegant Objects profile, `config/strict.yml`, for a project that
   wants the whole of Elegant Objects (`inherit_gem: { rubocop-kata:
   config/strict.yml }` beside `plugins: [rubocop-kata]`). The rules the V1

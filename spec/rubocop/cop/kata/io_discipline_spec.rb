@@ -280,6 +280,68 @@ RSpec.describe(RuboCop::Cop::Kata::IoDiscipline, :config) do
     RUBY
   end
 
+  # R6B5-K5: excon's PrettyPrinter.pp recursing into itself, rubycritic's Application#print.
+  it "leaves a bare call to a method of that name the class defines on the same side" do
+    expect_no_offenses(<<~RUBY)
+      class Printer
+        def self.pp(io, datum) = datum.each_value { pp(io, it) }
+        def self.alert(text) = warn(text)
+
+        class << self
+          def warn(text) = @log.write(text)
+          def notice(text) = pp(@io, text)
+        end
+      end
+
+      class Report
+        def initialize(io) = @io = io
+        def run(status) = print("status: \#{status}")
+        def print(message) = @io.puts(message)
+      end
+
+      def puts(text) = $log.write(text)
+      def show = puts("x")
+    RUBY
+  end
+
+  it "still flags a bare call the other side, a nested class or another class defines" do
+    expect_offense(<<~RUBY)
+      class Printer
+        def self.print(text) = $log.write(text)
+        def show = print("x")
+                   ^^^^^^^^^^ Inject the stream `print` writes to (`def initialize(io: $stdout)`) and write through it.
+        def pp(value) = value
+        def self.dump(value) = pp(value)
+                               ^^^^^^^^^ Inject the stream `pp` writes to (`def initialize(io: $stdout)`) and write through it.
+
+        class << self
+          def warn(text) = text
+        end
+
+        def note = warn("x")
+                   ^^^^^^^^^ Inject the stream `warn` writes to (`def initialize(io: $stderr)`) and write through it.
+        puts "loaded"
+        ^^^^^^^^^^^^^ Inject the stream `puts` writes to (`def initialize(io: $stdout)`) and write through it.
+
+        class Row
+          def puts(text) = text
+        end
+
+        def list = puts("x")
+                   ^^^^^^^^^ Inject the stream `puts` writes to (`def initialize(io: $stdout)`) and write through it.
+      end
+
+      class Other
+        def warn(text) = text
+      end
+
+      class Report
+        def run = warn("x")
+                  ^^^^^^^^^ Inject the stream `warn` writes to (`def initialize(io: $stderr)`) and write through it.
+      end
+    RUBY
+  end
+
   it "leaves a p that cannot be Kernel#p: one given a block, or no argument" do
     expect_no_offenses(<<~RUBY)
       def show

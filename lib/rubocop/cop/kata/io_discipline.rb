@@ -22,7 +22,7 @@ class RuboCop::Cop::Kata::IoDiscipline < RuboCop::Cop::Base
 
   def on_send(node)
     bare_output?(node) do |method|
-      return add_offense(node, message: message(node, method)) unless element?(node) || seam?(node) || quiet?(method)
+      return add_offense(node, message: message(node, method)) unless exempt?(node, method)
     end
     return unless effects?
     global(node, "#{node.receiver&.const_name}.#{node.method_name}")
@@ -54,6 +54,23 @@ class RuboCop::Cop::Kata::IoDiscipline < RuboCop::Cop::Base
   def effects? = cop_config["CheckEffects"]
 
   def quiet?(method) = PRINTS.include?(method) && !effects?
+
+  def exempt?(node, method) = element?(node) || seam?(node) || quiet?(method) || answers?(node)
+
+  def answers?(node)
+    caller = node.each_ancestor(:def, :defs).first
+    return false unless caller
+    home = place(caller)
+    (home.first || processed_source.ast).each_descendant(:def, :defs).any? do |method|
+      method.method?(node.method_name) && place(method) == home
+    end
+  end
+
+  def place(method)
+    scope = method.each_ancestor(:class, :module, :sclass).first
+    return [scope, method.defs_type?] unless scope&.sclass_type?
+    [scope.each_ancestor(:class, :module).first, true]
+  end
 
   def element?(node) = ELEMENTS.include?(node.method_name) && (!node.arguments? || !node.block_node.nil?)
 
