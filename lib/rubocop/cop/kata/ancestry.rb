@@ -34,6 +34,8 @@ module RuboCop::Cop::Kata::Ancestry
 
   def leaves?(line) = !line.empty? && !project.records.key?(line.last)
 
+  def exposed?(node, holder) = node.def_type? && holder&.class_type? && node_visibility(node) == :public
+
   def reached?(node, line)
     node.each_descendant(:super, :zsuper).any? && line.none? { project.defines?(it, "self.#{node.method_name}") }
   end

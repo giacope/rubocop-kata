@@ -70,3 +70,75 @@
         end
       end
     end
+- id: v1-p06-violation-min-builder-noun
+  cop: Kata/BuilderNoun
+  strict: true
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Cart
+        def initialize(prices)
+          @prices = prices
+        end
+
+        def calculate_total
+          @prices.sum
+        end
+      end
+    end
+- id: v1-p06-violation-real-builder-noun
+  cop: Kata/BuilderNoun
+  strict: true
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Order
+        def initialize(lines, rate)
+          @lines = lines
+          @rate = rate
+        end
+
+        def get_subtotal
+          @lines.sum(&:price)
+        end
+
+        def compute_tax
+          get_subtotal * @rate
+        end
+
+        def build_summary
+          "#{get_subtotal} + #{compute_tax}"
+        end
+      end
+    end
+- id: v1-p06-compliant-builder-noun
+  cop: Kata/BuilderNoun
+  strict: true
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Order
+        def initialize(lines, rate)
+          @lines = lines
+          @rate = rate
+        end
+
+        def subtotal
+          @lines.sum(&:price)
+        end
+
+        def tax
+          subtotal * @rate
+        end
+
+        def summary
+          "#{subtotal} + #{tax}"
+        end
+      end
+    end

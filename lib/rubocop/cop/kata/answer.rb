@@ -18,4 +18,10 @@ module RuboCop::Cop::Kata::Answer
   def answer?(call) = QUERIES.include?(call.method_name) || call.predicate_method?
 
   def tail(body) = body.begin_type? ? body.children.fetch(-1) : body
+
+  def statements(node)
+    return node.branches.compact.flat_map { statements(it) } if node.if_type?
+    return node.children.flat_map { statements(it) } if node.begin_type?
+    node.call_type? ? [node] : []
+  end
 end

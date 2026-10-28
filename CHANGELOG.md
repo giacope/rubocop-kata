@@ -12,6 +12,13 @@
     word, written or among the project's classes. `class InvoiceGenerator`
     with no superclass passed because `Generator` names Rails generators;
     WordNet reads `generator` as a machine, so no other rule saw the doer.
+  - `Kata/BuilderNoun`'s `CheckEveryBuilder`: the other verbs of making or
+    getting a value (`BuilderPrefixes`: `build_`, `make_`, `create_`,
+    `fetch_`, `find_`, `load_`, `parse_`, ...) are judged where the method
+    is a builder, one that answers a value and acts on nothing it did not
+    make (no field but a memo, none of the `Effects` such as `save` or
+    `deliver_later`, no `puts` or `require`), and where the noun is free.
+    `build_summary` passed: only five verbs were banned.
 - From a sixth field test, batch one (content-tagger, support, searchkick,
   statesman, pay), in check mode and under `rubocop -a`:
   - `Kata/RealWords` knows `recency` and `proration`, the nouns of `recent`

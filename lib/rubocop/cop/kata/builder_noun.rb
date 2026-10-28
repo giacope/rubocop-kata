@@ -4,6 +4,7 @@ class RuboCop::Cop::Kata::BuilderNoun < RuboCop::Cop::Base
   include RuboCop::Cop::Kata::Roster
   include RuboCop::Cop::Kata::Contract
   include RuboCop::Cop::Kata::Ancestry
+  include RuboCop::Cop::Kata::Fabrication
   include RuboCop::Cop::VisibilityHelp
 
   MSG = "A builder is named for what it returns: `%s`, not `%s`."
@@ -17,11 +18,16 @@ class RuboCop::Cop::Kata::BuilderNoun < RuboCop::Cop::Base
 
   def check(node)
     name = node.method_name.to_s
-    verb = prefix(name)
+    banned = prefix(name)
+    verb = banned || crafted(node, name)
     return unless verb && builder?(node, name)
     noun = name.delete_prefix("#{verb}_")
-    named = RuboCop::Kata::Identifier.new(noun).callable?
-    add_offense(node.loc.name, message: named ? format(MSG, noun, name) : format(UNNAMED, name))
+    add_offense(node.loc.name, message: proposal(name, noun, phrased: !banned && phrase?(noun)))
+  end
+
+  def proposal(name, noun, phrased:)
+    named = RuboCop::Kata::Identifier.new(noun).callable? && !phrased
+    named ? format(MSG, noun, name) : format(UNNAMED, name)
   end
 
   def builder?(node, name)
@@ -35,7 +41,7 @@ class RuboCop::Cop::Kata::BuilderNoun < RuboCop::Cop::Base
 
   def step?(node)
     holder = node.parent&.then { it.begin_type? ? it.parent : it }
-    return false unless node.def_type? && holder&.class_type? && node_visibility(node) == :public
+    return false unless exposed?(node, holder)
     project.ancestors(RuboCop::Kata::Nesting.new(holder).qualified).intersect?(list("StepSuperclasses"))
   end
 

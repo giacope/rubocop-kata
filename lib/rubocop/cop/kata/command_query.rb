@@ -47,12 +47,6 @@ class RuboCop::Cop::Kata::CommandQuery < RuboCop::Cop::Base
     body.children[0...-1].flat_map { statements(it) }
   end
 
-  def statements(node)
-    return node.branches.compact.flat_map { statements(it) } if node.if_type?
-    return node.children.flat_map { statements(it) } if node.begin_type?
-    node.call_type? ? [node] : []
-  end
-
   def order?(call, method)
     return false if call.block_node || answer?(call) || raising?(call)
     owned?(root(call), method)

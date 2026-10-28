@@ -105,3 +105,8 @@ Style/Send:
 # in the framework's contract, through a superclass or a mixin that names it.
 Kata/GoodClassName:
   CheckContracts: true
+
+# Every builder is named for what it returns, whatever verb of making or
+# getting it was named with: `build_summary` is `summary`.
+Kata/BuilderNoun:
+  CheckEveryBuilder: true

@@ -189,7 +189,7 @@ RSpec.describe(RuboCop::Kata::Plugin) do
     readings = {
       "IoDiscipline" => "CheckEffects", "ClockDiscipline" => "CheckRandomness", "EnvDiscipline" => "CheckSettings",
       "NoSingleton" => "CheckGlobals", "CommandQuery" => "CheckEveryQuery", "ConstructorDiscipline" => "CheckPaths",
-      "GoodClassName" => "CheckContracts"
+      "GoodClassName" => "CheckContracts", "BuilderNoun" => "CheckEveryBuilder"
     }
     replaced = %w[Lint/SuppressedException Style/RescueModifier Elegant/NoNilReturn Style/Send]
     [

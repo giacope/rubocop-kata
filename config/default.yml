@@ -863,10 +863,31 @@ Kata/BuilderNoun:
     Thor runs as a step. A predicate (`generate_ids?`) answers a question
     and builds nothing. Where the name left after the verb is a Ruby keyword
     or does not parse as a call (`generate_for` would become `for`, a loop),
-    the message proposes no name.
+    the message proposes no name. With `CheckEveryBuilder: true` (the strict
+    profile) the other verbs of making or getting a value, the
+    `BuilderPrefixes` (`build_summary`, `find_user`, `load_config`,
+    `parse_date`), are judged too, where the method is a builder: it answers a
+    value (not nil, not a loop run for its effect) and acts on nothing on the
+    way, so it writes no field but a memo, sends none of the `Effects`
+    (persisting, delivering, enqueueing, rendering or redirecting a response,
+    defining a method or a constant), calls no `Kernel` output or loading,
+    discards no call made for its effect, and changes (a `!` method, a setter,
+    `<<`, `[]=`, `push`, `add`, `delete`, ...) nothing it did not make itself.
+    The name left after the verb must be free: where the class or one of its
+    ancestors already answers `summary`, `build_summary` is the work behind
+    that noun, not a second name for it; and the name must be the method's
+    own: a callback the class names (`before_validation
+    :create_first_data_set`), an alias chain's method, and a method kept in a
+    field of its own name (`@load_path ||= ...`, a noun) pass. A name that
+    joins two actions (`create_command_and_execute`) is a command, and the
+    params of an action (`create_or_update_params`) a noun. Where the rest is
+    a phrase, not a noun (`find_by_slug`, `load_from`), the message proposes
+    no name. A verb that is as often a noun in front of another
+    (`lookup_params`, `read_timeout`, `new_record`) is not among the prefixes.
   Enabled: true
   VersionAdded: "0.3"
   VersionChanged: "0.11"
+  CheckEveryBuilder: false
   OwnedPaths:
     - "app/**/*.rb"
     - "*/app/**/*.rb"
@@ -920,6 +941,75 @@ Kata/BuilderNoun:
     - compute
     - retrieve
     - generate
+  BuilderPrefixes:
+    - build
+    - construct
+    - create
+    - extract
+    - fetch
+    - find
+    - load
+    - make
+    - parse
+    - prepare
+    - resolve
+  Effects:
+    - alias_method
+    - broadcast
+    - class_variable_set
+    - const_set
+    - head
+    - create
+    - create!
+    - create_or_find_by
+    - create_or_find_by!
+    - decrement!
+    - define_method
+    - define_singleton_method
+    - deliver
+    - deliver!
+    - deliver_later
+    - deliver_now
+    - destroy
+    - destroy!
+    - destroy_all
+    - delete_all
+    - enqueue
+    - find_or_create_by
+    - find_or_create_by!
+    - first_or_create
+    - first_or_create!
+    - increment!
+    - insert
+    - insert_all
+    - instance_variable_set
+    - perform_async
+    - perform_at
+    - perform_in
+    - perform_later
+    - publish
+    - redirect_back
+    - redirect_to
+    - remove_const
+    - remove_method
+    - render
+    - respond_with
+    - save
+    - save!
+    - send_data
+    - send_file
+    - toggle!
+    - touch
+    - undef_method
+    - update
+    - update!
+    - update_all
+    - update_attribute
+    - update_column
+    - update_columns
+    - upsert
+    - upsert_all
+    - write
   AllowedNames: []
 
 Kata/NoBooleanFlag:
