@@ -1375,3 +1375,25 @@
         end
       end
     end
+- id: r6b6-k7-builder-noun-proposes-no-keyword
+  cop: Kata/BuilderNoun
+  expect: offense
+  absent: ["`for`, not", "`module`, not"]
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Summary
+        def initialize(ratings)
+          @ratings = ratings
+        end
+
+        def to_h = @ratings.to_h { |rating| [rating, generate_for(rating)] }
+
+        private
+
+        def generate_for(rating) = rating.downcase
+
+        def get_module(name) = name.split("::").first
+      end
+    end

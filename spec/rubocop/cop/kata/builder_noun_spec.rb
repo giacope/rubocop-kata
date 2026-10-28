@@ -14,6 +14,33 @@ RSpec.describe(RuboCop::Cop::Kata::BuilderNoun, :config) do
     RUBY
   end
 
+  # rubycritic's private `generate_for(rating)`, called bare: `for(rating)` would open a for loop (R6B6-K7).
+  it "proposes no name that is a keyword or does not parse as a call where the method is called" do
+    expect_offense(<<~RUBY)
+      def get_for(rating)
+          ^^^^^^^ A builder is named for what it returns, not `get_for`: name it for the object it answers.
+      end
+      def get_module(name)
+          ^^^^^^^^^^ A builder is named for what it returns, not `get_module`: name it for the object it answers.
+      end
+      def get_class
+          ^^^^^^^^^ A builder is named for what it returns, not `get_class`: name it for the object it answers.
+      end
+      def get_end
+          ^^^^^^^ A builder is named for what it returns, not `get_end`: name it for the object it answers.
+      end
+      def get_if
+          ^^^^^^ A builder is named for what it returns, not `get_if`: name it for the object it answers.
+      end
+      def get_2fa
+          ^^^^^^^ A builder is named for what it returns, not `get_2fa`: name it for the object it answers.
+      end
+      def get_formula
+          ^^^^^^^^^^^ A builder is named for what it returns: `formula`, not `get_formula`.
+      end
+    RUBY
+  end
+
   it "allows a name an external API dictates" do
     expect_no_offenses(<<~RUBY)
       def get_callbacks

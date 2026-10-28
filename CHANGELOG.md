@@ -410,6 +410,17 @@
     helper as `Const.name`, and lists ActiveSupport's `assert_valid_keys`.
     A method that changes state or a parameter before it raises, or that
     answers a value, still acts.
+  - `Kata/BuilderNoun` proposes no name that a bare call cannot reach: a
+    Ruby keyword, or anything that does not parse as a call to that name.
+    rubycritic's private `generate_for(rating)` and friendly_id's
+    `get_module(object)`, both called without a receiver, were told to
+    become `for` and `module`, and `for(rating)` opens a loop while
+    `module(object)` opens a module definition: the advice did not parse.
+    The cop now says to name the method for the object it answers. The
+    other naming cop that proposes a name, the doer-name hint of
+    `Kata/GoodClassName` and `Kata/GoodModuleName`, proposes only
+    capitalised dictionary nouns (`Validation`), which are always
+    constants.
 - A strict Elegant Objects profile, `config/strict.yml`, for a project that
   wants the whole of Elegant Objects (`inherit_gem: { rubocop-kata:
   config/strict.yml }` beside `plugins: [rubocop-kata]`). The rules the V1

@@ -846,7 +846,9 @@ Kata/BuilderNoun:
     methods), is a side effect, not a builder; so is a public method of a
     generator, a subclass of one of the `StepSuperclasses`, which Rails or
     Thor runs as a step. A predicate (`generate_ids?`) answers a question
-    and builds nothing.
+    and builds nothing. Where the name left after the verb is a Ruby keyword
+    or does not parse as a call (`generate_for` would become `for`, a loop),
+    the message proposes no name.
   Enabled: true
   VersionAdded: "0.3"
   VersionChanged: "0.11"

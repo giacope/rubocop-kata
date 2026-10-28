@@ -14,6 +14,7 @@ module RuboCop
   end
 end
 
+require_relative "rubocop/kata/identifier"
 require_relative "rubocop/kata/waiver"
 require_relative "rubocop/kata/waivers"
 require_relative "rubocop/kata/public_api"
