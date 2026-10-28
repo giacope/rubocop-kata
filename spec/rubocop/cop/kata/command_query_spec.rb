@@ -237,6 +237,14 @@ RSpec.describe(RuboCop::Cop::Kata::CommandQuery, :config) do
       other = "module Translation\n  def exists?(key)\n    fail_other!(key)\n    touch!(key)\n    true\n  end\nend\n"
       expect([offenses(translation), offenses(other).map(&:line)]).to(eq([[], [3, 4]]))
     end
+
+    # -a rewrites a file after the project was read: the inspected file's methods are the ones it now holds.
+    it "reads the inspected file's methods as it stands, not as the project read it" do
+      dash = "class Dash\n  def known?(key)\n    touch!(key)\n    true\n  end\n\n  " \
+        "def touch!(key) = raise(KeyError, key)\nend\n"
+      parsed = RuboCop::ProcessedSource.new(dash, 3.4, File.join(root, "lib", "dash.rb"))
+      expect(RuboCop::Cop::Commissioner.new([cop], [], raise_error: true).investigate(parsed).offenses).to(be_empty)
+    end
   end
 
   it "still flags a bang on a constant that is not a guard's only branch" do

@@ -32,9 +32,9 @@ class RuboCop::Kata::Inventory
 
   def hooks = @_hooks ||= texts.flat_map { RuboCop::Kata::Kinship.parse(it).hooks }
 
-  def defining(name)
+  def defining(name, inspected)
     spelled = /\bdef\s+(?:self\.)?#{Regexp.escape(name)}(?![\w?!=])/
-    files.select { spelled.match?(it.last) }.flat_map { trees[it.first].each_node(:def, :defs).to_a }
+    elsewhere(inspected).select { spelled.match?(it.last) }.flat_map { trees[it.first].each_node(:def, :defs).to_a }
       .select { it.method_name.to_s == name }
   end
 
@@ -63,6 +63,8 @@ class RuboCop::Kata::Inventory
   def scanned(patterns) = texts.flat_map { |text| patterns.flat_map { text.scan(it) } }.flatten.to_set
 
   def texts = files.map(&:last)
+
+  def elsewhere(inspected) = files.reject { File.expand_path(it.first, @root) == File.expand_path(inspected, @root) }
 
   def trees
     @_trees ||=

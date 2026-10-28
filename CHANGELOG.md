@@ -354,6 +354,16 @@
     (five offenses). It was the only `lib/` or `app/` file of the 52
     projects of the sixth field test the old marker excluded, and the stamp
     marks no file the old marker did not.
+  - `Kata/GoodModuleName` and `Kata/ClassInModule` find the reopening they
+    are looking at by its place among the file's openings of that name, not
+    by the line the project index read before `rubocop -a` rewrote the
+    file. sshkit's `-a` closed the blank lines around each
+    `module Formatter` and `module Runner` reopening, and the run judged
+    every reopening it had moved, as if it were the only one: nine
+    offenses the check of the corrected files does not report. The cops
+    that follow a method into the project (`Kata/CommandQuery`'s raising
+    guard) read the inspected file's own methods once, as the file now
+    stands.
 - A strict Elegant Objects profile, `config/strict.yml`, for a project that
   wants the whole of Elegant Objects (`inherit_gem: { rubocop-kata:
   config/strict.yml }` beside `plugins: [rubocop-kata]`). The rules the V1

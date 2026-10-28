@@ -209,6 +209,39 @@ RSpec.describe(RuboCop::Kata::Plugin) do
     end
   end
 
+  # sshkit: -a closed the blank lines around each `module Formatter` reopening, and Kata/GoodModuleName judged
+  # every reopening it moved, from the lines the project held before -a wrote the files (R6B6-K2).
+  it "reports after -a what a fresh check of the corrected files reports" do
+    Dir.mktmpdir("kata-autocorrect") do |root|
+      remaining = reported(plant(root, formatters), "-a")
+      expect([remaining, remaining.size]).to(eq([fresh(File.join(root, "lib")), 1]))
+    end
+  end
+
+  def formatters
+    opened = "module Shelf\n\n  module Formatter\n\n    class %s < Abstract\n    end\n\n  end\n\nend\n"
+    abstract = "module Shelf\n  module Formatter\n    class Abstract\n    end\n  end\nend\n"
+    picked = %w[Dot Pretty Plain].to_h { ["#{it.downcase}.rb", format(opened, it)] }
+    picked.merge("abstract.rb" => abstract).transform_values { "# frozen_string_literal: true\n\n#{it}" }
+  end
+
+  def reported(lib, *flags)
+    report = File.join(File.dirname(lib), "report.json")
+    quietly { RuboCop::CLI.new.run([*flags, "--cache", "false", "--format", "json", "--out", report, lib]) }
+    JSON.parse(File.read(report)).fetch("files").flat_map do |file|
+      named = File.basename(file.fetch("path"))
+      file.fetch("offenses").reject { it["corrected"] }.map { [named, it.fetch("cop_name")] }
+    end
+  end
+
+  def fresh(lib)
+    Dir.mktmpdir("kata-fresh") do |root|
+      FileUtils.cp_r(lib, root)
+      FileUtils.cp(File.join(File.dirname(lib), ".rubocop.yml"), root)
+      reported(File.join(root, "lib"))
+    end
+  end
+
   context "with the -a post-check" do
     let(:sql) { "# frozen_string_literal: true\n\nSQL = \"SELECT *   \nFROM t  \nWHERE a\"\n" }
     let(:heredoc) { "# frozen_string_literal: true\n\ndef salt\n  <<END\nCASE\n  WHEN a THEN 1\n  END\nEND\nend\n" }

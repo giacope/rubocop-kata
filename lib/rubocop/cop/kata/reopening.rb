@@ -8,9 +8,11 @@ module RuboCop::Cop::Kata::Reopening
   def judged?(node)
     name = qualified(node)
     openings = RuboCop::Kata::Inventory.of(base, cop_config.fetch("OwnedPaths", OWNED)).openings(name)
-    found = openings.find { |_, path, line| line == node.first_line && here?(path) }
+    found = openings.select { |_, path| here?(path) }[rank(node, name)]
     found.nil? || chosen(openings, name).equal?(found)
   end
+
+  def rank(node, name) = processed_source.ast.each_node(:class, :module).select { qualified(it) == name }.index(node)
 
   def here?(path) = File.expand_path(path, base) == File.expand_path(processed_source.file_path.to_s, base)
 
