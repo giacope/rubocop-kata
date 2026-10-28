@@ -321,6 +321,16 @@
     it holds were told to inject a stream. A definition on the other side
     (an instance `def pp` for a call in a class method), in a nested class
     or in another class does not count.
+  - `ThreadSafety/ClassInstanceVariable` reads the fields of a `Module.new`
+    handed to a class's `include` or `prepend` as the fields of that class's
+    objects: bullet's `JoinDependency.prepend(Module.new do def instantiate
+    ...; @bullet_eager_loadings = {} ...)`, built inside `def self.enable`,
+    was told 66 times to "Avoid class instance variables"
+    (rubocop-thread_safety 0.8 stops at a `Class.new`, `Struct.new` or
+    `Data.define` block, not a `Module.new`, and walked on to the
+    `def self.`). A module
+    `extend`ed onto a class, mixed into a singleton class or kept in a local
+    first is judged as before.
 - A strict Elegant Objects profile, `config/strict.yml`, for a project that
   wants the whole of Elegant Objects (`inherit_gem: { rubocop-kata:
   config/strict.yml }` beside `plugins: [rubocop-kata]`). The rules the V1
