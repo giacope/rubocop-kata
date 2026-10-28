@@ -1280,3 +1280,39 @@
         end
       end
     end
+- id: r6b6-k5-min-of-an-array-literal-with-a-number-is-never-nil
+  cop: Kata/NoNilReturn
+  strict: true
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Score
+        LIMIT = 32.0
+
+        def initialize(cost)
+          @cost = cost
+        end
+
+        def limited = [@cost, LIMIT].min
+
+        def floor = [@cost, 0.0].max
+      end
+    end
+- id: r6b6-k5-min-of-a-collection-still-flagged
+  cop: Kata/NoNilReturn
+  strict: true
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Score
+        def initialize(costs)
+          @costs = costs
+        end
+
+        def cheapest = [@costs.first, @costs.last].min
+      end
+    end

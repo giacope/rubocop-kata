@@ -389,6 +389,14 @@
     methods, from that module. A module of functions that extends another
     (ffaker's `ArrayUtils`, `extend RandomUtils`, `def self.rand(array)`)
     is still judged.
+  - `Kata/NoNilReturn` (strict) reads the `min` or `max` of an array
+    literal that holds a number, a string, a symbol or a constant the file
+    assigns one as one of its elements: rubycritic's
+    `[mod.cost, COST_LIMIT].min` and friendly_id's
+    `[limit - uuid.size - separator.size, 0].max` never answer nil (a nil
+    element raises), and were told to return a null object. A collection's
+    `min`, or an array literal whose elements may all be nil, is still
+    reported.
 - A strict Elegant Objects profile, `config/strict.yml`, for a project that
   wants the whole of Elegant Objects (`inherit_gem: { rubocop-kata:
   config/strict.yml }` beside `plugins: [rubocop-kata]`). The rules the V1

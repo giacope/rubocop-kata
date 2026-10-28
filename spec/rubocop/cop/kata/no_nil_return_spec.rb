@@ -160,6 +160,42 @@ RSpec.describe(RuboCop::Cop::Kata::NoNilReturn, :config) do
     RUBY
   end
 
+  # rubycritic: `[mod.cost, COST_LIMIT].min` answers one of its elements, and a nil cost raises (R6B6-K5).
+  it "allows the min or max of an array literal that holds a value that is never nil" do
+    expect_no_offenses(<<~RUBY)
+      class Score
+        LIMIT = 32.0
+        FLOOR = "a"
+
+        def limited = [@cost, LIMIT].min
+        def floor = [@cost, 0.0].max
+        def ranked = [*@costs, 1].max
+        def first = [@name, FLOOR, :b].min
+      end
+    RUBY
+  end
+
+  it "still flags the min or max of a collection, or of an array literal that may hold only nil" do
+    expect_offense(<<~RUBY)
+      class Score
+        LIMIT = nil
+        TOP = Limits.top
+        FLOOR = 1
+
+        def cheapest = @costs.min
+                       ^^^^^^^^^^ `cheapest` passes on the nil `min` can return; return a null object, or fail fast.
+        def pair = [@cost, @floor].max
+                   ^^^^^^^^^^^^^^^^^^^ `pair` passes on the nil `max` can return; return a null object, or fail fast.
+        def limited = [@cost, LIMIT, TOP, OTHER].min
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `limited` passes on the nil `min` can return; return a null object, or fail fast.
+        def head = [@cost, 1].first
+                   ^^^^^^^^^^^^^^^^ `head` passes on the nil `first` can return; return a null object, or fail fast.
+        def none = [].max
+                   ^^^^^^ `none` passes on the nil `max` can return; return a null object, or fail fast.
+      end
+    RUBY
+  end
+
   it "still flags a hash built without a default" do
     expect_offense(<<~RUBY)
       class Shelf

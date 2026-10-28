@@ -1029,8 +1029,11 @@ Kata/NoNilReturn:
     block, `find_by`, `first`, `last`, `min`, `max`, `sample`, `[]`, `dig`,
     `match`, `index`, `presence`, `try`, `&.`), and not the missing branch of
     an `if`, `unless` or `case` whose other branches answer with a value
-    (`@items[code] if @open`). Return a null object, or fail fast (`fetch`). A
-    block's literal `nil` is reported too. A predicate's falsy nil answers its
+    (`@items[code] if @open`). Return a null object, or fail fast (`fetch`).
+    The `min` or `max` of an array literal that holds a number, a string, a
+    symbol or a constant the file assigns one (`[cost, LIMIT].min`) answers
+    one of its elements, never nil (a nil element raises). A block's
+    literal `nil` is reported too. A predicate's falsy nil answers its
     question, a writer's value is its argument, and a method that forwards the
     protocol it is named after (`def first = @rows.first`) keeps that
     protocol's contract; `AllowedMethods` holds the core methods whose

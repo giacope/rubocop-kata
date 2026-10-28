@@ -10,6 +10,8 @@ class RuboCop::Cop::Kata::NoNilReturn < RuboCop::Cop::Base
   BLOCK = "This block returns nil; return a null object, or fail fast."
   SEARCHES = %i[detect find].freeze
   SINGLES = %i[first last min max sample].freeze
+  RANKS = %i[min max].freeze
+  SOLIDS = %i[int float rational complex str dstr sym dsym].freeze
   LOOKUPS = %i[[] dig find_by match index find_index rindex presence try].freeze
   COMMANDS = %i[call close delete destroy perform run save touch update].freeze
   SCOPES = %i[def defs].freeze
@@ -105,7 +107,18 @@ class RuboCop::Cop::Kata::NoNilReturn < RuboCop::Cop::Base
 
   def slice?(arguments) = arguments.any?(&:range_type?) || (arguments.size == 2 && arguments.first.int_type?)
 
-  def single?(call) = !(call.arguments? || split?(call.receiver))
+  def single?(call) = !(call.arguments? || split?(call.receiver) || bounded?(call))
+
+  def bounded?(call)
+    holder = call.receiver
+    RANKS.include?(call.method_name) && holder&.array_type? && holder.values.any? { solid?(it) }
+  end
+
+  def solid?(element) = SOLIDS.include?(element.type) || (element.const_type? && assigned?(element.short_name))
+
+  def assigned?(name)
+    processed_source.ast.each_node(:casgn).any? { it.short_name == name && SOLIDS.include?(it.expression&.type) }
+  end
 
   def split?(holder) = holder&.send_type? && holder.method?(:split)
 
