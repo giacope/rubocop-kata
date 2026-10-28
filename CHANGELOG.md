@@ -397,6 +397,19 @@
     element raises), and were told to return a null object. A collection's
     `min`, or an array literal whose elements may all be nil, is still
     reported.
+  - `Kata/CommandQuery` reads a call to a method that can only raise as a
+    guard, whatever shape the method raises in: guard returns before the
+    raise (`return if options.empty?`), work on its own locals or splat
+    (`valid_keys.flatten!`), and a call on the module that defines it, not
+    only on itself. state_machines' `OptionsValidator.assert_valid_keys!`
+    answers nil or raises an ArgumentError and changes nothing, and
+    `Branch#match`, `MachineCollection#initialize_states` and
+    `validate_and_return`, which call it before they answer, were told to
+    split the check from the query (content-tagger's
+    `validate_taxon_response!` too). `RaisingMethods` takes a library's
+    helper as `Const.name`, and lists ActiveSupport's `assert_valid_keys`.
+    A method that changes state or a parameter before it raises, or that
+    answers a value, still acts.
 - A strict Elegant Objects profile, `config/strict.yml`, for a project that
   wants the whole of Elegant Objects (`inherit_gem: { rubocop-kata:
   config/strict.yml }` beside `plugins: [rubocop-kata]`). The rules the V1

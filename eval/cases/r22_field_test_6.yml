@@ -1316,3 +1316,62 @@
         def cheapest = [@costs.first, @costs.last].min
       end
     end
+- id: r6b6-k6-call-on-the-module-to-a-guard-that-only-raises-is-no-act
+  cop: Kata/CommandQuery
+  strict: true
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      module OptionsValidator
+        class << self
+          def assert_valid_keys!(options, *valid_keys)
+            return if options.empty?
+
+            valid_keys.flatten!
+            invalid = options.keys - valid_keys
+            return if invalid.empty?
+
+            raise ArgumentError, "Unknown keys: #{invalid.join(", ")}"
+          end
+        end
+      end
+
+      class Branch
+        def initialize(states)
+          @states = states
+        end
+
+        def match(query)
+          Shelf::OptionsValidator.assert_valid_keys!(query, :from, :to)
+          @states & Array(query[:from])
+        end
+      end
+    end
+- id: r6b6-k6-guard-that-changes-a-parameter-still-acts
+  cop: Kata/CommandQuery
+  strict: true
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      module OptionsValidator
+        def self.pick!(options, key)
+          options.delete(key)
+          raise KeyError, key unless options.key?(key)
+        end
+      end
+
+      class Branch
+        def initialize(states)
+          @states = states
+        end
+
+        def match(query)
+          Shelf::OptionsValidator.pick!(query, :from)
+          @states & Array(query[:to])
+        end
+      end
+    end

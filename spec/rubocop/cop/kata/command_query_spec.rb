@@ -159,6 +159,111 @@ RSpec.describe(RuboCop::Cop::Kata::CommandQuery, :config) do
     RUBY
   end
 
+  # state_machines: `OptionsValidator.assert_valid_keys!` returns early or raises ArgumentError, and changes nothing;
+  # Branch#match calls it on the module, validate_and_return on itself (R6B6-K6). One example per shape.
+  context "with a call to a method that only raises" do
+    def expect_guard(call, definition)
+      expect_no_offenses("def match(query)\n  #{call}\n  @states & query\nend\n#{definition}")
+    end
+
+    it "reads a bang that only raises as a guard" do
+      expect_guard("fail_closed!", "def fail_closed! = raise(ClosedError)\n")
+    end
+
+    it "reads guard returns before the raise, and work on its own splat, as a guard" do
+      validator = <<~RUBY
+        def assert_valid_keys!(options, *valid_keys)
+          return if options.empty?
+          valid_keys.flatten!
+          invalid = options.keys - valid_keys
+          return if invalid.empty?
+          raise ArgumentError, invalid.join
+        end
+      RUBY
+      expect_guard("assert_valid_keys!(query, :from, :to)", validator)
+    end
+
+    it "reads an assert method that ends in a raise as a guard" do
+      expect_guard("assert_open", "def assert_open\n  raise(ClosedError) unless @open\nend\n")
+    end
+
+    it "reads a validate bang that raises after its locals as a guard" do
+      validate = "def validate_options!(options)\n  unknown = options.keys - KEYS\n  " \
+        "raise ArgumentError unless unknown.empty?\nend\n"
+      expect_guard("validate_options!(query)", validate)
+    end
+
+    it "follows a call on the module that defines the method" do
+      validator = <<~RUBY
+        module Validator
+          class << self
+            def assert_valid_keys!(options, *valid_keys)
+              return if options.empty?
+              raise ArgumentError unless (options.keys - valid_keys).empty?
+            end
+          end
+
+          def self.check_range!(range)
+            raise(RangeError, range.to_s) if range.none?
+          end
+        end
+      RUBY
+      expect_guard("Validator.assert_valid_keys!(query, :from)\n  ::Validator.check_range!(query)", validator)
+    end
+
+    it "reads ActiveSupport's assert_valid_keys, which raises an ArgumentError, as a guard" do
+      expect_guard("query.assert_valid_keys(:from, :to)", "")
+    end
+  end
+
+  it "still flags a call to a method that changes state before it raises, or answers a value" do
+    expect_offense(<<~RUBY)
+      module Validator
+        def self.register!(options)
+          @seen << options
+          raise ArgumentError if options.empty?
+        end
+
+        def self.pick!(options, key)
+          options.delete(key)
+          raise KeyError, key unless options.key?(key)
+        end
+
+        def self.known!(options)
+          return options if options.any?
+          raise ArgumentError
+        end
+      end
+
+      class Branch
+        def match(query)
+          Validator.register!(query)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^ `match` answers with a value and acts with `register!`; a query answers, a command acts. Split them, or return a new object instead of acting.
+          Validator.pick!(query, :from)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `match` answers with a value and acts with `pick!`; a query answers, a command acts. Split them, or return a new object instead of acting.
+          Validator.known!(query)
+          ^^^^^^^^^^^^^^^^^^^^^^^ `match` answers with a value and acts with `known!`; a query answers, a command acts. Split them, or return a new object instead of acting.
+          @states
+        end
+      end
+    RUBY
+  end
+
+  context "with a library's raising helper listed" do
+    let(:cop_config) { { "CheckEveryQuery" => true, "RaisingMethods" => %w[raise Shelf::Options.validate!] } }
+
+    it "reads a listed `Const.name` as raising on that constant only" do
+      expect_offense(<<~RUBY)
+        def match(query)
+          Shelf::Options.validate!(query)
+          Other.validate!(query)
+          ^^^^^^^^^^^^^^^^^^^^^^ `match` answers with a value and acts with `validate!`; a query answers, a command acts. Split them, or return a new object instead of acting.
+          @states
+        end
+      RUBY
+    end
+  end
+
   it "still flags a bang on itself that changes state too, or that another definition of its name does" do
     expect_offense(<<~RUBY)
       class Record

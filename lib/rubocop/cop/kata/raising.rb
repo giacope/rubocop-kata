@@ -2,26 +2,35 @@
 
 module RuboCop::Cop::Kata::Raising
   include RuboCop::Cop::Kata::Roster
+  include RuboCop::Cop::Kata::Lending
 
   private
 
   def raises?(call)
     name = call.method_name.to_s
-    listed?("RaisingMethods", name) || ((call.receiver.nil? || call.receiver.self_type?) && alarm?(name, []))
+    target = call.receiver
+    return listed?("RaisingMethods", "#{target.const_name}.#{name}") || alarm?(name, []) if target&.const_type?
+    listed?("RaisingMethods", name) || ((target.nil? || target.self_type?) && alarm?(name, []))
   end
 
   def alarm?(name, seen)
     return true if listed?("RaisingMethods", name)
     return false if seen.include?(name)
     found = definitions(name)
-    found.any? && found.all? { alarm(it.body)&.then { |callee| alarm?(callee, [*seen, name]) } }
+    found.any? && found.all? { alarm(it, it.body)&.then { |callee| alarm?(callee, [*seen, name]) } }
   end
 
-  def alarm(body)
+  def alarm(method, body)
     *before, last = body&.begin_type? ? body.children : [body]
-    return unless last && before.all?(&:lvasgn_type?)
-    fence?(last) ? alarm(last.if_branch) : called(last)
+    return unless last && before.all? { check?(it, method) }
+    fence?(last) ? alarm(method, last.if_branch) : called(last)
   end
+
+  def check?(node, method) = node.lvasgn_type? || escape?(node) || local?(node, method)
+
+  def escape?(node) = fence?(node) && node.if_branch&.return_type? && node.if_branch.children.empty?
+
+  def local?(node, method) = node.call_type? && node.receiver&.lvar_type? && !borrowed?(node.receiver, method)
 
   def fence?(node) = node.if_type? && node.else_branch.nil?
 

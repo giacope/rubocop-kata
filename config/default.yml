@@ -1862,12 +1862,16 @@ Kata/CommandQuery:
     `**options`) is the method's own, as `Kata/NoOutputArgument` reads them.
     Memoizing the answer (`@valid ||= ...`) is not a change, and neither is a
     guard whose only branch is a bang on a constant (`UI.user_error!("...")
-    unless key`) or one of the `RaisingMethods`, nor a call on itself to a
-    method of the project (in the file, or among the files `OwnedPaths`
+    unless key`) or one of the `RaisingMethods` (a name, or `Const.name`
+    for a library's helper on that constant; ActiveSupport's
+    `assert_valid_keys` is listed), nor a call on itself or on a constant to
+    a method of the project (in the file, or among the files `OwnedPaths`
     matches) whose every definition only raises through one of them, after
-    a guard or locals at most (`assert_known!(key)`, defined as
-    `fail_unknown!(key) unless known?(key)`): it raises, it does not
-    mutate. With
+    locals, guard returns (`return if options.empty?`) and work on its own
+    locals or splat (`valid_keys.flatten!`) at most (`assert_known!(key)`,
+    defined as `fail_unknown!(key) unless known?(key)`;
+    `OptionsValidator.assert_valid_keys!(query, :from)`): it raises, it
+    does not mutate. With
     `CheckEveryQuery: true` (config/strict.yml) any method whose last
     expression is a value (a literal, a field, a sum, a lookup, a new object:
     `def balance = ... @entries.sum`) is a query too, and a query sends no
@@ -1880,6 +1884,7 @@ Kata/CommandQuery:
   VersionAdded: "0.11"
   CheckEveryQuery: false
   RaisingMethods:
+    - assert_valid_keys
     - fail
     - raise
   OwnedPaths:
