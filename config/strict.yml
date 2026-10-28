@@ -100,3 +100,8 @@ Kata/NoReflection:
 # reflection on another object, and is not reported.
 Style/Send:
   Enabled: false
+
+# Names: a framework's suffix excuses a doer only where the class takes part
+# in the framework's contract, through a superclass or a mixin that names it.
+Kata/GoodClassName:
+  CheckContracts: true

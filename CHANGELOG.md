@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+- The strict profile enforces the five Elegant Objects principles it only
+  partly enforced (the round-6 conformance cases; each new rule ships off,
+  and config/strict.yml turns it on):
+  - `Kata/GoodClassName`'s `CheckContracts`: a contract suffix that is an
+    agent word (`Generator`, `Validator`, `Serializer`, `Controller`,
+    `Mailer`, `Adapter`, `Decorator`) excuses a doer only where the class
+    takes part in the contract, through a superclass or mixin that names the
+    word, written or among the project's classes. `class InvoiceGenerator`
+    with no superclass passed because `Generator` names Rails generators;
+    WordNet reads `generator` as a machine, so no other rule saw the doer.
 - From a sixth field test, batch one (content-tagger, support, searchkick,
   statesman, pay), in check mode and under `rubocop -a`:
   - `Kata/RealWords` knows `recency` and `proration`, the nouns of `recent`

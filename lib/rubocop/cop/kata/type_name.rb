@@ -8,12 +8,13 @@ module RuboCop::Cop::Kata::TypeName
   private
 
   def check(node)
-    identifier = node.identifier
-    name = subject(identifier.short_name.to_s)
+    name = subject_of(node)
     return if allowed?(name) || contract?(node) || root?(RuboCop::Kata::Nesting.new(node).qualified)
     complaint = complaint(name, node)
-    add_offense(identifier, message: complaint) if complaint
+    add_offense(node.identifier, message: complaint) if complaint
   end
+
+  def subject_of(node) = subject(node.identifier.short_name.to_s)
 
   def complaint(name, node)
     return format(self.class::BANNED_MSG, name) if banned?(name)

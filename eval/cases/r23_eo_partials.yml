@@ -1,0 +1,72 @@
+# The V1 conformance cases (round 7) for the five principles the strict
+# profile only partly enforced in round 6: a doer named with a framework's
+# suffix (P01), a builder named with another verb (P06), a mock (P13), a hash
+# a method hands on with fewer than MaxKeys keys (P37), and a core class
+# patched by a send (P43). Each runs under config/strict.yml; the minimal
+# violation of P43 is the reopen Kata/ClassInModule already reports.
+- id: v1-p01-violation-min-good-class-name
+  cop: Kata/GoodClassName
+  strict: true
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class PaymentProcessor
+        def initialize(payment)
+          @payment = payment
+        end
+
+        def receipt
+          "paid #{@payment.cents}"
+        end
+      end
+    end
+- id: v1-p01-violation-real-good-class-name
+  cop: Kata/GoodClassName
+  strict: true
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class InvoiceGenerator
+        def initialize(order)
+          @order = order
+        end
+
+        def call
+          "Invoice #{@order.number}: #{@order.total}"
+        end
+      end
+    end
+
+    module Shop
+      class OrderManager
+        def initialize(orders)
+          @orders = orders
+        end
+
+        def call
+          @orders.map(&:number)
+        end
+      end
+    end
+- id: v1-p01-compliant-good-class-name
+  cop: Kata/GoodClassName
+  strict: true
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Invoice
+        def initialize(order)
+          @order = order
+        end
+
+        def to_s
+          "Invoice #{@order.number}: #{@order.total}"
+        end
+      end
+    end
