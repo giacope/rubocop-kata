@@ -71,3 +71,41 @@
         end
       end
     end
+- id: r6b5-ka1-double-splat-broken-onto-its-own-line-is-indented
+  cop: Layout/LineLength
+  expect: offense
+  correct: safe
+  becomes: |
+    # frozen_string_literal: true
+
+    module Shelf
+      module Streams
+        def remove_later(*streamables, target: self, **rendering)
+          Turbo::StreamsChannel.broadcast_remove_later_to(
+            *streamables,
+            **extract_options_and_add_target(rendering, target:)
+          )
+        end
+
+        def perform(stream, action:, target:, **rendering)
+          Turbo::StreamsChannel.broadcast_action_to(
+            stream, action:, target:, html: @html, sound: @sound, layout: @layout,
+            **rendering
+          )
+        end
+      end
+    end
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      module Streams
+        def remove_later(*streamables, target: self, **rendering)
+          Turbo::StreamsChannel.broadcast_remove_later_to(*streamables, **extract_options_and_add_target(rendering, target:))
+        end
+
+        def perform(stream, action:, target:, **rendering)
+          Turbo::StreamsChannel.broadcast_action_to(stream, action:, target:, html: @html, sound: @sound, layout: @layout, **rendering)
+        end
+      end
+    end

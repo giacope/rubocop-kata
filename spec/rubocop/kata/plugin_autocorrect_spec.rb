@@ -119,12 +119,36 @@ RSpec.describe(RuboCop::Kata::Plugin) do
     RUBY
   end
 
+  def streams
+    <<~RUBY
+      # frozen_string_literal: true
+
+      module Shelf
+        module Streams
+          def remove_later(*streamables, target: self, **rendering)
+            Turbo::StreamsChannel.broadcast_remove_later_to(*streamables, **extract_options_and_add_target(rendering, target:))
+          end
+
+          def perform(stream, action:, target:, **rendering)
+            Turbo::StreamsChannel.broadcast_action_to(stream, action:, target:, html: @html, sound: @sound, layout: @layout, **rendering)
+          end
+        end
+      end
+    RUBY
+  end
+
   def correct(flag, picked)
     Dir.mktmpdir("kata-autocorrect") do |root|
       lib = plant(root, picked)
       errors = quietly { RuboCop::CLI.new.run([flag, "--cache", "false", lib]) }
-      yield(picked.keys.to_h { [it, File.read(File.join(lib, it))] }, errors)
+      yield(picked.keys.to_h { [it, File.read(File.join(lib, it))] }, errors, lib)
     end
+  end
+
+  def checked(lib)
+    report = File.join(File.dirname(lib), "report.json")
+    quietly { RuboCop::CLI.new.run(["--cache", "false", "--format", "json", "--out", report, lib]) }
+    JSON.parse(File.read(report)).fetch("files").flat_map { |file| file.fetch("offenses").map { it.fetch("cop_name") } }
   end
 
   def plant(root, picked)
@@ -175,6 +199,14 @@ RSpec.describe(RuboCop::Kata::Plugin) do
   # searchkick: `-a` left `].compact.join("_")` three columns in, under a `[` eight columns in.
   it "puts a closing bracket a merged pass drifted back at the indent of its opener's line" do
     correct("-a", "index.rb" => index) { |fixed, _| expect(fixed.fetch("index.rb")).to(include("\n        ].compact")) }
+  end
+
+  # turbo-rails: `-a` left a double-splat argument it broke onto a line of its own at column 0, and
+  # Elegant/MonotonicIndents then reported the line after it, which -a could not correct (R6B5-KA1).
+  it "indents a double-splat argument it moves to a line of its own, and the check accepts what it wrote" do
+    correct("-a", "streams.rb" => streams) do |fixed, _, lib|
+      expect([fixed.fetch("streams.rb").scan(/^ {8}\*\*/).size, checked(lib)]).to(eq([2, []]))
+    end
   end
 
   context "with the -a post-check" do

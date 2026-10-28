@@ -331,6 +331,14 @@
     `def self.`). A module
     `extend`ed onto a class, mixed into a singleton class or kept in a local
     first is judged as before.
+  - `Layout/ArgumentAlignment` (`with_fixed_indentation`, as kata runs it)
+    indents a double splat in a call's braceless last hash, as it indents
+    the pairs beside it. When `-a` broke turbo-rails' long broadcast calls
+    before `**extract_options_and_add_target(...)` or `**rendering`, nothing
+    indented the new line, which stayed at column 0, and
+    `Elegant/MonotonicIndents` reported the line after it, which `-a` could
+    not correct: kata's autocorrect wrote code kata rejected (12 lines in
+    broadcastable.rb). RuboCop's fixed style read the hash's pairs only.
 - A strict Elegant Objects profile, `config/strict.yml`, for a project that
   wants the whole of Elegant Objects (`inherit_gem: { rubocop-kata:
   config/strict.yml }` beside `plugins: [rubocop-kata]`). The rules the V1
