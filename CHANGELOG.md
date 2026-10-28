@@ -19,6 +19,11 @@
     make (no field but a memo, none of the `Effects` such as `save` or
     `deliver_later`, no `puts` or `require`), and where the noun is free.
     `build_summary` passed: only five verbs were banned.
+  - `Kata/NoHashAsObject`'s `CheckTravel`: a symbol-keyed hash a method
+    answers or hands to the project's own code is an object without a name
+    from two keys (`TravelKeys`), and a parameter read by two or more literal
+    symbol keys is a hash used as an object. A 3-key payment built in one
+    class and read by key in another passed under `MaxKeys: 4`.
 - From a sixth field test, batch one (content-tagger, support, searchkick,
   statesman, pay), in check mode and under `rubocop -a`:
   - `Kata/RealWords` knows `recency` and `proration`, the nouns of `recent`

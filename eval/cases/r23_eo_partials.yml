@@ -142,3 +142,75 @@
         end
       end
     end
+- id: v1-p37-violation-min-no-hash-as-object
+  cop: Kata/NoHashAsObject
+  strict: true
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Member
+        def initialize(name, email, plan, since)
+          @name = name
+          @email = email
+          @plan = plan
+          @since = since
+        end
+
+        def summary
+          { name: @name, email: @email, plan: @plan, since: @since }
+        end
+      end
+    end
+- id: v1-p37-violation-real-no-hash-as-object
+  cop: Kata/NoHashAsObject
+  strict: true
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Checkout
+        def initialize(cart, card)
+          @cart = cart
+          @card = card
+        end
+
+        def payment
+          { amount: @cart.total, currency: "usd", source: @card.token }
+        end
+      end
+    end
+
+    module Shop
+      class Gateway
+        def initialize(key)
+          @key = key
+        end
+
+        def charge(payment)
+          "#{@key}: #{payment[:amount]} #{payment[:currency]} via #{payment[:source]}"
+        end
+      end
+    end
+- id: v1-p37-compliant-no-hash-as-object
+  cop: Kata/NoHashAsObject
+  strict: true
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Payment
+        def initialize(amount, currency, source)
+          @amount = amount
+          @currency = currency
+          @source = source
+        end
+
+        def charge(key)
+          "#{key}: #{@amount} #{@currency} via #{@source}"
+        end
+      end
+    end

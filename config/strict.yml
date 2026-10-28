@@ -110,3 +110,9 @@ Kata/GoodClassName:
 # getting it was named with: `build_summary` is `summary`.
 Kata/BuilderNoun:
   CheckEveryBuilder: true
+
+# Keys are followed where they travel: a hash a method answers or hands to
+# the project's own code is an object without a name at two keys, and so is
+# a parameter read by two of its keys.
+Kata/NoHashAsObject:
+  CheckTravel: true

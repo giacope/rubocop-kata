@@ -1634,11 +1634,43 @@ Kata/NoHashAsObject:
     a value table a `TableMethods` call takes (Rails' `enum` mapping, under
     the Rails profile), and the hash a serialization method returns: inside
     `to_h` or `as_json` the object already has a name, and the protocol asks
-    for a hash.
+    for a hash. With `CheckTravel: true` (the strict profile) the keys are
+    followed where they travel: a hash of `TravelKeys` (two) or more symbol
+    keys that a method answers (its last value, a `return`, a branch of
+    either, a `map` block's value, or a local it answers) or hands to one of
+    the project's own methods, `OwnedPaths` deciding which those are, is an
+    object without a name at any size; a hash handed to a library's method
+    is that library's options, and passes, and so does a table of literal
+    values and the hash a printer answers: a conversion (`to_*`, `as_*`), one
+    of the `Printers` (`present`), any method of one of the `PrinterTypes`
+    (a presenter, a helper, a view component or a serializer prints its
+    object for a template or a document), or a public method of a class whose
+    superclass line ends in a library's class, which calls it
+    (`search_data`). A parameter the method reads by
+    two or more literal symbol keys (`payment[:amount]`, `payment.fetch(:currency)`)
+    is a hash used as an object, and is reported where it is declared.
+    String keys are data from outside (a Rack env, parsed JSON, headers),
+    not an object, and are not read.
   Enabled: true
   Sorbet: false
   VersionAdded: "0.3"
   VersionChanged: "0.11"
+  CheckTravel: false
+  TravelKeys: 2
+  Printers:
+    - payload
+    - present
+    - serialize
+  PrinterTypes:
+    - Component
+    - Helper
+    - Presenter
+    - Serializer
+  OwnedPaths:
+    - "app/**/*.rb"
+    - "*/app/**/*.rb"
+    - "lib/**/*.rb"
+    - "*/lib/**/*.rb"
   MaxKeys: 4
   TableMethods:
     - metadata=

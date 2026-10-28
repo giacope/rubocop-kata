@@ -26,10 +26,13 @@ module RuboCop::Cop::Kata::Ancestry
   def static?(node) = node.defs_type? || node.each_ancestor(:class, :module, :sclass).first.sclass_type?
 
   def framed?(node)
+    line = frame(node)
+    node.defs_type? && leaves?(line) && (reached?(node, line) || dispatched?(node))
+  end
+
+  def frame(node)
     scope = node.each_ancestor(:class, :module).first
-    return false unless node.defs_type? && scope&.class_type?
-    line = project.superclasses(RuboCop::Kata::Nesting.new(scope).qualified)
-    leaves?(line) && (reached?(node, line) || dispatched?(node))
+    scope&.class_type? ? project.superclasses(RuboCop::Kata::Nesting.new(scope).qualified) : []
   end
 
   def leaves?(line) = !line.empty? && !project.records.key?(line.last)
