@@ -12,7 +12,20 @@ module RuboCop::Cop::Kata::Ancestry
     project.ancestors(RuboCop::Kata::Nesting.new(scope).qualified).drop(1).any? { project.defines?(it, name) }
   end
 
-  def hook?(node)
+  def hook?(node) = defaulted?(node) || framed?(node)
+
+  def defaulted?(node)
+    scope = node.each_ancestor(:class, :module).first
+    return false unless scope && static?(node)
+    name = RuboCop::Kata::Nesting.new(scope).qualified
+    method = node.method_name.to_s
+    return scope.class_type? && project.extended?(name, method) if node.each_ancestor(:def).none?
+    scope.module_type? && project.instance?(name, method)
+  end
+
+  def static?(node) = node.defs_type? || node.each_ancestor(:class, :module, :sclass).first.sclass_type?
+
+  def framed?(node)
     scope = node.each_ancestor(:class, :module).first
     return false unless node.defs_type? && scope&.class_type?
     line = project.superclasses(RuboCop::Kata::Nesting.new(scope).qualified)

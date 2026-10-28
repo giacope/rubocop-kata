@@ -377,6 +377,18 @@
     in the same class. The project's lineage now records these
     definitions, the modules a class body extends, and a `class << self`
     body's methods as class methods.
+  - `Kata/NoClassMethodLogic` takes a class method that overrides the
+    default a module the class extends answers for a hook, as it takes an
+    override of a foreign superclass's own: acts-as-taggable-on's
+    `extend ActsAsTaggableOn::Taggable` gives every model `taggable?`
+    (false), and `taggable_on` defines `def self.taggable? = true` in
+    `class_eval` on the class it tags. The cop asked to "make it a
+    constant", which leaves every model answering false. The default comes
+    from a module the class (or a superclass) extends, a mixin's
+    `ClassMethods`, or, for a `def self.` inside one of a module's own
+    methods, from that module. A module of functions that extends another
+    (ffaker's `ArrayUtils`, `extend RandomUtils`, `def self.rand(array)`)
+    is still judged.
 - A strict Elegant Objects profile, `config/strict.yml`, for a project that
   wants the whole of Elegant Objects (`inherit_gem: { rubocop-kata:
   config/strict.yml }` beside `plugins: [rubocop-kata]`). The rules the V1

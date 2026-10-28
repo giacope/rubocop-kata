@@ -1242,3 +1242,41 @@
         end
       end
     end
+- id: r6b6-k4-override-of-an-extended-module-default-is-a-hook
+  cop: Kata/NoClassMethodLogic
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      module Taggable
+        def taggable?
+          false
+        end
+
+        def acts_as_taggable
+          class_eval do
+            def self.taggable?
+              true
+            end
+          end
+        end
+      end
+    end
+- id: r6b6-k4-literal-no-extended-module-answers-still-a-constant
+  cop: Kata/NoClassMethodLogic
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      module Taggable
+        def acts_as_taggable
+          class_eval do
+            def self.taggable?
+              true
+            end
+          end
+        end
+      end
+    end

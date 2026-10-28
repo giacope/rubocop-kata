@@ -197,6 +197,98 @@ RSpec.describe(RuboCop::Cop::Kata::NoClassMethodLogic, :config) do
     RUBY
   end
 
+  # acts-as-taggable-on: `extend ActsAsTaggableOn::Taggable` gives every model `taggable?` (false), and
+  # `taggable_on` overrides it with `def self.taggable? = true` in `class_eval` on the class it tags (R6B6-K4).
+  it "leaves a class-level override of the default a module the class extends answers" do
+    expect_no_offenses(<<~RUBY)
+      module Taggable
+        def taggable? = false
+
+        def acts_as_taggable
+          class_eval do
+            def self.taggable? = true
+          end
+        end
+
+        def acts_as_tagger
+          def self.tagger? = true
+        end
+
+        def tagger? = false
+      end
+
+      module Defaults
+        def label = "item"
+      end
+
+      module Searchable
+        module ClassMethods
+          def fields = []
+        end
+      end
+
+      class Post
+        extend Defaults
+        include Searchable
+
+        def self.label = "post"
+        def self.fields = %i[title body]
+      end
+
+      class Article < Post
+        def self.label = "article"
+      end
+
+      class Note
+        extend Taggable
+
+        class << self
+          def taggable? = true
+        end
+      end
+    RUBY
+  end
+
+  # ffaker's `module ArrayUtils; extend RandomUtils; def self.rand(array)`: a module of functions, not a class.
+  it "still asks for a constant where no extended module answers the name, or a module overrides one" do
+    expect_offense(<<~RUBY)
+      module Taggable
+        def acts_as_taggable
+          class_eval do
+            def self.taggable? = true
+                     ^^^^^^^^^ `taggable?` only returns a literal; make it a constant.
+          end
+        end
+      end
+
+      module Defaults
+        def label = "item"
+        def caption = "item"
+      end
+
+      class Post
+        include Defaults
+
+        def self.caption = "post"
+                 ^^^^^^^ `caption` only returns a literal; make it a constant.
+
+        def refresh
+          self.class.class_eval { def self.stale? = true }
+                                           ^^^^^^ `stale?` only returns a literal; make it a constant.
+        end
+
+        def stale? = false
+      end
+
+      module Shuffling
+        extend Defaults
+
+        def self.label = "shuffled"
+                 ^^^^^ `label` only returns a literal; make it a constant.
+      end
+    RUBY
+  end
+
   # support: twenty `Support::Requests::*Request` classes answer `self.label`, which a section sends to the class it
   # holds; a constant read through `klass::LABEL` would replace that message with shared state.
   context "with the project's other classes" do

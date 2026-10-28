@@ -1456,7 +1456,12 @@ Kata/NoClassMethodLogic:
     and one that several of the project's classes define, under superclasses
     that lead out of the project, and that the project never sends by name
     (SuperDiff asks each registered tree class `applies_to?`, Rails each
-    generator `next_migration_number`). A foreign mixin is not a superclass:
+    generator `next_migration_number`). So is an override of the default a
+    module the class extends answers: `extend Taggable` gives every model
+    `taggable?` (false), and `def self.taggable? = true`, in the class or
+    in a `class_eval` the module's own macro runs on it, answers the same
+    message, which no constant can (a module of functions that extends
+    another is still judged). A foreign mixin is not a superclass:
     a class method sibling classes answer under `include ActiveModel::Model`
     is still the class's logic. A module declared with
     `module_function` or `extend self` is a bag of functions called on the
