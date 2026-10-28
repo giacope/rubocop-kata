@@ -214,3 +214,64 @@
         end
       end
     end
+- id: v1-p43-violation-real-no-monkey-patch-eval
+  cop: Kata/NoMonkeyPatch
+  strict: true
+  expect: offense
+  path: lib/shop/money.rb
+  source: |
+    # frozen_string_literal: true
+
+    Integer.class_eval do
+      def cents
+        format("%.2f", self / 100.0)
+      end
+    end
+- id: v1-p43-violation-real-no-monkey-patch-mixin
+  cop: Kata/NoMonkeyPatch
+  strict: true
+  expect: offense
+  path: lib/shop/slugs.rb
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      module Slugs
+        def to_slug
+          downcase.strip.gsub(/[^a-z0-9]+/, "-")
+        end
+      end
+    end
+
+    String.include(Shop::Slugs)
+- id: v1-p43-violation-min-class-in-module
+  cop: Kata/ClassInModule
+  strict: true
+  expect: offense
+  path: lib/shop/string.rb
+  source: |
+    # frozen_string_literal: true
+
+    class String
+      def shout
+        "#{upcase}!"
+      end
+    end
+- id: v1-p43-compliant-no-monkey-patch
+  cop: Kata/NoMonkeyPatch
+  strict: true
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Slug
+        def initialize(text)
+          @text = text
+        end
+
+        def to_s
+          @text.downcase.strip.gsub(/[^a-z0-9]+/, "-")
+        end
+      end
+    end

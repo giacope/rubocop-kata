@@ -24,6 +24,10 @@
     from two keys (`TravelKeys`), and a parameter read by two or more literal
     symbol keys is a hash used as an object. A 3-key payment built in one
     class and read by key in another passed under `MaxKeys: 4`.
+  - `Kata/NoMonkeyPatch` (new, strict): a core or foreign class changed by a
+    send, `String.include(Slugs)`, `Integer.class_eval { def cents ... }`,
+    `define_method`, `Object.send(:include, ...)`, its singleton class or
+    `class << String`; only the `class String` reopen was reported.
 - From a sixth field test, batch one (content-tagger, support, searchkick,
   statesman, pay), in check mode and under `rubocop -a`:
   - `Kata/RealWords` knows `recency` and `proration`, the nouns of `recent`

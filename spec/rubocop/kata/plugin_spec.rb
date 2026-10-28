@@ -45,7 +45,7 @@ RSpec.describe(RuboCop::Kata::Plugin) do
     paths = [*lists, RuboCop::Cop::Kata::Reopening::OWNED, RuboCop::Cop::Kata::Contract::OWNED]
     missing = paths.flat_map { |list| list.grep(%r{\Aapp/}).reject { list.include?("*/#{it}") } }
     expect(missing).to(be_empty)
-    expect(paths.count { it.include?("*/app/**/*.rb") }).to(eq(17))
+    expect(paths.count { it.include?("*/app/**/*.rb") }).to(eq(18))
   end
 
   it "keeps the parameter limit it advertises" do
@@ -184,7 +184,7 @@ RSpec.describe(RuboCop::Kata::Plugin) do
   def strict_profile
     added = %w[
       FailFast ScopedResource NoNilArgument NoNilReturn NoHardWiring NoGetter FieldCount PublicSurface
-      NoPublicConstant NoReflection
+      NoPublicConstant NoReflection NoMonkeyPatch
     ]
     readings = {
       "IoDiscipline" => "CheckEffects", "ClockDiscipline" => "CheckRandomness", "EnvDiscipline" => "CheckSettings",

@@ -2576,6 +2576,42 @@ Kata/ClassInModule:
     - "db/*migrate/**/*"
     - "**/*.jbuilder"
 
+Kata/NoMonkeyPatch:
+  Description: >-
+    No monkey patches: changing a class the project does not own, one of
+    Ruby's (`String`, `Integer`, `Object`) or another library's
+    (`ActiveRecord::Base`, `Net::HTTP`), changes it for every caller in the
+    process. Kata/ClassInModule reports the `class String` reopen; this cop
+    reports the other spellings of the same patch: mixing a module in from
+    outside (`String.include(Slugs)`, `prepend`, `extend`, and
+    `Object.send(:include, ...)`), evaluating a body that changes methods in
+    the class (`Integer.class_eval do def cents ... end end`, `class_exec`,
+    `module_eval` with a block or a string of code, `instance_eval`), the
+    definers called on it (`define_method`, `alias_method`, `remove_method`,
+    `attr_accessor`, also through `send`), its singleton class, and
+    `class << String` with a `def`. The project's own classes and modules
+    (`OwnedPaths`) are its to change; a hook the class runs on the code that
+    includes it (`base.extend(ClassMethods)`), the class an
+    `ActiveSupport.on_load` hook names, its own extension point
+    (`extend Slugs` inside `on_load(:active_record)`,
+    `ActionController::Base.extend` inside `on_load(:action_controller_base)`;
+    another class patched inside a hook is still reported), and a refinement
+    (`refine String do ... end`) pass. Use
+    a refinement or a decorator object. Off by default: config/strict.yml
+    turns it on.
+  Enabled: false
+  VersionAdded: "0.11"
+  OwnedPaths:
+    - "app/**/*.rb"
+    - "*/app/**/*.rb"
+    - "lib/**/*.rb"
+    - "*/lib/**/*.rb"
+  Exclude:
+    - "spec/**/*"
+    - "test/**/*"
+    - "**/*_spec.rb"
+    - "**/*_test.rb"
+
 # Rewrites reopened classes into modules, clashing with the primary
 # class definition at boot.
 Style/StaticClass:

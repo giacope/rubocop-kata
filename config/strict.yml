@@ -116,3 +116,9 @@ Kata/BuilderNoun:
 # a parameter read by two of its keys.
 Kata/NoHashAsObject:
   CheckTravel: true
+
+# No monkey patches by any spelling: Kata/ClassInModule reports a reopened
+# `class String`; this one reports the patch done by a send, from
+# `String.include(Slugs)` to `Integer.class_eval { def cents ... }`.
+Kata/NoMonkeyPatch:
+  Enabled: true
