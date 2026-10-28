@@ -16,11 +16,6 @@ class RuboCop::Kata::Survey
   FRAMEWORK = /\.add_(?:runtime_)?dependency[\s(]*["'](?:activerecord|activemodel|activesupport|railties|rails)["']/
   SIGIL = /^#\s*typed:\s*\w/
   DESCRIBE = /^\s*RSpec\.describe\b/
-  GRAMMARS = %w[rl y racc treetop rex].freeze
-  MARKER = /
-    \bgenerated\s+(?:by|from)\b|(?<![\w@])@generated\b|\bauto-?generated\b|\ba\s+generated\s+file\b|
-    \bdo\s+not\s+(?:edit|modify)\b|\bhas\s+been\s+generated\b
-  /ix
   REQUIRED = [
     /^ {4}([A-Za-z0-9][\w.-]*) \(/, /^\s*gem[\s(]+["']([\w.-]+)["']/,
     /\.add_(?:runtime_|development_)?dependency[\s(]*["']([\w.-]+)["']/
@@ -61,11 +56,7 @@ class RuboCop::Kata::Survey
 
   def sorbet? = uses?(SORBET) || sources(*LIBRARY).first(20).any? { SIGIL.match?(header(it).join) }
 
-  def generated
-    sources(*LIBRARY).select do |path|
-      GRAMMARS.any? { File.file?(path.sub(/\.rb\z/, ".#{it}")) } || header(path).any? { MARKER.match?(it) }
-    end
-  end
+  def generated = sources(*LIBRARY).select { RuboCop::Kata::Origin.new(it, header(it)).generated? }
 
   private
 
