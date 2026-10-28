@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 module RuboCop::Cop::Kata::Ancestry
+  include RuboCop::Cop::Kata::Pedigree
+
   private
 
   def override?(node)
@@ -24,10 +26,4 @@ module RuboCop::Cop::Kata::Ancestry
   end
 
   def dispatched?(node) = project.owners("self.#{node.method_name}").size > 1 && !inventory.sent?(node.method_name)
-
-  def project
-    @_project ||= inventory.lineage.merge(RuboCop::Kata::Lineage.parse(processed_source.raw_source))
-  end
-
-  def inventory = RuboCop::Kata::Inventory.of(config.base_dir_for_path_parameters, list("OwnedPaths"))
 end

@@ -342,6 +342,83 @@ RSpec.describe(RuboCop::Cop::Kata::IoDiscipline, :config) do
     RUBY
   end
 
+  # sshkit: Abstract's `def_delegators :output, :log, :warn, ...` sends a bare `warn` to the configured formatter.
+  it "leaves a bare call to a name the class, an ancestor or a mixin delegates, aliases or reads" do
+    expect_no_offenses(<<~RUBY)
+      class Abstract
+        extend Forwardable
+        def_delegators :@output, :warn, :debug
+        def_delegator :@output, :info, :puts
+        delegate :pp, to: :output
+        alias_method :print, :emit
+        alias p show
+        attr_reader :printf
+
+        def skip(cmd) = warn("skipping \#{cmd}")
+        def list(rows) = [puts(rows), pp(rows), print(rows), p(rows), printf]
+      end
+
+      class Skipper < Abstract
+        def execute(cmd) = warn("no host for \#{cmd}")
+      end
+
+      module Logging
+        def warn(text) = @log.write(text)
+      end
+
+      module Loud
+        module ClassMethods
+          def puts(text) = @log.write(text)
+        end
+      end
+
+      class Task
+        include Logging
+        include Loud
+        extend Logging
+
+        def run = warn("run")
+        def self.start = warn("start")
+        def self.stop = puts("stop")
+      end
+
+      class Base
+        def self.pp(value) = @log.write(value)
+      end
+
+      class Child < Base
+        def self.dump(value) = pp(value)
+      end
+    RUBY
+  end
+
+  it "still flags a bare call that a writer, the other side or no ancestor answers" do
+    expect_offense(<<~RUBY)
+      class Abstract
+        def_delegators :@output, :warn
+        attr_writer :puts
+
+        def self.alert = warn("x")
+                         ^^^^^^^^^ Inject the stream `warn` writes to (`def initialize(io: $stderr)`) and write through it.
+        def list = puts("x")
+                   ^^^^^^^^^ Inject the stream `puts` writes to (`def initialize(io: $stdout)`) and write through it.
+      end
+
+      module Logging
+        def pp(text) = @log.write(text)
+      end
+
+      class Task < Abstract
+        extend Logging
+
+        def dump = pp("x")
+                   ^^^^^^^ Inject the stream `pp` writes to (`def initialize(io: $stdout)`) and write through it.
+        def self.note = warn("x")
+                        ^^^^^^^^^ Inject the stream `warn` writes to (`def initialize(io: $stderr)`) and write through it.
+      end
+    RUBY
+  end
+
   it "leaves a p that cannot be Kernel#p: one given a block, or no argument" do
     expect_no_offenses(<<~RUBY)
       def show
@@ -386,6 +463,15 @@ RSpec.describe(RuboCop::Cop::Kata::IoDiscipline, :config) do
         "lib/cli/options.rb" => "module Cli\n  class Options\n    def read = File.read(\"x\")\n  end\nend\n"
       }
       expect(project_offenses(files, "lib/cli/options.rb")).to(be_empty)
+    end
+
+    # sshkit's backends/skipper.rb: `class Skipper < Abstract`, whose def_delegators sits in abstract.rb (R6B6-K3).
+    it "leaves a bare call that a superclass in another file delegates" do
+      files = {
+        "lib/demo/abstract.rb" => "module Demo\n  class Abstract\n    def_delegators :@output, :warn\n  end\nend\n",
+        "lib/demo/skipper.rb" => "module Demo\n  class Skipper < Abstract\n    def run(cmd) = warn(cmd)\n  end\nend\n"
+      }
+      expect(project_offenses(files, "lib/demo/skipper.rb")).to(be_empty)
     end
   end
 

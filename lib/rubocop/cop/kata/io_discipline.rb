@@ -4,6 +4,7 @@ class RuboCop::Cop::Kata::IoDiscipline < RuboCop::Cop::Base
   include RuboCop::Cop::Kata::BootLayer
   include RuboCop::Cop::Kata::Roster
   include RuboCop::Cop::Kata::Ownership
+  include RuboCop::Cop::Kata::Pedigree
 
   MSG = "Write through the injected `%s`, not bare `%s`."
   SEAM_MSG = "Inject the stream `%s` writes to (`def initialize(io: %s)`) and write through it."
@@ -55,21 +56,9 @@ class RuboCop::Cop::Kata::IoDiscipline < RuboCop::Cop::Base
 
   def quiet?(method) = PRINTS.include?(method) && !effects?
 
-  def exempt?(node, method) = element?(node) || seam?(node) || quiet?(method) || answers?(node)
-
-  def answers?(node)
-    caller = node.each_ancestor(:def, :defs).first
-    return false unless caller
-    home = place(caller)
-    (home.first || processed_source.ast).each_descendant(:def, :defs).any? do |method|
-      method.method?(node.method_name) && place(method) == home
-    end
-  end
-
-  def place(method)
-    scope = method.each_ancestor(:class, :module, :sclass).first
-    return [scope, method.defs_type?] unless scope&.sclass_type?
-    [scope.each_ancestor(:class, :module).first, true]
+  def exempt?(node, method)
+    return true if element?(node) || seam?(node) || quiet?(method)
+    RuboCop::Kata::Recipient.new(node, processed_source.ast, project).answers?
   end
 
   def element?(node) = ELEMENTS.include?(node.method_name) && (!node.arguments? || !node.block_node.nil?)

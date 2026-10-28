@@ -4,6 +4,8 @@ require "prism"
 
 class RuboCop::Kata::Kinship
   HOOK = /\A:(\w+)\z/
+  CONSTANT = /\A(?:::)?[A-Z][\w:]*\z/
+  EXTENDS = %i[extend].freeze
 
   def self.parse(source) = new(Prism.parse(source).value)
 
@@ -27,6 +29,8 @@ class RuboCop::Kata::Kinship
     case node
     when *RuboCop::Kata::Lineage::NESTS then nest(node, scope)
     when Prism::DefNode then defined(node, scope)
+    when Prism::SingletonClassNode then lifted(node, scope)
+    when Prism::AliasMethodNode then [[scope.last, :method, node.new_name.slice.delete_prefix(":")]]
     when Prism::CallNode then [*call(node, scope, method), *inner(node, scope, method)]
     else inner(node, scope, method)
     end
@@ -37,10 +41,15 @@ class RuboCop::Kata::Kinship
   def nest(node, scope)
     path = node.constant_path.slice
     name = path.start_with?("::") || scope.empty? ? path.delete_prefix("::") : "#{scope.last}::#{path}"
+    [[name, :method, nil], *lineage(node, name, scope), *inner(node, [*scope, name], nil)]
+  end
+
+  def lineage(node, name, scope)
     parent = node.superclass if node.is_a?(Prism::ClassNode)
-    lineage = written(parent, node).map { [name, :parent, it, scope] }
-    lineage << [name, :superclass, parent.slice, scope] if parent
-    [[name, :method, nil], *lineage, *inner(node, [*scope, name], nil)]
+    singleton = format(RuboCop::Kata::Lineage::SINGLETON, name)
+    found = [*written(parent, node).map { [name, :parent, it, scope] }]
+    found.concat(statements(node).flat_map { extended(it) }.map { [singleton, :parent, it, scope] })
+    parent ? [*found, [name, :superclass, parent.slice, scope]] : found
   end
 
   def defined(node, scope)
@@ -50,14 +59,30 @@ class RuboCop::Kata::Kinship
     [[scope.last, :method, method], *inner(node, scope, method)]
   end
 
+  def lifted(node, scope)
+    return [] unless node.expression.slice == "self"
+    inner(node, scope, nil).map do |owner, kind, name, *rest|
+      singleton = kind == :method && owner == scope.last && name && !name.start_with?("self.")
+      [owner, kind, singleton ? "self.#{name}" : name, *rest]
+    end
+  end
+
   def call(node, scope, method)
     return [] unless own?(node)
-    [[scope.last, :method, method, node.name.to_s]]
+    granted = method ? [] : RuboCop::Kata::Grant.new(node).names.map { [scope.last, :method, it] }
+    [[scope.last, :method, method, node.name.to_s], *granted]
   end
 
   def own?(node) = RuboCop::Kata::Lineage::CALLERS.any? { node.receiver.is_a?(it) }
 
-  def written(parent, node) = [*parent&.slice, *Array(node.body&.body).flat_map { mixed(it) }]
+  def written(parent, node) = [*parent&.slice, *statements(node).flat_map { mixed(it) }]
+
+  def statements(node) = Array(node.body&.body)
+
+  def extended(statement)
+    found = mixed(statement, EXTENDS)
+    found.empty? || statement.receiver ? [] : found.grep(CONSTANT)
+  end
 
   def hooked(node, hook)
     nested = node.compact_child_nodes
@@ -76,8 +101,8 @@ class RuboCop::Kata::Kinship
     mixed(call).map { [it.delete_prefix("::"), hook] }
   end
 
-  def mixed(statement)
-    return [] unless statement.is_a?(Prism::CallNode) && RuboCop::Kata::Lineage::MIXINS.include?(statement.name)
+  def mixed(statement, verbs = RuboCop::Kata::Lineage::MIXINS)
+    return [] unless statement.is_a?(Prism::CallNode) && verbs.include?(statement.name)
     Array(statement.arguments&.arguments).map(&:slice)
   end
 end

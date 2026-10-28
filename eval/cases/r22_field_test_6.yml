@@ -1204,3 +1204,41 @@
         end
       end
     end
+- id: r6b6-k3-a-warn-the-superclass-delegates-is-not-kernel-output
+  cop: Kata/IoDiscipline
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Abstract
+        extend Forwardable
+
+        def_delegators :@output, :warn, :debug
+
+        def initialize(output)
+          @output = output
+        end
+      end
+
+      class Skipper < Abstract
+        def execute(command)
+          warn("[SKIPPING] No Matching Host for #{command}")
+        end
+      end
+    end
+- id: r6b6-k3-a-writer-of-the-name-still-flagged
+  cop: Kata/IoDiscipline
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Abstract
+        attr_writer :warn
+
+        def execute(command)
+          warn("[SKIPPING] #{command}")
+        end
+      end
+    end

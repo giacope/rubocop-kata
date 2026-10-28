@@ -621,7 +621,10 @@ Kata/IoDiscipline:
     No hidden I/O: write through an injected io, not bare puts/warn/pp/p.
     Where the class already holds a stream (`@io`, `@out`, `@stderr`, …), the
     message names it; where nothing is injected, it names the seam to add
-    (`def initialize(io: $stdout)`). Code outside every class, module and
+    (`def initialize(io: $stdout)`). A bare call the object answers itself
+    is not Kernel's: one its class, a project ancestor or a mixin defines,
+    delegates (`def_delegators`, `delegate`), aliases or reads
+    (`attr_reader`) on the same side. Code outside every class, module and
     method is a script's boot layer, and its terminal is the boot layer's
     stream, as Kata/EnvDiscipline and Kata/ClockDiscipline read it, and so is
     a framework's boot hook (`initializer`, `to_prepare`, `on_load`); a

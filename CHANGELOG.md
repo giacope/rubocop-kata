@@ -364,6 +364,19 @@
     that follow a method into the project (`Kata/CommandQuery`'s raising
     guard) read the inspected file's own methods once, as the file now
     stands.
+  - `Kata/IoDiscipline` takes a bare `puts`, `warn`, `pp`, `p`, `print` or
+    `printf` for the object's own method when its class, a project ancestor
+    or a mixin answers the name on the same side: by a `def`, by delegating
+    it (`def_delegator`, `def_delegators`, `delegate`), aliasing it
+    (`alias`, `alias_method`) or reading it (`attr_reader`,
+    `attr_accessor`); a class method also answers through the modules its
+    class extends (and a mixin's `ClassMethods`). sshkit's backends call
+    `warn`, which `Abstract`'s `def_delegators :output, ..., :warn` sends
+    to the configured formatter, and `Skipper < Abstract` was told to
+    inject a second stream beside it. Batch five's fix read only a `def`
+    in the same class. The project's lineage now records these
+    definitions, the modules a class body extends, and a `class << self`
+    body's methods as class methods.
 - A strict Elegant Objects profile, `config/strict.yml`, for a project that
   wants the whole of Elegant Objects (`inherit_gem: { rubocop-kata:
   config/strict.yml }` beside `plugins: [rubocop-kata]`). The rules the V1
