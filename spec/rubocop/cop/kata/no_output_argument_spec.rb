@@ -54,6 +54,29 @@ RSpec.describe(RuboCop::Cop::Kata::NoOutputArgument, :config) do
     RUBY
   end
 
+  # hashie's `Clash#encode_with(coder)`: Psych hands the coder in to be filled.
+  it "allows the serialization hooks Psych and Marshal hand an argument to fill" do
+    expect_no_offenses(<<~RUBY)
+      class Options
+        def encode_with(coder)
+          coder["limit"] = @limit
+          coder["name"] = @name
+        end
+
+        def marshal_load(data) = @limit = data.delete(:limit)
+      end
+    RUBY
+  end
+
+  it "still flags a coder another method is handed" do
+    expect_offense(<<~RUBY)
+      def dump(coder)
+        coder["limit"] = @limit
+        ^^^^^^^^^^^^^^^^^^^^^^^ `[]=` changes the caller's `coder`; return a new value, or move the change to the object that owns it.
+      end
+    RUBY
+  end
+
   it "allows a parameter reassigned before the change" do
     expect_no_offenses(<<~RUBY)
       def normalize(options)
@@ -112,6 +135,24 @@ RSpec.describe(RuboCop::Cop::Kata::NoOutputArgument, :config) do
     expect_no_offenses(<<~RUBY)
       def nothing(rows); end
       def plain = items << 1
+    RUBY
+  end
+
+  it "reads delete with a character set as String#delete, which returns a copy" do
+    expect_no_offenses(<<~RUBY)
+      def parse(text, code)
+        Integer(text.delete("$,.")) + code.delete("a-z").size + code.delete("^0-9").size
+      end
+    RUBY
+  end
+
+  it "still flags delete with a key" do
+    expect_offense(<<~RUBY)
+      def parse(options, row)
+        options.delete("name")
+        ^^^^^^^^^^^^^^^^^^^^^^ This method changes the caller's `options` (`delete`) and `row` (`delete`); return a new value, or move the change to the object that owns it.
+        row.delete
+      end
     RUBY
   end
 end

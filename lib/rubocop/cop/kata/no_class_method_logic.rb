@@ -28,7 +28,7 @@ class RuboCop::Cop::Kata::NoClassMethodLogic < RuboCop::Cop::Base
 
   def check(node)
     name = node.method_name.to_s
-    return if constructor?(name) || builds?(node)
+    return if constructor?(name) || builds?(node) || hook?(node)
     add_offense(node.loc.name, message: format(constant?(node) ? LITERAL : MSG, name))
   end
 

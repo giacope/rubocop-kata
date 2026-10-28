@@ -7,8 +7,9 @@ class RuboCop::Kata::Lineage
   NESTS = [Prism::ClassNode, Prism::ModuleNode].freeze
   CONSTRUCTORS = %w[initialize initialize_copy initialize_dup initialize_clone].freeze
   CALLERS = [NilClass, Prism::SelfNode].freeze
+  SINGLETON = "#<Class:%s>"
 
-  def self.parse(source) = new(RuboCop::Kata::Kinship.new(Prism.parse(source).value).records)
+  def self.parse(source) = new(RuboCop::Kata::Kinship.parse(source).records)
 
   def initialize(records)
     @records = records
@@ -30,7 +31,21 @@ class RuboCop::Kata::Lineage
     found
   end
 
+  def superclasses(name, found = [])
+    written = @records.dig(name, :superclass)
+    parent = written && resolved(*written)
+    parent.nil? || found.include?(parent) ? found : superclasses(parent, [*found, parent])
+  end
+
   def defines?(owner, method) = @records[owner]&.dig(:methods)&.key?(method) || false
+
+  def instance?(name, method) = ancestors(name).any? { defines?(it, method) }
+
+  def singleton?(name, method) = line(name).any? { defines?(it, "self.#{method}") } || extended?(name, method)
+
+  def extended?(name, method)
+    line(name).any? { |owner| [format(SINGLETON, owner), *concerns(owner)].any? { instance?(it, method) } }
+  end
 
   def owners(method) = @records.keys.select { defines?(it, method) }
 
@@ -39,8 +54,13 @@ class RuboCop::Kata::Lineage
   private
 
   def joined(mine, theirs)
-    { parents: mine[:parents] | theirs[:parents], methods: mine[:methods].merge(theirs[:methods]) { |_, a, b| a | b } }
+    methods = mine[:methods].merge(theirs[:methods]) { |_, a, b| a | b }
+    { parents: mine[:parents] | theirs[:parents], methods:, superclass: mine[:superclass] || theirs[:superclass] }
   end
+
+  def line(name) = [name, *superclasses(name)]
+
+  def concerns(name) = parents(name).map { "#{it}::ClassMethods" }.select { @records.key?(it) }
 
   def parents(name)
     held = @records[name]

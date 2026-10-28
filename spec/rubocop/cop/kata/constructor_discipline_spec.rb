@@ -242,4 +242,160 @@ RSpec.describe(RuboCop::Cop::Kata::ConstructorDiscipline, :config) do
       end
     RUBY
   end
+
+  context "with several ways to build" do
+    let(:ruby_version) { 3.4 }
+    let(:cop_config) { { "RaisingMethods" => %w[raise], "CheckPaths" => true } }
+    let(:paths) { "several constructors in one. #{primary}" }
+    let(:primary) { "Keep one primary constructor, and give each other way a class method that calls `new`." }
+
+    it "flags a constructor that branches on its arguments, once" do
+      expect_offense(<<~RUBY)
+        class Money
+          def initialize(cents = 0, currency = "USD", formatted: nil)
+            if formatted
+               ^^^^^^^^^ `initialize` picks a way to build itself from `formatted` and `currency`: #{paths}
+              @cents = formatted
+            else
+              @cents = cents
+            end
+            @currency = currency unless currency
+          end
+        end
+      RUBY
+    end
+
+    it "flags a case on an argument" do
+      expect_offense(<<~RUBY)
+        class Money
+          def initialize(*parts)
+            case parts
+                 ^^^^^ `initialize` picks a way to build itself from `parts`: #{paths}
+            when [] then @cents = 0
+            end
+          end
+        end
+      RUBY
+    end
+
+    it "flags every conditional shape on an argument, at the condition it tests" do
+      expect_offense(<<~RUBY)
+        class Ternary
+          def initialize(delay, api:)
+            @source = api ? :params : :header
+                      ^^^ `initialize` picks a way to build itself from `api`: #{paths}
+            @delay = delay
+          end
+        end
+
+        class Modifier
+          def initialize(name, label = nil)
+            @label = name if label
+                             ^^^^^ `initialize` picks a way to build itself from `label`: #{paths}
+          end
+        end
+
+        class Unless
+          def initialize(name, label = nil)
+            @label = name unless label
+                                 ^^^^^ `initialize` picks a way to build itself from `label`: #{paths}
+          end
+        end
+
+        class Pattern
+          def initialize(options)
+            case options
+                 ^^^^^^^ `initialize` picks a way to build itself from `options`: #{paths}
+            in {api: true} then @source = :params
+            in {} then @source = :header
+            end
+          end
+        end
+
+        class Both
+          def initialize(api, strict)
+            if api && strict
+               ^^^^^^^^^^^^^ `initialize` picks a way to build itself from `api` and `strict`: #{paths}
+              @mode = :strict
+            end
+          end
+        end
+
+        class Nested
+          def initialize(delay, api)
+            @delay = delay
+            @source = (:params if api) || :header
+                                  ^^^ `initialize` picks a way to build itself from `api`: #{paths}
+          end
+        end
+      RUBY
+    end
+
+    it "reads `&&` and `||` as values and guards, not as ways to build" do
+      expect_no_offenses(<<~RUBY)
+        class Defaults
+          def initialize(name, label = nil, port: nil)
+            raise ArgumentError, "no name" unless name && label
+            port || raise(ArgumentError, "no port")
+            label or raise ArgumentError
+            @label = label || name
+            @strict = name && label
+            @port = port
+          end
+        end
+      RUBY
+    end
+
+    it "flags a class method that builds past initialize" do
+      expect_offense(<<~RUBY)
+        class Money
+          def self.from_hash(hash)
+            money = allocate
+                    ^^^^^^^^ `allocate` builds an instance past `initialize`, a second primary constructor; call `new` instead.
+            money
+          end
+
+          class << self
+            def blank = self.allocate
+                        ^^^^^^^^^^^^^ `allocate` builds an instance past `initialize`, a second primary constructor; call `new` instead.
+          end
+        end
+      RUBY
+    end
+
+    it "allows a guard that raises, a branch on its own state, and allocate elsewhere" do
+      expect_no_offenses(<<~RUBY)
+        class Money
+          def initialize(cents)
+            raise ArgumentError, "negative" if cents
+            @cents = cents
+            @ready = true if READY
+            case
+            when READY then @mode = 1
+            end
+          end
+
+          def copy = Other.allocate
+          def own = allocate
+        end
+        allocate
+      RUBY
+    end
+
+    it "reads one way to build without CheckPaths, as kata ships it" do
+      cop_config.delete("CheckPaths")
+      expect_no_offenses(<<~RUBY)
+        class Money
+          def initialize(cents, formatted: false)
+            @cents = formatted ? cents : cents
+            if formatted
+              @label = cents
+            end
+          end
+
+          def self.load(row) = allocate
+        end
+      RUBY
+    end
+  end
 end

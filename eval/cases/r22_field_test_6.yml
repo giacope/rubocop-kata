@@ -119,3 +119,1281 @@
         end
       end
     end
+- id: r6b2-k6-ivar-try-set-stores-a-value
+  cop: Kata/NoBooleanFlag
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Targets
+        def initialize(pendings)
+          @pendings = pendings
+        end
+
+        def attached(id) = @pendings.put_if_absent(id, Concurrent::IVar.new).try_set(true)
+      end
+    end
+- id: r6b2-k4-constant-named-into-a-nested-namespace-is-no-self-assignment
+  cop: Lint/SelfAssignment
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Lazy
+        module Mixin
+          Lazy = Lazy
+        end
+      end
+    end
+- id: r6b2-k4-top-level-self-assignment-still-reported
+  cop: Lint/SelfAssignment
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    Lazy = Lazy
+- id: r6b2-k3-migration-template-is-loaded-by-its-top-level-name
+  cop: Kata/ClassInModule
+  expect: clean
+  path: lib/shelf/migration.rb
+  source: |
+    # frozen_string_literal: true
+
+    MIGRATION_CLASS =
+      if ActiveRecord::VERSION::MAJOR >= 5
+        ActiveRecord::Migration["#{ActiveRecord::VERSION::MAJOR}.#{ActiveRecord::VERSION::MINOR}"]
+      else
+        ActiveRecord::Migration
+      end
+
+    class CreateShelfSlugs < MIGRATION_CLASS
+      def change
+        create_table :shelf_slugs
+      end
+    end
+- id: r6b2-k3-top-level-record-still-wants-a-module
+  cop: Kata/ClassInModule
+  expect: offense
+  path: lib/shelf/slug.rb
+  source: |
+    # frozen_string_literal: true
+
+    class Slug < ActiveRecord::Base
+    end
+- id: r6b2-k1-command-answering-true-is-told-to-return-nothing
+  cop: Naming/PredicateMethod
+  expect: offense
+  absent: ["should end with `?`"]
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Headers
+        def initialize(headers)
+          @headers = headers
+        end
+
+        def clear
+          @headers = {}
+          true
+        end
+      end
+    end
+- id: r6b2-k1-computed-answer-still-asked-for-a-question-mark
+  cop: Naming/PredicateMethod
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Queue
+        def initialize(jobs)
+          @jobs = jobs
+        end
+
+        def ready
+          return false unless @jobs
+          @jobs.empty?
+        end
+      end
+    end
+- id: r6b2-k7-to-proc-on-the-class-serves-block-pass
+  cop: Kata/NoClassMethodLogic
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Maybe
+        def self.to_proc = method(:new).to_proc
+
+        def initialize(value)
+          @value = value
+        end
+      end
+    end
+- id: r6b2-k7-hook-a-foreign-superclass-dispatches-on
+  cop: Kata/NoClassMethodLogic
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class TupleTree < ::SuperDiff::Basic::OperationTrees::Array
+        def self.applies_to?(value) = value.frozen?
+      end
+
+      class DictTree < ::SuperDiff::Basic::OperationTrees::Hash
+        def self.applies_to?(value) = value.frozen?
+      end
+
+      class PairTree < TupleTree
+        def self.applies_to?(value) = super && value.size == 2
+      end
+    end
+- id: r6b2-k7-class-logic-under-a-foreign-mixin-still-flagged
+  cop: Kata/NoClassMethodLogic
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Request
+        include ActiveModel::Model
+      end
+
+      class AnalyticsRequest < Request
+        def self.description = "Analytics: #{Time.now.year}"
+      end
+
+      class GeneralRequest < Request
+        def self.description = "General: #{Time.now.year}"
+      end
+    end
+- id: r6b2-k5-matcher-match-block-classifies-any-object
+  cop: Kata/NoTypeCheck
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Tuple
+      end
+    end
+
+    RSpec::Matchers.define :be_tuple do
+      match { |actual| actual.is_a?(Shelf::Tuple) }
+    end
+- id: r6b2-k5-instance-applies-to-still-flagged
+  cop: Kata/NoTypeCheck
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Book
+      end
+
+      class Discount
+        def applies_to?(item) = item.is_a?(Book)
+      end
+    end
+- id: r6b3-k1-ternary-on-an-argument-is-a-way-to-build
+  cop: Kata/ConstructorDiscipline
+  strict: true
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Visit
+        def initialize(delay, api:)
+          @source = api ? :params : :header
+          @delay = delay
+        end
+      end
+    end
+- id: r6b3-k4-value-built-filled-and-handed-on
+  cop: Kata/NoHardWiring
+  strict: true
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Form
+        def initialize(node)
+          @node = node
+          @uploads = []
+        end
+
+        def add(upload) = @uploads << upload
+      end
+
+      class Client
+        def initialize(transport)
+          @transport = transport
+        end
+
+        def post(query)
+          form = Form.new(query.to_h)
+          query.each { |name| form.add(name) }
+          @transport.submit(form)
+        end
+
+        def jar(text) = Form.new(text).tap { it.add(text) }
+      end
+    end
+- id: r6b3-k4-collaborator-talked-to-still-flagged
+  cop: Kata/NoHardWiring
+  strict: true
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Gateway
+        def initialize(mode)
+          @mode = mode
+        end
+
+        def charge(cents) = cents
+      end
+
+      class Checkout
+        def initialize(cents)
+          @cents = cents
+        end
+
+        def complete
+          gateway = Gateway.new("live")
+          gateway.charge(@cents)
+          @cents
+        end
+      end
+    end
+- id: r6b3-k5-model-gets-a-method-parameter-seam
+  cop: Kata/NoHardWiring
+  strict: true
+  expect: offense
+  absent:
+    - take one in the constructor
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Shelving
+        def initialize(tag)
+          @tag = tag
+        end
+
+        def count = 0
+      end
+
+      class Tag < ApplicationRecord
+        def shelving = @shelving ||= Shelving.new(self)
+      end
+    end
+- id: r6b3-k5-test-case-and-hooked-mixin-are-roots
+  cop: Kata/NoHardWiring
+  strict: true
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Tracker
+        def initialize(owner)
+          @owner = owner
+        end
+      end
+
+      class TrackerTest < Minitest::Test
+        def setup = @tracker = Tracker.new(nil)
+      end
+
+      module Tracking
+        def tracker = @tracker ||= Tracker.new(self)
+      end
+    end
+
+    ActiveSupport.on_load(:action_controller) { include Shelf::Tracking }
+- id: r6b3-k5-view-helper-is-a-root
+  cop: Kata/NoHardWiring
+  strict: true
+  expect: clean
+  path: app/helpers/shelf_helper.rb
+  source: |
+    # frozen_string_literal: true
+
+    class Parser
+      def paths(text) = text.lines
+    end
+
+    module ShelfHelper
+      def links?(step) = Parser.new.paths(step).any?
+    end
+- id: r6b3-k2-change-to-a-copy-or-a-splat-is-the-methods-own
+  cop: Kata/CommandQuery
+  strict: true
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class History
+        def initialize(index)
+          @index = index
+        end
+
+        def visited?(uri)
+          uri = uri.dup
+          uri.path = "/" if uri.path.empty?
+          @index.include?(uri.to_s)
+        end
+
+        def grouped(*props)
+          props.flatten!
+          props.map(&:to_s)
+        end
+      end
+    end
+- id: r6b3-k3-bang-whose-value-is-read-is-a-lookup
+  cop: Kata/CommandQuery
+  strict: true
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Summary
+        def initialize(status, home)
+          @status = status
+          @home = home
+        end
+
+        def rows
+          { "Status" => I18n.t!("statuses.#{@status}") }
+        end
+
+        def target(url)
+          link = url ? I18n.t!(url) : @home
+          link.to_s
+        end
+      end
+    end
+- id: r6b3-k3-bang-thrown-away-still-flagged
+  cop: Kata/CommandQuery
+  strict: true
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Summary
+        def initialize(rows)
+          @rows = rows
+        end
+
+        def count
+          @rows.compact!
+          @rows.size
+        end
+      end
+    end
+- id: r6b3-k6-acronym-namespace-is-not-a-value
+  cop: Kata/NoPublicConstant
+  strict: true
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Net
+    end
+
+    class Net::HTTP
+      def start = true
+    end
+
+    module Shelf
+      class Agent
+        def negotiate = Net::NTLM::Message::Type1.new.encode64
+      end
+    end
+- id: r6b3-k7-cache-cleared-by-a-reset-is-not-a-field
+  cop: Kata/FieldCount
+  strict: true
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Page
+        def initialize(body, encoding)
+          @body = body
+          @encoding = encoding
+        end
+
+        def links = @links ||= @body.scan(/href/)
+
+        def forms = @forms ||= @body.scan(/form/)
+
+        def title = @title ||= @body[/title/]
+
+        def reencode(encoding)
+          @encoding = encoding
+          @links = nil
+          @forms = nil
+          @title = nil
+        end
+      end
+    end
+- id: r6b3-k8-computed-send-to-another-object-is-reflection
+  cop: Kata/NoReflection
+  strict: true
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Store
+        def initialize(method)
+          @method = method
+        end
+
+        def user(controller) = controller.send(@method)
+      end
+    end
+- id: r6b3-k8-computed-public-send-is-a-protocol
+  cop: Kata/NoReflection
+  strict: true
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Store
+        def initialize(method)
+          @method = method
+        end
+
+        def user(controller) = controller.public_send(@method)
+      end
+    end
+- id: r6b3-k9-boolean-the-local-callee-stores-is-a-value
+  cop: Kata/NoBooleanFlag
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Tracker
+        def initialize(jar)
+          @jar = jar
+        end
+
+        def defer = write_cookie("track", true)
+
+        private
+
+        def write_cookie(name, value) = @jar.store(name, { value: value })
+      end
+    end
+- id: r6b3-k9-boolean-the-local-callee-branches-on-still-flagged
+  cop: Kata/NoBooleanFlag
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Tracker
+        def initialize(jar)
+          @jar = jar
+        end
+
+        def defer = write_cookie("track", true)
+
+        private
+
+        def write_cookie(name, domain)
+          domain ? @jar.store(name, @domain) : @jar.store(name, nil)
+        end
+      end
+    end
+- id: r6b3-k10-attribute-copied-through-a-writer-is-a-message
+  cop: Lint/SelfAssignment
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Jar
+        def initialize(cookies)
+          @cookies = cookies
+        end
+
+        def pin = @cookies.each { it.expires = it.expires }
+      end
+    end
+- id: r6b3-k11-webrick-servlet-methods-are-its-protocol
+  cop: Kata/RealWords
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class VerbServlet < WEBrick::HTTPServlet::AbstractServlet
+        def do_GET(request, response)
+          response.body = request.request_method
+        end
+
+        alias do_HEAD do_GET
+      end
+    end
+- id: r6b3-k11-webrick-servlet-method-names-are-not-priced
+  cop: Kata/GoodMethodName
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class FormServlet < WEBrick::HTTPServlet::AbstractServlet
+        def do_POST(request, response)
+          response.body = request.body
+        end
+      end
+    end
+- id: r6b3-k12-uri-plus-is-not-string-concatenation
+  cop: Style/StringConcatenation
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Realm
+        def initialize(uri)
+          @uri = uri
+        end
+
+        def base = @uri + "/"
+      end
+    end
+- id: r6b3-k12-string-literal-plus-still-flagged
+  cop: Style/StringConcatenation
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Realm
+        def initialize(name)
+          @name = name
+        end
+
+        def label = "realm " + @name
+      end
+    end
+- id: r6b4-k1-entries-per-row-and-a-scratch-buffer-are-the-calls-own
+  cop: Kata/NoHardWiring
+  strict: true
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Buffer
+        def initialize
+          @text = +""
+        end
+
+        def write(part) = @text << part
+
+        def content = @text.dup
+      end
+
+      class Entry
+        def initialize(path)
+          @path = path
+          @batch = nil
+        end
+
+        def batch=(batch)
+          @batch = batch
+        end
+      end
+
+      class Segments
+        def initialize(buffer, parts)
+          @buffer = buffer
+          @parts = parts
+        end
+
+        def emit = @parts.each { @buffer.write(it) }
+      end
+
+      class Source
+        def initialize(parts)
+          @parts = parts
+        end
+
+        def render(take)
+          buffer = Buffer.new
+          Segments.new(buffer, @parts.take(take)).emit
+          buffer.content
+        end
+
+        def entries
+          @parts.map do |path|
+            entry = Entry.new(path)
+            entry.batch = self
+            entry
+          end
+        end
+      end
+    end
+- id: r6b4-k1-collaborator-kept-through-a-local-still-flagged
+  cop: Kata/NoHardWiring
+  strict: true
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Gateway
+        def initialize(key)
+          @key = key
+        end
+
+        def charge(cents) = cents
+      end
+
+      class Checkout
+        def initialize(key)
+          @key = key
+        end
+
+        def gateway
+          gateway = Gateway.new(@key)
+          @gateway = gateway
+        end
+      end
+    end
+- id: r6b4-k1-empty-collaborator-talked-to-still-flagged
+  cop: Kata/NoHardWiring
+  strict: true
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Gateway
+        def charge(cents) = cents
+      end
+
+      class Checkout
+        def initialize(cents)
+          @cents = cents
+        end
+
+        def complete
+          gateway = Gateway.new
+          gateway.charge(@cents)
+        end
+      end
+    end
+- id: r6b4-k2-assertion-on-self-that-only-raises-is-not-acting
+  cop: Kata/CommandQuery
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Record
+        def initialize(fields)
+          @fields = fields
+        end
+
+        def known?(key)
+          assert_known!(key)
+          true
+        end
+
+        private
+
+        def assert_known!(key)
+          fail_unknown!(key) unless @fields.include?(key)
+        end
+
+        def fail_unknown!(key)
+          message = "unknown field #{key}"
+          raise ArgumentError, message
+        end
+      end
+    end
+- id: r6b4-k2-bang-on-self-that-writes-still-flagged
+  cop: Kata/CommandQuery
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Record
+        def initialize(fields)
+          @fields = fields
+          @seen = []
+        end
+
+        def known?(key)
+          remember!(key)
+          true
+        end
+
+        private
+
+        def remember!(key)
+          raise ArgumentError, "no key" unless key
+          @seen << key
+        end
+      end
+    end
+- id: r6b4-k3-computed-send-to-a-class-is-not-told-public-send
+  cop: Kata/NoReflection
+  strict: true
+  expect: offense
+  absent:
+    - public_send` keeps the dispatch
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Memo
+        def initialize(host, name)
+          @host = host
+          @name = name
+          @visibility = host.private_method_defined?(name) ? :private : :public
+        end
+
+        def restore = @host.__send__(@visibility, @name)
+      end
+    end
+- id: r6b4-k3-forward-inside-a-send-override-is-the-protocol
+  cop: Kata/NoReflection
+  strict: true
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Wrapped
+        def initialize(target)
+          @target = target
+        end
+
+        def send(name, ...)
+          respond_to?(name, true) ? super : @target.send(name, ...)
+        end
+      end
+    end
+- id: r6b4-k4-psych-fills-the-coder-it-hands-encode-with
+  cop: Kata/NoOutputArgument
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Options
+        def initialize(limit)
+          @limit = limit
+        end
+
+        def encode_with(coder)
+          coder["limit"] = @limit
+        end
+      end
+    end
+- id: r6b4-k4-serialization-hooks-are-not-public-surface
+  cop: Kata/PublicSurface
+  strict: true
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Options
+        def initialize(limit)
+          @limit = limit
+        end
+
+        def limit = @limit
+
+        def finish = @limit.zero?
+
+        def to_h = { limit: @limit }
+
+        def encode_with(coder) = coder.map = to_h
+
+        def init_with(coder) = @limit = coder["limit"]
+
+        def marshal_dump = to_h
+
+        def marshal_load(data) = @limit = data[:limit]
+      end
+    end
+- id: r6b4-k5-cause-override-ends-the-chain-default
+  cop: Elegant/NoNilReturn
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Migration
+        def stripped(error)
+          def error.cause
+            nil
+          end
+          error
+        end
+      end
+    end
+- id: r6b4-k5-cause-override-ends-the-chain-strict
+  cop: Kata/NoNilReturn
+  strict: true
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Migration
+        def stripped(error)
+          def error.cause
+            nil
+          end
+          error
+        end
+      end
+    end
+- id: r6b4-k5-other-nil-still-flagged
+  cop: Elegant/NoNilReturn
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Migration
+        def initialize(error)
+          @error = error
+        end
+
+        def reason
+          nil
+        end
+      end
+    end
+- id: r6b4-k6-text-of-a-multi-line-string-is-not-indentation
+  cop: Elegant/MonotonicIndents
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      MESSAGES = {
+        add_column:
+    "Adding a column rewrites the table.
+    Instead:
+
+    class AddSome < Migration
+    end",
+
+        add_index: "Adding an index locks the table."
+      }.freeze
+    end
+- id: r6b4-k6-code-after-a-one-line-string-at-column-zero-still-measured
+  cop: Elegant/MonotonicIndents
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      MESSAGES = {
+        add_index:
+    "Adding an index locks the table.",
+        remove_column: "Removing a column breaks running code."
+      }.freeze
+    end
+- id: r6b5-k4-release-where-no-error-is-in-flight-swallows
+  cop: Kata/FailFast
+  strict: true
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Link
+        def initialize(sockets)
+          @sockets = sockets
+        end
+
+        def reset(key)
+          old = @sockets.delete(key)
+          old.close rescue nil
+        end
+      end
+    end
+- id: r6b5-k4-rescue-on-the-way-out-keeps-the-error-in-flight
+  cop: Kata/FailFast
+  strict: true
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Link
+        def initialize(socket)
+          @socket = socket
+        end
+
+        def send_line(line)
+          @socket.write(line)
+        rescue Errno::EPIPE => error
+          response = @socket.read rescue ""
+          @socket&.close rescue nil
+          raise IOError, "#{response}#{error.message}"
+        end
+      end
+    end
+- id: r6b5-k2-log-line-through-safe-navigation-swallows
+  cop: Kata/FailFast
+  strict: true
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Rates
+        def initialize(source, log)
+          @source = source
+          @log = log
+        end
+
+        def table
+          JSON.parse(@source.read)
+        rescue JSON::ParserError => error
+          @log&.warn(error.message)
+          {}
+        end
+      end
+    end
+- id: r6b5-k2-answer-through-safe-navigation-is-judged
+  cop: Kata/CommandQuery
+  strict: true
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Ledger
+        def initialize(entries, audit)
+          @entries = entries
+          @audit = audit
+        end
+
+        def total
+          @audit.record("total read")
+          @entries&.sum
+        end
+      end
+    end
+- id: r6b5-k3-thread-accessor-keeps-a-value-per-thread
+  cop: Kata/NoSingleton
+  strict: true
+  expect: offense
+  absent: ["for every caller"]
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class RequestContext
+        thread_mattr_accessor :request_id
+      end
+    end
+- id: r6b5-k3-fiber-storage-keeps-a-value-per-fiber
+  cop: Kata/NoSingleton
+  strict: true
+  expect: offense
+  absent: ["keyed by the thread"]
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Tracker
+        def start
+          Fiber[:tracker_state] = :on
+        end
+      end
+    end
+- id: r6b5-k5-a-call-to-the-class-own-pp-is-not-kernel-output
+  cop: Kata/IoDiscipline
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Printer
+        def self.pp(io, datum, indent = 0)
+          datum.each do |key, value|
+            io.write("#{" " * indent}#{key}:")
+            pp(io, value, indent + 2) if value.respond_to?(:each_pair)
+          end
+        end
+      end
+    end
+- id: r6b5-k5-kernel-output-beside-another-side-still-flagged
+  cop: Kata/IoDiscipline
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Printer
+        def self.pp(io, datum) = io.write(datum)
+
+        def show(datum)
+          pp(datum)
+        end
+      end
+    end
+- id: r6b5-k1-field-of-a-prepended-module-is-its-objects-field
+  cop: ThreadSafety/ClassInstanceVariable
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      module Patches
+        def self.enable
+          Join.prepend(
+            Module.new do
+              def instantiate(rows)
+                @loaded = rows.to_h { [it, true] }
+                super
+              end
+            end
+          )
+        end
+      end
+    end
+- id: r6b5-k1-module-extended-onto-a-class-still-flagged
+  cop: ThreadSafety/ClassInstanceVariable
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      module Patches
+        def self.enable
+          Base.extend(
+            Module.new do
+              def find_by_sql(query)
+                @last_query = query
+                super
+              end
+            end
+          )
+        end
+      end
+    end
+- id: r6b6-k3-a-warn-the-superclass-delegates-is-not-kernel-output
+  cop: Kata/IoDiscipline
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Abstract
+        extend Forwardable
+
+        def_delegators :@output, :warn, :debug
+
+        def initialize(output)
+          @output = output
+        end
+      end
+
+      class Skipper < Abstract
+        def execute(command)
+          warn("[SKIPPING] No Matching Host for #{command}")
+        end
+      end
+    end
+- id: r6b6-k3-a-writer-of-the-name-still-flagged
+  cop: Kata/IoDiscipline
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Abstract
+        attr_writer :warn
+
+        def execute(command)
+          warn("[SKIPPING] #{command}")
+        end
+      end
+    end
+- id: r6b6-k4-override-of-an-extended-module-default-is-a-hook
+  cop: Kata/NoClassMethodLogic
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      module Taggable
+        def taggable?
+          false
+        end
+
+        def acts_as_taggable
+          class_eval do
+            def self.taggable?
+              true
+            end
+          end
+        end
+      end
+    end
+- id: r6b6-k4-literal-no-extended-module-answers-still-a-constant
+  cop: Kata/NoClassMethodLogic
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      module Taggable
+        def acts_as_taggable
+          class_eval do
+            def self.taggable?
+              true
+            end
+          end
+        end
+      end
+    end
+- id: r6b6-k5-min-of-an-array-literal-with-a-number-is-never-nil
+  cop: Kata/NoNilReturn
+  strict: true
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Score
+        LIMIT = 32.0
+
+        def initialize(cost)
+          @cost = cost
+        end
+
+        def limited = [@cost, LIMIT].min
+
+        def floor = [@cost, 0.0].max
+      end
+    end
+- id: r6b6-k5-min-of-a-collection-still-flagged
+  cop: Kata/NoNilReturn
+  strict: true
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Score
+        def initialize(costs)
+          @costs = costs
+        end
+
+        def cheapest = [@costs.first, @costs.last].min
+      end
+    end
+- id: r6b6-k6-call-on-the-module-to-a-guard-that-only-raises-is-no-act
+  cop: Kata/CommandQuery
+  strict: true
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      module OptionsValidator
+        class << self
+          def assert_valid_keys!(options, *valid_keys)
+            return if options.empty?
+
+            valid_keys.flatten!
+            invalid = options.keys - valid_keys
+            return if invalid.empty?
+
+            raise ArgumentError, "Unknown keys: #{invalid.join(", ")}"
+          end
+        end
+      end
+
+      class Branch
+        def initialize(states)
+          @states = states
+        end
+
+        def match(query)
+          Shelf::OptionsValidator.assert_valid_keys!(query, :from, :to)
+          @states & Array(query[:from])
+        end
+      end
+    end
+- id: r6b6-k6-guard-that-changes-a-parameter-still-acts
+  cop: Kata/CommandQuery
+  strict: true
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      module OptionsValidator
+        def self.pick!(options, key)
+          options.delete(key)
+          raise KeyError, key unless options.key?(key)
+        end
+      end
+
+      class Branch
+        def initialize(states)
+          @states = states
+        end
+
+        def match(query)
+          Shelf::OptionsValidator.pick!(query, :from)
+          @states & Array(query[:to])
+        end
+      end
+    end
+- id: r6b6-k7-builder-noun-proposes-no-keyword
+  cop: Kata/BuilderNoun
+  expect: offense
+  absent: ["`for`, not", "`module`, not"]
+  source: |
+    # frozen_string_literal: true
+
+    module Shelf
+      class Summary
+        def initialize(ratings)
+          @ratings = ratings
+        end
+
+        def to_h = @ratings.to_h { |rating| [rating, generate_for(rating)] }
+
+        private
+
+        def generate_for(rating) = rating.downcase
+
+        def get_module(name) = name.split("::").first
+      end
+    end

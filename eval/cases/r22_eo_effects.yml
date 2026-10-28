@@ -1,0 +1,605 @@
+# The Elegant Objects conformance cases (round 6, V1) for the effects a method
+# hides: I/O, the clock and randomness, configuration, swallowed errors, global
+# state reached through the framework, and resources released by hand. Each
+# principle's violating spellings are flagged by the rule that owns it, and its
+# compliant version stays clean. A case marked `strict` runs under
+# config/strict.yml, which turns on the rules kata ships off; the others run
+# under the shipped defaults.
+- id: p33-hidden-output-puts
+  cop: Kata/IoDiscipline
+  expect: offense
+  path: lib/shop/receipt.rb
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Receipt
+        def initialize(total)
+          @total = total
+        end
+
+        def print
+          puts "Total: #{@total}"
+        end
+      end
+    end
+- id: p33-hidden-io-file-log-webhook
+  cop: Kata/IoDiscipline
+  strict: true
+  expect: offense
+  path: lib/shop/audit.rb
+  source: |
+    # frozen_string_literal: true
+
+    require "net/http"
+
+    module Shop
+      class Audit
+        def initialize(event)
+          @event = event
+        end
+
+        def record
+          File.write("log/audit.log", "#{@event}\n", mode: "a")
+          Rails.logger.info("audit #{@event}")
+          Net::HTTP.post(URI("https://hooks.example.com/audit"), @event)
+        end
+      end
+    end
+- id: p33-io-through-an-injected-stream
+  cop: Kata/IoDiscipline
+  strict: true
+  expect: clean
+  path: lib/shop/audit.rb
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Audit
+        def initialize(event, out)
+          @event = event
+          @out = out
+        end
+
+        def record
+          @out.write("#{@event}\n")
+        end
+      end
+    end
+- id: p33-file-write-to-a-literal-path-alone
+  cop: Kata/IoDiscipline
+  strict: true
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Ledger
+        def initialize(lines)
+          @lines = lines
+        end
+
+        def save = File.write("tmp/ledger.txt", @lines.join("\n"))
+      end
+    end
+- id: p33-rails-logger-alone
+  cop: Kata/IoDiscipline
+  strict: true
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Refund
+        def initialize(cents)
+          @cents = cents
+        end
+
+        def issue
+          Rails.logger.info("refund #{@cents}")
+          @cents
+        end
+      end
+    end
+- id: p33-adapter-writing-an-injected-path
+  cop: Kata/IoDiscipline
+  strict: true
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Disk
+        def initialize(path)
+          @path = path
+        end
+
+        def write(text) = File.write(@path, text)
+      end
+    end
+- id: p34-ambient-clock
+  cop: Kata/ClockDiscipline
+  expect: offense
+  path: lib/shop/coupon.rb
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Coupon
+        def initialize(deadline)
+          @deadline = deadline
+        end
+
+        def expired?
+          Time.now > @deadline
+        end
+      end
+    end
+- id: p34-ambient-clock-and-randomness
+  cop: Kata/ClockDiscipline
+  strict: true
+  expect: offense
+  path: lib/shop/invoice.rb
+  source: |
+    # frozen_string_literal: true
+
+    require "securerandom"
+
+    module Shop
+      class Invoice
+        def initialize(cents)
+          @cents = cents
+        end
+
+        def due
+          Date.today + 30
+        end
+
+        def number
+          "INV-#{SecureRandom.hex(4)}"
+        end
+
+        def stamp
+          "#{@cents} at #{Time.current.iso8601}"
+        end
+      end
+    end
+- id: p34-injected-clock-and-serial
+  cop: Kata/ClockDiscipline
+  strict: true
+  expect: clean
+  path: lib/shop/invoice.rb
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Invoice
+        def initialize(cents, clock, serial)
+          @cents = cents
+          @clock = clock
+          @serial = serial
+        end
+
+        def due
+          @clock.today + 30
+        end
+
+        def number
+          "INV-#{@serial}"
+        end
+      end
+    end
+- id: p34-securerandom-alone
+  cop: Kata/ClockDiscipline
+  strict: true
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Ticket
+        def initialize(event)
+          @event = event
+        end
+
+        def code = "#{@event}-#{SecureRandom.hex(4)}"
+      end
+    end
+- id: p34-draw-with-an-injected-generator
+  cop: Kata/ClockDiscipline
+  strict: true
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Lottery
+        def initialize(names, random)
+          @names = names
+          @random = random
+        end
+
+        def winner = @names.sample(random: @random)
+      end
+    end
+- id: p35-env-in-a-method
+  cop: Kata/EnvDiscipline
+  expect: offense
+  path: lib/shop/gateway.rb
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Gateway
+        def initialize(cents)
+          @cents = cents
+        end
+
+        def request
+          "charge #{@cents} with #{ENV["API_KEY"]}"
+        end
+      end
+    end
+- id: p35-env-credentials-and-configuration
+  cop: Kata/EnvDiscipline
+  strict: true
+  expect: offense
+  path: lib/shop/mailbox.rb
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Mailbox
+        def initialize(recipient)
+          @recipient = recipient
+        end
+
+        def envelope
+          "#{@recipient} via #{ENV.fetch("SMTP_HOST", "localhost")}"
+        end
+
+        def secret
+          Rails.application.credentials.dig(:smtp, :password)
+        end
+
+        def currency
+          Rails.configuration.x.shop.currency
+        end
+      end
+    end
+- id: p35-configuration-passed-in
+  cop: Kata/EnvDiscipline
+  strict: true
+  expect: clean
+  path: lib/shop/mailbox.rb
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Mailbox
+        def initialize(recipient, host)
+          @recipient = recipient
+          @host = host
+        end
+
+        def envelope
+          "#{@recipient} via #{@host}"
+        end
+      end
+    end
+- id: p35-credentials-alone
+  cop: Kata/EnvDiscipline
+  strict: true
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Gateway
+        def initialize(cents)
+          @cents = cents
+        end
+
+        def key = Rails.application.credentials.dig(:stripe, :secret)
+      end
+    end
+- id: p25-empty-rescue
+  cop: Kata/FailFast
+  strict: true
+  expect: offense
+  path: lib/shop/rates.rb
+  source: |
+    # frozen_string_literal: true
+
+    require "json"
+
+    module Shop
+      class Rates
+        def initialize(source)
+          @source = source
+        end
+
+        def table
+          JSON.parse(@source.read)
+        rescue StandardError
+        end
+      end
+    end
+- id: p25-logged-default-and-modifier
+  cop: Kata/FailFast
+  strict: true
+  expect: offense
+  path: lib/shop/rates.rb
+  source: |
+    # frozen_string_literal: true
+
+    require "json"
+
+    module Shop
+      class Rates
+        def initialize(source, log)
+          @source = source
+          @log = log
+        end
+
+        def table
+          JSON.parse(@source.read)
+        rescue JSON::ParserError, IOError => error
+          @log.warn("rates unavailable: #{error.message}")
+          {}
+        end
+
+        def limit
+          Integer(@source.limit) rescue 0
+        end
+      end
+    end
+- id: p25-errors-raise
+  cop: Kata/FailFast
+  strict: true
+  expect: clean
+  path: lib/shop/rates.rb
+  source: |
+    # frozen_string_literal: true
+
+    require "json"
+
+    module Shop
+      class Rates
+        def initialize(source)
+          @source = source
+        end
+
+        def table
+          JSON.parse(@source.read)
+        end
+
+        def limit
+          Integer(@source.limit)
+        end
+      end
+    end
+- id: p25-modifier-answering-zero-alone
+  cop: Kata/FailFast
+  strict: true
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Limit
+        def initialize(text)
+          @text = text
+        end
+
+        def value = Integer(@text) rescue 0
+      end
+    end
+- id: p25-null-object-for-the-expected-error
+  cop: Kata/FailFast
+  strict: true
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Catalog
+        def initialize(prices)
+          @prices = prices
+        end
+
+        def price(code)
+          @prices.fetch(code)
+        rescue KeyError
+          Unpriced.new(code)
+        end
+      end
+    end
+- id: p17-singleton-mixin
+  cop: Kata/NoSingleton
+  expect: offense
+  path: lib/shop/registry.rb
+  source: |
+    # frozen_string_literal: true
+
+    require "singleton"
+
+    module Shop
+      class Registry
+        include Singleton
+
+        def initialize
+          @entries = {}
+        end
+
+        def lookup(key)
+          @entries.fetch(key)
+        end
+      end
+    end
+- id: p17-current-attributes
+  cop: Kata/NoSingleton
+  strict: true
+  expect: offense
+  path: lib/shop/current.rb
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Current < ActiveSupport::CurrentAttributes
+        attribute :account, :user
+      end
+    end
+- id: p17-entries-passed-in
+  cop: Kata/NoSingleton
+  strict: true
+  expect: clean
+  path: lib/shop/ledger.rb
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Ledger
+        def initialize(month, entries)
+          @month = month
+          @entries = entries
+        end
+
+        def total
+          @entries.select { |entry| entry.month == @month }.sum(&:cents)
+        end
+      end
+    end
+- id: p17-thread-current-alone
+  cop: Kata/NoSingleton
+  strict: true
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Lottery
+        def initialize(names)
+          @names = names
+        end
+
+        def owner = Thread.current[:user]
+      end
+    end
+- id: p27-lock-released-by-hand
+  cop: Kata/ScopedResource
+  strict: true
+  expect: offense
+  path: lib/shop/archive.rb
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Archive
+        def initialize(path, lock)
+          @path = path
+          @lock = lock
+        end
+
+        def append(line)
+          @lock.lock
+          log = File.open(@path, "a")
+          log.write("#{line}\n")
+          log.close
+          @lock.unlock
+        end
+      end
+    end
+- id: p27-lock-and-file-held-for-a-block
+  cop: Kata/ScopedResource
+  strict: true
+  expect: clean
+  path: lib/shop/archive.rb
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Archive
+        def initialize(path, lock)
+          @path = path
+          @lock = lock
+        end
+
+        def append(line)
+          @lock.synchronize { File.open(@path, "a") { |log| log.write("#{line}\n") } }
+        end
+      end
+    end
+- id: p27-socket-closed-by-hand
+  cop: Kata/ScopedResource
+  strict: true
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Probe
+        def initialize(host)
+          @host = host
+        end
+
+        def ping
+          socket = TCPSocket.new(@host, 80)
+          socket.write("ping")
+          socket.close
+        end
+      end
+    end
+- id: p32-command-to-an-injected-store
+  cop: Kata/FrozenState
+  expect: clean
+  path: lib/shop/registration.rb
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Registration
+        def initialize(store)
+          @store = store
+        end
+
+        def submit(params)
+          @store.insert(params.merge(email: params.fetch(:email).downcase).except(:password_confirmation))
+        end
+      end
+    end
+- id: p32-output-argument-changed
+  cop: Kata/NoOutputArgument
+  expect: offense
+  path: lib/shop/registration.rb
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Registration
+        def initialize(store)
+          @store = store
+        end
+
+        def submit(params)
+          params[:email] = params[:email].to_s.downcase
+          params.delete(:password_confirmation)
+          @store.insert(params)
+        end
+      end
+    end
+- id: p32-collection-the-object-built-still-changes
+  cop: Kata/FrozenState
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Basket
+        def initialize
+          @items = []
+        end
+
+        def remove(item) = @items.delete(item)
+      end
+    end

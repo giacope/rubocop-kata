@@ -270,7 +270,9 @@ Kata/GoodMethodName:
     wants it. A Minitest `test_` method in a test class is a sentence, like
     an RSpec description, and goes unpriced. A name a dispatcher dictates is
     a contract, not a choice: `AllowedPatterns` holds those patterns, Prism's
-    `on_call_node_enter` listeners among them.
+    `on_call_node_enter` listeners among them, and `AllowedNames` the names,
+    WEBrick's servlet methods (`do_GET`, which `AbstractServlet#service`
+    calls by the request's method) among them.
   Enabled: true
   OwnedPaths:
     - "app/**/*.rb"
@@ -425,6 +427,14 @@ Kata/GoodMethodName:
     - default_scope
     - define_method
     - delete_if
+    - do_DELETE
+    - do_GET
+    - do_HEAD
+    - do_OPTIONS
+    - do_PATCH
+    - do_POST
+    - do_PUT
+    - do_TRACE
     - email_required
     - failure_message
     - failure_message_when_negated
@@ -608,15 +618,134 @@ Kata/GoodVariableName:
 
 Kata/IoDiscipline:
   Description: >-
-    Write through an injected io, not bare puts/warn/pp/p. Where the class
-    already holds a stream (`@io`, `@out`, `@stderr`, …), the message names
-    it; where nothing is injected, it names the seam to add
-    (`def initialize(io: $stdout)`). Code outside every class, module and
+    No hidden I/O: write through an injected io, not bare puts/warn/pp/p.
+    Where the class already holds a stream (`@io`, `@out`, `@stderr`, …), the
+    message names it; where nothing is injected, it names the seam to add
+    (`def initialize(io: $stdout)`). A bare call the object answers itself
+    is not Kernel's: one its class, a project ancestor or a mixin defines,
+    delegates (`def_delegators`, `delegate`), aliases or reads
+    (`attr_reader`) on the same side. Code outside every class, module and
     method is a script's boot layer, and its terminal is the boot layer's
-    stream, as Kata/EnvDiscipline and Kata/ClockDiscipline read it.
+    stream, as Kata/EnvDiscipline and Kata/ClockDiscipline read it, and so is
+    a framework's boot hook (`initializer`, `to_prepare`, `on_load`); a
+    parameter default is the seam. With `CheckEffects: true`
+    (config/strict.yml) it reads the hidden I/O beyond the terminal too: bare
+    `print` and `printf`; a global stream or service (`$stdout.puts`,
+    `Rails.logger`, `Rails.cache`; `Globals`), which is never injected, and
+    asks to be; and a file, network or shell call (`Effects`, by what it
+    reaches: a path, a URL, a command; a constant alone stands for each of its
+    methods) whose target is written into the code
+    (`File.write("log/audit.log", …)`, `Net::HTTP.post(URI("https://…"))`, ``
+    `git rev-parse HEAD` ``, `Dir.pwd`). One whose target holds a variable, an
+    instance variable or a method's value (`File.write(@path, …)`), or a path
+    anchored on the source file (`__dir__`, `__FILE__`), is the adapter whose
+    job the effect is, and passes. Path arithmetic (`File.join`,
+    `File.basename`; `AllowedMethods`) reaches nothing.
   Enabled: true
   VersionAdded: "0.1"
   VersionChanged: "0.11"
+  CheckEffects: false
+  Effects:
+    path:
+      - CSV.foreach
+      - CSV.open
+      - CSV.read
+      - CSV.readlines
+      - Dir
+      - File
+      - FileUtils
+      - IO.binread
+      - IO.binwrite
+      - IO.copy_stream
+      - IO.foreach
+      - IO.read
+      - IO.readlines
+      - IO.sysopen
+      - IO.write
+      - JSON.load_file
+      - YAML.load_file
+      - YAML.safe_load_file
+      - YAML.unsafe_load_file
+    URL:
+      - Excon.delete
+      - Excon.get
+      - Excon.head
+      - Excon.new
+      - Excon.patch
+      - Excon.post
+      - Excon.put
+      - Faraday.delete
+      - Faraday.get
+      - Faraday.head
+      - Faraday.new
+      - Faraday.patch
+      - Faraday.post
+      - Faraday.put
+      - HTTParty.delete
+      - HTTParty.get
+      - HTTParty.head
+      - HTTParty.patch
+      - HTTParty.post
+      - HTTParty.put
+      - Net::HTTP
+      - RestClient.delete
+      - RestClient.get
+      - RestClient.head
+      - RestClient.patch
+      - RestClient.post
+      - RestClient.put
+      - Typhoeus.delete
+      - Typhoeus.get
+      - Typhoeus.head
+      - Typhoeus.patch
+      - Typhoeus.post
+      - Typhoeus.put
+      - URI.open
+    command:
+      - IO.popen
+      - Kernel.exec
+      - Kernel.spawn
+      - Kernel.system
+      - Open3
+      - Process.spawn
+      - exec
+      - spawn
+      - system
+  AllowedMethods:
+    - File.absolute_path
+    - File.absolute_path?
+    - File.basename
+    - File.dirname
+    - File.expand_path
+    - File.extname
+    - File.fnmatch
+    - File.fnmatch?
+    - File.join
+    - File.path
+    - File.split
+  Globals:
+    - $stderr
+    - $stdin
+    - $stdout
+    - Rails.cache
+    - Rails.logger
+    - STDERR
+    - STDIN
+    - STDOUT
+  Conversions:
+    - Array
+    - Float
+    - Integer
+    - Pathname
+    - String
+    - URI
+    - format
+    - sprintf
+  OwnedPaths:
+    - "app/**/*.rb"
+    - "*/app/**/*.rb"
+    - "lib/**/*.rb"
+    - "*/lib/**/*.rb"
   Exclude:
     - "spec/**/*"
     - "test/**/*"
@@ -637,6 +766,10 @@ Kata/IoDiscipline:
     - "gems.rb"
     - "**/*.gemfile"
     - "**/*.jbuilder"
+    - "**/railtie.rb"
+    - "**/engine.rb"
+    - "lib/generators/**/*"
+    - "*/lib/generators/**/*"
 
 Kata/ProsePlacement:
   Description: "Keep sentence-length strings in the presentation layer."
@@ -654,7 +787,8 @@ Kata/RealWords:
     out, and the message names the word (`req` is `request`); `foo` and `qux`
     are placeholders. The shipped table is data/clippings.txt; `BannedWords`
     adds a project's own, `Terms` re-allows one as reviewed jargon, and
-    `AllowedNames` exempts names a protocol dictates (`to_str`). English is
+    `AllowedNames` exempts names a protocol dictates (`to_str`, WEBrick's
+    `do_GET`). English is
     English: British, Canadian and Australian spellings (`organisation`,
     `colour`, `offence`, `labelled`, `metre`) are words; `Spelling: en-US`
     accepts American spelling only. The project's own name is its
@@ -684,6 +818,14 @@ Kata/RealWords:
     - "lib/**/*.rb"
     - "*/lib/**/*.rb"
   AllowedNames:
+    - do_DELETE
+    - do_GET
+    - do_HEAD
+    - do_OPTIONS
+    - do_PATCH
+    - do_POST
+    - do_PUT
+    - do_TRACE
     - to_ary
     - to_int
     - to_str
@@ -704,7 +846,9 @@ Kata/BuilderNoun:
     methods), is a side effect, not a builder; so is a public method of a
     generator, a subclass of one of the `StepSuperclasses`, which Rails or
     Thor runs as a step. A predicate (`generate_ids?`) answers a question
-    and builds nothing.
+    and builds nothing. Where the name left after the verb is a Ruby keyword
+    or does not parse as a call (`generate_for` would become `for`, a loop),
+    the message proposes no name.
   Enabled: true
   VersionAdded: "0.3"
   VersionChanged: "0.11"
@@ -772,16 +916,19 @@ Kata/NoBooleanFlag:
     `update_attribute(:spam, false)`; not `send(:name, true)`, which passes
     a flag on), a bind after a SQL string with a placeholder
     (`where("active = ?", true)`), an expectation (`eq(true)`,
-    `receive(:x).with(false)`), a hash value, and an attribute writer
-    (`config.x = true`). `AllowedMethods` holds the calls whose boolean is a
+    `receive(:x).with(false)`), a hash value, an attribute writer
+    (`config.x = true`), and the argument of a method the same file defines
+    that stores the parameter it lands in and never tests it
+    (`set_cookie("track", true)` where `def set_cookie(name, value)` keeps
+    `{ value: value }`). `AllowedMethods` holds the calls whose boolean is a
     protocol or a value rather than a flag — Ruby's reflection
     (`respond_to?(name, true)`), a default (`fetch(:ssl, false)`), a value
     searched for or compared (`flags.index(true)`, `eql?(false)`), a stored
-    value (`instance_variable_set(:@done, false)`, `set`), a value
-    converted or rendered (`quote(true)`, `type_cast(false)`, `cast`,
-    `serialize`, `dump`), a query (`where`, `find_by`, `exists?`,
-    `update`), RSpec's matchers — and the defs whose signature Ruby dictates
-    (`respond_to_missing?`).
+    value (`instance_variable_set(:@done, false)`, `set`, a
+    `Concurrent::IVar`'s `try_set(true)`), a value converted or rendered
+    (`quote(true)`, `type_cast(false)`, `cast`, `serialize`, `dump`), a
+    query (`where`, `find_by`, `exists?`, `update`), RSpec's matchers — and
+    the defs whose signature Ruby dictates (`respond_to_missing?`).
   Enabled: true
   VersionAdded: "0.3"
   VersionChanged: "0.11"
@@ -843,10 +990,400 @@ Kata/NoBooleanFlag:
     - store
     - to
     - to_not
+    - try_set
     - type_cast
     - update
     - update_all
     - where
+
+Kata/NoNilArgument:
+  Description: >-
+    A parameter that defaults to nil, which the method then asks about
+    (`coupon.nil?`, `coupon&.cents`, `coupon || NONE`, `if coupon`), is two
+    methods in one: the caller who has the value and the caller who does not.
+    Split them, or default to a null object that answers the same messages. A
+    constructor's nil default kept in a field the class asks about the same
+    way (`@referrer.nil?`) is two objects in one. A nil default that the
+    method only passes on (`fetch(key, default = nil)`) is the callee's
+    business, and the protocols whose signature Ruby or Rails dictates
+    (`as_json(options = nil)`) are in `AllowedMethods`. Off by default:
+    config/strict.yml turns it on.
+  Enabled: false
+  VersionAdded: "0.11"
+  Exclude:
+    - "spec/**/*"
+    - "test/**/*"
+    - "**/*_spec.rb"
+    - "**/*_test.rb"
+    - "db/*migrate/**/*"
+  AllowedMethods:
+    - as_json
+    - method_missing
+    - respond_to_missing?
+    - serializable_hash
+    - to_json
+    - to_xml
+
+Kata/NoNilReturn:
+  Description: >-
+    A method never returns nil, on any code path: not a literal `nil` or
+    `return nil`, not the nil a lookup passes on (`detect`, `find` with a
+    block, `find_by`, `first`, `last`, `min`, `max`, `sample`, `[]`, `dig`,
+    `match`, `index`, `presence`, `try`, `&.`), and not the missing branch of
+    an `if`, `unless` or `case` whose other branches answer with a value
+    (`@items[code] if @open`). Return a null object, or fail fast (`fetch`).
+    The `min` or `max` of an array literal that holds a number, a string, a
+    symbol or a constant the file assigns one (`[cost, LIMIT].min`) answers
+    one of its elements, never nil (a nil element raises). A block's
+    literal `nil` is reported too. A predicate's falsy nil answers its
+    question, a writer's value is its argument, and a method that forwards the
+    protocol it is named after (`def first = @rows.first`) keeps that
+    protocol's contract; `AllowedMethods` holds the core methods whose
+    contract answers nil, so an override that answers nil keeps it and a
+    null object or a raise would break Ruby's own readers: `[]` and `dig`
+    (no such key), `method_missing`, `<=>` (incomparable: `sort`, `max` and
+    `Comparable` turn it into their own error, where a null 0 would claim
+    equality), `=~` (no match), `cause` (the end of an exception's cause
+    chain, where every walker stops), `backtrace` and `backtrace_locations`
+    (not raised yet), `to_ary` (no implicit conversion: `flatten` and
+    multiple assignment go on), and `gets` (end of the stream). The same
+    list passes `Elegant/NoNilReturn`. Off by default: config/strict.yml
+    turns it on in place of `Elegant/NoNilReturn`, which sees only the
+    literal `nil`.
+  Enabled: false
+  VersionAdded: "0.11"
+  Exclude:
+    - "spec/**/*"
+    - "test/**/*"
+    - "**/*_spec.rb"
+    - "**/*_test.rb"
+    - "db/*migrate/**/*"
+  AllowedMethods: &nil_answers
+    - "<=>"
+    - "=~"
+    - "[]"
+    - backtrace
+    - backtrace_locations
+    - cause
+    - dig
+    - gets
+    - method_missing
+    - to_ary
+
+# An override of a core method whose contract answers nil keeps it (the
+# list and the reasons are Kata/NoNilReturn's); kata reads this list for the
+# bundled cop, which has no option of its own.
+Elegant/NoNilReturn:
+  AllowedMethods: *nil_answers
+
+Kata/NoPublicConstant:
+  Description: >-
+    No public constants as shared values: reading another of the project's
+    classes' or modules' value constant (`Cart::MAX_ITEMS`,
+    `Settings::TAX_RATE`) couples the reader to the value and scatters the
+    logic that interprets it. Ask the owner for what the value means
+    (`cart.full?`) and make the constant private (`private_constant`). Only
+    the project's own namespaces are judged (Ruby's `Float::INFINITY` and a
+    library's constants are its API), a class reading its own constants
+    passes, and `AllowedNames` holds the constants a packaging tool reads
+    (`VERSION`). A class, module or error is not a value, and neither is a
+    constant that namespaces another (`Net::NTLM::Message`, however its
+    acronym is spelled). Off by default: config/strict.yml turns it on.
+  Enabled: false
+  VersionAdded: "0.11"
+  OwnedPaths:
+    - "app/**/*.rb"
+    - "*/app/**/*.rb"
+    - "lib/**/*.rb"
+    - "*/lib/**/*.rb"
+  AllowedNames:
+    - VERSION
+  Exclude:
+    - "spec/**/*"
+    - "test/**/*"
+    - "**/*_spec.rb"
+    - "**/*_test.rb"
+    - "*.gemspec"
+    - "db/**/*"
+
+Kata/NoReflection:
+  Description: >-
+    Reflection on another object is hidden coupling: reading or writing its
+    fields (`@order.instance_variable_get(:@total)`), calling a method by a
+    name written in the code (`@record.send(:token)`, usually to reach a
+    private one), and building a constant's name at run time
+    (`Object.const_get("Shop::#{kind}View")`, `"#{kind}View".constantize`) tie
+    the caller to internals no interface names. Ask the object through a
+    public method, or map the names to objects. Dispatch on a name the code is
+    handed (`public_send(field)`) is a protocol; sent with `send` or
+    `__send__` (`controller.send(@method)`) it reaches private methods too,
+    and is reported with the advice to use `public_send`, except where
+    `public_send` would raise: a computed name sent to a class or module
+    the code treats as one (`@base.module_eval`, `private_method_defined?`
+    on the same name), whose `private`, `module_function` and
+    `remove_const` only reflection reaches, is told to let the class say it
+    in its own body, or to decorate its objects instead of changing the
+    class from outside; one the code looks up among the private methods
+    (`respond_to?(name, true)`) is told to send a message the object
+    answers in public. The forward inside an object's own `send` or
+    `__send__` (a decorator that passes the protocol on) is that protocol,
+    and passes. An object reflecting on itself and the boot layer pass. Off by default:
+    config/strict.yml turns it on in place of `Style/Send`, whose advice
+    (`__send__`) keeps the reflection; the `send` an object makes to itself,
+    which `Style/Send` also reports, is not judged.
+  Enabled: false
+  VersionAdded: "0.11"
+  Exclude:
+    - "spec/**/*"
+    - "test/**/*"
+    - "**/*_spec.rb"
+    - "**/*_test.rb"
+    - "db/**/*"
+    - "config/**/*"
+    - "bin/**/*"
+    - "exe/**/*"
+    - "lib/tasks/**/*"
+    - "**/*.rake"
+
+Kata/FieldCount:
+  Description: >-
+    A class encapsulates at most `Max` fields (four by default, Elegant
+    Objects' "encapsulate as little as possible"): the instance variables its
+    instance methods assign, and the fields its `attr_*` macros name, counted
+    once each. A memoized answer (`@total ||= ...`) is a cache, not a field,
+    and stays one when a reset clears it (`@total = nil`). More fields than that is several objects in one; group some into an object
+    of their own. Rails controllers, mailers, helpers and views, which hand
+    views their data through instance variables, are not judged. Off by
+    default: config/strict.yml turns it on.
+  Enabled: false
+  VersionAdded: "0.11"
+  Max: 4
+  Exclude:
+    - "spec/**/*"
+    - "test/**/*"
+    - "**/*_spec.rb"
+    - "**/*_test.rb"
+    - "db/**/*"
+    - "config/**/*"
+    - "app/controllers/**/*"
+    - "*/app/controllers/**/*"
+    - "app/mailers/**/*"
+    - "*/app/mailers/**/*"
+    - "app/helpers/**/*"
+    - "*/app/helpers/**/*"
+    - "app/views/**/*"
+    - "*/app/views/**/*"
+
+Kata/PublicSurface:
+  Description: >-
+    A class exposes at most `Max` public instance methods (four by default,
+    Elegant Objects' "fewer than five public methods"): its public `def`s and
+    the methods its public `attr_*` macros mint. A short interface is a small
+    object; more methods than that is several objects in one, so move some to
+    an object of their own. The protocols Ruby dispatches to (`to_s`, `==`,
+    `<=>`, `each`, `call`, `[]`, and the hooks Psych and Marshal call by name
+    to dump and load an object: `encode_with`, `init_with`, `marshal_dump`,
+    `marshal_load`, `_dump`; `Protocols`) and the callbacks a dispatcher
+    names (RuboCop's and Prism's `on_*`; `AllowedPatterns`) are not counted.
+    Rails controllers, whose actions are routes, mailers, helpers and views
+    are not judged. Off by default: config/strict.yml turns it on.
+  Enabled: false
+  VersionAdded: "0.11"
+  Max: 4
+  AllowedPatterns:
+    - "\\Aon_\\w+\\z"
+    - "\\Avisit_\\w+\\z"
+  Protocols:
+    - "!="
+    - "%"
+    - "*"
+    - "+"
+    - "-"
+    - "/"
+    - "<"
+    - "<="
+    - "<=>"
+    - "=="
+    - "==="
+    - "=~"
+    - ">"
+    - ">="
+    - "[]"
+    - "[]="
+    - _dump
+    - as_json
+    - call
+    - coerce
+    - each
+    - encode_with
+    - eql?
+    - equal?
+    - hash
+    - init_with
+    - initialize
+    - initialize_copy
+    - inspect
+    - marshal_dump
+    - marshal_load
+    - method_missing
+    - respond_to_missing?
+    - to_a
+    - to_ary
+    - to_h
+    - to_hash
+    - to_json
+    - to_proc
+    - to_s
+    - to_str
+  Exclude:
+    - "spec/**/*"
+    - "test/**/*"
+    - "**/*_spec.rb"
+    - "**/*_test.rb"
+    - "db/**/*"
+    - "config/**/*"
+    - "app/controllers/**/*"
+    - "*/app/controllers/**/*"
+    - "app/mailers/**/*"
+    - "*/app/mailers/**/*"
+    - "app/helpers/**/*"
+    - "*/app/helpers/**/*"
+    - "app/views/**/*"
+    - "*/app/views/**/*"
+
+Kata/NoGetter:
+  Description: >-
+    No getters: a public `attr_reader`, or a method that only returns the
+    field of its name (`def balance = @balance`), hands an object's data to
+    whoever asks, and the logic about it moves to them (`Label` building text
+    from `customer.first_name` and `customer.last_name`). Tell the object what
+    to do with its fields, or have it print itself to a medium it is given
+    (Elegant Objects' printers instead of getters). `Struct.new` and
+    `Data.define` mint a getter for every field: a data bag. A private or
+    protected reader is the object's own. Off by default: config/strict.yml
+    turns it on.
+  Enabled: false
+  VersionAdded: "0.11"
+  Exclude:
+    - "spec/**/*"
+    - "test/**/*"
+    - "**/*_spec.rb"
+    - "**/*_test.rb"
+    - "db/**/*"
+    - "config/**/*"
+
+Kata/NoHardWiring:
+  Description: >-
+    An instance method that builds one of the project's classes as a
+    collaborator has wired it in: no caller can hand it another
+    implementation, and a test has to stub `new`. How long the object lives
+    and what it carries decide. One that outlives the call is a
+    collaborator: kept in a field, a class variable or a global
+    (`@gateway ||= Gateway.new`, directly or through a local), or handed to
+    the constructor of an object that outlives the call (`@log ||=
+    Logger.new(Format.new(@name))`). So is one that carries configuration
+    the caller cannot change: built from literals alone, from nothing, or
+    from a constant or global the method does not own, and talked to
+    (`Gateway.new("live").charge(@cents)`, `Repo.new(DB).find(id)`) or
+    handed to another object's constructor (`Order.new(Gateway.new("live"))`).
+    Take it in the constructor; a parameter default (`gateway =
+    Gateway.new("live")`) is the seam, as Elegant Objects' secondary
+    constructor is. An object that lives only inside one call is the call's
+    own data, whatever the method does to it, and passes: one built from the
+    method's own inputs (its arguments, a block's arguments, its locals and
+    fields, `self`, the class's own constants; `Nesting.new(node).qualified`,
+    an entry built per row, filled and saved, `Writer.new(buffer:,
+    parts:).emit`), one returned, passed to a method or left as a block's
+    value (`Cart.new(@items + [item])`, `form = Form.new; form.add(upload);
+    submit(form)`, `Jar.new.tap { it.parse(text) }`), and an empty one the
+    call fills and reads back (`buffer = Buffer.new;
+    Writer.new(buffer:).emit; buffer.content`). Injected, one instance would
+    carry every call's contents. Asking a fresh object what its class
+    answers (`respond_to?`, `method`) is not talking to it, and a message
+    sent to a name before it was bound to the new object goes to the name's
+    earlier value. The class building itself passes too. Class methods,
+    constructors and the composition roots a framework instantiates are
+    where objects are wired: controllers, view helpers, jobs, mailers,
+    tests, rake tasks, `bin/`, `config/`, a subclass of one of
+    the `RootSuperclasses`, and a module a load hook in `RootHooks` mixes into
+    the framework's class (`ActiveSupport.on_load(:action_controller) {
+    include Tracking }`); the framework builds them, so they cannot be handed
+    a collaborator. A class under one of the `BuiltSuperclasses` (an
+    ActiveRecord or Mongoid model: a loaded record is allocated past
+    `initialize`) and a module have no constructor to take one in either, but
+    they are not roots: they are reported with the seam they have, a
+    parameter of the method with the `new` as its default, or the object
+    built where the model is used. Ruby's and other libraries' classes are
+    values or boundaries, and pass. Off by default: config/strict.yml turns
+    it on.
+  Enabled: false
+  VersionAdded: "0.11"
+  RootSuperclasses:
+    - ActionController::API
+    - ActionController::Base
+    - ActionController::TestCase
+    - ActionDispatch::IntegrationTest
+    - ActionMailer::Base
+    - ActionMailer::TestCase
+    - ActionView::TestCase
+    - ActiveJob::Base
+    - ActiveJob::TestCase
+    - ActiveSupport::TestCase
+    - ApplicationController
+    - ApplicationJob
+    - ApplicationMailer
+    - Minitest::Test
+    - Rails::Generators::Base
+    - Rails::Generators::NamedBase
+    - RuboCop::Cop::Base
+    - Test::Unit::TestCase
+    - Thor
+    - Thor::Group
+  RootHooks:
+    - action_controller
+    - action_controller_api
+    - action_controller_base
+    - action_mailer
+    - action_view
+    - active_job
+  BuiltSuperclasses:
+    - ActiveRecord::Base
+    - ApplicationRecord
+    - Mongoid::Document
+  OwnedPaths:
+    - "app/**/*.rb"
+    - "*/app/**/*.rb"
+    - "lib/**/*.rb"
+    - "*/lib/**/*.rb"
+  Exclude:
+    - "spec/**/*"
+    - "test/**/*"
+    - "**/*_spec.rb"
+    - "**/*_test.rb"
+    - "app/controllers/**/*"
+    - "*/app/controllers/**/*"
+    - "app/helpers/**/*"
+    - "*/app/helpers/**/*"
+    - "app/jobs/**/*"
+    - "*/app/jobs/**/*"
+    - "app/mailers/**/*"
+    - "*/app/mailers/**/*"
+    - "app/workers/**/*"
+    - "*/app/workers/**/*"
+    - "**/*_controller.rb"
+    - "**/*_job.rb"
+    - "**/*_mailer.rb"
+    - "**/*_worker.rb"
+    - "db/**/*"
+    - "bin/**/*"
+    - "exe/**/*"
+    - "script/**/*"
+    - "config/**/*"
+    - "config.ru"
+    - "lib/tasks/**/*"
+    - "Rakefile"
+    - "**/*.rake"
+    - "*.gemspec"
 
 Kata/ConstructorDiscipline:
   Description: >-
@@ -855,17 +1392,23 @@ Kata/ConstructorDiscipline:
     `to_*` conversion, a defensive `dup`, and `freeze`. So is the object's own
     state that nothing could inject: a lock or a queue (`Mutex.new`), or an
     empty collection (`Set.new`, `+""`, `{}.compare_by_identity`). A clock, a
-    random number, a client, or a sum is a dependency or a computation, and
-    is flagged (`@id = SecureRandom.uuid`); a parameter default is the seam
-    such a dependency comes in through (`def initialize(clock: Time)`), and
-    passes. A guard may raise, through `raise` or one of the project's
+    random number, a client, or a sum is a dependency or a computation, and is
+    flagged (`@id = SecureRandom.uuid`); a parameter default is the seam such
+    a dependency comes in through (`def initialize(clock: Time)`), and passes.
+    A guard may raise, through `raise` or one of the project's
     `RaisingMethods` (`UI.user_error!`). Assigning through the object's own
-    writer (`self.project = project`) is assigning; Kata/NoSetter reports
-    the writer.
+    writer (`self.project = project`) is assigning; Kata/NoSetter reports the
+    writer. With `CheckPaths: true` (config/strict.yml), an `initialize` that
+    branches on its arguments (`if formatted`, `case parts`, a ternary, `case
+    ... in`) is several constructors in one, reported once at the tested
+    condition: keep one primary constructor and give each other way a class
+    method that calls `new`. `&&` and `||` are values, not branches. A class method that builds
+    with `allocate` bypasses `initialize`, a second primary constructor.
   Enabled: true
   Sorbet: false
   VersionAdded: "0.3"
   VersionChanged: "0.11"
+  CheckPaths: false
   RaisingMethods:
     - fail
     - raise
@@ -906,10 +1449,26 @@ Kata/NoClassMethodLogic:
     constructor whatever its name. `AllowedNames` holds the constructor names
     (`build`, `parse`, `of`, `from`, `from_*`, `new`, `[]`), the hooks and
     protocol methods Ruby calls on a class by name (`included`, `inherited`,
-    `method_added`, `name`, `to_s`, `inspect`, `===`, `method_missing`), and the
+    `method_added`, `name`, `to_s`, `inspect`, `===`, `method_missing`, and
+    `to_proc`, which `map(&Maybe)` sends to the class), and the
     serialization protocols a framework calls on the class: a coder for
     ActiveRecord `serialize` or YAML answers `load`/`dump`, Marshal `_load`,
-    the JSON additions `json_create`. A module declared with
+    the JSON additions `json_create`. A hook a foreign superclass's framework
+    calls on the class is the framework's design, not the class's logic: a
+    class method that calls `super` where no class of the project between it
+    and the foreign superclass defines it (an override of the superclass's
+    own: `def self.columns = super.reject { ... }` in an ActiveRecord model),
+    and one that several of the project's classes define, under superclasses
+    that lead out of the project, and that the project never sends by name
+    (SuperDiff asks each registered tree class `applies_to?`, Rails each
+    generator `next_migration_number`). So is an override of the default a
+    module the class extends answers: `extend Taggable` gives every model
+    `taggable?` (false), and `def self.taggable? = true`, in the class or
+    in a `class_eval` the module's own macro runs on it, answers the same
+    message, which no constant can (a module of functions that extends
+    another is still judged). A foreign mixin is not a superclass:
+    a class method sibling classes answer under `include ActiveModel::Model`
+    is still the class's logic. A module declared with
     `module_function` or `extend self` is a bag of functions called on the
     module, the same logic with no class, and its declaration is reported.
     A class method that only returns a literal is a constant in disguise
@@ -958,6 +1517,7 @@ Kata/NoClassMethodLogic:
     - ransackable_scopes
     - respond_to_missing?
     - singleton_method_added
+    - to_proc
     - to_s
 
 Kata/NoHashAsObject:
@@ -993,12 +1553,26 @@ Kata/NoHashAsObject:
 
 Kata/ClockDiscipline:
   Description: >-
-    Read time from an injected clock, not the ambient one. A parameter
-    default is the seam, and code outside every class, module and method is a
-    script's boot layer.
+    Read time from an injected clock, not the ambient one: no `Time.now`,
+    `Date.today`, `Process.clock_gettime`. With `CheckRandomness: true`
+    (config/strict.yml) randomness is read the same way: no `SecureRandom`,
+    `rand`, `Random.rand`, unseeded `Random.new`, or `sample`/`shuffle`
+    without `random:`; a `rand` the project defines (ffaker's seeded
+    `RandomUtils#rand`), or a `shuffle` one of its modules answers
+    (`ArrayUtils.shuffle`), under `OwnedPaths`, is its own. A parameter
+    default is the seam (`def initialize(id = SecureRandom.uuid)`; `id ||
+    SecureRandom.uuid` is not one); code outside every class, module and
+    method is a script's boot layer, and so is a framework's boot hook
+    (`initializer`, `to_prepare`, `on_load`).
   Enabled: true
   VersionAdded: "0.3"
   VersionChanged: "0.11"
+  CheckRandomness: false
+  OwnedPaths:
+    - "app/**/*.rb"
+    - "*/app/**/*.rb"
+    - "lib/**/*.rb"
+    - "*/lib/**/*.rb"
   Exclude:
     - "spec/**/*"
     - "test/**/*"
@@ -1019,15 +1593,32 @@ Kata/ClockDiscipline:
     - "gems.rb"
     - "**/*.gemfile"
     - "**/*.jbuilder"
+    - "**/railtie.rb"
+    - "**/engine.rb"
+    - "lib/generators/**/*"
+    - "*/lib/generators/**/*"
 
 Kata/EnvDiscipline:
   Description: >-
-    ENV belongs in the boot layer; pass configuration in. A parameter default
-    is the seam, and code outside every class, module and method is a
-    script's boot layer.
+    ENV belongs in the boot layer; pass configuration in. With `CheckSettings:
+    true` (config/strict.yml) the application's configuration does too:
+    `Settings` lists the framework's spellings of the same hidden global input
+    (`Rails.env`, `Rails.configuration`, `Rails.application.config`,
+    `credentials`, `secrets` and `config_for`). A parameter default is the
+    seam; code outside every class, module and method is a script's boot
+    layer, and so is a framework's boot hook (`initializer`, `to_prepare`,
+    `on_load`).
   Enabled: true
   VersionAdded: "0.3"
   VersionChanged: "0.11"
+  CheckSettings: false
+  Settings:
+    - Rails.application.config
+    - Rails.application.config_for
+    - Rails.application.credentials
+    - Rails.application.secrets
+    - Rails.configuration
+    - Rails.env
   Exclude:
     - "spec/**/*"
     - "test/**/*"
@@ -1048,6 +1639,76 @@ Kata/EnvDiscipline:
     - "gems.rb"
     - "**/*.gemfile"
     - "**/*.jbuilder"
+    - "**/railtie.rb"
+    - "**/engine.rb"
+    - "lib/generators/**/*"
+    - "*/lib/generators/**/*"
+
+Kata/FailFast:
+  Description: >-
+    A `rescue` that does not re-raise (`raise`, `fail`, `retry`, `exit`,
+    `abort`; `RaisingMethods`) answers something: when that is a default — an
+    empty body, `nil`, `false`, a literal, `[]`, `{}` — or a log line
+    (`@log.warn(...)`, logged or not before the default), the error is
+    swallowed and the caller goes on with a value that hides it. Let it raise,
+    or rescue the one error you expect and answer an object that says what
+    failed (`rescue KeyError; Absent.new(key)`, a null object, passes). A
+    rescue that answers a boolean is a question's answer when it names the
+    errors it expects (`rescue URI::InvalidURIError; false`), or sits in a
+    predicate and names no bug (`def numeric? = Integer(x) rescue false`;
+    `rescue NoMethodError` is a bug); `==`, `eql?` and `<=>` answer a foreign
+    object. The ends of a stream or a process (`EOFError`, `Errno::EPIPE`,
+    `Errno::ESRCH`, an empty queue's `ThreadError`), and an optional library's
+    `LoadError` (`ExpectedErrors`) are not failures. On the way out of a
+    failure, in an `ensure` or inside a rescue that re-raises, a rescue
+    keeps the error in flight from being replaced, and passes
+    (`socket.close rescue nil`, a diagnostic `socket.read rescue ""`).
+    Anywhere else a release swallows like any other call: `def reset =
+    @socket.close rescue nil` goes on when the close fails, or when
+    `@socket` is nil; let it raise, or rescue the end you expect (`rescue
+    IOError`). A `rescue` modifier catches every StandardError, bugs
+    included, whatever it answers. Off by default: config/strict.yml
+    turns it on in place of Lint/SuppressedException and Style/RescueModifier,
+    whose advice (`begin ... rescue 0 end`) still swallows.
+  Enabled: false
+  VersionAdded: "0.11"
+  Exclude:
+    - "spec/**/*"
+    - "test/**/*"
+  RaisingMethods:
+    - abort
+    - exit
+    - exit!
+    - fail
+    - raise
+  ExpectedErrors:
+    - EOFError
+    - Errno::EBADF
+    - Errno::ECHILD
+    - Errno::ECONNRESET
+    - Errno::EPIPE
+    - Errno::ESRCH
+    - Gem::LoadError
+    - IO::EAGAINWaitReadable
+    - IO::WaitReadable
+    - IOError
+    - LoadError
+    - StopIteration
+    - ThreadError
+
+Kata/ScopedResource:
+  Description: >-
+    Whoever acquires a resource releases it, whatever happens in between: a
+    lock taken and released by hand (`@lock.lock` ... `@lock.unlock`, and
+    `acquire`/`release`, `checkout`/`checkin`) or a handle opened into a local
+    and closed by hand (`file = File.open(path)` ... `file.close`, and
+    `finish`, `disconnect`, `release`, `shutdown`), with the release outside
+    an `ensure`, leaves the resource held when anything between them raises.
+    Hold it for a block (`@lock.synchronize { ... }`, `File.open(path) { ...
+    }`) or release it in `ensure`. Off by default: config/strict.yml turns it
+    on.
+  Enabled: false
+  VersionAdded: "0.11"
 
 Kata/NoSetter:
   Description: >-
@@ -1081,7 +1742,11 @@ Kata/FrozenState:
     variable holds is changing state too: `@items << item`, `@index[key] =
     value` and the other `MutatingMethods` of Kata/NoOutputArgument, outside
     construction, are offenses; a keyed cache (`@cache[key] ||= value`) is
-    memoization.
+    memoization. A name a collection's mutator shares with a collaborator's
+    command (`insert`, `delete`, `clear`, `update`, `store`, `pop`, ...) is a
+    change of state only on a collection the object built (`[]`, `{}`,
+    `Set.new`, `x.dup`, memoized or not) or uses as one (`[]`, `<<`,
+    `each`): `@store.insert(row)` tells an injected store to act.
     Rails hands a view its data through a controller's or mailer's instance
     variables, so `app/controllers`, `app/mailers` and `app/helpers` are
     excluded.
@@ -1119,7 +1784,12 @@ Kata/NoOutputArgument:
     is a fresh collection, and a parameter reassigned first (`list =
     list.dup`) is a copy. `AllowedNames` holds the parameters that are sinks
     by convention, written to rather than returned (`io`, `out`, `buffer`),
-    and `env`, which Rack and Faraday middleware is contracted to change.
+    and `env`, which Rack and Faraday middleware is contracted to change;
+    `AllowedMethods` holds the serialization hooks whose argument the
+    protocol hands in to be filled or read (Psych's `encode_with(coder)`
+    fills the coder it dumps; `init_with`, `marshal_load`).
+    `delete` given a character set (`text.delete("$,.")`, `"a-z"`) is
+    `String#delete`, which returns a copy.
   Enabled: true
   VersionAdded: "0.11"
   Exclude:
@@ -1128,6 +1798,10 @@ Kata/NoOutputArgument:
     - "**/*_spec.rb"
     - "**/*_test.rb"
     - "**/*.jbuilder"
+  AllowedMethods:
+    - encode_with
+    - init_with
+    - marshal_load
   AllowedNames:
     - buffer
     - env
@@ -1179,13 +1853,47 @@ Kata/NoOutputArgument:
 
 Kata/CommandQuery:
   Description: >-
-    A method whose name ends in `?` answers a question and changes nothing:
-    it assigns no instance variable and calls no `!` method on itself, its
-    state or its parameters. Memoizing the answer (`@valid ||= ...`) is not a
-    change, and neither is a guard whose only branch is a bang on a constant
-    (`UI.user_error!("...") unless key`): it raises, it does not mutate.
+    A method answers or acts, never both. A method whose name ends in `?`
+    answers a question and changes nothing: it assigns no instance variable
+    and calls no `!` method on itself, its state or its parameters for its
+    effect. A bang whose value the method reads (`{ "Status" =>
+    I18n.t!(key) }`, `url ? resolve!(url) : home`, `found = fetch!(id)`) is
+    a lookup that raises; one that is the method's answer (`def saved? =
+    save!`) still acts. A parameter the method rebound to its own copy
+    (`uri = uri.dup`) or a splat Ruby builds for the call (`*props`,
+    `**options`) is the method's own, as `Kata/NoOutputArgument` reads them.
+    Memoizing the answer (`@valid ||= ...`) is not a change, and neither is a
+    guard whose only branch is a bang on a constant (`UI.user_error!("...")
+    unless key`) or one of the `RaisingMethods` (a name, or `Const.name`
+    for a library's helper on that constant; ActiveSupport's
+    `assert_valid_keys` is listed), nor a call on itself or on a constant to
+    a method of the project (in the file, or among the files `OwnedPaths`
+    matches) whose every definition only raises through one of them, after
+    locals, guard returns (`return if options.empty?`) and work on its own
+    locals or splat (`valid_keys.flatten!`) at most (`assert_known!(key)`,
+    defined as `fail_unknown!(key) unless known?(key)`;
+    `OptionsValidator.assert_valid_keys!(query, :from)`): it raises, it
+    does not mutate. With
+    `CheckEveryQuery: true` (config/strict.yml) any method whose last
+    expression is a value (a literal, a field, a sum, a lookup, a new object:
+    `def balance = ... @entries.sum`) is a query too, and a query sends no
+    message whose value it throws away to itself, its state, its parameters or
+    a constant (`@audit.record("balance read")`, `Rails.logger.info(...)`): a
+    statement whose value nobody reads is there for its effect. Work on the
+    method's own locals (`lines << row; lines.join`), a block (an iteration),
+    and a method returning `self` (a chained command) are not judged.
   Enabled: true
   VersionAdded: "0.11"
+  CheckEveryQuery: false
+  RaisingMethods:
+    - assert_valid_keys
+    - fail
+    - raise
+  OwnedPaths:
+    - "app/**/*.rb"
+    - "*/app/**/*.rb"
+    - "lib/**/*.rb"
+    - "*/lib/**/*.rb"
   Exclude:
     - "spec/**/*"
     - "test/**/*"
@@ -1200,8 +1908,14 @@ Kata/NoTypeCheck:
     decide. The boot layer and the protocols that compare or convert values
     are exempt: `AllowedMethods` holds `==`, `eql?`, `<=>`, `===`, `coerce`
     and `respond_to_missing?`, whose contract is to accept any object and
-    check what it was handed. Only the project's own types are judged: a
-    check against a class or module the project defines (in the file, or in
+    check what it was handed. So do an RSpec matcher's `match` and
+    `match_when_negated` blocks (in `RSpec::Matchers.define` or `matcher`),
+    and a class-level hook a foreign superclass's framework calls, as
+    Kata/NoClassMethodLogic reads one (SuperDiff's `applies_to?(value)`):
+    the framework hands them any object, and only adding a method to every
+    class could let polymorphism choose. Only the project's own types are
+    judged: a check against a class or module the project defines (in the
+    file, or in
     `OwnedPaths`; a constant assigned `Class.new`, `Module.new`, `Struct.new`
     or `Data.define` counts), or a `respond_to?` probe for a method the
     project defines. A type ladder in any spelling is the same question:
@@ -1276,16 +1990,25 @@ Kata/NoTypeCheck:
 
 Kata/NoSingleton:
   Description: >-
-    A singleton is a global with a class name: `include Singleton`, or a
-    class method caching an instance in a class-level variable
-    (`def self.instance = @instance ||= new`). Build the object where the
-    program starts and pass it to what needs it. The cache is judged by
-    what it holds, the value its expression returns: a class-level cache of
-    a value (`@members ||= Set.new(...)`, a `Struct.new`, a `Pathname`, or
-    `Codelist.new(...).map { ... }`, an array) is not an instance of the
-    class's service, and `AllowedConstructors` lists those classes.
+    A singleton is a global with a class name: `include Singleton`, or a class
+    method caching an instance in a class-level variable (`def self.instance =
+    @instance ||= new`). Build the object where the program starts and pass it
+    to what needs it. The cache is judged by what it holds, the value its
+    expression returns: a class-level cache of a value (`@members ||=
+    Set.new(...)`, a `Struct.new`, a `Pathname`, or `Codelist.new(...).map {
+    ... }`, an array) is not an instance of the class's service, and
+    `AllowedConstructors` lists those classes. With `CheckGlobals: true`
+    (config/strict.yml) the framework's globals are singletons too: a subclass
+    of `ActiveSupport::CurrentAttributes` (`Current.account` read from a
+    model), state kept in the thread, the fiber or the request store
+    (`Thread.current[:user]`, `Fiber[:state]`, `RequestStore.store[:user]`),
+    and a class-level setting behind an accessor (`cattr_accessor`,
+    `mattr_accessor`, their writers and thread variants; a reader is a
+    constant). Code outside every class, module and method is a script's boot
+    layer.
   Enabled: true
   VersionAdded: "0.11"
+  CheckGlobals: false
   AllowedConstructors:
     - Array
     - Class
@@ -1322,6 +2045,13 @@ Style/StringLiterals:
 
 Style/StringLiteralsInInterpolation:
   EnforcedStyle: double_quotes
+
+# `+` joins strings only when a string literal starts it: mechanize's
+# `uri + "/"` is URI#+, which merges a reference (the site root), and the
+# interpolation the aggressive mode asks for builds a String of the whole path
+# plus a slash. Conservative mode reports `"a" + b` and leaves `x + "b"`.
+Style/StringConcatenation:
+  Mode: conservative
 
 Style/ItBlockParameter:
   Enabled: true
@@ -1640,10 +2370,14 @@ Kata/ClassInModule:
     config/application.rb autoloads lib/ through `config.autoload_lib` or
     its autoload or eager-load paths) defines a top-level constant by
     design, so those are excluded; a subdirectory of a root is a namespace,
-    and Zeitwerk already demands the matching module. Reopening one of the
-    `CoreClasses` (`class String`) is a monkey patch: wrapping it in a module
-    would define a new class, so the message asks for a refinement or a
-    decorator instead. The project's own root constant (`class Roda` in the
+    and Zeitwerk already demands the matching module. A migration
+    (`class CreateSlugs < ActiveRecord::Migration[7.1]`, or under a constant
+    the file assigns one) is loaded the same way wherever its template lives:
+    ActiveRecord loads the file and constantizes the top-level name camelized
+    from it, so a module around it makes `db:migrate` raise. Reopening one of
+    the `CoreClasses` (`class String`) is a monkey patch: wrapping it in a
+    module would define a new class, so the message asks for a refinement or
+    a decorator instead. The project's own root constant (`class Roda` in the
     roda gem, from the gemspec's name or the Rails application's module, in
     the `Kata` department's `Roots`) is its one top-level name and passes. A
     class reopened in several files is one decision, judged once: in the
@@ -2047,6 +2781,10 @@ Naming/BlockForwarding:
 
 # A runner's `run` answers whether the run passed, by contract: Minitest.run
 # and Test::Unit's AutoRunner.run return the boolean their exit hook reads.
+# A method that acts before it answers a boolean (`@headers = {}; true`) is
+# a command with a success token: kata tells it to return nothing, not to
+# take a `?` that would make it a query changing state, which
+# Kata/CommandQuery rejects (lib/rubocop/kata/success_token.rb).
 Naming/PredicateMethod:
   Enabled: true
   AllowedMethods:

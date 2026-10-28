@@ -12,6 +12,26 @@ RSpec.describe(RuboCop::Kata::ForeignText) do
     expect(offenses(source).map(&:line)).to(eq([11]))
   end
 
+  # strong_migrations' error messages: each message's text starts at column 0, the next key sits under the last.
+  it "measures the line after a multi-line string that starts its line from the code before the string" do
+    messages = "module Demo\n  MESSAGES = {\n    add_column:\n\"Adding a column\nrewrites it.\nend\",\n\n    " \
+      "add_index: \"x\"\n  }\nend\n"
+    expect(offenses(messages)).to(be_empty)
+  end
+
+  # transition's SQL in `.joins('...')`, mechanize's multi-line regexp.
+  it "measures the line after a multi-line literal opened mid-line from the line that opens it" do
+    sql = "def scope\n  select(\"x\")\n    .joins('\n  INNER JOIN sites\n')\n      .group(\"id\")\n      " \
+      ".where(%r{\na\n}x)\nend\n"
+    expect(offenses(sql)).to(be_empty)
+  end
+
+  it "still measures code lines, a one-line string at column 0, strings joined by a backslash and heredocs alike" do
+    source = "def run\n  x = 1\n      y = 2\n  z = \"a\" \\\n        \"b\"\nend\nM = {\n  a:\n\"one\",\n    b: 2\n}\n" \
+      "def text\n  <<~TEXT\n    a\n  TEXT\n      .strip\nend\n"
+    expect(offenses(source).map(&:line)).to(eq([3, 5, 10, 16]))
+  end
+
   it "reads a file of comments alone, which has no tree" do
     expect(offenses("# empty\n")).to(be_empty)
   end

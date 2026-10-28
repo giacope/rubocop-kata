@@ -45,7 +45,7 @@ RSpec.describe(RuboCop::Kata::Plugin) do
     paths = [*lists, RuboCop::Cop::Kata::Reopening::OWNED, RuboCop::Cop::Kata::Contract::OWNED]
     missing = paths.flat_map { |list| list.grep(%r{\Aapp/}).reject { list.include?("*/#{it}") } }
     expect(missing).to(be_empty)
-    expect(paths.count { it.include?("*/app/**/*.rb") }).to(eq(10))
+    expect(paths.count { it.include?("*/app/**/*.rb") }).to(eq(15))
   end
 
   it "keeps the parameter limit it advertises" do
@@ -81,6 +81,12 @@ RSpec.describe(RuboCop::Kata::Plugin) do
         Style/OperatorMethodCall Performance/BindCall Style/EmptyMethod Style/CaseEquality Lint/UselessNumericOperation
       ]
       expect(cops.reject { config.for_cop(it)["SafeAutoCorrect"] == false }).to(be_empty)
+    end
+  end
+
+  it "reads `+` as string concatenation only when a string literal starts it" do
+    effective do |config|
+      expect(config.for_cop("Style/StringConcatenation")["Mode"]).to(eq("conservative"))
     end
   end
 
@@ -137,6 +143,59 @@ RSpec.describe(RuboCop::Kata::Plugin) do
     files = { ".rubocop.yml" => own, "Gemfile" => "", "lib/shelf.rb" => "", "lib/shelf/vendor/tsort/sorter.rb" => "" }
     listed = targets(files.merge("tmp/cache.rb" => "", "db/schema.rb" => ""))
     expect(listed).to(eq(%w[Gemfile lib/shelf.rb]))
+  end
+
+  # config/strict.yml: the strict Elegant Objects profile a project inherits on top of the plugin.
+  it "switches on exactly the rules it ships off, and the cops they replace off, under the strict profile" do
+    plain = settings("")
+    strict = settings("inherit_gem:\n  rubocop-kata: config/strict.yml\n")
+    changed = strict.to_h { |name, values| [name, values.reject { |key, value| plain.dig(name, key) == value }] }
+    expect(changed.reject { |_, values| values.empty? }).to(eq(strict_profile))
+  end
+
+  # A project whose plugins sit in a parent file: RuboCop checks an inherited file's cops before that parent's plugins.
+  it "runs the strict profile where the project's plugins sit in another inherited file" do
+    expect(linted(parented, "--only", "Kata/FailFast")).to(include("1 file inspected, 1 offense detected"))
+  end
+
+  def parented
+    {
+      "base.yml" => "plugins:\n  - rubocop-kata\nAllCops:\n  TargetRubyVersion: 3.4\n",
+      ".rubocop.yml" => "inherit_from: base.yml\ninherit_gem:\n  rubocop-kata: config/strict.yml\n",
+      "count.rb" => "def count = Integer(@text) rescue 0\n"
+    }
+  end
+
+  def linted(files, *options)
+    Dir.mktmpdir("kata-config") do |root|
+      files.each { |path, text| File.write(File.join(root, path), text) }
+      Open3.capture2e(RbConfig.ruby, Gem.bin_path("rubocop", "rubocop"), *options, chdir: root).first
+    end
+  end
+
+  def settings(extra)
+    Dir.mktmpdir("kata-config") do |root|
+      File.write(File.join(root, ".rubocop.yml"), "plugins:\n  - rubocop-kata\n#{extra}")
+      config = RuboCop::ConfigStore.new.for_dir(root)
+      RuboCop::Cop::Registry.global.names.to_h { [it, config.for_cop(it)] }
+    end
+  end
+
+  def strict_profile
+    added = %w[
+      FailFast ScopedResource NoNilArgument NoNilReturn NoHardWiring NoGetter FieldCount PublicSurface
+      NoPublicConstant NoReflection
+    ]
+    readings = {
+      "IoDiscipline" => "CheckEffects", "ClockDiscipline" => "CheckRandomness", "EnvDiscipline" => "CheckSettings",
+      "NoSingleton" => "CheckGlobals", "CommandQuery" => "CheckEveryQuery", "ConstructorDiscipline" => "CheckPaths"
+    }
+    replaced = %w[Lint/SuppressedException Style/RescueModifier Elegant/NoNilReturn Style/Send]
+    [
+      *added.map { ["Kata/#{it}", { "Enabled" => true }] },
+      *readings.map { |cop, key| ["Kata/#{cop}", { key => true }] },
+      *replaced.map { [it, { "Enabled" => false }] }
+    ].to_h
   end
 
   def targets(files)

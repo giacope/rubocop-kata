@@ -158,5 +158,12 @@ RSpec.describe(RuboCop::Cop::Kata::GoodModuleName, :config) do
       found = [reopened, named].map { |files| files.keys.map { project_offenses(files, it).size } }
       expect(found).to(eq([[0, 0, 1], [0, 0, 0, 1]]))
     end
+
+    # sshkit: -a closed the blank lines around `module Formatter` after the project was read (R6B6-K2).
+    it "finds a reopening by its place among the file's openings, not by the line the project read" do
+      spaced = reopened.transform_values { it.gsub("\n  module", "\n\n  module").gsub("\n  end", "\n\n  end") }
+      found = spaced.keys.map { project_offenses(spaced, it, reopened.fetch(it)).size }
+      expect(found).to(eq([0, 0, 1]))
+    end
   end
 end

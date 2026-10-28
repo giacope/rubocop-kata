@@ -1,8 +1,9 @@
 # frozen_string_literal: true
 
 class RuboCop::Cop::Kata::NoTypeCheck < RuboCop::Cop::Base
+  include RuboCop::Cop::Kata::Ancestry
   include RuboCop::Cop::Kata::Roster
-  include RuboCop::Cop::Kata::Territory
+  include RuboCop::Cop::Kata::Ownership
 
   MSG = "`%s` asks an object what it is; tell it what to do, and let polymorphism choose."
   PROTOCOL = /
@@ -21,6 +22,10 @@ class RuboCop::Cop::Kata::NoTypeCheck < RuboCop::Cop::Base
 
   def_node_matcher :class_of?, "(send _ :class)"
   def_node_matcher :class_name?, "(send (send _ :class) :name)"
+  def_node_matcher :verdict?, "(any_block (send nil? {:match :match_when_negated} ...) ...)"
+  def_node_matcher :matcher?, <<~PATTERN
+    (any_block {(send nil? :matcher _) (send (const (const {nil? cbase} :RSpec) :Matchers) :define _)} ...)
+  PATTERN
 
   def on_send(node)
     label = probe(node)
@@ -45,8 +50,14 @@ class RuboCop::Cop::Kata::NoTypeCheck < RuboCop::Cop::Base
   private
 
   def report(node, range, label)
+    add_offense(range, message: format(MSG, label)) unless protocol?(node)
+  end
+
+  def protocol?(node)
     method = node.each_ancestor(:def, :defs).first
-    add_offense(range, message: format(MSG, label)) unless method && listed?("AllowedMethods", method.method_name.to_s)
+    return listed?("AllowedMethods", method.method_name.to_s) || hook?(method) if method
+    holder = node.each_ancestor(:any_block).find { verdict?(it) }&.each_ancestor(:any_block)&.first
+    !holder.nil? && matcher?(holder)
   end
 
   def probe(node)
@@ -71,15 +82,6 @@ class RuboCop::Cop::Kata::NoTypeCheck < RuboCop::Cop::Base
     "class.name #{node.method_name}" if named && sides.any? { class_name?(it) } && own_name?(named.value, named)
   end
 
-  def own?(probe) = probe&.const_type? && own_name?(probe.const_name, probe, absolute: probe.absolute?)
-
-  def own_name?(name, node, absolute: false)
-    candidates = absolute ? [name] : [*RuboCop::Kata::Nesting.new(node).names.map { "#{it}::#{name}" }, name]
-    candidates.any? { !foreign?(it) && (local_types.include?(it) || inventory.type?(it)) }
-  end
-
-  def foreign?(name) = RuboCop::Kata::Dictionary::CORE.include?(name) || claimed?(name)
-
   def message?(name, hidden)
     return false if PROTOCOL.match?(name) || RuboCop::Kata::Protocols.new(list("Protocols")).include?(name)
     [*local_owners(name, hidden), *inventory.owners(name, hidden:)].any? { it && !foreign?(it) }
@@ -89,9 +91,5 @@ class RuboCop::Cop::Kata::NoTypeCheck < RuboCop::Cop::Base
     local_messages.filter_map { |owner, defined, shown| owner if defined == name && (hidden || shown == :public) }
   end
 
-  def local_types = @_local_types ||= RuboCop::Kata::Definitions.new(processed_source.raw_source).names
-
   def local_messages = @_local_messages ||= RuboCop::Kata::Messages.new(processed_source.raw_source).records
-
-  def inventory = RuboCop::Kata::Inventory.of(config.base_dir_for_path_parameters, list("OwnedPaths"))
 end

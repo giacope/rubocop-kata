@@ -1,0 +1,1058 @@
+# The V1 conformance cases (round 6) for the object principles of Elegant
+# Objects: each principle's minimal and realistic violation is flagged, and its
+# EO form is clean. A case marked `strict` runs under config/strict.yml, which
+# turns on the rules kata ships off; the others run under the shipped defaults.
+- id: v1-p19-violation-min-no-nil-argument
+  cop: Kata/NoNilArgument
+  strict: true
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Price
+        def initialize(cents)
+          @cents = cents
+        end
+
+        def discounted(coupon = nil)
+          return @cents if coupon.nil?
+          @cents - coupon.cents
+        end
+      end
+    end
+- id: v1-p19-violation-real-no-nil-argument
+  cop: Kata/NoNilArgument
+  strict: true
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Signup
+        def initialize(email, referrer: nil)
+          @email = email
+          @referrer = referrer
+        end
+
+        def welcome
+          return "Welcome, #{@email}" if @referrer.nil?
+          "Welcome, #{@email}, invited by #{@referrer.name}"
+        end
+
+        def bonus
+          @referrer&.credit || 0
+        end
+      end
+    end
+- id: v1-p19-compliant-no-nil-argument
+  cop: Kata/NoNilArgument
+  strict: true
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Signup
+        def initialize(email, referral)
+          @email = email
+          @referral = referral
+        end
+
+        def welcome
+          "Welcome, #{@email}#{@referral.mention}"
+        end
+
+        def bonus
+          @referral.credit
+        end
+      end
+    end
+- id: v1-p24-violation-min-no-nil-return
+  cop: Kata/NoNilReturn
+  strict: true
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Catalog
+        def initialize(items)
+          @items = items
+        end
+
+        def find(code)
+          return nil unless @items.key?(code)
+          @items[code]
+        end
+      end
+    end
+- id: v1-p24-violation-real-no-nil-return
+  cop: Kata/NoNilReturn
+  strict: true
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Cart
+        def initialize(catalog, codes)
+          @catalog = catalog
+          @codes = codes
+        end
+
+        def total
+          @codes.sum do |code|
+            item = @catalog.find(code)
+            item.nil? ? 0 : item.price
+          end
+        end
+      end
+    end
+
+    module Shop
+      class Catalog
+        def initialize(items)
+          @items = items
+        end
+
+        def find(code)
+          @items.detect { |item| item.code == code }
+        end
+      end
+    end
+- id: v1-p24-compliant-no-nil-return
+  cop: Kata/NoNilReturn
+  strict: true
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Catalog
+        def initialize(items)
+          @items = items
+        end
+
+        def find(code)
+          @items.fetch(code)
+        end
+      end
+    end
+- id: v1-p24-compliant-alt-no-nil-return
+  cop: Kata/NoNilReturn
+  strict: true
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class AbsentItem
+        def initialize(code)
+          @code = code
+        end
+
+        def price
+          0
+        end
+
+        def to_s
+          "#{@code} (unavailable)"
+        end
+      end
+    end
+
+    module Shop
+      class Catalog
+        def initialize(items, missing)
+          @items = items
+          @missing = missing
+        end
+
+        def find(code)
+          @items.fetch(code, @missing)
+        end
+      end
+    end
+- id: v1-p05-violation-min-no-hard-wiring
+  cop: Kata/NoHardWiring
+  strict: true
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Checkout
+        def initialize(cents)
+          @cents = cents
+        end
+
+        def receipt
+          Gateway.new("live").charge(@cents)
+        end
+      end
+    end
+
+    module Shop
+      class Gateway
+        def initialize(key)
+          @key = key
+        end
+
+        def charge(cents)
+          "#{@key}:#{cents}"
+        end
+      end
+    end
+- id: v1-p05-violation-real-no-hard-wiring
+  cop: Kata/NoHardWiring
+  strict: true
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Checkout
+        def initialize(cart)
+          @cart = cart
+        end
+
+        def complete
+          receipt = Gateway.new("live").charge(@cart.total)
+          Mailbox.new("smtp.example.com").deliver(receipt)
+        end
+      end
+    end
+
+    module Shop
+      class Gateway
+        def initialize(key)
+          @key = key
+        end
+
+        def charge(cents)
+          "#{@key}:#{cents}"
+        end
+      end
+    end
+
+    module Shop
+      class Mailbox
+        def initialize(host)
+          @host = host
+        end
+
+        def deliver(text)
+          "#{@host} <- #{text}"
+        end
+      end
+    end
+- id: v1-p05-compliant-no-hard-wiring
+  cop: Kata/NoHardWiring
+  strict: true
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Checkout
+        def initialize(cart, gateway, mailbox)
+          @cart = cart
+          @gateway = gateway
+          @mailbox = mailbox
+        end
+
+        def complete
+          @mailbox.deliver(@gateway.charge(@cart.total))
+        end
+      end
+    end
+- id: v1-p05-compliant-alt-no-hard-wiring
+  cop: Kata/NoHardWiring
+  strict: true
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Checkout
+        def initialize(cents, gateway = Gateway.new("live"))
+          @cents = cents
+          @gateway = gateway
+        end
+
+        def receipt
+          @gateway.charge(@cents)
+        end
+      end
+    end
+
+    module Shop
+      class Gateway
+        def initialize(key)
+          @key = key
+        end
+
+        def charge(cents)
+          "#{@key}:#{cents}"
+        end
+      end
+    end
+- id: v1-p07-violation-min-command-query
+  cop: Kata/CommandQuery
+  strict: true
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Basket
+        def initialize(items)
+          @items = items
+        end
+
+        def empty?
+          @items.compact!
+          @items.empty?
+        end
+      end
+    end
+- id: v1-p07-violation-real-command-query
+  cop: Kata/CommandQuery
+  strict: true
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Account
+        def initialize(entries, audit)
+          @entries = entries
+          @audit = audit
+        end
+
+        def balance
+          @audit.record("balance read")
+          @entries.sum
+        end
+
+        def withdraw(cents)
+          @audit.record("withdrawal")
+          @entries.sum - cents
+        end
+      end
+    end
+- id: v1-p07-compliant-command-query
+  cop: Kata/CommandQuery
+  strict: true
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Account
+        def initialize(entries)
+          @entries = entries
+        end
+
+        def balance
+          @entries.sum
+        end
+
+        def withdrawn(cents)
+          Account.new(@entries + [-cents])
+        end
+      end
+    end
+- id: v1-p20-violation-min-no-getter
+  cop: Kata/NoGetter
+  strict: true
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Account
+        attr_reader :balance
+
+        def initialize(balance)
+          @balance = balance
+        end
+
+        def deposited(cents)
+          Account.new(@balance + cents)
+        end
+      end
+    end
+- id: v1-p20-violation-real-no-getter
+  cop: Kata/NoGetter
+  strict: true
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Customer
+        attr_reader :first_name, :last_name, :email
+
+        def initialize(first_name, last_name, email)
+          @first_name = first_name
+          @last_name = last_name
+          @email = email
+        end
+
+        def contact
+          "#{@first_name} <#{@email}>"
+        end
+      end
+    end
+
+    module Shop
+      class Label
+        def initialize(customer)
+          @customer = customer
+        end
+
+        def text
+          "#{@customer.first_name.upcase} #{@customer.last_name.upcase}"
+        end
+      end
+    end
+- id: v1-p20-compliant-no-getter
+  cop: Kata/NoGetter
+  strict: true
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Customer
+        def initialize(first, last, email)
+          @first = first
+          @last = last
+          @email = email
+        end
+
+        def contact
+          "#{@first} <#{@email}>"
+        end
+
+        def label
+          "#{@first.upcase} #{@last.upcase}"
+        end
+      end
+    end
+- id: v1-p20-compliant-alt-no-getter
+  cop: Kata/NoGetter
+  strict: true
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Card
+        def initialize(fields)
+          @fields = fields.freeze
+        end
+
+        def with(name, value)
+          Card.new(@fields.merge(name => value))
+        end
+
+        def to_s
+          @fields.map { |name, value| "#{name}: #{value}" }.join("\n")
+        end
+      end
+    end
+
+    module Shop
+      class Customer
+        def initialize(first, last, email)
+          @first = first
+          @last = last
+          @email = email
+        end
+
+        def print(media)
+          media.with("first", @first).with("last", @last).with("email", @email)
+        end
+      end
+    end
+- id: v1-p28-violation-min-no-getter
+  cop: Kata/NoGetter
+  strict: true
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Point
+        attr_reader :left, :top
+
+        def initialize(left, top)
+          @left = left
+          @top = top
+        end
+      end
+    end
+- id: v1-p28-violation-real-no-getter
+  cop: Kata/NoGetter
+  strict: true
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      Address = Struct.new(:street, :city, :zip)
+    end
+
+    module Shop
+      class ApplicationRecord < ActiveRecord::Base
+        self.abstract_class = true
+      end
+    end
+
+    module Shop
+      class Invoice
+        def initialize(order, address)
+          @order = order
+          @address = address
+        end
+
+        def total
+          (@order.quantity * @order.unit_cents) + @order.shipping_cents
+        end
+
+        def label
+          "#{@address.street}, #{@address.zip} #{@address.city}"
+        end
+      end
+    end
+
+    module Shop
+      class Order < ApplicationRecord
+      end
+    end
+- id: v1-p28-compliant-no-getter
+  cop: Kata/NoGetter
+  strict: true
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Address
+        def initialize(street, city, zip)
+          @street = street
+          @city = city
+          @zip = zip
+        end
+
+        def label
+          "#{@street}, #{@zip} #{@city}"
+        end
+      end
+    end
+
+    module Shop
+      class Order
+        def initialize(quantity, unit, shipping)
+          @quantity = quantity
+          @unit = unit
+          @shipping = shipping
+        end
+
+        def total
+          (@quantity * @unit) + @shipping
+        end
+      end
+    end
+- id: v1-p04-violation-min-field-count
+  cop: Kata/FieldCount
+  strict: true
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Address
+        def initialize(street, city, zip, country, phone)
+          @street = street
+          @city = city
+          @zip = zip
+          @country = country
+          @phone = phone
+        end
+
+        def label
+          "#{@street}, #{@zip} #{@city}, #{@country} (#{@phone})"
+        end
+      end
+    end
+- id: v1-p04-violation-real-field-count
+  cop: Kata/FieldCount
+  strict: true
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Signup
+        include ActiveModel::Model
+
+        attr_accessor :email, :password, :name, :company, :phone, :plan
+
+        def summary
+          "#{name} <#{email}> at #{company}, #{phone}, on #{plan}"
+        end
+
+        def secure?
+          password.length > 11
+        end
+      end
+    end
+- id: v1-p04-compliant-field-count
+  cop: Kata/FieldCount
+  strict: true
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Address
+        def initialize(street, place)
+          @street = street
+          @place = place
+        end
+
+        def label
+          "#{@street}, #{@place}"
+        end
+      end
+    end
+
+    module Shop
+      class Place
+        def initialize(zip, city, country)
+          @zip = zip
+          @city = city
+          @country = country
+        end
+
+        def to_s
+          "#{@zip} #{@city}, #{@country}"
+        end
+      end
+    end
+- id: v1-p14-violation-min-public-surface
+  cop: Kata/PublicSurface
+  strict: true
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Customer
+        def initialize(name, email)
+          @name = name
+          @email = email
+        end
+
+        def greeting
+          "Dear #{@name}"
+        end
+
+        def signature
+          "#{@name} <#{@email}>"
+        end
+
+        def initials
+          @name.split.map { |part| part[0] }.join
+        end
+
+        def mailto
+          "mailto:#{@email}"
+        end
+
+        def domain
+          @email.split("@").last
+        end
+
+        def handle
+          @email.split("@").first
+        end
+      end
+    end
+- id: v1-p14-violation-real-public-surface
+  cop: Kata/PublicSurface
+  strict: true
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class User
+        def initialize(name, email, digest, plan)
+          @name = name
+          @email = email
+          @digest = digest
+          @plan = plan
+        end
+
+        def greeting
+          "Dear #{@name}"
+        end
+
+        def signature
+          "#{@name} <#{@email}>"
+        end
+
+        def authentic?(password)
+          @digest == password.hash
+        end
+
+        def token
+          "#{@email}:#{@digest}"
+        end
+
+        def premium?
+          @plan == "premium"
+        end
+
+        def monthly
+          premium? ? 2_000 : 500
+        end
+
+        def invoice
+          "#{@name}: #{monthly}"
+        end
+
+        def mailto
+          "mailto:#{@email}"
+        end
+      end
+    end
+- id: v1-p14-compliant-public-surface
+  cop: Kata/PublicSurface
+  strict: true
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Customer
+        def initialize(name, email)
+          @name = name
+          @email = email
+        end
+
+        def greeting
+          "Dear #{@name}"
+        end
+
+        def signature
+          "#{@name} <#{@email}>"
+        end
+
+        def initials
+          @name.split.map { |part| part[0] }.join
+        end
+      end
+    end
+
+    module Shop
+      class Email
+        def initialize(address)
+          @address = address
+        end
+
+        def mailto
+          "mailto:#{@address}"
+        end
+
+        def domain
+          @address.split("@").last
+        end
+
+        def handle
+          @address.split("@").first
+        end
+      end
+    end
+- id: v1-p09-violation-min-no-public-constant
+  cop: Kata/NoPublicConstant
+  strict: true
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Cart
+        MAX_ITEMS = 50
+
+        def initialize(lines)
+          @lines = lines
+        end
+
+        def size
+          @lines.size
+        end
+      end
+    end
+
+    module Shop
+      class Order
+        def initialize(cart)
+          @cart = cart
+        end
+
+        def full?
+          @cart.size >= Cart::MAX_ITEMS
+        end
+      end
+    end
+- id: v1-p09-violation-real-no-public-constant
+  cop: Kata/NoPublicConstant
+  strict: true
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Invoice
+        def initialize(cents)
+          @cents = cents
+        end
+
+        def tax
+          @cents * Settings::TAX_RATE
+        end
+
+        def to_s
+          "#{@cents} #{Settings::CURRENCY}"
+        end
+      end
+    end
+
+    module Shop
+      module Settings
+        CURRENCY = "USD"
+        TAX_RATE = 0.2
+        FREE_SHIPPING = 5_000
+      end
+    end
+
+    module Shop
+      class Shipment
+        def initialize(cents)
+          @cents = cents
+        end
+
+        def free?
+          @cents >= Settings::FREE_SHIPPING
+        end
+
+        def label
+          "#{@cents} #{Settings::CURRENCY}"
+        end
+      end
+    end
+- id: v1-p09-compliant-no-public-constant
+  cop: Kata/NoPublicConstant
+  strict: true
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Cart
+        LIMIT = 50
+        private_constant :LIMIT
+
+        def initialize(lines)
+          @lines = lines
+        end
+
+        def full?
+          @lines.size >= LIMIT
+        end
+      end
+    end
+
+    module Shop
+      class Order
+        def initialize(cart)
+          @cart = cart
+        end
+
+        def open?
+          !@cart.full?
+        end
+      end
+    end
+- id: v1-p23-violation-min-no-reflection
+  cop: Kata/NoReflection
+  strict: true
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Receipt
+        def initialize(order)
+          @order = order
+        end
+
+        def total
+          @order.instance_variable_get(:@total)
+        end
+      end
+    end
+- id: v1-p23-violation-real-no-reflection
+  cop: Kata/NoReflection
+  strict: true
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Export
+        def initialize(record, fields)
+          @record = record
+          @fields = fields
+        end
+
+        def row
+          @fields.map { |field| @record.public_send(field) }
+        end
+
+        def secret
+          @record.send(:token)
+        end
+
+        def view
+          Object.const_get("Shop::#{@record.kind.capitalize}View").new(@record)
+        end
+      end
+    end
+- id: v1-p23-compliant-no-reflection
+  cop: Kata/NoReflection
+  strict: true
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Export
+        def initialize(record)
+          @record = record
+        end
+
+        def row
+          @record.row
+        end
+
+        def view
+          @record.view
+        end
+      end
+    end
+- id: v1-p02-violation-min-constructor-discipline
+  cop: Kata/ConstructorDiscipline
+  strict: true
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Money
+        def initialize(*parts)
+          if parts.size == 1
+            @cents = parts.first
+            @currency = "USD"
+          else
+            @cents, @currency = parts
+          end
+        end
+
+        def to_s
+          "#{@cents} #{@currency}"
+        end
+      end
+    end
+- id: v1-p02-violation-real-constructor-discipline
+  cop: Kata/ConstructorDiscipline
+  strict: true
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Money
+        def initialize(cents = 0, currency = "USD", formatted: nil)
+          if formatted
+            @cents = (formatted.delete("$,").to_f * 100).round
+            @currency = "USD"
+          else
+            @cents = cents
+            @currency = currency
+          end
+        end
+
+        def self.from_hash(hash)
+          money = allocate
+          money.instance_variable_set(:@cents, hash.fetch("cents"))
+          money.instance_variable_set(:@currency, hash.fetch("currency"))
+          money
+        end
+
+        def to_s
+          "#{@cents} #{@currency}"
+        end
+      end
+    end
+- id: v1-p02-compliant-constructor-discipline
+  cop: Kata/ConstructorDiscipline
+  strict: true
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Money
+        def self.parse(text)
+          new(Integer(text.delete("$,.")), "USD")
+        end
+
+        def initialize(cents, currency)
+          @cents = cents
+          @currency = currency
+        end
+
+        def to_s
+          "#{@cents} #{@currency}"
+        end
+      end
+    end
+- id: v1-p02-compliant-no-output-argument
+  cop: Kata/NoOutputArgument
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Money
+        def self.parse(text)
+          new(Integer(text.delete("$,.")), "USD")
+        end
+
+        def initialize(cents, currency)
+          @cents = cents
+          @currency = currency
+        end
+
+        def to_s
+          "#{@cents} #{@currency}"
+        end
+      end
+    end

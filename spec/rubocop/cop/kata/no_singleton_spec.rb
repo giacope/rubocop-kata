@@ -3,7 +3,7 @@
 RSpec.describe(RuboCop::Cop::Kata::NoSingleton, :config) do
   let(:ruby_version) { 3.4 }
 
-  let(:cop_config) { { "AllowedConstructors" => %w[Set Struct] } }
+  let(:cop_config) { { "AllowedConstructors" => %w[Set Struct], "CheckGlobals" => true } }
 
   it "flags the Singleton mixin" do
     expect_offense(<<~RUBY)
@@ -104,5 +104,110 @@ RSpec.describe(RuboCop::Cop::Kata::NoSingleton, :config) do
         end
       end
     RUBY
+  end
+
+  # The V1 conformance case P17: `Current.account` read from a model, through CurrentAttributes.
+  it "flags a class that keeps request state in ActiveSupport::CurrentAttributes" do
+    expect_offense(<<~RUBY)
+      module Shop
+        class Current < ActiveSupport::CurrentAttributes
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `Current` is a global with a class name, reset per request; pass what it holds to what needs it.
+          attribute :account, :user
+        end
+
+        class Session < ::ActiveSupport::CurrentAttributes
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `Session` is a global with a class name, reset per request; pass what it holds to what needs it.
+        end
+      end
+    RUBY
+  end
+
+  it "allows other superclasses" do
+    expect_no_offenses(<<~RUBY)
+      class Ledger < ApplicationRecord
+      end
+
+      class Attributes < CurrentAttributes
+      end
+
+      class Plain
+      end
+    RUBY
+  end
+
+  # searchkick, timecop, counter_culture, bullet keep their switches in the thread.
+  it "flags state kept in the thread, the fiber or the request store" do
+    expect_offense(<<~RUBY)
+      class Lottery
+        def user
+          Thread.current[:user]
+          ^^^^^^^^^^^^^^^^^^^^^ `Thread.current[:user]` is global state keyed by the thread; pass the value to what needs it.
+          ::Thread.current[:user] = @user
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `::Thread.current[:user]` is global state keyed by the thread; pass the value to what needs it.
+          Thread.current.thread_variable_get(:state)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `Thread.current.thread_variable_get` is global state keyed by the thread; pass the value to what needs it.
+          Fiber[:state] = 1
+          ^^^^^^^^^^^^^^^^^ `Fiber[:state]` is global state keyed by the fiber; pass the value to what needs it.
+          RequestStore.store[:user]
+          ^^^^^^^^^^^^^^^^^^^^^^^^^ `RequestStore.store[:user]` is global state keyed by the thread; pass the value to what needs it.
+          RequestStore[:user]
+          ^^^^^^^^^^^^^^^^^^^ `RequestStore[:user]` is global state keyed by the thread; pass the value to what needs it.
+        end
+      end
+    RUBY
+  end
+
+  it "allows asking the thread about itself, and the boot layer" do
+    expect_no_offenses(<<~RUBY)
+      Thread.current[:boot] = true
+
+      class Worker
+        def name = Thread.current.name
+        def main? = Thread.current == Thread.main
+        def other = @registry[:user]
+        def defaults(user = Thread.current[:user]) = user
+      end
+    RUBY
+  end
+
+  # ahoy, mailboxer, delayed_job: settings kept in class variables behind accessors; turbo-rails keeps
+  # its request id per thread (R6B5-K3).
+  it "flags a class-level setting every caller shares, or every thread" do
+    expect_offense(<<~RUBY)
+      module Ahoy
+        mattr_accessor :visit_duration
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `mattr_accessor :visit_duration` keeps one value on the class for every caller; pass it to the object that needs it.
+        cattr_writer :quiet, :geocode
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `cattr_writer :quiet, …` keeps one value on the class for every caller; pass it to the object that needs it.
+        thread_mattr_accessor :request_id
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `thread_mattr_accessor :request_id` is global state keyed by the thread; pass the value to what needs it.
+      end
+    RUBY
+  end
+
+  it "allows readers, a receiver's accessor, and a script's boot layer" do
+    expect_no_offenses(<<~RUBY)
+      mattr_accessor :boot
+
+      module Ahoy
+        mattr_reader :version, default: 1
+        config.mattr_accessor(:visit)
+      end
+    RUBY
+  end
+
+  context "without CheckGlobals, as kata ships it" do
+    let(:cop_config) { { "AllowedConstructors" => %w[Set Struct] } }
+
+    it "reads the Singleton mixin and class-level instance caches only" do
+      expect_offense(<<~RUBY)
+        class Current < ActiveSupport::CurrentAttributes
+          include Singleton
+          ^^^^^^^^^^^^^^^^^ `include Singleton` makes one global instance; build the object where it is needed and pass it in.
+          mattr_accessor :user
+          def user = Thread.current[:user]
+        end
+      RUBY
+    end
   end
 end

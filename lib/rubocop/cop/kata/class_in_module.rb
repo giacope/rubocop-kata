@@ -13,12 +13,25 @@ class RuboCop::Cop::Kata::ClassInModule < RuboCop::Cop::Base
   REOPEN_MSG = "Reopening `%s` patches it for every caller; use a refinement (`refine %s`) or a decorator object"
   public_constant :MSG
 
+  def_node_matcher :migration?, "(const (const {nil? cbase} :ActiveRecord) :Migration)"
+
   def on_class(node)
-    return if namespaced?(node) || scoped?(node) || root?(node.identifier.const_name) || !judged?(node)
-    add_offense(node, message: message(node))
+    return if namespaced?(node) || scoped?(node) || root?(node.identifier.const_name) || migrated?(node)
+    add_offense(node, message: message(node)) if judged?(node)
   end
 
   private
+
+  def migrated?(node)
+    parent = node.parent_class
+    [parent, *assigned(parent)].compact.any? { |value| value.each_node(:const).any? { migration?(it) } }
+  end
+
+  def assigned(parent)
+    return [] unless parent&.const_type? && parent.namespace.nil?
+    name = parent.short_name
+    processed_source.ast.each_node(:casgn).select { it.namespace.nil? && it.name == name }.map(&:expression)
+  end
 
   def message(node)
     name = node.identifier.short_name.to_s

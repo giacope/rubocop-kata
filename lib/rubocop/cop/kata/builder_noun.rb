@@ -7,6 +7,7 @@ class RuboCop::Cop::Kata::BuilderNoun < RuboCop::Cop::Base
   include RuboCop::Cop::VisibilityHelp
 
   MSG = "A builder is named for what it returns: `%s`, not `%s`."
+  UNNAMED = "A builder is named for what it returns, not `%s`: name it for the object it answers."
 
   def on_def(node) = check(node)
 
@@ -18,7 +19,9 @@ class RuboCop::Cop::Kata::BuilderNoun < RuboCop::Cop::Base
     name = node.method_name.to_s
     verb = prefix(name)
     return unless verb && builder?(node, name)
-    add_offense(node.loc.name, message: format(MSG, name.delete_prefix("#{verb}_"), name))
+    noun = name.delete_prefix("#{verb}_")
+    named = RuboCop::Kata::Identifier.new(noun).callable?
+    add_offense(node.loc.name, message: named ? format(MSG, noun, name) : format(UNNAMED, name))
   end
 
   def builder?(node, name)

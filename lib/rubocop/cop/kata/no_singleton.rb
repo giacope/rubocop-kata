@@ -2,19 +2,43 @@
 
 class RuboCop::Cop::Kata::NoSingleton < RuboCop::Cop::Base
   include RuboCop::Cop::Kata::Roster
+  include RuboCop::Cop::Kata::BootLayer
 
   MIXIN = "`include Singleton` makes one global instance; build the object where it is needed and pass it in."
   CACHE = "`%s ||=` keeps one global instance on the class; build the object where it is needed and pass it in."
-
-  RESTRICT_ON_SEND = %i[include].freeze
+  CURRENT = "`%s` is a global with a class name, reset per request; pass what it holds to what needs it."
+  THREAD = "`%s` is global state keyed by the thread; pass the value to what needs it."
+  FIBER = "`%s` is global state keyed by the fiber; pass the value to what needs it."
+  SETTING = "`%s` keeps one value on the class for every caller; pass it to the object that needs it."
+  ACCESS = %i[[] []= fetch store key? delete thread_variable_get thread_variable_set thread_variable?].freeze
+  SETTINGS = {
+    cattr_accessor: SETTING, mattr_accessor: SETTING, cattr_writer: SETTING, mattr_writer: SETTING,
+    thread_cattr_accessor: THREAD, thread_mattr_accessor: THREAD
+  }.freeze
 
   def_node_matcher :singleton?, "(send nil? :include (const {nil? cbase} :Singleton))"
   KEEPS = %i[freeze tap].freeze
 
   def_node_matcher :maker?, "(send {nil? self const} :new ...)"
 
+  def_node_matcher :current?, "(const (const {nil? cbase} :ActiveSupport) :CurrentAttributes)"
+
+  def_node_matcher :ambient?, "(send (const {nil? cbase} {:Thread :RequestStore}) {:current :store})"
+
+  def_node_matcher :keyed?, "(send (const {nil? cbase} {:Fiber :RequestStore}) {:[] :[]=} ...)"
+
+  def_node_matcher :fiber?, "(send (const {nil? cbase} :Fiber) ...)"
+
   def on_send(node)
-    add_offense(node, message: MIXIN) if singleton?(node)
+    return add_offense(node, message: MIXIN) if singleton?(node)
+    return unless globals?
+    return add_offense(node, message: setting(node)) if setting?(node)
+    add_offense(node, message: state(node)) if shared?(node) && !seam?(node)
+  end
+
+  def on_class(node)
+    return unless globals? && current?(node.parent_class)
+    add_offense(node.parent_class, message: format(CURRENT, node.identifier.source))
   end
 
   def on_ivasgn(node)
@@ -26,6 +50,22 @@ class RuboCop::Cop::Kata::NoSingleton < RuboCop::Cop::Base
   def on_cvasgn(node) = check(node)
 
   private
+
+  def globals? = cop_config["CheckGlobals"]
+
+  def setting(node)
+    named = "#{node.method_name} #{node.first_argument&.source}#{", …" if node.arguments.size > 1}"
+    format(SETTINGS.fetch(node.method_name), named)
+  end
+
+  def state(node)
+    slot = node.method?(:[]) || node.method?(:[]=) ? "[#{node.first_argument&.source}]" : ".#{node.method_name}"
+    format(fiber?(node) ? FIBER : THREAD, node.receiver.source + slot)
+  end
+
+  def setting?(node) = node.receiver.nil? && SETTINGS.key?(node.method_name) && !seam?(node)
+
+  def shared?(node) = keyed?(node) || (ambient?(node.receiver) && ACCESS.include?(node.method_name))
 
   def check(node)
     holder = node.parent

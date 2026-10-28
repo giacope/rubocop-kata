@@ -130,6 +130,22 @@ RSpec.describe(RuboCop::Cop::Kata::RealWords, :config) do
             ^^^ `str` is an abbreviation of `string`; spell the word out.
       RUBY
     end
+
+    # mechanize's test servlets: WEBrick's AbstractServlet#service calls `do_#{request_method}`.
+    it "allows the servlet methods WEBrick calls by the request's method" do
+      expect_no_offenses(<<~RUBY)
+        class VerbServlet < WEBrick::HTTPServlet::AbstractServlet
+          def do_GET(request, response) = response
+          def do_POST(request, response) = response
+          alias do_PUT do_POST
+          def do_DELETE(request, response) = response
+          def do_HEAD(request, response) = response
+          def do_OPTIONS(request, response) = response
+          def do_PATCH(request, response) = response
+          def do_TRACE(request, response) = response
+        end
+      RUBY
+    end
   end
 
   it "flags abbreviations, including ones that happen to be dictionary words" do
