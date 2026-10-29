@@ -15,15 +15,16 @@ class RuboCop::Kata::Profile
   SPELLED = { "RuboCop" => "rubocop", "RSpec" => "rspec" }.freeze
   WORD = /\A[a-z][a-z0-9]+\z/
   LIBRARY = { "Kata/ClassInModule" => { "Exclude" => ["lib/*.rb"] } }.freeze
-  def initialize(root, options, shelf: Dir.tmpdir)
+  def initialize(root, options, shelf: Dir.tmpdir, retirement: RuboCop::Kata::Retirement.new)
     @root = root
     @options = options
     @shelf = shelf
+    @retirement = retirement
   end
 
   def path
     layer = overlay
-    text = YAML.dump(silenced(standalone(layer), layer))
+    text = YAML.dump(@retirement.kept(silenced(standalone(layer), layer)))
     target = File.join(@shelf, "rubocop-kata-#{Digest::SHA256.hexdigest(text)[0, 16]}.yml")
     publish(target, text) unless File.file?(target) && File.read(target, encoding: Encoding::UTF_8) == text
     target
