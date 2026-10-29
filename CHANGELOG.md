@@ -34,6 +34,10 @@
   - `Kata/NoPublicConstant`: the block of a `Data.define`, `Struct.new` or
     `Class.new` assigned to a constant is that class's body, so its methods
     reading the class's own constant (`Definition::ENGINES`) pass.
+  - `Kata/NoHashAsObject` (`CheckTravel`): a parameter read only by keys
+    that are members of one of the project's Structs (`env[:body]` with
+    `Env = Struct.new(:body, :request_headers)`) is that named object,
+    read through its `[]`.
 - Kata lints itself with its strict profile and hashira's strict set, and CI
   enforces both. Behaviour is unchanged; the one difference a caller can
   see: `Elegant/NoNilReturn`, `Elegant/MonotonicIndents` and

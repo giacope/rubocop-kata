@@ -1677,7 +1677,10 @@ Kata/NoHashAsObject:
     superclass line ends in a library's class, which calls it
     (`search_data`). A parameter the method reads by
     two or more literal symbol keys (`payment[:amount]`, `payment.fetch(:currency)`)
-    is a hash used as an object, and is reported where it is declared.
+    is a hash used as an object, and is reported where it is declared,
+    unless every key it is read by is a member of one of the project's
+    Structs (`Env = Struct.new(:body, :request_headers)`, in the file or
+    under `OwnedPaths`): that is the named object, read through its `[]`.
     String keys are data from outside (a Rack env, parsed JSON, headers),
     not an object, and are not read.
   Enabled: true
