@@ -2,9 +2,7 @@
 
 require "rubocop-thread_safety"
 
-module RuboCop::Kata::MixinState
-  extend RuboCop::AST::NodePattern::Macros
-
+class RuboCop::Kata::ThreadSafety::ClassInstanceVariable < RuboCop::Cop::ThreadSafety::ClassInstanceVariable
   def_node_matcher :mixin?, "(block (send (const {nil? cbase} :Module) :new) ...)"
 
   def_node_matcher :mixing?, "(send const {:include :prepend} ...)"
@@ -20,5 +18,3 @@ module RuboCop::Kata::MixinState
     mixin?(scope) && mixing?(scope.parent)
   end
 end
-
-RuboCop::Cop::ThreadSafety::ClassInstanceVariable.prepend(RuboCop::Kata::MixinState)

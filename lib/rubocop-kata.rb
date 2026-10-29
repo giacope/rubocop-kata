@@ -6,6 +6,12 @@ module RuboCop
   module Kata
     module Variable
     end
+
+    module Elegant
+    end
+
+    module ThreadSafety
+    end
   end
 
   module Cop
@@ -121,17 +127,15 @@ require_relative "rubocop/kata/lexicon"
 require_relative "rubocop/kata/profile"
 require_relative "rubocop/kata/plugin"
 require_relative "rubocop/kata/foreign_setting"
-require_relative "rubocop/kata/foreign_text"
+require_relative "rubocop/kata/elegant/monotonic_indents"
 require_relative "rubocop/kata/adjacent_literals"
 require_relative "rubocop/kata/outer_constant"
 require_relative "rubocop/kata/attribute_copy"
-require_relative "rubocop/kata/nil_answer"
-require_relative "rubocop/kata/mixin_state"
+require_relative "rubocop/kata/elegant/no_nil_return"
+require_relative "rubocop/kata/thread_safety/class_instance_variable"
 require_relative "rubocop/kata/keyword_splat"
 require_relative "rubocop/kata/success_token"
 require_relative "rubocop/kata/literals"
 require_relative "rubocop/kata/correction"
 require_relative "rubocop/kata/safeguard"
 require_relative "rubocop/kata/version"
-
-RuboCop::Runner.prepend(RuboCop::Kata::Safeguard)

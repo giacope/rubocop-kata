@@ -7,3 +7,15 @@ AllCops:
     - "eval/support/**/*"
     - "tmp/**/*"
     - "vendor/**/*"
+
+# Kata's own classes for Elegant/NoNilReturn, Elegant/MonotonicIndents and
+# ThreadSafety/ClassInstanceVariable are cops, so their names are the names
+# RuboCop configures them by, like those of RuboCop::Cop::Base's heirs.
+Kata/GoodClassName:
+  inherit_mode:
+    merge:
+      - ContractSuperclasses
+  ContractSuperclasses:
+    - RuboCop::Cop::Elegant::MonotonicIndents
+    - RuboCop::Cop::Elegant::NoNilReturn
+    - RuboCop::Cop::ThreadSafety::ClassInstanceVariable

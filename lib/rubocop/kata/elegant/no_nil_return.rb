@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module RuboCop::Kata::NilAnswer
+class RuboCop::Kata::Elegant::NoNilReturn < RuboCop::Cop::Elegant::NoNilReturn
   def on_def(node)
     super unless contract?(node)
   end
@@ -13,5 +13,3 @@ module RuboCop::Kata::NilAnswer
 
   def contract?(node) = Array(cop_config["AllowedMethods"]).map(&:to_s).include?(node.method_name.to_s)
 end
-
-RuboCop::Cop::Elegant::NoNilReturn.prepend(RuboCop::Kata::NilAnswer)

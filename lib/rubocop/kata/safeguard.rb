@@ -43,3 +43,5 @@ module RuboCop::Kata::Safeguard
     [processed, inspect_file(processed, team).first]
   end
 end
+
+RuboCop::Runner.prepend(RuboCop::Kata::Safeguard)

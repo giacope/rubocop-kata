@@ -2,7 +2,7 @@
 
 require "rubocop-elegant"
 
-module RuboCop::Kata::ForeignText
+class RuboCop::Kata::Elegant::MonotonicIndents < RuboCop::Cop::Elegant::MonotonicIndents
   private
 
   def heredocs
@@ -18,8 +18,4 @@ module RuboCop::Kata::ForeignText
     first += 1 unless processed_source.lines[first - 1][0...location.column].strip.empty?
     (first..node.last_line).to_a
   end
-end
-
-if defined?(RuboCop::Cop::Elegant::MonotonicIndents)
-  RuboCop::Cop::Elegant::MonotonicIndents.prepend(RuboCop::Kata::ForeignText)
 end
