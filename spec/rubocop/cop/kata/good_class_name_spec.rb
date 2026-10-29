@@ -557,4 +557,141 @@ RSpec.describe(RuboCop::Cop::Kata::GoodClassName, :config) do
       RUBY
     end
   end
+
+  context "with CheckContracts, the strict profile's reading of a contract suffix" do
+    include ProjectFiles
+
+    let(:cop_config) do
+      RuboCop::ConfigLoader.default_configuration.for_cop("Kata/GoodClassName").merge("CheckContracts" => true)
+    end
+    let(:setting) { { "Kata/GoodClassName" => cop_config } }
+    let(:posed) do
+      "names a doer: `%s` is a framework's word only where a superclass or mixin takes part in that contract, " \
+        "and none does here; name the class for the thing it is, not the work it does."
+    end
+
+    # V1 P01: `InvoiceGenerator` passed because `Generator` is a contract suffix.
+    it "reads an agent-word suffix as a doer where no superclass or mixin takes part in its contract" do
+      expect_offense(<<~RUBY)
+        class InvoiceGenerator
+              ^^^^^^^^^^^^^^^^ `InvoiceGenerator` #{format(posed, "Generator")}
+        end
+        class EmailValidator
+              ^^^^^^^^^^^^^^ `EmailValidator` #{format(posed, "Validator")}
+        end
+        class AccountSerializer < Struct.new(:account)
+              ^^^^^^^^^^^^^^^^^ `AccountSerializer` #{format(posed, "Serializer")}
+        end
+        class UserDecorator < SimpleDelegator
+              ^^^^^^^^^^^^^ `UserDecorator` #{format(posed, "Decorator")}
+        end
+        module Billing
+          class StripeAdapter < Base
+                ^^^^^^^^^^^^^ `StripeAdapter` #{format(posed, "Adapter")}
+          end
+        end
+      RUBY
+    end
+
+    it "passes a class whose superclass or mixin names the contract, written or found lexically" do
+      expect_no_offenses(<<~RUBY)
+        class EmailValidator < ActiveModel::EachValidator
+        end
+        class InstallGenerator < ::Rails::Generators::Base
+        end
+        class AccountsController < ApplicationController
+        end
+        class InviteMailer < ActionMailer::Base
+        end
+        class MovieSerializer
+          include JSONAPI::Serializer
+        end
+        class UserDecorator < Draper::Decorator
+        end
+        class InvoiceGenerator < BaseGenerator
+        end
+        class UserMailer < Pay.parent_mailer.constantize
+        end
+        class ActiveRecord::ConnectionAdapters::OracleEnhancedAdapter
+        end
+        module StrongMigrations
+          module Adapters
+            class MysqlAdapter
+            end
+          end
+        end
+        module Rails
+          module Generators
+            class ScaffoldGenerator < NamedBase
+            end
+          end
+        end
+      RUBY
+    end
+
+    it "leaves a bare contract word and a persisted record to the shipped reading" do
+      expect_offense(<<~RUBY)
+        class Generator
+        end
+        class Validator
+              ^^^^^^^^^ `Validator` names a doer; name the class for the thing it is, not the work it does. Try `Validation`.
+        end
+        class InvoiceGenerator < ApplicationRecord
+        end
+        class ReportGenerator < GeneratorBase
+        end
+      RUBY
+    end
+
+    it "leaves a suffix that is no agent word, and a test or a preview, to the subject's reading" do
+      expect_no_offenses(<<~RUBY)
+        class InvoiceDigestJob
+        end
+        class WebHookPolicy
+        end
+        class RoomChannel
+        end
+        class UsersControllerTest < ActionDispatch::IntegrationTest
+        end
+        class InvoiceGeneratorTest < Minitest::Test
+        end
+        class InviteMailerPreview < ActionMailer::Preview
+        end
+      RUBY
+    end
+
+    context "with a controller whose superclass is a library's" do
+      let(:source) { "class Admin::PlacesController < InheritedResources::Base\nend\n" }
+
+      # places-manager: `Admin::PlacesController < InheritedResources::Base`, a controller the router resolves.
+      it "finds the contract in the folder the framework loads the class from" do
+        path = "app/controllers/admin/places_controller.rb"
+        expect(project_offenses({ path => source }, path)).to(be_empty)
+      end
+
+      it "reads the class as a doer in a folder no framework reads that word from" do
+        path = "app/models/places_controller.rb"
+        expect(project_offenses({ path => source }, path).size).to(eq(1))
+      end
+    end
+
+    context "with the project's own superclass in another file" do
+      let(:files) do
+        {
+          "lib/shop/scaffold.rb" => "module Shop\n  class Scaffold < Rails::Generators::Base\n  end\nend\n",
+          "lib/shop/invoice_generator.rb" => "module Shop\n  class InvoiceGenerator < Scaffold\n  end\nend\n"
+        }
+      end
+
+      it "finds the contract through that superclass" do
+        expect(project_offenses(files, "lib/shop/invoice_generator.rb")).to(be_empty)
+      end
+
+      it "reads the class as a doer where the project does not hold that superclass" do
+        lone = files.slice("lib/shop/invoice_generator.rb")
+        expect(project_offenses(lone, "lib/shop/invoice_generator.rb").map(&:message))
+          .to(eq(["`InvoiceGenerator` #{format(posed, "Generator")}"]))
+      end
+    end
+  end
 end

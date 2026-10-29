@@ -83,12 +83,27 @@ Kata/GoodClassName:
     `Header`, which WordNet derives from the verb `head`. A class is judged
     where it is defined: a reopen with no superclass whose body holds only
     nested classes and modules is a namespace wrapper, not a definition.
+    With `CheckContracts: true` (the strict profile) a contract suffix that
+    is an agent word (`Generator`, `Validator`, `Serializer`, `Controller`,
+    `Mailer`, `Adapter`, `Decorator`) is a contract only where the class
+    takes part in it: its superclass or a mixin, written or found among the
+    project's classes in `OwnedPaths`, names the word (`ActiveModel::EachValidator`,
+    `Rails::Generators::Base`, `ApplicationController`). A plain
+    `class InvoiceGenerator` is a doer like `InvoiceProcessor`. A test or a
+    preview keeps its subject's reading: it cannot see the subject's
+    superclass, which is judged in its own file.
   Enabled: true
   VersionAdded: "0.9"
   VersionChanged: "0.11"
   Exclude:
     - "db/*migrate/**/*"
     - "**/*.jbuilder"
+  CheckContracts: false
+  OwnedPaths:
+    - "app/**/*.rb"
+    - "*/app/**/*.rb"
+    - "lib/**/*.rb"
+    - "*/lib/**/*.rb"
   MaxWords: 2
   Suffixes:
     - Test
@@ -848,10 +863,31 @@ Kata/BuilderNoun:
     Thor runs as a step. A predicate (`generate_ids?`) answers a question
     and builds nothing. Where the name left after the verb is a Ruby keyword
     or does not parse as a call (`generate_for` would become `for`, a loop),
-    the message proposes no name.
+    the message proposes no name. With `CheckEveryBuilder: true` (the strict
+    profile) the other verbs of making or getting a value, the
+    `BuilderPrefixes` (`build_summary`, `find_user`, `load_config`,
+    `parse_date`), are judged too, where the method is a builder: it answers a
+    value (not nil, not a loop run for its effect) and acts on nothing on the
+    way, so it writes no field but a memo, sends none of the `Effects`
+    (persisting, delivering, enqueueing, rendering or redirecting a response,
+    defining a method or a constant), calls no `Kernel` output or loading,
+    discards no call made for its effect, and changes (a `!` method, a setter,
+    `<<`, `[]=`, `push`, `add`, `delete`, ...) nothing it did not make itself.
+    The name left after the verb must be free: where the class or one of its
+    ancestors already answers `summary`, `build_summary` is the work behind
+    that noun, not a second name for it; and the name must be the method's
+    own: a callback the class names (`before_validation
+    :create_first_data_set`), an alias chain's method, and a method kept in a
+    field of its own name (`@load_path ||= ...`, a noun) pass. A name that
+    joins two actions (`create_command_and_execute`) is a command, and the
+    params of an action (`create_or_update_params`) a noun. Where the rest is
+    a phrase, not a noun (`find_by_slug`, `load_from`), the message proposes
+    no name. A verb that is as often a noun in front of another
+    (`lookup_params`, `read_timeout`, `new_record`) is not among the prefixes.
   Enabled: true
   VersionAdded: "0.3"
   VersionChanged: "0.11"
+  CheckEveryBuilder: false
   OwnedPaths:
     - "app/**/*.rb"
     - "*/app/**/*.rb"
@@ -905,6 +941,75 @@ Kata/BuilderNoun:
     - compute
     - retrieve
     - generate
+  BuilderPrefixes:
+    - build
+    - construct
+    - create
+    - extract
+    - fetch
+    - find
+    - load
+    - make
+    - parse
+    - prepare
+    - resolve
+  Effects:
+    - alias_method
+    - broadcast
+    - class_variable_set
+    - const_set
+    - head
+    - create
+    - create!
+    - create_or_find_by
+    - create_or_find_by!
+    - decrement!
+    - define_method
+    - define_singleton_method
+    - deliver
+    - deliver!
+    - deliver_later
+    - deliver_now
+    - destroy
+    - destroy!
+    - destroy_all
+    - delete_all
+    - enqueue
+    - find_or_create_by
+    - find_or_create_by!
+    - first_or_create
+    - first_or_create!
+    - increment!
+    - insert
+    - insert_all
+    - instance_variable_set
+    - perform_async
+    - perform_at
+    - perform_in
+    - perform_later
+    - publish
+    - redirect_back
+    - redirect_to
+    - remove_const
+    - remove_method
+    - render
+    - respond_with
+    - save
+    - save!
+    - send_data
+    - send_file
+    - toggle!
+    - touch
+    - undef_method
+    - update
+    - update!
+    - update_all
+    - update_attribute
+    - update_column
+    - update_columns
+    - upsert
+    - upsert_all
+    - write
   AllowedNames: []
 
 Kata/NoBooleanFlag:
@@ -1529,11 +1634,43 @@ Kata/NoHashAsObject:
     a value table a `TableMethods` call takes (Rails' `enum` mapping, under
     the Rails profile), and the hash a serialization method returns: inside
     `to_h` or `as_json` the object already has a name, and the protocol asks
-    for a hash.
+    for a hash. With `CheckTravel: true` (the strict profile) the keys are
+    followed where they travel: a hash of `TravelKeys` (two) or more symbol
+    keys that a method answers (its last value, a `return`, a branch of
+    either, a `map` block's value, or a local it answers) or hands to one of
+    the project's own methods, `OwnedPaths` deciding which those are, is an
+    object without a name at any size; a hash handed to a library's method
+    is that library's options, and passes, and so does a table of literal
+    values and the hash a printer answers: a conversion (`to_*`, `as_*`), one
+    of the `Printers` (`present`), any method of one of the `PrinterTypes`
+    (a presenter, a helper, a view component or a serializer prints its
+    object for a template or a document), or a public method of a class whose
+    superclass line ends in a library's class, which calls it
+    (`search_data`). A parameter the method reads by
+    two or more literal symbol keys (`payment[:amount]`, `payment.fetch(:currency)`)
+    is a hash used as an object, and is reported where it is declared.
+    String keys are data from outside (a Rack env, parsed JSON, headers),
+    not an object, and are not read.
   Enabled: true
   Sorbet: false
   VersionAdded: "0.3"
   VersionChanged: "0.11"
+  CheckTravel: false
+  TravelKeys: 2
+  Printers:
+    - payload
+    - present
+    - serialize
+  PrinterTypes:
+    - Component
+    - Helper
+    - Presenter
+    - Serializer
+  OwnedPaths:
+    - "app/**/*.rb"
+    - "*/app/**/*.rb"
+    - "lib/**/*.rb"
+    - "*/lib/**/*.rb"
   MaxKeys: 4
   TableMethods:
     - metadata=
@@ -2438,6 +2575,77 @@ Kata/ClassInModule:
     - "spec/**/*"
     - "db/*migrate/**/*"
     - "**/*.jbuilder"
+
+Kata/NoMonkeyPatch:
+  Description: >-
+    No monkey patches: changing a class the project does not own, one of
+    Ruby's (`String`, `Integer`, `Object`) or another library's
+    (`ActiveRecord::Base`, `Net::HTTP`), changes it for every caller in the
+    process. Kata/ClassInModule reports the `class String` reopen; this cop
+    reports the other spellings of the same patch: mixing a module in from
+    outside (`String.include(Slugs)`, `prepend`, `extend`, and
+    `Object.send(:include, ...)`), evaluating a body that changes methods in
+    the class (`Integer.class_eval do def cents ... end end`, `class_exec`,
+    `module_eval` with a block or a string of code, `instance_eval`), the
+    definers called on it (`define_method`, `alias_method`, `remove_method`,
+    `attr_accessor`, also through `send`), its singleton class, and
+    `class << String` with a `def`. The project's own classes and modules
+    (`OwnedPaths`) are its to change; a hook the class runs on the code that
+    includes it (`base.extend(ClassMethods)`), the class an
+    `ActiveSupport.on_load` hook names, its own extension point
+    (`extend Slugs` inside `on_load(:active_record)`,
+    `ActionController::Base.extend` inside `on_load(:action_controller_base)`;
+    another class patched inside a hook is still reported), and a refinement
+    (`refine String do ... end`) pass. Use
+    a refinement or a decorator object. Off by default: config/strict.yml
+    turns it on.
+  Enabled: false
+  VersionAdded: "0.11"
+  OwnedPaths:
+    - "app/**/*.rb"
+    - "*/app/**/*.rb"
+    - "lib/**/*.rb"
+    - "*/lib/**/*.rb"
+  Exclude:
+    - "spec/**/*"
+    - "test/**/*"
+    - "**/*_spec.rb"
+    - "**/*_test.rb"
+
+Kata/NoMock:
+  Description: >-
+    Don't mock; use fakes. A mock or a stub tells the test which calls the
+    object makes to its collaborator, so the test breaks when the object is
+    refactored and passes when the collaborator changes; a fake is a small
+    working class with the collaborator's interface (`FakeClock#now`),
+    shipped beside the real one, that the test passes in. Reported in the
+    test files the cop includes: RSpec's doubles and spies (`double`,
+    `instance_double`, `class_double`, `object_double`, `spy` and its
+    verified kinds), a message stubbed or expected (`allow(...).to receive`,
+    `expect(...).to receive`, `receive_messages`, `receive_message_chain`,
+    `have_received`, `allow_any_instance_of`), the older `obj.stub(:name)`,
+    `stub_chain` and `should_receive`, `Minitest::Mock.new` and Minitest's
+    `obj.stub(:name, value) { ... }`, and mocha's `mock(...)`, `stub(...)`,
+    `stub_everything`, `expects(:name)` and `stubs(:name)`. A builder or a
+    stub the project's own code defines (`Excon.stub`, under `OwnedPaths`)
+    is the library under test, and one the spec defines (a `def double`
+    helper, a `let(:stub)`) is the spec's own; both pass, and so does a
+    `receive` that is not an RSpec matcher (`socket.receive(1024)`). Off by default: config/strict.yml turns it on
+    in place of the rubocop-rspec cops that report the same mocks with
+    advice that keeps them (`RSpec/VerifiedDoubles` asks for another
+    double, `RSpec/MessageSpies` for a spy).
+  Enabled: false
+  VersionAdded: "0.11"
+  OwnedPaths:
+    - "app/**/*.rb"
+    - "*/app/**/*.rb"
+    - "lib/**/*.rb"
+    - "*/lib/**/*.rb"
+  Include:
+    - "**/*_spec.rb"
+    - "**/spec/**/*.rb"
+    - "**/*_test.rb"
+    - "**/test/**/*.rb"
 
 # Rewrites reopened classes into modules, clashing with the primary
 # class definition at boot.

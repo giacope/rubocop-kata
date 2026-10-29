@@ -10,8 +10,8 @@
 #
 # It switches on every house cop kata ships off and every stricter reading of
 # a cop kata ships on, and switches off the cops a strict one replaces, so no
-# rescue, nil or reflection is reported twice. A project can still turn any
-# one of them back off in its own .rubocop.yml. The file names the plugin
+# rescue, nil, reflection or mock is reported twice. A project can still turn
+# any one of them back off in its own .rubocop.yml. The file names the plugin
 # too: RuboCop checks an inherited file's cops before it loads the plugins a
 # parent file lists, so without it a project whose plugins sit in another
 # inherited file would be told Kata's cops are unrecognized.
@@ -99,4 +99,68 @@ Kata/NoReflection:
 # reflection (`__send__`). A `send` an object makes to itself is not
 # reflection on another object, and is not reported.
 Style/Send:
+  Enabled: false
+
+# Names: a framework's suffix excuses a doer only where the class takes part
+# in the framework's contract, through a superclass or a mixin that names it.
+Kata/GoodClassName:
+  CheckContracts: true
+
+# Every builder is named for what it returns, whatever verb of making or
+# getting it was named with: `build_summary` is `summary`.
+Kata/BuilderNoun:
+  CheckEveryBuilder: true
+
+# Keys are followed where they travel: a hash a method answers or hands to
+# the project's own code is an object without a name at two keys, and so is
+# a parameter read by two of its keys.
+Kata/NoHashAsObject:
+  CheckTravel: true
+
+# No monkey patches by any spelling: Kata/ClassInModule reports a reopened
+# `class String`; this one reports the patch done by a send, from
+# `String.include(Slugs)` to `Integer.class_eval { def cents ... }`.
+Kata/NoMonkeyPatch:
+  Enabled: true
+
+# Tests: don't mock, use fakes. Kata/NoMock reports every mock and stub with
+# the advice to pass a fake; these report the same mocks with advice that
+# keeps one (another double, a spy, `receive_messages`, the style of a stub).
+Kata/NoMock:
+  Enabled: true
+
+RSpec/AnyInstance:
+  Enabled: false
+
+RSpec/InstanceSpy:
+  Enabled: false
+
+RSpec/MessageChain:
+  Enabled: false
+
+RSpec/MessageSpies:
+  Enabled: false
+
+RSpec/ReceiveCounts:
+  Enabled: false
+
+RSpec/ReceiveMessages:
+  Enabled: false
+
+RSpec/ReceiveNever:
+  Enabled: false
+
+RSpec/ReturnFromStub:
+  Enabled: false
+
+RSpec/StubbedMock:
+  Enabled: false
+
+RSpec/SubjectStub:
+  Enabled: false
+
+RSpec/VerifiedDoubleReference:
+  Enabled: false
+
+RSpec/VerifiedDoubles:
   Enabled: false

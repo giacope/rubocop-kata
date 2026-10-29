@@ -2,6 +2,38 @@
 
 ## [Unreleased]
 
+- The strict profile enforces the five Elegant Objects principles it only
+  partly enforced (the round-6 conformance cases; each new rule ships off,
+  and config/strict.yml turns it on):
+  - `Kata/GoodClassName`'s `CheckContracts`: a contract suffix that is an
+    agent word (`Generator`, `Validator`, `Serializer`, `Controller`,
+    `Mailer`, `Adapter`, `Decorator`) excuses a doer only where the class
+    takes part in the contract, through a superclass or mixin that names the
+    word, written or among the project's classes. `class InvoiceGenerator`
+    with no superclass passed because `Generator` names Rails generators;
+    WordNet reads `generator` as a machine, so no other rule saw the doer.
+  - `Kata/BuilderNoun`'s `CheckEveryBuilder`: the other verbs of making or
+    getting a value (`BuilderPrefixes`: `build_`, `make_`, `create_`,
+    `fetch_`, `find_`, `load_`, `parse_`, ...) are judged where the method
+    is a builder, one that answers a value and acts on nothing it did not
+    make (no field but a memo, none of the `Effects` such as `save` or
+    `deliver_later`, no `puts` or `require`), and where the noun is free.
+    `build_summary` passed: only five verbs were banned.
+  - `Kata/NoHashAsObject`'s `CheckTravel`: a symbol-keyed hash a method
+    answers or hands to the project's own code is an object without a name
+    from two keys (`TravelKeys`), and a parameter read by two or more literal
+    symbol keys is a hash used as an object. A 3-key payment built in one
+    class and read by key in another passed under `MaxKeys: 4`.
+  - `Kata/NoMonkeyPatch` (new, strict): a core or foreign class changed by a
+    send, `String.include(Slugs)`, `Integer.class_eval { def cents ... }`,
+    `define_method`, `Object.send(:include, ...)`, its singleton class or
+    `class << String`; only the `class String` reopen was reported.
+  - `Kata/NoMock` (new, strict): every mock and stub in the tests (RSpec
+    doubles, spies and `receive` stubs and expectations, Minitest::Mock and
+    `stub`, mocha) with the advice to pass a fake. Only `double` was
+    reported, by `RSpec/VerifiedDoubles`, whose advice is another mock; the
+    strict profile turns it off with the eleven other rubocop-rspec cops
+    that report the same mocks.
 - From a sixth field test, batch one (content-tagger, support, searchkick,
   statesman, pay), in check mode and under `rubocop -a`:
   - `Kata/RealWords` knows `recency` and `proration`, the nouns of `recent`

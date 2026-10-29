@@ -2,13 +2,15 @@
 
 class RuboCop::Cop::Kata::NoHashAsObject < RuboCop::Cop::Base
   include RuboCop::Cop::Kata::Roster
+  include RuboCop::Cop::Kata::Passage
+
   MSG = "%d keys travelling together are an object without a name."
   CALLS = %i[send csend super yield].freeze
 
   def on_hash(node)
-    count = node.pairs.size
-    return if count < limit || kwargs?(node) || table?(node) || protocol?(node)
-    add_offense(node, message: format(MSG, count))
+    return if kwargs?(node) || table?(node) || protocol?(node)
+    message = judged(node, node.pairs.size)
+    add_offense(node, message:) if message
   end
 
   private
@@ -18,11 +20,10 @@ class RuboCop::Cop::Kata::NoHashAsObject < RuboCop::Cop::Base
     CALLS.include?(holder&.type) && !node.braces?
   end
 
+  def judged(node, count) = count < limit ? travel(node, count) : format(MSG, count)
+
   def table?(node)
-    value = enclosing(node)
-    holder = value.parent
-    return table?(holder.parent) if holder&.pair_type? && holder.value.equal?(value)
-    return table?(holder) if holder&.array_type?
+    holder = carried(node).parent
     holder&.casgn_type? || mapping?(holder)
   end
 

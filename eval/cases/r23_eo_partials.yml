@@ -1,0 +1,328 @@
+# The V1 conformance cases (round 7) for the five principles the strict
+# profile only partly enforced in round 6: a doer named with a framework's
+# suffix (P01), a builder named with another verb (P06), a mock (P13), a hash
+# a method hands on with fewer than MaxKeys keys (P37), and a core class
+# patched by a send (P43). Each runs under config/strict.yml; the minimal
+# violation of P43 is the reopen Kata/ClassInModule already reports.
+- id: v1-p01-violation-min-good-class-name
+  cop: Kata/GoodClassName
+  strict: true
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class PaymentProcessor
+        def initialize(payment)
+          @payment = payment
+        end
+
+        def receipt
+          "paid #{@payment.cents}"
+        end
+      end
+    end
+- id: v1-p01-violation-real-good-class-name
+  cop: Kata/GoodClassName
+  strict: true
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class InvoiceGenerator
+        def initialize(order)
+          @order = order
+        end
+
+        def call
+          "Invoice #{@order.number}: #{@order.total}"
+        end
+      end
+    end
+
+    module Shop
+      class OrderManager
+        def initialize(orders)
+          @orders = orders
+        end
+
+        def call
+          @orders.map(&:number)
+        end
+      end
+    end
+- id: v1-p01-compliant-good-class-name
+  cop: Kata/GoodClassName
+  strict: true
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Invoice
+        def initialize(order)
+          @order = order
+        end
+
+        def to_s
+          "Invoice #{@order.number}: #{@order.total}"
+        end
+      end
+    end
+- id: v1-p06-violation-min-builder-noun
+  cop: Kata/BuilderNoun
+  strict: true
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Cart
+        def initialize(prices)
+          @prices = prices
+        end
+
+        def calculate_total
+          @prices.sum
+        end
+      end
+    end
+- id: v1-p06-violation-real-builder-noun
+  cop: Kata/BuilderNoun
+  strict: true
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Order
+        def initialize(lines, rate)
+          @lines = lines
+          @rate = rate
+        end
+
+        def get_subtotal
+          @lines.sum(&:price)
+        end
+
+        def compute_tax
+          get_subtotal * @rate
+        end
+
+        def build_summary
+          "#{get_subtotal} + #{compute_tax}"
+        end
+      end
+    end
+- id: v1-p06-compliant-builder-noun
+  cop: Kata/BuilderNoun
+  strict: true
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Order
+        def initialize(lines, rate)
+          @lines = lines
+          @rate = rate
+        end
+
+        def subtotal
+          @lines.sum(&:price)
+        end
+
+        def tax
+          subtotal * @rate
+        end
+
+        def summary
+          "#{subtotal} + #{tax}"
+        end
+      end
+    end
+- id: v1-p13-violation-min-no-mock
+  cop: Kata/NoMock
+  strict: true
+  expect: offense
+  path: spec/shop/greeting_spec.rb
+  source: |
+    # frozen_string_literal: true
+
+    require "shop/greeting"
+
+    RSpec.describe Shop::Greeting do
+      it "greets in the morning" do
+        clock = double("clock", now: Time.utc(2024, 1, 1, 9))
+        expect(described_class.new(clock).text).to eq("Good morning")
+      end
+    end
+- id: v1-p13-violation-real-no-mock
+  cop: Kata/NoMock
+  strict: true
+  expect: offense
+  path: spec/shop/greeting_spec.rb
+  source: |
+    # frozen_string_literal: true
+
+    require "shop/greeting"
+
+    RSpec.describe Shop::Greeting do
+      it "greets in the afternoon" do
+        clock = instance_double(Shop::Clock, now: Time.utc(2024, 1, 1, 15))
+        allow(Time).to receive(:now).and_return(Time.utc(2024, 1, 1, 15))
+        expect(described_class.new(clock).text).to eq("Good afternoon")
+        expect(clock).to have_received(:now)
+      end
+    end
+- id: v1-p13-compliant-no-mock
+  cop: Kata/NoMock
+  strict: true
+  expect: clean
+  path: spec/shop/greeting_spec.rb
+  source: |
+    # frozen_string_literal: true
+
+    require "shop/greeting"
+    require "shop/fake_clock"
+
+    RSpec.describe Shop::Greeting do
+      it "greets in the morning" do
+        clock = Shop::FakeClock.new(Time.utc(2024, 1, 1, 9))
+        expect(described_class.new(clock).text).to eq("Good morning")
+      end
+    end
+- id: v1-p37-violation-min-no-hash-as-object
+  cop: Kata/NoHashAsObject
+  strict: true
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Member
+        def initialize(name, email, plan, since)
+          @name = name
+          @email = email
+          @plan = plan
+          @since = since
+        end
+
+        def summary
+          { name: @name, email: @email, plan: @plan, since: @since }
+        end
+      end
+    end
+- id: v1-p37-violation-real-no-hash-as-object
+  cop: Kata/NoHashAsObject
+  strict: true
+  expect: offense
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Checkout
+        def initialize(cart, card)
+          @cart = cart
+          @card = card
+        end
+
+        def payment
+          { amount: @cart.total, currency: "usd", source: @card.token }
+        end
+      end
+    end
+
+    module Shop
+      class Gateway
+        def initialize(key)
+          @key = key
+        end
+
+        def charge(payment)
+          "#{@key}: #{payment[:amount]} #{payment[:currency]} via #{payment[:source]}"
+        end
+      end
+    end
+- id: v1-p37-compliant-no-hash-as-object
+  cop: Kata/NoHashAsObject
+  strict: true
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Payment
+        def initialize(amount, currency, source)
+          @amount = amount
+          @currency = currency
+          @source = source
+        end
+
+        def charge(key)
+          "#{key}: #{@amount} #{@currency} via #{@source}"
+        end
+      end
+    end
+- id: v1-p43-violation-real-no-monkey-patch-eval
+  cop: Kata/NoMonkeyPatch
+  strict: true
+  expect: offense
+  path: lib/shop/money.rb
+  source: |
+    # frozen_string_literal: true
+
+    Integer.class_eval do
+      def cents
+        format("%.2f", self / 100.0)
+      end
+    end
+- id: v1-p43-violation-real-no-monkey-patch-mixin
+  cop: Kata/NoMonkeyPatch
+  strict: true
+  expect: offense
+  path: lib/shop/slugs.rb
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      module Slugs
+        def to_slug
+          downcase.strip.gsub(/[^a-z0-9]+/, "-")
+        end
+      end
+    end
+
+    String.include(Shop::Slugs)
+- id: v1-p43-violation-min-class-in-module
+  cop: Kata/ClassInModule
+  strict: true
+  expect: offense
+  path: lib/shop/string.rb
+  source: |
+    # frozen_string_literal: true
+
+    class String
+      def shout
+        "#{upcase}!"
+      end
+    end
+- id: v1-p43-compliant-no-monkey-patch
+  cop: Kata/NoMonkeyPatch
+  strict: true
+  expect: clean
+  source: |
+    # frozen_string_literal: true
+
+    module Shop
+      class Slug
+        def initialize(text)
+          @text = text
+        end
+
+        def to_s
+          @text.downcase.strip.gsub(/[^a-z0-9]+/, "-")
+        end
+      end
+    end
