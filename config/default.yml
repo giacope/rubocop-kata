@@ -1810,8 +1810,11 @@ Kata/FailFast:
     A `rescue` that does not re-raise (`raise`, `fail`, `retry`, `exit`,
     `abort`; `RaisingMethods`) answers something: when that is a default — an
     empty body, `nil`, `false`, a literal, `[]`, `{}` — or a log line
-    (`@log.warn(...)`, logged or not before the default), the error is
-    swallowed and the caller goes on with a value that hides it. Let it raise,
+    (`@log.warn(...)`, logged or not before the default; a call to the
+    class's own method named like a level whose body logs nothing,
+    `error(trial, detail)` building a verdict, is not one), the error is
+    swallowed and the caller goes on with a value that
+    hides it. Let it raise,
     or rescue the one error you expect and answer an object that says what
     failed (`rescue KeyError; Absent.new(key)`, a null object, passes). A
     rescue that answers a boolean is a question's answer when it names the
@@ -1820,7 +1823,9 @@ Kata/FailFast:
     `rescue NoMethodError` is a bug); `==`, `eql?` and `<=>` answer a foreign
     object. The ends of a stream or a process (`EOFError`, `Errno::EPIPE`,
     `Errno::ESRCH`, an empty queue's `ThreadError`), and an optional library's
-    `LoadError` (`ExpectedErrors`) are not failures. On the way out of a
+    `LoadError` (`ExpectedErrors`) are not failures, and neither is
+    `Errno::EPERM` rescued from a `kill` alone (`Process.kill("KILL", pid)`):
+    the process is gone and its pid belongs to another. On the way out of a
     failure, in an `ensure` or inside a rescue that re-raises, a rescue
     keeps the error in flight from being replaced, and passes
     (`socket.close rescue nil`, a diagnostic `socket.read rescue ""`).

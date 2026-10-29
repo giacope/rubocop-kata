@@ -16,6 +16,9 @@ class RuboCop::Cop::Kata::FailFast < RuboCop::Cop::Base
   BROAD = %w[Exception StandardError RuntimeError ScriptError NoMethodError NameError TypeError].freeze
   BUGS = %w[Exception StandardError NoMethodError].freeze
   COMPARISONS = %i[== eql? equal? <=> ===].freeze
+  SIGNALS = %w[Errno::EPERM].freeze
+
+  def_node_matcher :signal?, "(send _ :kill _ _ ...)"
 
   def on_resbody(node)
     return if escapes?(node.body) || cleanup?(node) || expected?(node)
@@ -48,14 +51,39 @@ class RuboCop::Cop::Kata::FailFast < RuboCop::Cop::Base
 
   def expected?(node)
     names = classes(node)
-    names.any? && names.all? { listed?("ExpectedErrors", it) }
+    names.any? && names.all? { listed?("ExpectedErrors", it) || (SIGNALS.include?(it) && signaling?(node)) }
+  end
+
+  def signaling?(node)
+    body = node.parent.body
+    lines = body&.begin_type? ? body.children : [body]
+    lines.all? { signal?(it) }
   end
 
   def classes(node) = node.exceptions.map { it.source.delete_prefix("::") }
 
   def answers(last) = EXITS.include?(last&.type) ? last.children.first(1) : [last].compact
 
-  def log?(line) = line&.call_type? && LEVELS.include?(line.method_name) && line.arguments?
+  def log?(line) = level?(line) && !answered_here?(line)
+
+  def level?(line) = line&.call_type? && LEVELS.include?(line.method_name) && line.arguments?
+
+  def answered_here?(call)
+    holder = call.receiver
+    found = holder.nil? || holder.self_type? ? definitions(call) : []
+    found.any? && found.none? { logs?(it.body) }
+  end
+
+  def definitions(call)
+    scope = call.each_ancestor(:class, :module).first
+    found = scope ? scope.each_descendant(:def).select { it.method?(call.method_name) } : []
+    found.select { it.each_ancestor(:class, :module).first.equal?(scope) }
+  end
+
+  def logs?(body)
+    lines = body&.begin_type? ? body.children : [body]
+    lines.any? { it.nil? || level?(it) }
+  end
 
   def default?(values) = values.all? { it.basic_literal? || (EMPTY.include?(it.type) && it.children.empty?) }
 

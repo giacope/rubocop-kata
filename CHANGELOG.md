@@ -18,6 +18,11 @@
     the methods of a module a class extends (`extend Registry`,
     `base.extend(ClassMethods)`, a `ClassMethods` module, a Concern's
     `class_methods`) are class methods, where objects are wired.
+  - `Kata/FailFast`: a bare or self-sent call to the class's own method
+    named like a log level, whose body logs nothing (`error(trial,
+    detail)` building a verdict), is not a log line, and
+    `Errno::EPERM` rescued from a `kill` alone is the end of a process, as
+    `Errno::ESRCH` is.
 - Kata lints itself with its strict profile and hashira's strict set, and CI
   enforces both. Behaviour is unchanged; the one difference a caller can
   see: `Elegant/NoNilReturn`, `Elegant/MonotonicIndents` and
