@@ -31,6 +31,9 @@
     none), and a client built with no URL (`Faraday.new { ... }`, the URL
     handed to each request from a field) reaches nothing until a request
     the method sends it names one.
+  - `Kata/NoPublicConstant`: the block of a `Data.define`, `Struct.new` or
+    `Class.new` assigned to a constant is that class's body, so its methods
+    reading the class's own constant (`Definition::ENGINES`) pass.
 - Kata lints itself with its strict profile and hashira's strict set, and CI
   enforces both. Behaviour is unchanged; the one difference a caller can
   see: `Elegant/NoNilReturn`, `Elegant/MonotonicIndents` and

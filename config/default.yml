@@ -1213,7 +1213,8 @@ Kata/NoPublicConstant:
     (`cart.full?`) and make the constant private (`private_constant`). Only
     the project's own namespaces are judged (Ruby's `Float::INFINITY` and a
     library's constants are its API), a class reading its own constants
-    passes, and `AllowedNames` holds the constants a packaging tool reads
+    passes (the block of a `Data.define`, `Struct.new` or `Class.new`
+    assigned to a constant is that class's body), and `AllowedNames` holds the constants a packaging tool reads
     (`VERSION`). A class, module or error is not a value, and neither is a
     constant that namespaces another (`Net::NTLM::Message`, however its
     acronym is spelled). Off by default: config/strict.yml turns it on.
