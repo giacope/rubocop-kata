@@ -15,5 +15,5 @@ class Assay::Console
 
   private
 
-  def invoke(item) = Assay::Invocation.new(@bundle, File.join(@work, item.fetch("id")), item, @kata).to_h
+  def invoke(item) = Assay::Invocation.new(@bundle, @work, item, @kata).to_h
 end

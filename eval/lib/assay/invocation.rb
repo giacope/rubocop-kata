@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
 class Assay::Invocation
-  def initialize(bundle, home, item, kata)
+  def initialize(bundle, work, item, kata)
     @bundle = bundle
-    @home = home
+    @work = work
     @item = item
     @kata = kata
   end
@@ -19,20 +19,22 @@ class Assay::Invocation
 
   private
 
+  def home = File.join(@work, @item.fetch("id"))
+
   def launch
     plant
     executable = File.join(@kata, "exe", "rubocop-kata")
-    @bundle.ruby(executable, @item.fetch("command"), dir: @home, env: @item.fetch("env", {}))
+    @bundle.ruby(executable, @item.fetch("command"), dir: home, env: @item.fetch("env", {}))
   end
 
   def plant
-    FileUtils.rm_rf(@home)
+    FileUtils.rm_rf(home)
     @item.fetch("files", {}).each { |path, text| write(path, text) }
     @item.fetch("hex", {}).each { |path, text| write(path, [text.delete(" ")].pack("H*")) }
   end
 
   def write(path, text)
-    target = File.join(@home, path)
+    target = File.join(home, path)
     FileUtils.mkdir_p(File.dirname(target))
     File.binwrite(target, text)
   end

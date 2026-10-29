@@ -7,10 +7,9 @@ class Assay::Gate
     @data = data
   end
 
-  def check(io)
-    breaches.each { io.puts("gate: #{it}") }
-    breaches.empty? ? 0 : 1
-  end
+  def check(io) = breaches.each { io.puts("gate: #{it}") }
+
+  def status = breaches.empty? ? 0 : 1
 
   private
 

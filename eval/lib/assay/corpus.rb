@@ -12,8 +12,10 @@ class Assay::Corpus
   end
 
   def to_h
-    check = export("check")
+    check = File.join(home, "check")
+    export(check)
     report = sweep(check)
+    measure(check)
     summary(report, check).merge(@spec.slice("sha", "config"), "method_length" => lengths(check))
       .merge("pristine_test" => test(check), "offense_list" => listing(report), **fixes).compact
   end
@@ -40,7 +42,11 @@ class Assay::Corpus
     { "safe" => repair("safe", "-a"), "all" => repair("all", "-A") }
   end
 
-  def repair(label, flag) = Assay::Repair.new(self, @bundle, export(label), flag).to_h
+  def repair(label, flag)
+    dir = File.join(home, label)
+    export(dir)
+    Assay::Repair.new(self, @bundle, dir, flag).to_h
+  end
 
   def sweep(dir)
     @bundle.rubocop("--format", "json", "--out", "report.json", "--cache", "false", *paths, dir: dir)
@@ -62,15 +68,20 @@ class Assay::Corpus
     end
   end
 
-  def lengths(dir) = LENGTHS.to_h { |label, folded| [label, length(dir, label, folded)] }
+  def measure(dir) = LENGTHS.each { |label, folded| length(dir, label, folded) }
 
   def length(dir, label, folded)
-    out = "length-#{label}.json"
     option = folded ? ["-c", variant(dir, label, folded)] : []
     @bundle.rubocop(
-      "--only", "Metrics/MethodLength", "--format", "json", "--out", out, "--cache", "false", *option, *paths, dir: dir
+      "--only", "Metrics/MethodLength", "--format", "json", "--out", "length-#{label}.json", "--cache", "false",
+      *option, *paths, dir: dir
     )
-    JSON.parse(File.read(File.join(dir, out))).fetch("summary").fetch("offense_count")
+  end
+
+  def lengths(dir) = LENGTHS.keys.to_h { [it, counted(dir, it)] }
+
+  def counted(dir, label)
+    JSON.parse(File.read(File.join(dir, "length-#{label}.json"))).fetch("summary").fetch("offense_count")
   end
 
   def variant(dir, label, folded)
@@ -79,11 +90,9 @@ class Assay::Corpus
     path
   end
 
-  def export(label)
-    dir = File.join(@work, label)
+  def export(dir)
     unpack(dir)
     @bundle.configure(dir) if @spec.fetch("config") == "bare"
-    dir
   end
 
   def unpack(dir)
@@ -101,11 +110,13 @@ class Assay::Corpus
   end
 
   def clone(path)
-    FileUtils.mkdir_p(@work)
-    @shell.run("git", "clone", "--quiet", "--no-checkout", @spec.fetch("url"), path, dir: @work)
+    FileUtils.mkdir_p(home)
+    @shell.run("git", "clone", "--quiet", "--no-checkout", @spec.fetch("url"), path, dir: home)
   end
 
   def cache = @spec.fetch("cache")
 
   def name = @spec.fetch("name")
+
+  def home = File.join(@work, "corpora", name)
 end

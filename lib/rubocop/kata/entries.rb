@@ -11,7 +11,7 @@ class RuboCop::Kata::Entries
   DEFAULTED = /\A\s*DisabledByDefault:\s*true\b/
   SHIPPED = File.expand_path("../../../config/default.yml", __dir__)
 
-  def initialize(root, config, renames)
+  def initialize(root, config, renames = RuboCop::Kata::Renames.new)
     @root = root
     @config = config
     @renames = renames

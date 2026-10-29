@@ -37,24 +37,25 @@ class Assay::Session
   def run
     return compare if options[:compare]
     return emit(Assay::Sample.new(NAMES).to_s) if options[:draw]
-    return usage unless options[:kata]
-    gate(score.tap { write(it) })
+    options[:kata] ? assay : @io.puts(USAGE)
+  end
+
+  def status
+    return 0 if options[:compare] || options[:draw]
+    return 1 unless options[:kata]
+    options[:gate] ? Assay::Gate.new(score).status : 0
   end
 
   private
 
-  def usage
-    @io.puts(USAGE)
-    1
+  def assay
+    write(score)
+    Assay::Gate.new(score).check(@io) if options[:gate]
   end
 
   def options = @_options ||= DEFAULTS.merge(parsed)
 
-  def parsed
-    found = {}
-    parser.parse!(@arguments, into: found)
-    found
-  end
+  def parsed = {}.tap { parser.parse(@arguments, into: it) }
 
   def parser
     OptionParser.new do |parser|
@@ -64,37 +65,33 @@ class Assay::Session
   end
 
   def compare
-    before, after = @arguments.map { JSON.parse(File.read(it)) }
+    before, after = parser.parse(@arguments).map { JSON.parse(File.read(it)) }
     emit(Assay::Comparison.new(before, after).markdown)
   end
 
-  def emit(text)
-    options[:out] ? File.write(options[:out], text) : @io.puts(text)
-    0
-  end
+  def emit(text) = options[:out] ? File.write(options[:out], text) : @io.puts(text)
 
-  def gate(data) = options[:gate] ? Assay::Gate.new(data).check(@io) : 0
+  def score = @_score ||= scored
 
-  def score
-    bundle = Assay::Bundle.new(options[:kata], File.join(work, "bundle"), shell, elegant: options[:elegant]).prepare
-    options[:only].each_with_object({ "kata" => bundle.to_h }) { |name, data| data[name] = section(name, bundle) }
+  def scored
+    bundle = Assay::Bundle.new(options[:kata], work, shell, elegant: options[:elegant]).prepare
+    options[:only].each_with_object({ "kata" => bundle.to_h }) do |name, data|
+      @io.puts("assay: #{name}")
+      data[name] = section(name, bundle)
+    end
   end
 
   def work = options[:work] || File.join(@scratch, "assay", File.basename(options[:kata]))
 
   def section(name, bundle)
-    @io.puts("assay: #{name}")
     return corpora(bundle) if name == "corpora"
     BUILDERS.fetch(name).call(bundle, File.join(work, name), options).to_h
   end
 
-  def corpora(bundle) = Assay::Fleet.new(specs, options[:jobs]).results { measure(it, bundle) }
-
-  def measure(spec, bundle)
-    name = spec["name"]
-    result = Assay::Corpus.new(spec, bundle, File.join(work, "corpora", name), shell).to_h
-    @io.puts("assay: corpus #{name} done")
-    result
+  def corpora(bundle)
+    Assay::Fleet.new(specs, options[:jobs]).results do |spec|
+      Assay::Corpus.new(spec, bundle, work, shell).to_h.tap { @io.puts("assay: corpus #{spec["name"]} done") }
+    end
   end
 
   def specs = @_specs ||= YAML.safe_load_file(options[:list] || CORPORA).map { it.merge("cache" => cache) }

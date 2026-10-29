@@ -44,19 +44,18 @@ class Assay::Snippets
   end
 
   def sweep(label, group, extra)
-    root = grow(label, group)
+    root = File.join(@work, label)
+    grow(root, group)
     rooted, plain = group.partition { it["path"] }
     rooted.map { examine(File.join(root, it["id"]), [it.fetch("path")], extra, it["id"]) }
       .reduce(examine(root, plain.map { File.join(it["id"], PATH) }, extra, nil), :merge)
   end
 
-  def grow(label, group)
-    root = File.join(@work, label)
+  def grow(root, group)
     FileUtils.rm_rf(root)
     FileUtils.mkdir_p(root)
     @bundle.configure(root)
     group.each { plant(root, it) }
-    root
   end
 
   def examine(dir, files, extra, owner)

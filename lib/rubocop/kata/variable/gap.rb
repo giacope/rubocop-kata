@@ -15,13 +15,10 @@ class RuboCop::Kata::Variable::Gap
   def initialize(pairs, movable)
     @pairs = pairs
     @movable = movable
-    @memo = {}
+    @memo = Hash.new { |memo, assign| memo[assign] = scan?(assign) }
   end
 
-  def crossed?(assign)
-    @memo[assign] = scan?(assign) unless @memo.key?(assign)
-    @memo[assign]
-  end
+  def crossed?(assign) = @memo[assign]
 
   private
 

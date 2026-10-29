@@ -12,9 +12,11 @@ RSpec.describe(RuboCop::Kata::Checkup) do
     end
   end
 
-  def report(root)
+  def report(root, files: RuboCop::ProcessedSource)
     io = StringIO.new
-    described_class.new(root, io: io).run.then { [io.string, it] }
+    doctor = described_class.new(root, io: io, files: files)
+    doctor.run
+    [io.string, doctor.status]
   end
 
   let(:switched_off) do
@@ -177,9 +179,10 @@ RSpec.describe(RuboCop::Kata::Checkup) do
   end
 
   it "says which file it could not read, and why" do
-    allow(RuboCop::ProcessedSource).to(receive(:from_file).and_raise(Errno::EACCES, "sample.rb\nmore"))
+    locked = Class.new { def self.from_file(*) = raise(Errno::EACCES, "sample.rb\nmore") }
     project("") do |root|
-      expect(report(root).first).to(include("sample.rb: not checked, Errno::EACCES: Permission denied - sample.rb.\n"))
+      expected = "sample.rb: not checked, Errno::EACCES: Permission denied - sample.rb.\n"
+      expect(report(root, files: locked).first).to(include(expected))
     end
   end
 

@@ -15,31 +15,39 @@ class RuboCop::Kata::Checkup
   MOVES = ", %d entr%s to rename"
   SKIPPED = ", %d file%s not fully checked"
 
-  def initialize(root, io: $stdout)
+  def initialize(root, io: $stdout, files: RuboCop::ProcessedSource)
     @root = root
     @io = io
+    @files = files
   end
 
-  def run
-    examine
-  rescue ::LoadError, RuboCop::Error => error
-    cause = error.message.lines.first.to_s.strip
-    @io.puts(format(UNLOADED, @root, cause, cause.include?("renamed to") ? "rename it in .rubocop.yml" : BUNDLED))
-    2
-  end
+  def run = outcome.fetch(0).each { @io.puts(it) }
+
+  def status = outcome.fetch(1)
 
   private
 
-  def examine
-    found = entries.dead + dead
-    moved = entries.moved
-    clean = clean?(found, moved)
-    verdict = clean ? "clean" : tally(found, moved)
-    [*waivers.lines, *notes, *found, *moved, verdict, *waivers.tally].each { @io.puts(it) }
-    clean ? 0 : 1
+  def outcome = @_outcome ||= examined
+
+  def examined
+    examine
+  rescue ::LoadError, RuboCop::Error => error
+    cause = error.message.lines.first.to_s.strip
+    [[format(UNLOADED, @root, cause, cause.include?("renamed to") ? "rename it in .rubocop.yml" : BUNDLED)], 2]
   end
 
-  def clean?(found, moved) = found.empty? && moved.empty? && notes.empty? && waivers.bare.zero?
+  def examine
+    entries = RuboCop::Kata::Entries.new(@root, config)
+    renames = RuboCop::Kata::Renames.new
+    found = entries.dead + dead(renames)
+    moved = entries.moved
+    waivers = RuboCop::Kata::Waivers.new(parsed)
+    clean = clean?(found, moved, waivers)
+    verdict = clean ? "clean" : tally(found, moved)
+    [[*waivers.lines, *notes, *found, *moved, verdict, *waivers.tally], clean ? 0 : 1]
+  end
+
+  def clean?(found, moved, waivers) = found.empty? && moved.empty? && notes.empty? && waivers.bare.zero?
 
   def tally(found, moved)
     text = counted(TALLY, found) + (moved.empty? ? "" : counted(MOVES, moved))
@@ -50,24 +58,20 @@ class RuboCop::Kata::Checkup
 
   def plural(list) = list.one? ? "" : "s"
 
-  def entries = @_entries ||= RuboCop::Kata::Entries.new(@root, config, renames)
-
-  def dead
+  def dead(renames)
     parsed.flat_map do |path, source|
       source.comments.flat_map do |comment|
         directive = RuboCop::DirectiveComment.new(comment)
-        directive.start_with_marker? && !directive.all_cops? ? stale(path, directive) : []
+        directive.start_with_marker? && !directive.all_cops? ? stale(path, directive, renames) : []
       end
     end
   end
 
-  def stale(path, directive)
+  def stale(path, directive, renames)
     moved, gone = directive.cop_names.reject { active?(it, path) }.partition { renames.renamed?(it) }
     renamed = moved.map { format(RENAMED, path, directive.line_number, it, renames.to(it)) }
     gone.empty? ? renamed : [*renamed, format(DEAD, path, directive.line_number, gone.join("`, `"))]
   end
-
-  def renames = @_renames ||= RuboCop::Kata::Renames.new
 
   def active?(name, path)
     configuration = store.for_file(path)
@@ -83,14 +87,12 @@ class RuboCop::Kata::Checkup
       end
   end
 
-  def waivers = @_waivers ||= RuboCop::Kata::Waivers.new(parsed)
-
   def parsed = sources.reject { |_, source| source.is_a?(String) }
 
   def sources
     @_sources ||=
       RuboCop::TargetFinder.new(store).find([@root], :only_recognized_file_types).map do |path|
-        [path, RuboCop::ProcessedSource.from_file(path, config.target_ruby_version)]
+        [path, @files.from_file(path, config.target_ruby_version)]
       rescue StandardError => error
         [path, "#{error.class}: #{error.message.lines.first.to_s.strip}"]
       end
