@@ -9,11 +9,11 @@ class Assay::Invocation
   end
 
   def to_h
-    outcome = launch
-    faults = faults(@item.fetch("expect"), outcome)
+    stdout, stderr, status = launch
+    faults = faults(@item.fetch("expect"), stdout, stderr, status)
     @item.slice("id", "gap", "command", "known").merge(
-      "passed" => faults.empty?, "status" => outcome.status, "faults" => faults,
-      "stdout" => outcome.stdout.lines.first(6).join, "stderr" => outcome.stderr.lines.first(3).join
+      "passed" => faults.empty?, "status" => status, "faults" => faults,
+      "stdout" => stdout.lines.first(6).join, "stderr" => stderr.lines.first(3).join
     )
   end
 
@@ -37,16 +37,16 @@ class Assay::Invocation
     File.binwrite(target, text)
   end
 
-  def faults(expect, outcome)
+  def faults(expect, stdout, stderr, status)
     [
-      *status(expect["status"], outcome.status),
-      *missing(expect.fetch("stdout", []), outcome.stdout, "stdout lacks"),
-      *present(expect.fetch("stdout_absent", []), outcome.stdout, "stdout has"),
-      *present(expect.fetch("stderr_absent", []), outcome.stderr, "stderr has")
+      *exited(expect["status"], status),
+      *missing(expect.fetch("stdout", []), stdout, "stdout lacks"),
+      *present(expect.fetch("stdout_absent", []), stdout, "stdout has"),
+      *present(expect.fetch("stderr_absent", []), stderr, "stderr has")
     ]
   end
 
-  def status(allowed, actual)
+  def exited(allowed, actual)
     "exit status #{actual}, expected #{allowed}" if allowed && !allowed.include?(actual)
   end
 

@@ -21,8 +21,8 @@ class Assay::Bundle
   def prepare
     FileUtils.mkdir_p(@work)
     File.write(gemfile, format(GEMFILE, @kata.inspect, @elegant.inspect))
-    outcome = @shell.run("bundle", "install", "--local", "--quiet", dir: @work, env: scope)
-    raise(Assay::Failure, "bundle install failed: #{outcome.stderr}#{outcome.stdout}") unless outcome.status.zero?
+    stdout, stderr, status = @shell.run("bundle", "install", "--local", "--quiet", dir: @work, env: scope)
+    raise(Assay::Failure, "bundle install failed: #{stderr}#{stdout}") unless status.zero?
     self
   end
 
@@ -36,7 +36,7 @@ class Assay::Bundle
     {
       "path" => @kata, "commit" => git("rev-parse", "HEAD"),
       "dirty" => !git("status", "--porcelain", "--", "lib", "config", "data", "exe").empty?,
-      "elegant" => @elegant, "versions" => JSON.parse(ruby("-e", PROBE, dir: @work).stdout)
+      "elegant" => @elegant, "versions" => JSON.parse(ruby("-e", PROBE, dir: @work).first)
     }
   end
 
@@ -48,5 +48,5 @@ class Assay::Bundle
 
   def gemfile = File.join(@work, "Gemfile")
 
-  def git(*) = @shell.run("git", "-C", @kata, *, dir: @work).stdout.strip
+  def git(*) = @shell.run("git", "-C", @kata, *, dir: @work).first.strip
 end

@@ -11,8 +11,8 @@ class Assay::Settings
   def to_h
     FileUtils.mkdir_p(@work)
     @bundle.configure(@work)
-    outcome = @bundle.ruby(PROBE, @work, dir: @work)
-    raise(Assay::Failure, "settings probe failed: #{outcome.stderr}") unless outcome.status.zero?
-    JSON.parse(outcome.stdout)
+    stdout, stderr, status = @bundle.ruby(PROBE, @work, dir: @work)
+    raise(Assay::Failure, "settings probe failed: #{stderr}") unless status.zero?
+    JSON.parse(stdout)
   end
 end

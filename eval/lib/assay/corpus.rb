@@ -22,8 +22,8 @@ class Assay::Corpus
 
   def test(dir)
     return unless @spec["test"]
-    outcome = @shell.run("sh", "-c", @spec.fetch("test").gsub("{shims}", SHIMS), dir: dir)
-    { "status" => outcome.status }.merge(counts(outcome.stdout))
+    stdout, _, status = @shell.run("sh", "-c", @spec.fetch("test").gsub("{shims}", SHIMS), dir: dir)
+    { "status" => status }.merge(counts(stdout))
   end
 
   private
@@ -90,8 +90,8 @@ class Assay::Corpus
     FileUtils.rm_rf(dir)
     FileUtils.mkdir_p(dir)
     archive = "git -C #{source} archive --format=tar #{@spec.fetch("sha")} | tar -x -C #{dir}"
-    outcome = @shell.run("sh", "-c", archive, dir: dir)
-    raise(Assay::Failure, "export of #{name} failed: #{outcome.stderr}") unless outcome.status.zero?
+    _, stderr, status = @shell.run("sh", "-c", archive, dir: dir)
+    raise(Assay::Failure, "export of #{name} failed: #{stderr}") unless status.zero?
   end
 
   def source
