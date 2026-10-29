@@ -1138,9 +1138,23 @@ Kata/NoNilReturn:
     an `if`, `unless` or `case` whose other branches answer with a value
     (`@items[code] if @open`). Return a null object, or fail fast (`fetch`).
     The `min` or `max` of an array literal that holds a number, a string, a
-    symbol or a constant the file assigns one (`[cost, LIMIT].min`) answers
-    one of its elements, never nil (a nil element raises). A block's
-    literal `nil` is reported too. A predicate's falsy nil answers its
+    symbol, a constant the file assigns one (`[cost, LIMIT].min`) or a call
+    that answers a number (`[cost, raised.clamp(..cap)].max`: arithmetic,
+    `clamp`, `abs`, `round`, `size`, `to_i`, ...) answers one of its
+    elements, never nil (a nil element raises). A `[]` that always answers
+    passes: a core class's builder (`Dir[pattern]` is `Dir.glob`; `Hash[]`,
+    `Array[]`, `Set[]`), a pattern every string matches (`line[/\A\s*/]`,
+    each part optional), and a hash built with a default, held in a
+    constant, a field or a memo (`def said = @said ||= Hash.new { ... }`).
+    So does a lookup's name that reaches the project's own method, whose
+    body never answers nil: one the class defines, sent to `self` or to no
+    receiver (`self[:first]` where `def [](key) = @rows[key] ||= Row.new`),
+    or one the receiver's class defines, the receiver built by its `new`
+    (`Pens.new(nodes).index`, directly, through a local, a field or a
+    memo; the class found in the file or under `OwnedPaths`). A value
+    returned only under a type check that rules nil out (`return first if
+    first.is_a?(Time)`) is never nil. A block's literal `nil` is reported
+    too. A predicate's falsy nil answers its
     question, a writer's value is its argument, and a method that forwards the
     protocol it is named after (`def first = @rows.first`) keeps that
     protocol's contract; `AllowedMethods` holds the core methods whose
@@ -1157,6 +1171,11 @@ Kata/NoNilReturn:
     literal `nil`.
   Enabled: false
   VersionAdded: "0.11"
+  OwnedPaths:
+    - "app/**/*.rb"
+    - "*/app/**/*.rb"
+    - "lib/**/*.rb"
+    - "*/lib/**/*.rb"
   Exclude:
     - "spec/**/*"
     - "test/**/*"

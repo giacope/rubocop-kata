@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+- Strict false positives met while hashira, kimera, kata and six twins were
+  brought to the strict profile, fixed:
+  - `Kata/NoNilReturn`: a `[]` that always answers (`Dir[pattern]`, a
+    pattern every string matches, a hash a memo builds with a default), the
+    `min` or `max` of an array literal holding a computed number
+    (`[seconds, raised.clamp(..cap)].max`), a lookup's name that reaches the
+    project's own method whose body never answers nil (`self[:first]`,
+    `Pens.new(nodes).index`, found in the file or under the new
+    `OwnedPaths`), and a value returned under a type check that rules nil
+    out (`return first if first.is_a?(Time)`).
 - Kata lints itself with its strict profile and hashira's strict set, and CI
   enforces both. Behaviour is unchanged; the one difference a caller can
   see: `Elegant/NoNilReturn`, `Elegant/MonotonicIndents` and
