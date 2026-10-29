@@ -1415,7 +1415,9 @@ Kata/NoHardWiring:
     constructor is. An object that lives only inside one call is the call's
     own data, whatever the method does to it, and passes: one built from the
     method's own inputs (its arguments, a block's arguments, its locals and
-    fields, `self`, the class's own constants; `Nesting.new(node).qualified`,
+    fields, `self`, the class's own constants, or a class or module applied
+    to them, `Owner.new(full)`, `Words.key(part)`, `File.join(root, name)`;
+    a value constant, `DB` or `ENV`, is not one; `Nesting.new(node).qualified`,
     an entry built per row, filled and saved, `Writer.new(buffer:,
     parts:).emit`), one returned, passed to a method or left as a block's
     value (`Cart.new(@items + [item])`, `form = Form.new; form.add(upload);
@@ -1425,7 +1427,10 @@ Kata/NoHardWiring:
     carry every call's contents. Asking a fresh object what its class
     answers (`respond_to?`, `method`) is not talking to it, and a message
     sent to a name before it was bound to the new object goes to the name's
-    earlier value. The class building itself passes too. Class methods,
+    earlier value. The class building itself passes too. Class methods
+    (a module's methods are class methods where a class extends it,
+    `extend Registry` or `base.extend(ClassMethods)` in an `included` hook,
+    and so are a `ClassMethods` module's and a Concern's `class_methods`),
     constructors and the composition roots a framework instantiates are
     where objects are wired: controllers, view helpers, jobs, mailers,
     tests, rake tasks, `bin/`, `config/`, a subclass of one of

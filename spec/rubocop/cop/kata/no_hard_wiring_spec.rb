@@ -522,6 +522,175 @@ RSpec.describe(RuboCop::Cop::Kata::NoHardWiring, :config) do
     RUBY
   end
 
+  # hashira's Sites#each and Clones (fp/hashira-3), savon's SerializedInput#content (fp/twin-savon-1), alba's
+  # InstanceMethods#as_json (fp/twin-alba-4): a type applied to the method's inputs makes the input's value.
+  it "allows an object built from a class or module applied to the method's own inputs" do
+    expect_no_offenses(<<~RUBY)
+      module Demo
+        class Body
+        end
+
+        class Owner
+        end
+
+        module Words
+          def self.key(word) = word.downcase
+        end
+
+        class Sites
+          def each(&)
+            @types.each do |type, full|
+              Demo::Body.new(type, Demo::Owner.new(full)).each(&)
+            end
+          end
+
+          def joined(&) = Dir.children(@root).each { |fixture| Body.new(File.join(fixture, "project"), fixture).each(&) }
+          def computed(part) = Body.new(@message[Words.key(part)]).to_s
+          def one(value) = Body.new(@key, Owner.of(@meta)).json(value)
+          def parsed = Body.new(JSON.parse(@text), URI.parse(@url)).to_s
+          def nested(part) = Body.new(Owner.new(Words.key(part))).to_s
+          def acronym(part) = Body.new(SQL.quote(part)).to_s
+        end
+
+        module SQL
+        end
+      end
+    RUBY
+  end
+
+  it "still flags an object built from a type applied to nothing, to literals, or from a value constant" do
+    expect_offense(<<~RUBY, seam: seam)
+      module Demo
+        class Body
+        end
+
+        class Owner
+        end
+
+        class Sites
+          def clock = Body.new(@key, Clock.now).stamp
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^ `clock` builds the `Body` it talks to; %{seam}
+          def live = Body.new(@key, Settings.for(:live)).charge
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `live` builds the `Body` it talks to; %{seam}
+          def env = Body.new(ENV.fetch(@key)).read
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^ `env` builds the `Body` it talks to; %{seam}
+          def pool = Body.new(DB.pool(@name)).find
+                     ^^^^^^^^^^^^^^^^^^^^^^^^ `pool` builds the `Body` it talks to; %{seam}
+          def wired = Body.new(@key, Owner.new(DB)).each
+                                     ^^^^^^^^^^^^^ `wired` builds the `Owner` it hands to `Body.new`; %{seam}
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `wired` builds the `Body` it talks to; %{seam}
+          def read = Body.new(@key, Owner::LIMIT.call(@key)).each
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `read` builds the `Body` it talks to; %{seam}
+        end
+      end
+    RUBY
+  end
+
+  # alba's ClassMethods#layout (fp/twin-alba-1) and faraday's MiddlewareRegistry (fp/twin-faraday-3): the methods of a
+  # module a class extends are its class methods, where objects are wired.
+  it "allows a module a class extends, whose methods are class methods" do
+    expect_no_offenses(<<~RUBY)
+      module Shelf
+        class Label
+        end
+
+        def self.included(base)
+          super
+          base.extend(Macros)
+        end
+
+        module ClassMethods
+          def label(text) = @_label = Label.new(text)
+        end
+
+        module Macros
+          def layout(file:) = @_layout = Label.new(file)
+        end
+      end
+
+      module Http
+        class Catalog
+        end
+
+        module Registry
+          def lookup(key) = catalog.lookup(key)
+
+          private
+
+          def catalog = @_catalog ||= Catalog.new(self)
+        end
+
+        class Adapter
+          extend Registry
+        end
+
+        module Stack
+          def stack = @_stack ||= Catalog.new(self)
+        end
+
+        Request = Class.new
+        Request.extend(Stack)
+      end
+
+      module Tracked
+        extend ActiveSupport::Concern
+
+        class_methods do
+          def tracker = @_tracker ||= Shelf::Label.new(name)
+        end
+      end
+    RUBY
+  end
+
+  it "still judges a module's included block, a class named ClassMethods, and a method outside every class" do
+    expect_offense(<<~RUBY, seam: seam)
+      class Label
+      end
+
+      module Tracked
+        extend ActiveSupport::Concern
+
+        included do
+          def tracker = @_tracker ||= Label.new(name)
+                                      ^^^^^^^^^^^^^^^ `tracker` builds the `Label` it keeps in `@_tracker`; %{seam}
+        end
+      end
+
+      class ClassMethods
+        def label = Label.new.to_s.upcase
+                    ^^^^^^^^^ `label` builds the `Label` it talks to; %{seam}
+      end
+
+      def label = Label.new.to_s.upcase
+                  ^^^^^^^^^ `label` builds the `Label` it talks to; %{seam}
+    RUBY
+  end
+
+  it "still judges a module included into a class, or extended into an object" do
+    expect_offense(<<~RUBY, registry: built("Http::Registry", "catalog"), decor: built("Http::Decor", "decorated"))
+      module Http
+        class Catalog
+        end
+
+        module Registry
+          def catalog = @_catalog ||= Catalog.new(self)
+                                      ^^^^^^^^^^^^^^^^^ `catalog` builds the `Catalog` it keeps in `@_catalog`; %{registry}
+        end
+
+        class Adapter
+          include Registry
+
+          def wrap(user) = user.extend(Decor)
+        end
+
+        module Decor
+          def decorated = @_decorated ||= Catalog.new(self)
+                                          ^^^^^^^^^^^^^^^^^ `decorated` builds the `Catalog` it keeps in `@_decorated`; %{decor}
+        end
+      end
+    RUBY
+  end
+
   it "allows the seams: constructors, parameter defaults and class methods" do
     expect_no_offenses(<<~RUBY)
       module Shop
@@ -686,6 +855,14 @@ RSpec.describe(RuboCop::Cop::Kata::NoHardWiring, :config) do
     end
 
     after { FileUtils.rm_rf(root) }
+
+    it "reads a module another file's class extends as class-level" do
+      request = "module Demo\n  class Request\n    extend Registry\n  end\nend\n"
+      File.write(File.join(root, "lib", "demo", "request.rb"), request)
+      registry = "module Demo\n  module Registry\n    def catalog = @catalog ||= Demo::Tracker.new(self)\n  end\nend\n"
+      other = "module Demo\n  module Visits\n    def catalog = @catalog ||= Demo::Tracker.new(self)\n  end\nend\n"
+      expect([offenses(registry), offenses(other).map(&:line)]).to(eq([[], [3]]))
+    end
 
     it "reads the load hooks in the project's other files" do
       mixin = "module Demo::Controller\n  def ahoy = @ahoy ||= Demo::Tracker.new(self)\nend\n"

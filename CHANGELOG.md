@@ -12,6 +12,12 @@
     `Pens.new(nodes).index`, found in the file or under the new
     `OwnedPaths`), and a value returned under a type check that rules nil
     out (`return first if first.is_a?(Time)`).
+  - `Kata/NoHardWiring`: an argument a class or module computes from the
+    method's inputs (`Owner.new(full)`, `Words.key(part)`,
+    `File.join(fixture, "x")`) is the input's value, not configuration; and
+    the methods of a module a class extends (`extend Registry`,
+    `base.extend(ClassMethods)`, a `ClassMethods` module, a Concern's
+    `class_methods`) are class methods, where objects are wired.
 - Kata lints itself with its strict profile and hashira's strict set, and CI
   enforces both. Behaviour is unchanged; the one difference a caller can
   see: `Elegant/NoNilReturn`, `Elegant/MonotonicIndents` and
