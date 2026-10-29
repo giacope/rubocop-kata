@@ -3,6 +3,7 @@
 class RuboCop::Cop::Kata::ClockDiscipline < RuboCop::Cop::Base
   include RuboCop::Cop::Kata::BootLayer
   include RuboCop::Cop::Kata::Ownership
+  include RuboCop::Cop::Kata::Instantiation
 
   MSG = "Inject a clock; `%s` reads the ambient time."
   RANDOM_MSG = "Inject a source of randomness; `%s` draws from the ambient one."
@@ -42,12 +43,16 @@ class RuboCop::Cop::Kata::ClockDiscipline < RuboCop::Cop::Base
 
   def judge(node)
     return add_offense(node, message: format(RANDOM_MSG, label(node))) if random?(node) || bare?(node)
-    draw?(node) { |held, name| add_offense(node, message: format(DRAW_MSG, name)) unless seeded?(node) || own?(held) }
+    draw?(node) do |held, name|
+      add_offense(node, message: format(DRAW_MSG, name)) unless seeded?(node) || drawn?(held, name)
+    end
   end
 
   def label(node) = [node.receiver&.source, node.method_name].compact.join(".")
 
   def bare?(node) = kernel?(node) { !answered?(it) }
+
+  def drawn?(held, name) = own?(held) || classes(held).any? { inheritance.instance?(it, name.to_s) }
 
   def seeded?(node) = node.arguments.any? { it.hash_type? && it.keys.any? { |key| key.value == :random } }
 end

@@ -54,6 +54,59 @@ RSpec.describe(RuboCop::Cop::Kata::NoPublicConstant, :config) do
   end
 
   # support's Support::GDS: a module that only namespaces classes is not a value.
+  # hashira's Coupling::Definition (fp/hashira-1): a `Data.define` block is the class body of the constant it is
+  # assigned to, so `Definition#engine?` reads its own constant.
+  it "allows a class built by Data.define, Struct.new or Class.new reading its own constant" do
+    expect_no_offenses(<<~RUBY)
+      module Demo
+        Definition =
+          Data.define(:superclass) do
+            def engine? = Demo::Definition::ENGINES.include?(superclass)
+          end
+
+        Definition::ENGINES = %w[Rails::Engine].freeze
+
+        Point = Struct.new(:x) do
+          def origin? = x == Demo::Point::ORIGIN
+        end
+
+        Point::ORIGIN = 0
+
+        Demo::Shape = Class.new do
+          def sides = Demo::Shape::SIDES
+        end
+
+        Shape::SIDES = 4
+      end
+    RUBY
+  end
+
+  it "still flags another class's block, or a block that is not the constant's body, reading it" do
+    expect_offense(<<~RUBY)
+      module Demo
+        Definition = Data.define(:superclass)
+        Definition::ENGINES = %w[Rails::Engine].freeze
+
+        Other =
+          Data.define(:superclass) do
+            def engine? = Demo::Definition::ENGINES.include?(superclass)
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^ `Demo::Definition::ENGINES` is another object's public constant, shared state; ask `Demo::Definition` what it means, and make it private.
+          end
+
+        Definition.tap do
+          def engines = Demo::Definition::ENGINES
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^ `Demo::Definition::ENGINES` is another object's public constant, shared state; ask `Demo::Definition` what it means, and make it private.
+        end
+
+        Kinds = [Data.define(:kind) { def engines = Demo::Definition::ENGINES }].freeze
+                                                    ^^^^^^^^^^^^^^^^^^^^^^^^^ `Demo::Definition::ENGINES` is another object's public constant, shared state; ask `Demo::Definition` what it means, and make it private.
+      end
+
+      def engines = Demo::Definition::ENGINES
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^ `Demo::Definition::ENGINES` is another object's public constant, shared state; ask `Demo::Definition` what it means, and make it private.
+    RUBY
+  end
+
   it "allows a namespace under another class, whose classes the file or the project defines" do
     expect_no_offenses(<<~RUBY)
       module Shop

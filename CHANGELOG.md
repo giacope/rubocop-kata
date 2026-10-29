@@ -2,6 +2,42 @@
 
 ## [Unreleased]
 
+- Strict false positives met while hashira, kimera, kata and six twins were
+  brought to the strict profile, fixed:
+  - `Kata/NoNilReturn`: a `[]` that always answers (`Dir[pattern]`, a
+    pattern every string matches, a hash a memo builds with a default), the
+    `min` or `max` of an array literal holding a computed number
+    (`[seconds, raised.clamp(..cap)].max`), a lookup's name that reaches the
+    project's own method whose body never answers nil (`self[:first]`,
+    `Pens.new(nodes).index`, found in the file or under the new
+    `OwnedPaths`), and a value returned under a type check that rules nil
+    out (`return first if first.is_a?(Time)`).
+  - `Kata/NoHardWiring`: an argument a class or module computes from the
+    method's inputs (`Owner.new(full)`, `Words.key(part)`,
+    `File.join(fixture, "x")`) is the input's value, not configuration; and
+    the methods of a module a class extends (`extend Registry`,
+    `base.extend(ClassMethods)`, a `ClassMethods` module, a Concern's
+    `class_methods`) are class methods, where objects are wired.
+  - `Kata/FailFast`: a bare or self-sent call to the class's own method
+    named like a log level, whose body logs nothing (`error(trial,
+    detail)` building a verdict), is not a log line, and
+    `Errno::EPERM` rescued from a `kill` alone is the end of a process, as
+    `Errno::ESRCH` is.
+  - `Kata/ClockDiscipline` (`CheckRandomness`): `sample` or `shuffle` sent
+    to an instance of a class the project defines with that method
+    (`peak = Peak.new(pid); peak.sample`) is that class's, not Array's.
+  - `Kata/IoDiscipline` (`CheckEffects`): a URL is a URL effect's first
+    positional argument or its `url:` keyword (an options hash alone names
+    none), and a client built with no URL (`Faraday.new { ... }`, the URL
+    handed to each request from a field) reaches nothing until a request
+    the method sends it names one.
+  - `Kata/NoPublicConstant`: the block of a `Data.define`, `Struct.new` or
+    `Class.new` assigned to a constant is that class's body, so its methods
+    reading the class's own constant (`Definition::ENGINES`) pass.
+  - `Kata/NoHashAsObject` (`CheckTravel`): a parameter read only by keys
+    that are members of one of the project's Structs (`env[:body]` with
+    `Env = Struct.new(:body, :request_headers)`) is that named object,
+    read through its `[]`.
 - Kata lints itself with its strict profile and hashira's strict set, and CI
   enforces both. Behaviour is unchanged; the one difference a caller can
   see: `Elegant/NoNilReturn`, `Elegant/MonotonicIndents` and

@@ -317,6 +317,62 @@ RSpec.describe(RuboCop::Cop::Kata::NoHashAsObject, :config) do
       RUBY
     end
 
+    # faraday's middleware hooks (fp/twin-faraday-6): the env is the project's Struct, read through its `[]`.
+    it "leaves a parameter read only by the members of a Struct the project defines" do
+      expect_no_offenses(<<~RUBY)
+        module Http
+          Env = Struct.new(:body, :request_headers, :url) do
+            def [](key) = key == :body ? body : super
+          end
+
+          class JsonHook
+            def on_request(env)
+              return if env[:body].nil?
+              env[:request_headers]["Content-Type"] ||= "application/json"
+            end
+          end
+        end
+      RUBY
+    end
+
+    it "still flags a parameter read by a key no Struct of the project holds" do
+      expect_offense(<<~RUBY)
+        module Http
+          Env = Struct.new(:body, :request_headers)
+          Pair = Struct.new("Pair", :left)
+
+          class JsonHook
+            def on_request(env) = [env[:body], env[:status]]
+                           ^^^ `env` is read by its keys (`body`, `status`): #{read}
+            def pair(side) = [side[:left], side[:right]]
+                     ^^^^ `side` is read by its keys (`left`, `right`): #{read}
+          end
+        end
+      RUBY
+    end
+
+    context "with the project's files" do
+      include ProjectFiles
+
+      let(:setting) { { "Kata/NoHashAsObject" => cop_config.merge("OwnedPaths" => ["lib/**/*.rb"]) } }
+
+      it "reads the Structs another file defines" do
+        files = {
+          "lib/http/env.rb" => "module Http\n  Env = Struct.new(:body, :request_headers, keyword_init: true)\nend\n",
+          "lib/http/hook.rb" => <<~RUBY
+            module Http
+              class Hook
+                def on_request(env) = [env[:body], env[:request_headers]]
+                def on_complete(env) = [env[:body], env[:status]]
+              end
+            end
+          RUBY
+        }
+        found = project_offenses(files, "lib/http/hook.rb")
+        expect(found.map(&:line)).to(eq([4]))
+      end
+    end
+
     it "follows the keys through every local they are copied into" do
       expect_offense(<<~RUBY)
         class Ledger

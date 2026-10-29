@@ -2,6 +2,7 @@
 
 module RuboCop::Cop::Kata::Passage
   include RuboCop::Cop::Kata::Ownership
+  include RuboCop::Cop::Kata::Structure
   include RuboCop::Cop::Kata::Lending
   include RuboCop::Cop::Kata::Ancestry
   include RuboCop::Cop::VisibilityHelp
@@ -25,7 +26,7 @@ module RuboCop::Cop::Kata::Passage
 
   def inspect_reads(method, argument)
     keys = read_keys(method, argument)
-    return if keys.size < 2
+    return if keys.size < 2 || members.any? { (keys - it).empty? }
     add_offense(argument, message: format(READ_MSG, argument.name, keys.map { "`#{it}`" }.join(", ")))
   end
 

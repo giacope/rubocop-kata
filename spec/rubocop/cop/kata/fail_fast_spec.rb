@@ -240,6 +240,138 @@ RSpec.describe(RuboCop::Cop::Kata::FailFast, :config) do
     RUBY
   end
 
+  # kimera's ChildProcess#signal and IsolatedWatchdog#kill (fp/kimera-4): the pid or group was the caller's own child,
+  # reaped already; EPERM says it now belongs to a process the caller may not signal, so nothing of its own is left.
+  it "passes a kill that finds the process gone, as ESRCH or as EPERM" do
+    expect_no_offenses(<<~RUBY)
+      def stop
+        Process.kill("KILL", -@pid)
+      rescue Errno::ESRCH, Errno::EPERM
+        nil
+      end
+
+      def signal(target, processes = Process)
+        processes.kill("KILL", target)
+      rescue Errno::EPERM
+      end
+
+      def halt(pid)
+        Process.kill("TERM", pid)
+        Process.kill("KILL", pid)
+      rescue Errno::ESRCH, Errno::EPERM
+        nil
+      end
+    RUBY
+  end
+
+  it "still flags EPERM rescued from anything but a kill" do
+    expect_offense(<<~RUBY, nothing: swallow("nil"))
+      def lock
+        File.chmod(0o600, @path)
+      rescue Errno::EPERM
+      ^^^^^^ %{nothing}
+        nil
+      end
+
+      def stop
+        Process.kill("KILL", @pid)
+        Process.wait(@pid)
+      rescue Errno::ESRCH, Errno::EPERM
+      ^^^^^^ %{nothing}
+        nil
+      end
+
+      def halt
+        @thread.kill
+      rescue Errno::EPERM
+      ^^^^^^ %{nothing}
+        nil
+      end
+    RUBY
+  end
+
+  # kimera's IsolatedVerdict#evaluate (fp/kimera-3): `error` is the class's own method, building the :error verdict.
+  it "passes a call to the class's own method named like a log level" do
+    expect_no_offenses(<<~'RUBY')
+      class Verdict
+        def evaluate(trial)
+          judged(trial)
+        rescue StandardError => failure
+          error(trial, "#{failure.class}: #{failure.message}")
+        end
+
+        def settle(trial)
+          judged(trial)
+        rescue KeyError => failure
+          self.warn(trial, failure.message)
+        end
+
+        private
+
+        def error(trial, detail) = Result.new(trial, :error, detail)
+        def warn(trial, detail) = Result.new(trial, :warned, detail)
+      end
+    RUBY
+  end
+
+  it "still flags a log line the class does not define, or sent to another object" do
+    expect_offense(<<~'RUBY', message: logged)
+      class Verdict
+        def evaluate(trial)
+          judged(trial)
+        rescue StandardError => failure
+        ^^^^^^ %{message}
+          warn("#{failure.class}: #{failure.message}")
+        end
+
+        def settle(trial)
+          judged(trial)
+        rescue KeyError => failure
+        ^^^^^^ %{message}
+          @log.error(trial, failure.message)
+        end
+
+        def fetch(trial)
+          judged(trial)
+        rescue TypeError => failure
+        ^^^^^^ %{message}
+          info(trial, failure.message)
+        end
+
+        def drop(trial)
+          judged(trial)
+        rescue ArgumentError => failure
+        ^^^^^^ %{message}
+          debug(failure.message)
+        end
+
+        private
+
+        def error(trial, detail) = Result.new(trial, :error, detail)
+
+        def info(trial, detail)
+          line = "#{trial}: #{detail}"
+          @log.info(line)
+        end
+
+        def debug(detail); end
+      end
+
+      class Other
+        def warn(text) = Note.new(text)
+      end
+
+      def run
+        work
+      rescue StandardError => failure
+      ^^^^^^ %{message}
+        error(failure.message)
+      end
+
+      def error(text) = Note.new(text)
+    RUBY
+  end
+
   it "passes a resource released on the way out" do
     expect_no_offenses(<<~RUBY)
       def connect
