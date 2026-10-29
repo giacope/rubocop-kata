@@ -26,6 +26,11 @@
   - `Kata/ClockDiscipline` (`CheckRandomness`): `sample` or `shuffle` sent
     to an instance of a class the project defines with that method
     (`peak = Peak.new(pid); peak.sample`) is that class's, not Array's.
+  - `Kata/IoDiscipline` (`CheckEffects`): a URL is a URL effect's first
+    positional argument or its `url:` keyword (an options hash alone names
+    none), and a client built with no URL (`Faraday.new { ... }`, the URL
+    handed to each request from a field) reaches nothing until a request
+    the method sends it names one.
 - Kata lints itself with its strict profile and hashira's strict set, and CI
   enforces both. Behaviour is unchanged; the one difference a caller can
   see: `Elegant/NoNilReturn`, `Elegant/MonotonicIndents` and

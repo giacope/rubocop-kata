@@ -112,6 +112,54 @@ RSpec.describe(RuboCop::Cop::Kata::IoDiscipline, :config) do
     RUBY
   end
 
+  # ruby-openai's Client#conn (fp/twin-ruby-openai-1): the connection has no URL; each request names the field's.
+  it "passes a client built with no URL, which reaches nothing until a request names one" do
+    expect_no_offenses(<<~RUBY)
+      class Feed
+        def latest = connection.get(@url).body
+
+        def connection
+          Faraday.new do |faraday|
+            faraday.options[:timeout] = @timeout
+          end
+        end
+
+        def tuned = Faraday.new(request: { timeout: 5 }, headers: { "Accept" => "text/html" })
+        def pinned = Faraday.new(url: @url, ssl: { verify: true })
+        def handed = adapter(Faraday.new)
+
+        def fetched
+          connection = Faraday.new
+          log(connection.get(@url))
+        end
+
+        def other(connection) = connection.get("https://api.example.com")
+      end
+    RUBY
+  end
+
+  it "still flags a client built for a URL written into the code, positional or keyed" do
+    url = fixed("Faraday.new", "URL")
+    expect_offense(<<~RUBY, url: url, excon: fixed("Excon.new", "URL"))
+      class Feed
+        def a = Faraday.new("https://api.example.com")
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ %{url}
+        def b = Faraday.new(url: "https://api.example.com", headers: { "X" => @key })
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ %{url}
+        def c = Excon.new("https://api.example.com", persistent: @open)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ %{excon}
+        def d = Faraday.new { |faraday| faraday.adapter(:net_http) }.get("https://api.example.com")
+                ^^^^^^^^^^^ %{url}
+
+        def e
+          connection = Faraday.new(headers: { "X" => @key })
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ %{url}
+          connection.get("https://api.example.com/feed")
+        end
+      end
+    RUBY
+  end
+
   it "flags a shell command in backticks, naming its program" do
     expect_offense(<<~RUBY, git: fixed("%x(git)", "command"), blank: fixed("%x()", "command"))
       def head

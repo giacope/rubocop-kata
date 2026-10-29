@@ -651,7 +651,11 @@ Kata/IoDiscipline:
     reaches: a path, a URL, a command; a constant alone stands for each of its
     methods) whose target is written into the code
     (`File.write("log/audit.log", …)`, `Net::HTTP.post(URI("https://…"))`, ``
-    `git rev-parse HEAD` ``, `Dir.pwd`). One whose target holds a variable, an
+    `git rev-parse HEAD` ``, `Dir.pwd`); a URL is the first positional
+    argument or the `url:` keyword, and a client built with none
+    (`Faraday.new { ... }`) reaches no URL until a request names one, so
+    the requests the method sends it are read instead. One whose target
+    holds a variable, an
     instance variable or a method's value (`File.write(@path, …)`), or a path
     anchored on the source file (`__dir__`, `__FILE__`), is the adapter whose
     job the effect is, and passes. Path arithmetic (`File.join`,
