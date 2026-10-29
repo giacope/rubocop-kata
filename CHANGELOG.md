@@ -23,6 +23,9 @@
     detail)` building a verdict), is not a log line, and
     `Errno::EPERM` rescued from a `kill` alone is the end of a process, as
     `Errno::ESRCH` is.
+  - `Kata/ClockDiscipline` (`CheckRandomness`): `sample` or `shuffle` sent
+    to an instance of a class the project defines with that method
+    (`peak = Peak.new(pid); peak.sample`) is that class's, not Array's.
 - Kata lints itself with its strict profile and hashira's strict set, and CI
   enforces both. Behaviour is unchanged; the one difference a caller can
   see: `Elegant/NoNilReturn`, `Elegant/MonotonicIndents` and

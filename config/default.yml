@@ -1719,8 +1719,11 @@ Kata/ClockDiscipline:
     (config/strict.yml) randomness is read the same way: no `SecureRandom`,
     `rand`, `Random.rand`, unseeded `Random.new`, or `sample`/`shuffle`
     without `random:`; a `rand` the project defines (ffaker's seeded
-    `RandomUtils#rand`), or a `shuffle` one of its modules answers
-    (`ArrayUtils.shuffle`), under `OwnedPaths`, is its own. A parameter
+    `RandomUtils#rand`), a `shuffle` one of its modules answers
+    (`ArrayUtils.shuffle`), and a `sample` sent to an instance of a class
+    it defines with that method (`peak = Peak.new(pid); peak.sample`; the
+    receiver built by `new`, directly, through a local, a field or a
+    memo), under `OwnedPaths`, is its own. A parameter
     default is the seam (`def initialize(id = SecureRandom.uuid)`; `id ||
     SecureRandom.uuid` is not one); code outside every class, module and
     method is a script's boot layer, and so is a framework's boot hook
