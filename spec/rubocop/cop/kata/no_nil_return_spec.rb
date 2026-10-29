@@ -312,4 +312,383 @@ RSpec.describe(RuboCop::Cop::Kata::NoNilReturn, :config) do
       end
     RUBY
   end
+
+  # hashira's Shelves#drawn (fp/hashira-2): `Dir[pattern]` is `Dir.glob`, an Array, empty when nothing matches;
+  # kata's PairedBrackets#leading (fp/rubocop-kata-1): a pattern that matches the empty string matches every string.
+  it "allows a `[]` that always answers: a core class's builder, and a pattern every string matches" do
+    expect_no_offenses(<<~'RUBY')
+      class Shelf
+        def drawn = Dir[File.join(@root, "*")]
+        def rows = ::Hash[@pairs]
+        def list = Array[@row]
+        def tags = Set[@tag]
+        def leading = @line[/\A[ \t]*/]
+        def gap = @line[/^\s*-?/]
+        def spaces = @line[/ {0,3}/]
+        def nothing = @line[//]
+      end
+    RUBY
+  end
+
+  it "still flags a constant's `[]`, and a pattern that needs a character, alternates or interpolates" do
+    expect_offense(<<~'RUBY')
+      class Shelf
+        def home = ENV["HOME"]
+                   ^^^^^^^^^^^ `home` passes on the nil `[]` can return; return a null object, or fail fast.
+        def word = Words[@key]
+                   ^^^^^^^^^^^ `word` passes on the nil `[]` can return; return a null object, or fail fast.
+        def leading = @line[/\A[ \t]+/]
+                      ^^^^^^^^^^^^^^^^^ `leading` passes on the nil `[]` can return; return a null object, or fail fast.
+        def either = @line[/a|b*/]
+                     ^^^^^^^^^^^^^ `either` passes on the nil `[]` can return; return a null object, or fail fast.
+        def held = @line[/\A#{@mark}*/]
+                   ^^^^^^^^^^^^^^^^^^^^ `held` passes on the nil `[]` can return; return a null object, or fail fast.
+        def tail = @line[/x*\z/, 1]
+                   ^^^^^^^^^^^^^^^^ `tail` passes on the nil `[]` can return; return a null object, or fail fast.
+        def anchored = @line[/\Gx*/]
+                       ^^^^^^^^^^^^^ `anchored` passes on the nil `[]` can return; return a null object, or fail fast.
+      end
+    RUBY
+  end
+
+  # hashira's Kinship#words (fp/hashira-4): the memo builds a hash whose default proc answers every key.
+  it "allows a hash with a default that a memo or a field builds" do
+    expect_no_offenses(<<~RUBY)
+      class Words
+        def words(name) = said[name]
+        def kept(name) = @kept[name]
+
+        private
+
+        def said = @_said ||= Hash.new { |memo, name| memo[name] = name.split("_") }
+
+        def kept_words
+          @kept ||= Hash.new(0)
+        end
+      end
+
+      class Tally
+        def count(name) = counts[name]
+        def seen(name) = remembered[name]
+
+        private
+
+        def counts = Hash.new(0)
+
+        def remembered
+          @calls += 1
+          @_remembered ||= Hash.new { |memo, name| memo[name] = [] }
+        end
+      end
+    RUBY
+  end
+
+  it "still flags a hash a memo or a field builds without a default" do
+    expect_offense(<<~RUBY)
+      class Words
+        def words(name) = said[name]
+                          ^^^^^^^^^^ `words` passes on the nil `[]` can return; return a null object, or fail fast.
+        def read(name) = loaded(1)[name]
+                         ^^^^^^^^^^^^^^^ `read` passes on the nil `[]` can return; return a null object, or fail fast.
+        def kept(name) = @kept[name]
+                         ^^^^^^^^^^^ `kept` passes on the nil `[]` can return; return a null object, or fail fast.
+
+        private
+
+        def said = @_said ||= {}
+        def loaded(_count) = Hash.new(0)
+        def keep = @kept += 1
+      end
+
+      class Reader
+        def read(name) = @shelf.heard[name]
+                         ^^^^^^^^^^^^^^^^^^ `read` passes on the nil `[]` can return; return a null object, or fail fast.
+
+        private
+
+        def heard = @_heard ||= Hash.new { |memo, name| memo[name] = [] }
+      end
+    RUBY
+  end
+
+  # kimera's Patience#limit (fp/kimera-5): `clamp` answers a number or raises, so the max answers one, never nil.
+  it "allows the min or max of an array literal that holds a number a call computes" do
+    expect_no_offenses(<<~RUBY)
+      class Patience
+        def limit(raised) = [@seconds, raised.clamp(..(@hard - 1.0))].max
+        def low(raised) = [@seconds, raised * 3].min
+        def least = [@floor, -@ceiling, @rows.size, @text.to_i].min
+      end
+    RUBY
+  end
+
+  it "still flags the min or max of an array literal whose calls may answer nil" do
+    expect_offense(<<~RUBY)
+      class Patience
+        def limit = [@seconds, @limits.first].max
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `limit` passes on the nil `max` can return; return a null object, or fail fast.
+        def low = [@seconds, ceiling].min
+                  ^^^^^^^^^^^^^^^^^^^^^^^ `low` passes on the nil `min` can return; return a null object, or fail fast.
+        def least = [@seconds, size].min
+                    ^^^^^^^^^^^^^^^^^^^^ `least` passes on the nil `min` can return; return a null object, or fail fast.
+      end
+    RUBY
+  end
+
+  # blueprinter's ViewCollection#[] and kimera's Pens#index (fp/twin-blueprinter-2, fp/kimera-2): the project's own
+  # method answers, and its body never answers nil.
+  it "allows a lookup's name that reaches the project's own method, which never answers nil" do
+    expect_no_offenses(<<~RUBY)
+      class Shelf
+        def initialize
+          @rows = {}
+        end
+
+        def [](label)
+          @rows[label] ||= Row.new(label)
+        end
+
+        def first = self[:first]
+        def index = @rows.to_h { |label, row| [row, label] }
+        def top = index.size
+      end
+
+      class Form
+        def pens = Pens.new(@nodes).index
+        def shelf = shelved[:a]
+        def kept = @shelf[:b]
+        def shelved = @_shelved ||= Shelf.new
+
+        def initialize
+          @shelf = Shelf.new
+        end
+
+        def drawn
+          shelf = Shelf.new
+          shelf[:c]
+        end
+      end
+
+      class Pens
+        def index = @nodes.to_h { |node| [node, node.to_s] }
+      end
+
+      class Kinds
+        def [](kind)
+          return :none if kind.nil?
+          case kind
+          when :a then "a"
+          else kind.to_s
+          end
+        end
+
+        def first = @kinds.empty? ? "none" : @kinds.size.to_s
+        def last
+          begin
+            @kinds.sort.join
+          end
+        end
+
+        def kind = self[:a]
+        def head = first
+        def tail = last
+        def pair = Pair.new.first
+      end
+
+      class Pair
+        def first = return 1, 2
+      end
+    RUBY
+  end
+
+  it "still flags the project's own lookup that may answer nil, and one the receiver's class does not define" do
+    expect_offense(<<~RUBY)
+      class Shelf
+        def [](label) = @rows[label]
+        def index = @rows.index(@row)
+        def last = @rows.last
+
+        def first = self[:first]
+                    ^^^^^^^^^^^^ `first` passes on the nil `[]` can return; return a null object, or fail fast.
+        def tail = last
+                   ^^^^ `tail` passes on the nil `last` can return; return a null object, or fail fast.
+      end
+
+      class Form
+        def pens = Pens.new(@nodes).index
+                   ^^^^^^^^^^^^^^^^^^^^^^ `pens` passes on the nil `index` can return; return a null object, or fail fast.
+        def rows = Shelf.new.index
+                   ^^^^^^^^^^^^^^^ `rows` passes on the nil `index` can return; return a null object, or fail fast.
+        def any = @pens.index(@node)
+                  ^^^^^^^^^^^^^^^^^^ `any` passes on the nil `index` can return; return a null object, or fail fast.
+
+        def drawn(shelf)
+          shelf = Shelf.new if shelf.nil?
+          shelf[:c]
+          ^^^^^^^^^ `drawn` passes on the nil `[]` can return; return a null object, or fail fast.
+        end
+
+        def self.top = first
+                       ^^^^^ `top` passes on the nil `first` can return; return a null object, or fail fast.
+        def first = @rows.first
+      end
+
+      class Pens
+        def index(node) = @nodes.index(node)
+      end
+
+      # rufus-scheduler's JobArray#[]: the block's value is a `find`, which a call around it does not vouch for.
+      class Jobs
+        def [](id)
+          @mutex.synchronize { @array.find { |job| job.id == id } }
+        end
+
+        def first
+          return if @array.empty?
+          @array.fetch(0)
+        end
+
+        def last
+          return @array.fetch(-1) if @open
+        end
+
+        def job(id) = self[id]
+                      ^^^^^^^^ `job` passes on the nil `[]` can return; return a null object, or fail fast.
+        def head = first
+                   ^^^^^ `head` passes on the nil `first` can return; return a null object, or fail fast.
+        def tail = last
+                   ^^^^ `tail` passes on the nil `last` can return; return a null object, or fail fast.
+      end
+
+      class Rows
+        def last
+          return @rows.last if @open
+          "none"
+        end
+
+        def first
+          return if @rows.empty?
+          "some"
+        end
+
+        def tail = last
+                   ^^^^ `tail` passes on the nil `last` can return; return a null object, or fail fast.
+        def head = first
+                   ^^^^^ `head` passes on the nil `first` can return; return a null object, or fail fast.
+      end
+
+      class Store
+        def [](key) = @rows[key] ||= key.to_s
+
+        def pick(store)
+          store = Store.new if store.nil?
+          store[:a]
+          ^^^^^^^^^ `pick` passes on the nil `[]` can return; return a null object, or fail fast.
+        end
+      end
+
+      class Kinds
+        def [](kind)
+          case kind
+          when :a then "a"
+          end
+        end
+
+        def sample = @kinds.size > 1 ? @kinds.fetch(1) : "none"
+
+        def kind = self[:a]
+                   ^^^^^^^^ `kind` passes on the nil `[]` can return; return a null object, or fail fast.
+        def pick = sample
+                   ^^^^^^ `pick` passes on the nil `sample` can return; return a null object, or fail fast.
+      end
+    RUBY
+  end
+
+  # timecop's Destination#instant (fp/twin-timecop-1): the value is returned only when it is a Time.
+  it "allows a lookup returned under a type guard that rules nil out" do
+    expect_no_offenses(<<~RUBY)
+      class Pick
+        def time
+          return first if first.is_a?(Time)
+          Time.at(Integer(first))
+        end
+
+        def stamp = (first if @open && first.kind_of?(Numeric)) || 0
+
+        def mark
+          return first if @open && first.kind_of?(Numeric)
+          0
+        end
+
+        def zone
+          if first.instance_of?(String)
+            first
+          else
+            "UTC"
+          end
+        end
+
+        private
+
+        def first = @arguments.first
+      end
+    RUBY
+  end
+
+  it "still flags a lookup returned under a guard that lets nil through" do
+    expect_offense(<<~RUBY)
+      class Pick
+        def time
+          return first if first.is_a?(Object)
+                 ^^^^^ `time` passes on the nil `first` can return; return a null object, or fail fast.
+          return first unless first.is_a?(Time)
+                 ^^^^^ `time` passes on the nil `first` can return; return a null object, or fail fast.
+          return first if @rows.is_a?(Time)
+                 ^^^^^ `time` passes on the nil `first` can return; return a null object, or fail fast.
+          return first if first.is_a?(Time) || @open
+                 ^^^^^ `time` passes on the nil `first` can return; return a null object, or fail fast.
+          return first if first.respond_to?(:to_time)
+                 ^^^^^ `time` passes on the nil `first` can return; return a null object, or fail fast.
+          Time.at(Integer(first))
+        end
+
+        def zone
+          if first.is_a?(NilClass)
+            first
+            ^^^^^ `zone` passes on the nil `first` can return; return a null object, or fail fast.
+          else
+            "UTC"
+          end
+        end
+
+        private
+
+        def first = @arguments.first
+      end
+    RUBY
+  end
+
+  context "with the project's files" do
+    include ProjectFiles
+
+    let(:setting) { { "Kata/NoNilReturn" => cop_config.merge("OwnedPaths" => ["lib/**/*.rb"]) } }
+
+    it "follows a receiver to its class in another file" do
+      files = {
+        "lib/scribe/pens.rb" => "module Scribe\n  class Pens\n    def index = @nodes.to_h { [it, 1] }\n  end\nend\n",
+        "lib/scribe/marks.rb" => "module Scribe\n  class Marks\n    def index = @nodes.index(@node)\n  end\nend\n",
+        "lib/scribe/form.rb" => <<~RUBY
+          module Scribe
+            class Form
+              def pens = Pens.new(@nodes).index
+              def marks = Marks.new(@nodes).index
+            end
+          end
+        RUBY
+      }
+      found = project_offenses(files, "lib/scribe/form.rb")
+      expect(found.map { [it.line, it.message] })
+        .to(eq([[4, "`marks` passes on the nil `index` can return; return a null object, or fail fast."]]))
+    end
+  end
 end

@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 module RuboCop::Cop::Kata::Lifetime
+  include RuboCop::Cop::Kata::Blocks
+
   CALLS = %i[send csend].freeze
   STORES = %i[ivasgn cvasgn gvasgn].freeze
   ITERATORS = %i[each each_with_index each_with_object times tap].freeze
@@ -62,11 +64,6 @@ module RuboCop::Cop::Kata::Lifetime
 
   def handing?(call, holder)
     after?(call, holder) && given(call).any? { local?(it, holder.name) }
-  end
-
-  def blocked(call)
-    outer = call.parent
-    outer.any_block_type? && outer.send_node.equal?(call) ? outer : call
   end
 
   def tapped?(built)

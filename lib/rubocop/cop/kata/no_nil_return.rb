@@ -3,6 +3,8 @@
 class RuboCop::Cop::Kata::NoNilReturn < RuboCop::Cop::Base
   include RuboCop::Cop::Kata::Roster
   include RuboCop::Cop::Kata::Answer
+  include RuboCop::Cop::Kata::Surety
+  include RuboCop::Cop::Kata::Certainty
 
   MSG = "`%s` returns nil; return a null object, or fail fast."
   SOURCE = "`%s` passes on the nil `%s` can return; return a null object, or fail fast."
@@ -10,20 +12,16 @@ class RuboCop::Cop::Kata::NoNilReturn < RuboCop::Cop::Base
   BLOCK = "This block returns nil; return a null object, or fail fast."
   SEARCHES = %i[detect find].freeze
   SINGLES = %i[first last min max sample].freeze
-  RANKS = %i[min max].freeze
-  SOLIDS = %i[int float rational complex str dstr sym dsym].freeze
   LOOKUPS = %i[[] dig find_by match index find_index rindex presence try].freeze
   COMMANDS = %i[call close delete destroy perform run save touch update].freeze
   SCOPES = %i[def defs].freeze
   INNER = { begin: -1, kwbegin: -1, or_asgn: 1, rescue: 0, ensure: 0 }.freeze
 
-  def_node_matcher :defaulted, <<~PATTERN
-    {(block (send (const {nil? cbase} :Hash) :new) ...) (send (const {nil? cbase} :Hash) :new _)}
-  PATTERN
-
   def on_def(node)
     return unless node.body && judged?(node)
-    returns(node).each { visit(it, node) }
+    name = node.method_name
+    found = returns(node).flat_map { visit(it, name) }
+    found.reject { |_, _, call| passed?(call, name) }.each { |place, message| add_offense(place, message:) }
   end
 
   alias on_defs on_def
@@ -48,24 +46,23 @@ class RuboCop::Cop::Kata::NoNilReturn < RuboCop::Cop::Base
     [method.body, *exits]
   end
 
-  def visit(node, method)
-    return explicit(node, method) if node.return_type?
-    ends(node).each { |tail, branch| judge(tail, branch, method) }
+  def visit(node, name)
+    return explicit(node, name) if node.return_type?
+    ends(node).flat_map { |tail, branch| judge(tail, branch, name) }
   end
 
-  def explicit(node, method)
+  def explicit(node, name)
     values = node.children
-    return unless values.one?
+    return [] unless values.one?
     value = values.first
-    return add_offense(node, message: format(MSG, method.method_name)) if value.nil_type?
-    visit(value, method)
+    return [[node, format(MSG, name), node]] if value.nil_type?
+    visit(value, name)
   end
 
-  def judge(tail, branch, method)
-    name = method.method_name
-    return add_offense(tail, message: format(MSG, name)) if tail.nil_type?
-    return add_offense(branch.loc.keyword, message: format(OPEN, name, branch.keyword)) if branch
-    sources(tail).each { add_offense(it, message: format(SOURCE, name, label(it))) unless it.method?(name) }
+  def judge(tail, branch, name)
+    return [[tail, format(MSG, name), tail]] if tail.nil_type?
+    return [[branch.loc.keyword, format(OPEN, name, branch.keyword), branch]] if branch
+    lookups(tail).reject { guarded?(it) }.map { [it, format(SOURCE, name, label(it)), it] }
   end
 
   def ends(node)
@@ -76,19 +73,19 @@ class RuboCop::Cop::Kata::NoNilReturn < RuboCop::Cop::Base
   end
 
   def branches(node)
-    arms = node.if_type? ? [node.if_branch, node.else_branch] : [*node.when_branches.map(&:body), node.else_branch]
-    found = arms.compact.flat_map { ends(it) }
-    return found unless open?(arms, found)
+    paths = arms(node)
+    found = paths.compact.flat_map { ends(it) }
+    return found unless open?(paths, found)
     [*found, [node, node]]
   end
 
   def open?(arms, found) = arms.include?(nil) && found.any? && found.all? { |value, arm| arm.nil? && valued?(value) }
 
-  def valued?(node) = value?(node) || sources(node).any?
+  def valued?(node) = value?(node) || lookups(node).any?
 
   def last(node) = node&.type?(:begin, :kwbegin) ? node.children.last : node
 
-  def sources(node)
+  def lookups(node)
     return [node].reject { command?(it.method_name) } if node.csend_type?
     block = node.any_block_type?
     call = block ? node.send_node : node
@@ -103,29 +100,7 @@ class RuboCop::Cop::Kata::NoNilReturn < RuboCop::Cop::Base
     LOOKUPS.include?(name) && (!call.receiver.nil? || name == :find_by)
   end
 
-  def index?(call) = !(slice?(call.arguments) || defaulted?(call.receiver))
-
-  def slice?(arguments) = arguments.any?(&:range_type?) || (arguments.size == 2 && arguments.first.int_type?)
-
-  def single?(call) = !(call.arguments? || split?(call.receiver) || bounded?(call))
-
-  def bounded?(call)
-    holder = call.receiver
-    RANKS.include?(call.method_name) && holder&.array_type? && holder.values.any? { solid?(it) }
-  end
-
-  def solid?(element) = SOLIDS.include?(element.type) || (element.const_type? && assigned?(element.short_name))
-
-  def assigned?(name)
-    processed_source.ast.each_node(:casgn).any? { it.short_name == name && SOLIDS.include?(it.expression&.type) }
-  end
-
-  def split?(holder) = holder&.send_type? && holder.method?(:split)
-
-  def defaulted?(holder)
-    name = holder.children.last
-    processed_source.ast.each_node(:casgn, :ivasgn).any? { it.children[-2] == name && defaulted(it.children.last) }
-  end
+  def passed?(call, name) = call.call_type? && (call.method?(name) || kept?(call))
 
   def command?(name) = name.end_with?("!") || COMMANDS.include?(name)
 

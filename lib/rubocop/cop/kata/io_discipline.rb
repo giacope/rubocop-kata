@@ -5,6 +5,7 @@ class RuboCop::Cop::Kata::IoDiscipline < RuboCop::Cop::Base
   include RuboCop::Cop::Kata::Roster
   include RuboCop::Cop::Kata::Ownership
   include RuboCop::Cop::Kata::Pedigree
+  include RuboCop::Cop::Kata::Destination
 
   MSG = "Write through the injected `%s`, not bare `%s`."
   SEAM_MSG = "Inject the stream `%s` writes to (`def initialize(io: %s)`) and write through it."
@@ -16,8 +17,6 @@ class RuboCop::Cop::Kata::IoDiscipline < RuboCop::Cop::Base
   ELEMENTS = %i[p print printf].freeze
   PRINTS = %i[print printf].freeze
   SEAMS = %i[ivar lvar self].freeze
-  COMMAND = "command"
-  PLACES = %i[base chdir].freeze
 
   def_node_matcher :bare_output?, "(send nil? ${:puts :warn :pp :p :print :printf} ...)"
 
@@ -73,13 +72,9 @@ class RuboCop::Cop::Kata::IoDiscipline < RuboCop::Cop::Base
     names = labels(node)
     return if names.empty? || listed?("AllowedMethods", names.first) || seam?(node)
     names.lazy.flat_map { kinds(it) }.first(1).each do |noun|
-      reach(node, names.first, noun, noun == COMMAND ? node.arguments : places(node))
+      targets = targets(node, noun)
+      reach(node, names.first, noun, targets) unless noun == URL && targets.empty?
     end
-  end
-
-  def places(node)
-    pairs = node.arguments.select(&:hash_type?).flat_map(&:pairs)
-    [*node.arguments.first(1), *pairs.select { it.key.sym_type? && PLACES.include?(it.key.value) }.map(&:value)]
   end
 
   def reach(node, call, noun, targets)

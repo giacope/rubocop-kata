@@ -651,7 +651,11 @@ Kata/IoDiscipline:
     reaches: a path, a URL, a command; a constant alone stands for each of its
     methods) whose target is written into the code
     (`File.write("log/audit.log", …)`, `Net::HTTP.post(URI("https://…"))`, ``
-    `git rev-parse HEAD` ``, `Dir.pwd`). One whose target holds a variable, an
+    `git rev-parse HEAD` ``, `Dir.pwd`); a URL is the first positional
+    argument or the `url:` keyword, and a client built with none
+    (`Faraday.new { ... }`) reaches no URL until a request names one, so
+    the requests the method sends it are read instead. One whose target
+    holds a variable, an
     instance variable or a method's value (`File.write(@path, …)`), or a path
     anchored on the source file (`__dir__`, `__FILE__`), is the adapter whose
     job the effect is, and passes. Path arithmetic (`File.join`,
@@ -1138,9 +1142,23 @@ Kata/NoNilReturn:
     an `if`, `unless` or `case` whose other branches answer with a value
     (`@items[code] if @open`). Return a null object, or fail fast (`fetch`).
     The `min` or `max` of an array literal that holds a number, a string, a
-    symbol or a constant the file assigns one (`[cost, LIMIT].min`) answers
-    one of its elements, never nil (a nil element raises). A block's
-    literal `nil` is reported too. A predicate's falsy nil answers its
+    symbol, a constant the file assigns one (`[cost, LIMIT].min`) or a call
+    that answers a number (`[cost, raised.clamp(..cap)].max`: arithmetic,
+    `clamp`, `abs`, `round`, `size`, `to_i`, ...) answers one of its
+    elements, never nil (a nil element raises). A `[]` that always answers
+    passes: a core class's builder (`Dir[pattern]` is `Dir.glob`; `Hash[]`,
+    `Array[]`, `Set[]`), a pattern every string matches (`line[/\A\s*/]`,
+    each part optional), and a hash built with a default, held in a
+    constant, a field or a memo (`def said = @said ||= Hash.new { ... }`).
+    So does a lookup's name that reaches the project's own method, whose
+    body never answers nil: one the class defines, sent to `self` or to no
+    receiver (`self[:first]` where `def [](key) = @rows[key] ||= Row.new`),
+    or one the receiver's class defines, the receiver built by its `new`
+    (`Pens.new(nodes).index`, directly, through a local, a field or a
+    memo; the class found in the file or under `OwnedPaths`). A value
+    returned only under a type check that rules nil out (`return first if
+    first.is_a?(Time)`) is never nil. A block's literal `nil` is reported
+    too. A predicate's falsy nil answers its
     question, a writer's value is its argument, and a method that forwards the
     protocol it is named after (`def first = @rows.first`) keeps that
     protocol's contract; `AllowedMethods` holds the core methods whose
@@ -1157,6 +1175,11 @@ Kata/NoNilReturn:
     literal `nil`.
   Enabled: false
   VersionAdded: "0.11"
+  OwnedPaths:
+    - "app/**/*.rb"
+    - "*/app/**/*.rb"
+    - "lib/**/*.rb"
+    - "*/lib/**/*.rb"
   Exclude:
     - "spec/**/*"
     - "test/**/*"
@@ -1190,7 +1213,8 @@ Kata/NoPublicConstant:
     (`cart.full?`) and make the constant private (`private_constant`). Only
     the project's own namespaces are judged (Ruby's `Float::INFINITY` and a
     library's constants are its API), a class reading its own constants
-    passes, and `AllowedNames` holds the constants a packaging tool reads
+    passes (the block of a `Data.define`, `Struct.new` or `Class.new`
+    assigned to a constant is that class's body), and `AllowedNames` holds the constants a packaging tool reads
     (`VERSION`). A class, module or error is not a value, and neither is a
     constant that namespaces another (`Net::NTLM::Message`, however its
     acronym is spelled). Off by default: config/strict.yml turns it on.
@@ -1396,7 +1420,9 @@ Kata/NoHardWiring:
     constructor is. An object that lives only inside one call is the call's
     own data, whatever the method does to it, and passes: one built from the
     method's own inputs (its arguments, a block's arguments, its locals and
-    fields, `self`, the class's own constants; `Nesting.new(node).qualified`,
+    fields, `self`, the class's own constants, or a class or module applied
+    to them, `Owner.new(full)`, `Words.key(part)`, `File.join(root, name)`;
+    a value constant, `DB` or `ENV`, is not one; `Nesting.new(node).qualified`,
     an entry built per row, filled and saved, `Writer.new(buffer:,
     parts:).emit`), one returned, passed to a method or left as a block's
     value (`Cart.new(@items + [item])`, `form = Form.new; form.add(upload);
@@ -1406,7 +1432,10 @@ Kata/NoHardWiring:
     carry every call's contents. Asking a fresh object what its class
     answers (`respond_to?`, `method`) is not talking to it, and a message
     sent to a name before it was bound to the new object goes to the name's
-    earlier value. The class building itself passes too. Class methods,
+    earlier value. The class building itself passes too. Class methods
+    (a module's methods are class methods where a class extends it,
+    `extend Registry` or `base.extend(ClassMethods)` in an `included` hook,
+    and so are a `ClassMethods` module's and a Concern's `class_methods`),
     constructors and the composition roots a framework instantiates are
     where objects are wired: controllers, view helpers, jobs, mailers,
     tests, rake tasks, `bin/`, `config/`, a subclass of one of
@@ -1648,7 +1677,10 @@ Kata/NoHashAsObject:
     superclass line ends in a library's class, which calls it
     (`search_data`). A parameter the method reads by
     two or more literal symbol keys (`payment[:amount]`, `payment.fetch(:currency)`)
-    is a hash used as an object, and is reported where it is declared.
+    is a hash used as an object, and is reported where it is declared,
+    unless every key it is read by is a member of one of the project's
+    Structs (`Env = Struct.new(:body, :request_headers)`, in the file or
+    under `OwnedPaths`): that is the named object, read through its `[]`.
     String keys are data from outside (a Rack env, parsed JSON, headers),
     not an object, and are not read.
   Enabled: true
@@ -1695,8 +1727,11 @@ Kata/ClockDiscipline:
     (config/strict.yml) randomness is read the same way: no `SecureRandom`,
     `rand`, `Random.rand`, unseeded `Random.new`, or `sample`/`shuffle`
     without `random:`; a `rand` the project defines (ffaker's seeded
-    `RandomUtils#rand`), or a `shuffle` one of its modules answers
-    (`ArrayUtils.shuffle`), under `OwnedPaths`, is its own. A parameter
+    `RandomUtils#rand`), a `shuffle` one of its modules answers
+    (`ArrayUtils.shuffle`), and a `sample` sent to an instance of a class
+    it defines with that method (`peak = Peak.new(pid); peak.sample`; the
+    receiver built by `new`, directly, through a local, a field or a
+    memo), under `OwnedPaths`, is its own. A parameter
     default is the seam (`def initialize(id = SecureRandom.uuid)`; `id ||
     SecureRandom.uuid` is not one); code outside every class, module and
     method is a script's boot layer, and so is a framework's boot hook
@@ -1786,8 +1821,11 @@ Kata/FailFast:
     A `rescue` that does not re-raise (`raise`, `fail`, `retry`, `exit`,
     `abort`; `RaisingMethods`) answers something: when that is a default — an
     empty body, `nil`, `false`, a literal, `[]`, `{}` — or a log line
-    (`@log.warn(...)`, logged or not before the default), the error is
-    swallowed and the caller goes on with a value that hides it. Let it raise,
+    (`@log.warn(...)`, logged or not before the default; a call to the
+    class's own method named like a level whose body logs nothing,
+    `error(trial, detail)` building a verdict, is not one), the error is
+    swallowed and the caller goes on with a value that
+    hides it. Let it raise,
     or rescue the one error you expect and answer an object that says what
     failed (`rescue KeyError; Absent.new(key)`, a null object, passes). A
     rescue that answers a boolean is a question's answer when it names the
@@ -1796,7 +1834,9 @@ Kata/FailFast:
     `rescue NoMethodError` is a bug); `==`, `eql?` and `<=>` answer a foreign
     object. The ends of a stream or a process (`EOFError`, `Errno::EPIPE`,
     `Errno::ESRCH`, an empty queue's `ThreadError`), and an optional library's
-    `LoadError` (`ExpectedErrors`) are not failures. On the way out of a
+    `LoadError` (`ExpectedErrors`) are not failures, and neither is
+    `Errno::EPERM` rescued from a `kill` alone (`Process.kill("KILL", pid)`):
+    the process is gone and its pid belongs to another. On the way out of a
     failure, in an `ensure` or inside a rescue that re-raises, a rescue
     keeps the error in flight from being replaced, and passes
     (`socket.close rescue nil`, a diagnostic `socket.read rescue ""`).

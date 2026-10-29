@@ -180,6 +180,59 @@ RSpec.describe(RuboCop::Cop::Kata::ClockDiscipline, :config) do
     RUBY
   end
 
+  # kimera's eval Shell#finish (fp/kimera-1): `peak = Peak.new(pid)` then `peak.sample`, Peak's own method.
+  it "leaves a draw's name sent to an instance of a class the project defines with that method" do
+    expect_no_offenses(<<~RUBY)
+      class Peak
+        def sample = @sizes << File.size(@path)
+      end
+
+      class Shell
+        def finish(waiter)
+          peak = Peak.new(waiter.pid)
+          Thread.new { peak.sample until waiter.join(0.05) }
+          @peak.sample
+          sampler.sample
+          Peak.new(1).sample
+        end
+
+        def initialize
+          @peak = Peak.new(0)
+        end
+
+        def sampler = @_sampler ||= Peak.new(2)
+      end
+    RUBY
+  end
+
+  it "still flags a draw sent to a receiver of unknown class, or to a class without that method" do
+    expect_offense(<<~RUBY)
+      class Peak
+        def sample = @sizes << File.size(@path)
+      end
+
+      class Shell
+        def watch(peak) = peak.sample
+                          ^^^^^^^^^^^ Pass `sample` an injected generator (`random: @random`); without one it draws from the ambient source.
+        def mixed = Peak.new(1).shuffle
+                    ^^^^^^^^^^^^^^^^^^^ Pass `shuffle` an injected generator (`random: @random`); without one it draws from the ambient source.
+
+        def finish(waiter)
+          peak = Peak.new(waiter.pid)
+          peak = @peaks if waiter.nil?
+          peak.sample
+          ^^^^^^^^^^^ Pass `sample` an injected generator (`random: @random`); without one it draws from the ambient source.
+        end
+
+        PEAKS = [1].map do |pid|
+          peak = Peak.new(pid)
+          peak.sample
+          ^^^^^^^^^^^ Pass `sample` an injected generator (`random: @random`); without one it draws from the ambient source.
+        end
+      end
+    RUBY
+  end
+
   context "without CheckRandomness, as kata ships it" do
     let(:cop_config) { {} }
 
