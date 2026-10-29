@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 RSpec.describe(RuboCop::Kata::Correction) do
-  def flaw(original, corrected) = described_class.new(original, corrected).flaw
+  def flaw(original, corrected) = described_class.new(original, corrected).flaws.first
 
   it "passes quote swaps, joined or split adjacent literals and %w words, whose values stay" do
     original = "a = 'x' \\\n  'y'\nb = %w[c d]\nc = <<-TEXT\n  body\n  TEXT\nd = \"e\#{}f\"\n"

@@ -15,17 +15,17 @@ class RuboCop::Kata::Variable::Inlining
     @read = read
   end
 
-  def range = (pair || @read).source_range
+  def range = pairs.fetch(0, @read).source_range
 
-  def text = pair ? "#{pair.key.source}: #{value}" : value
+  def text = pairs.empty? ? value : "#{pairs.first.key.source}: #{value}"
 
   def faithful? = !(guarded? && receiver?)
 
   private
 
-  def pair
+  def pairs
     parent = @read.parent
-    parent if parent.pair_type? && parent.value_omission?
+    parent.pair_type? && parent.value_omission? ? [parent] : []
   end
 
   def value = wrap? ? "(#{@rhs.source})" : @rhs.source

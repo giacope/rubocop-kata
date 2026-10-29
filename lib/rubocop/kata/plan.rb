@@ -41,8 +41,9 @@ class RuboCop::Kata::Plan
   def run
     found = offenses
     @io.puts(found.empty? ? CLEAN : table(found) + advice(found))
-    found.empty? ? 0 : 1
   end
+
+  def status = offenses.empty? ? 0 : 1
 
   private
 

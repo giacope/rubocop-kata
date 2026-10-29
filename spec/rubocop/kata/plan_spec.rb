@@ -26,7 +26,9 @@ RSpec.describe(RuboCop::Kata::Plan, :restore_configuration) do
 
   def report(root)
     io = StringIO.new
-    described_class.new(root, io: io).run.then { [io.string, it] }
+    plan = described_class.new(root, io: io)
+    plan.run
+    [io.string, plan.status]
   end
 
   context "when the project has not named the plugin yet", :restore_configuration do

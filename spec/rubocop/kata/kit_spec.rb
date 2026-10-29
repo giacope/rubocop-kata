@@ -3,9 +3,11 @@
 require "rubocop/kata/kit"
 
 RSpec.describe(RuboCop::Kata::Kit) do
-  def emit
+  def emit(source: described_class::SOURCE)
     io = StringIO.new
-    described_class.new(Dir.pwd, io: io).run.then { [io.string, it] }
+    kit = described_class.new(Dir.pwd, io: io, source: source)
+    kit.run
+    [io.string, kit.status]
   end
 
   it "prints a skill an agent can route on", :aggregate_failures do
@@ -19,8 +21,7 @@ RSpec.describe(RuboCop::Kata::Kit) do
   end
 
   it "says where it looked when the skill is missing", :aggregate_failures do
-    stub_const("#{described_class}::SOURCE", "/nowhere/SKILL.md")
-    output, status = emit
+    output, status = emit(source: "/nowhere/SKILL.md")
     expect(output).to(eq("the gem ships no skill at /nowhere/SKILL.md\n"))
     expect(status).to(eq(1))
   end

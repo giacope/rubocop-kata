@@ -17,9 +17,9 @@ class RuboCop::Cop::Kata::NoHardWiring < RuboCop::Cop::Base
   def on_send(node)
     method = node.each_ancestor(:def, :defs).first
     return unless method && candidate?(node, method)
-    message, place = finding(node, method)
-    return unless message
-    add_offense(node, message: format(message, method.method_name, node.receiver.const_name, place) + seam(method))
+    findings(node, method).each do |message, place|
+      add_offense(node, message: format(message, method.method_name, node.receiver.const_name, place) + seam(method))
+    end
   end
 
   private
@@ -31,14 +31,14 @@ class RuboCop::Cop::Kata::NoHardWiring < RuboCop::Cop::Base
     own?(target) && !owners(target).include?(home) && !root?(home)
   end
 
-  def finding(node, method)
+  def findings(node, method)
     built = built(node)
-    place = kept(built, method)
-    return [KEPT, place] if place
+    places = kept(built, method)
+    return places.map { [KEPT, it] } unless places.empty?
     holder = built.parent
-    found = maker(built, holder, method)
-    return [HANDED, "#{found.receiver.source}.new"] if found && handed_on?(node, found, holder, method)
-    [MSG] if !wraps?(node) && talked?(node, built, method)
+    found = maker(built, holder, method).select { handed_on?(node, it, holder, method) }
+    return found.map { [HANDED, "#{it.receiver.source}.new"] } unless found.empty?
+    !wraps?(node) && talked?(node, built, method) ? [[MSG]] : []
   end
 
   def handed_on?(node, found, holder, method)

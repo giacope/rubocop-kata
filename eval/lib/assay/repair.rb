@@ -4,26 +4,27 @@ class Assay::Repair
   FAILURE = /error occurred|infinite loop/i
   REPORT = "fix.json"
 
-  def initialize(corpus, dir, flag)
+  def initialize(corpus, bundle, dir, flag)
     @corpus = corpus
+    @bundle = bundle
     @dir = dir
     @flag = flag
   end
 
   def to_h
     before = census.to_h
-    outcome = @corpus.bundle.rubocop(
+    _, stderr, = @bundle.rubocop(
       @flag, "--format", "json", "--out", REPORT, "--cache", "false", *@corpus.paths, dir: @dir
     )
     tally.merge(
       "comments_before" => before, "comments_after" => census.to_h, "unparsable" => census.broken,
-      "failures" => failures(outcome), "test" => @corpus.test(@dir)
+      "failures" => failures(stderr), "test" => @corpus.test(@dir)
     ).compact
   end
 
   private
 
-  def failures(outcome) = outcome.stderr.lines.grep(FAILURE).map(&:strip).uniq.first(20)
+  def failures(stderr) = stderr.lines.grep(FAILURE).map(&:strip).uniq.first(20)
 
   def census = Assay::Census.new(@dir, @corpus.paths)
 

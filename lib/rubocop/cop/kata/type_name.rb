@@ -10,21 +10,20 @@ module RuboCop::Cop::Kata::TypeName
   def check(node)
     name = subject_of(node)
     return if allowed?(name) || contract?(node) || root?(RuboCop::Kata::Nesting.new(node).qualified)
-    complaint = complaint(name, node)
-    add_offense(node.identifier, message: complaint) if complaint
+    complaints(name, node).each { add_offense(node.identifier, message: it) }
   end
 
   def subject_of(node) = subject(node.identifier.short_name.to_s)
 
-  def complaint(name, node)
-    return format(self.class::BANNED_MSG, name) if banned?(name)
-    return doer(name, node.type) if doer?(name) && !heir?(name, node) && !record?(node)
+  def complaints(name, node)
+    return [format(self.class::BANNED_MSG, name)] if banned?(name)
+    return [doer(name, node.type)] if doer?(name) && !heir?(name, node) && !record?(node)
     crowd(name)
   end
 
   def crowd(name)
     count = segments(name).size
-    format(self.class::CROWD_MSG, name, count, name) if count > max
+    count > max ? [format(self.class::CROWD_MSG, name, count, name)] : []
   end
 
   def subject(name)

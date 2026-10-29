@@ -11,4 +11,6 @@ COMMANDS = { "doctor" => RuboCop::Kata::Checkup, "plan" => RuboCop::Kata::Plan, 
 command = COMMANDS[ARGV.first]
 abort("usage: rubocop-kata #{COMMANDS.keys.join("|")} [path]") if command.nil?
 
-exit(command.new(ARGV.fetch(1, Dir.pwd)).run)
+tool = command.new(ARGV.fetch(1, Dir.pwd))
+tool.run
+exit(tool.status)

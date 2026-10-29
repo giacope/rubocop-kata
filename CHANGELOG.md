@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+- Kata lints itself with its strict profile and hashira's strict set, and CI
+  enforces both. Behaviour is unchanged; the one difference a caller can
+  see: `Elegant/NoNilReturn`, `Elegant/MonotonicIndents` and
+  `ThreadSafety/ClassInstanceVariable` run as kata's own classes under those
+  names (`RuboCop::Kata::Elegant::NoNilReturn`, ...) instead of kata
+  prepending into rubocop-elegant's and rubocop-thread_safety's classes, so
+  those classes stay as they ship when kata is loaded.
 - The strict profile enforces the five Elegant Objects principles it only
   partly enforced (the round-6 conformance cases; each new rule ships off,
   and config/strict.yml turns it on):

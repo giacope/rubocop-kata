@@ -40,10 +40,11 @@ class RuboCop::Kata::Messages
   def sequence(statements, scope, shown)
     found = []
     statements.each do |statement|
-      switch = switch(statement)
-      arguments = Array(statement.arguments&.arguments) if switch
-      shown = switch if switch && arguments.empty?
-      found.concat(switch ? arguments.flat_map { marking(it, scope, switch) } : walk(statement, scope, shown))
+      visibility = switches(statement)
+      next found.concat(walk(statement, scope, shown)) if visibility.empty?
+      arguments = Array(statement.arguments&.arguments)
+      shown = visibility.first if arguments.empty?
+      found.concat(arguments.flat_map { marking(it, scope, visibility.first) })
     end
     marked(found, scope)
   end
@@ -58,7 +59,7 @@ class RuboCop::Kata::Messages
     records.map { |owner, name, shown| [owner, name, owner == scope ? switched.fetch(name, shown) : shown] }
   end
 
-  def switch(statement)
-    SWITCHES[statement.name] if statement.is_a?(Prism::CallNode) && statement.receiver.nil?
+  def switches(statement)
+    statement.is_a?(Prism::CallNode) && statement.receiver.nil? ? SWITCHES.slice(statement.name).values : []
   end
 end

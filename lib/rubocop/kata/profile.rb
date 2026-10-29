@@ -11,9 +11,6 @@ class RuboCop::Kata::Profile
   FRAMEWORK = File.join(SHELF, "framework.yml")
   SORBET = File.join(SHELF, "sorbet.yml")
   AUTOCORRECT = File.join(SHELF, "autocorrect.yml")
-  BRANDS = { "RuboCop" => "Rubocop", "RSpec" => "Rspec" }.freeze
-  SPELLED = { "RuboCop" => "rubocop", "RSpec" => "rspec" }.freeze
-  WORD = /\A[a-z][a-z0-9]+\z/
   LIBRARY = { "Kata/ClassInModule" => { "Exclude" => ["lib/*.rb"] } }.freeze
   def initialize(root, options, shelf: Dir.tmpdir)
     @root = root
@@ -30,64 +27,38 @@ class RuboCop::Kata::Profile
   end
 
   def overlay
-    survey = RuboCop::Kata::Survey.new(@root)
-    layer = { "inherit_from" => [BASE, AUTOCORRECT, *rails(survey), *sorbet(survey)] }
-    { "Packaging" => :packaged?, "RSpec" => :rspec? }.each do |department, found|
-      layer[department] = { "Enabled" => false } unless chosen(department.downcase) { survey.public_send(found) }
-    end
-    layer.merge(skipped(survey), spoken(survey), owned(survey), survey.autoloads? ? LIBRARY : {})
+    folder = RuboCop::Kata::Folder.new(@root)
+    survey = RuboCop::Kata::Survey.new(@root, folder)
+    manifest = RuboCop::Kata::Manifest.new(folder)
+    layer = { "inherit_from" => [BASE, AUTOCORRECT, *rails(survey, manifest), *sorbet(survey)] }
+    layer.merge(unused(survey, manifest), learned(folder, manifest), survey.autoloads? ? LIBRARY : {})
   end
 
   private
 
-  def skipped(survey)
-    generated = survey.generated
+  def unused(survey, manifest)
+    used = { "Packaging" => -> { manifest.packaged? }, "RSpec" => -> { survey.rspec? } }
+    off = used.reject { |department, found| chosen(department.downcase, &found) }.keys
+    off.to_h { [it, { "Enabled" => false }] }
+  end
+
+  def learned(folder, manifest)
+    codebase = RuboCop::Kata::Codebase.new(@root, folder)
+    skipped(codebase).merge(RuboCop::Kata::Lexicon.new(codebase, manifest).to_h, owned(codebase, manifest))
+  end
+
+  def skipped(codebase)
+    generated = codebase.generated
     generated.empty? ? {} : { "AllCops" => { "Exclude" => generated } }
   end
 
-  def spoken(survey)
-    words = (survey.names + coined(survey)).uniq.reject { plain?(it) }
-    layer = words.empty? ? {} : { "Kata/RealWords" => { "Vocabulary" => words } }
-    layer = layer.merge(transforms(survey))
-    return layer unless survey.parser?
-    spoken = layer.fetch("Kata/RealWords", {}).merge("NodeCallbacks" => true)
-    layer.merge("Kata/RealWords" => spoken, "Lint/BooleanSymbol" => { "Enabled" => false })
-  end
-
-  def owned(survey)
-    roots = survey.roots
+  def owned(codebase, manifest)
+    roots = codebase.roots
     layer = roots.empty? ? {} : { "Kata" => { "Roots" => roots } }
-    checked = { "Dependencies" => survey.dependencies.sort, "Protocols" => (survey.framework? ? %w[rails] : []) }
+    checked = { "Dependencies" => manifest.dependencies.sort, "Protocols" => (manifest.framework? ? %w[rails] : []) }
     checked = checked.reject { |_, value| value.empty? }
     checked.empty? ? layer : layer.merge("Kata/NoTypeCheck" => checked)
   end
-
-  def coined(survey)
-    (survey.dependencies.flat_map { parts(it) } + named(survey) + nodes(survey)).reject { clipping?(it) }
-  end
-
-  def parts(gem) = gem.downcase.split(/[-_.]/).grep(WORD)
-
-  def named(survey) = survey.constants.flat_map { spelled(it).split("_") }.grep(WORD)
-
-  def spelled(name) = snake(BRANDS.reduce(name) { |text, (brand, word)| text.gsub(brand, word) })
-
-  def transforms(survey)
-    found =
-      (survey.constants - SPELLED.keys).filter_map do |name|
-        path = spelled(name)
-        [name, path] unless path == snake(name)
-      end
-    found.empty? ? {} : { "RSpec/SpecFilePathFormat" => { "CustomTransform" => SPELLED.merge(found.to_h) } }
-  end
-
-  def snake(name) = name.gsub(/([^A-Z])([A-Z]+)/, '\1_\2').gsub(/([A-Z])([A-Z][^A-Z\d]+)/, '\1_\2').downcase
-
-  def nodes(survey) = survey.parser? ? Parser::Meta::NODE_TYPES.map(&:to_s).grep(WORD) : []
-
-  def plain?(word) = RuboCop::Kata::Dictionary::ENTRIES.include?(word) && !clipping?(word)
-
-  def clipping?(word) = RuboCop::Kata::Dictionary::CLIPPINGS.key?(word)
 
   def standalone(layer)
     files = layer.fetch("inherit_from").map { YAML.load_file(it, aliases: true) }
@@ -111,9 +82,9 @@ class RuboCop::Kata::Profile
     File.rename(draft, target)
   end
 
-  def rails(survey)
+  def rails(survey, manifest)
     application = chosen("rails") { survey.rails? }
-    application || chosen("rails") { survey.framework? } ? [FRAMEWORK, *(RAILS if application)] : []
+    application || chosen("rails") { manifest.framework? } ? [FRAMEWORK, *(RAILS if application)] : []
   end
 
   def sorbet(survey) = chosen("sorbet") { survey.sorbet? } ? [SORBET] : []

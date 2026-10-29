@@ -9,8 +9,7 @@ class RuboCop::Cop::Kata::NoHashAsObject < RuboCop::Cop::Base
 
   def on_hash(node)
     return if kwargs?(node) || table?(node) || protocol?(node)
-    message = judged(node, node.pairs.size)
-    add_offense(node, message:) if message
+    judged(node, node.pairs.size).each { add_offense(node, message: it) }
   end
 
   private
@@ -20,7 +19,7 @@ class RuboCop::Cop::Kata::NoHashAsObject < RuboCop::Cop::Base
     CALLS.include?(holder&.type) && !node.braces?
   end
 
-  def judged(node, count) = count < limit ? travel(node, count) : format(MSG, count)
+  def judged(node, count) = count < limit ? travel(node, count) : [format(MSG, count)]
 
   def table?(node)
     holder = carried(node).parent

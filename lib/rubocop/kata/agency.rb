@@ -9,15 +9,18 @@ class RuboCop::Kata::Agency
   PREFIX = /\A(?:de|dis|mis|pre|re|un)(?=[a-z]{3})/
   VERBAL = /(?:ize|ise|ify|ate)\z/
 
-  def initialize(word)
+  def initialize(word, senses = RuboCop::Kata::Senses.new)
     @word = word
+    @senses = senses
   end
 
   def doer?
-    return true if RuboCop::Kata::Dictionary::AGENTS.include?(@word)
-    return false if RuboCop::Kata::Dictionary::THINGS.include?(@word) || !SUFFIX.match?(@word)
+    return true if @senses.agent?(@word)
+    return false if @senses.thing?(@word) || !suffixed?
     verbal?
   end
+
+  def suffixed? = SUFFIX.match?(@word)
 
   def stems = ENDINGS.filter_map { |ending, stem| @word.sub(ending, stem) if ending.match?(@word) }.uniq
 
@@ -25,5 +28,5 @@ class RuboCop::Kata::Agency
 
   def verbal? = stems.any? { VERBAL.match?(it) || verb?(it) || verb?(it.sub(PREFIX, "")) }
 
-  def verb?(stem) = RuboCop::Kata::Dictionary::VERBS.include?(stem)
+  def verb?(stem) = @senses.verb?(stem)
 end

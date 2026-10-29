@@ -99,13 +99,13 @@ class RuboCop::Cop::Kata::FrozenState < RuboCop::Cop::Base
   def hooks(scope)
     names = list("ConstructorHooks")
     return names unless scope&.type?(:class, :module)
-    names + names.select { it.include?("#") }.map { qualified_hook(it, scope) }.compact
+    names + names.select { it.include?("#") }.flat_map { qualified_hooks(it, scope) }
   end
 
-  def qualified_hook(entry, scope)
+  def qualified_hooks(entry, scope)
     owner, hook = entry.split("#", 2)
     ancestors = project.ancestors(RuboCop::Kata::Nesting.new(scope).qualified)
-    hook if ancestors.any? { it == owner || it.start_with?("#{owner}::") }
+    ancestors.any? { it == owner || it.start_with?("#{owner}::") } ? [hook] : []
   end
 
   def constructed?(scope, name)
@@ -113,12 +113,8 @@ class RuboCop::Cop::Kata::FrozenState < RuboCop::Cop::Base
   end
 
   def builders(methods)
-    found = CONSTRUCTORS
-    loop do
-      called = methods.select { found.include?(it.method_name) }.flat_map { helpers(it) }
-      return found if (called - found).empty?
-      found |= called
-    end
+    step = ->(found) { methods.select { found.include?(it.method_name) }.flat_map { helpers(it) } }
+    RuboCop::Kata::Closure.new(CONSTRUCTORS, &step).to_a
   end
 
   def helpers(method) = method.each_descendant(:send).select { it.receiver.nil? }.map(&:method_name)

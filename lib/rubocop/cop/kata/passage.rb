@@ -40,11 +40,10 @@ module RuboCop::Cop::Kata::Passage
   end
 
   def travel(node, count)
-    return unless cop_config["CheckTravel"] && count >= Integer(cop_config.fetch("TravelKeys", 2)) && symbolic?(node)
+    return [] unless cop_config["CheckTravel"] && count >= Integer(cop_config.fetch("TravelKeys", 2)) && symbolic?(node)
     value = carried(node)
-    return format(ANSWER_MSG, count) if answering?(node, value)
-    target = handed(value)
-    format(HANDED_MSG, count, target) if target
+    return [format(ANSWER_MSG, count)] if answering?(node, value)
+    handed(value).map { format(HANDED_MSG, count, it) }
   end
 
   def answering?(node, value)
@@ -95,8 +94,9 @@ module RuboCop::Cop::Kata::Passage
 
   def handed(value, seen = [])
     holder = value.parent
-    return holder.method_name if holder&.call_type? && holder.arguments.any? { it.equal?(value) } && own_call?(holder)
-    uses(holder).filter_map { handed(carried(it), [*seen, holder]) }.first if followed?(holder, seen)
+    return [holder.method_name] if holder&.call_type? && holder.arguments.any? { it.equal?(value) } && own_call?(holder)
+    return [] unless followed?(holder, seen)
+    uses(holder).lazy.flat_map { handed(carried(it), [*seen, holder]) }.first(1)
   end
 
   def own_call?(call)
@@ -107,7 +107,7 @@ module RuboCop::Cop::Kata::Passage
 
   def defined_by?(receiver, name)
     owner = owners(receiver).first
-    name == :new ? project.instance?(owner, "initialize") : project.singleton?(owner, name.to_s)
+    name == :new ? inheritance.instance?(owner, "initialize") : inheritance.singleton?(owner, name.to_s)
   end
 
   def uses(assignment)

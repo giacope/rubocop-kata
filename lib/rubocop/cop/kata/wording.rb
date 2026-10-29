@@ -7,18 +7,17 @@ module RuboCop::Cop::Kata::Wording
 
   private
 
-  def judge(range, name, stem)
+  def judge(range, name, stem, chained = [])
     return if allowed?(name.to_s) || allowed?(stem)
-    complaint = (yield if block_given?) || complaint(name, stem)
-    add_offense(range, message: complaint) if complaint
+    (chained.empty? ? complaints(name, stem) : chained).each { add_offense(range, message: it) }
   end
 
-  def complaint(name, stem)
+  def complaints(name, stem)
     words = stem.split("_")
-    odd = words.find { !pattern.match?(it) }
-    return format(PATTERN_MSG, name, odd) if odd
+    odd = words.grep_v(pattern)
+    return [format(PATTERN_MSG, name, odd.first)] unless odd.empty?
     count = core(words).size
-    format(self.class::MSG, name, count, max, name) if count > max
+    count > max ? [format(self.class::MSG, name, count, max, name)] : []
   end
 
   def core(words)

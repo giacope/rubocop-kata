@@ -14,20 +14,20 @@ module RuboCop::Kata::Safeguard
 
   def do_inspection_loop(file, *)
     inspected = super
-    flaw = scrutiny(@options[:stdin] || File.binread(file), inspected.first.raw_source)
-    flaw ? kept(file, flaw, inspected.last) : inspected
+    flaws = scrutiny(@options[:stdin] || File.binread(file), inspected.first.raw_source)
+    flaws.empty? ? inspected : kept(file, flaws.first, inspected.last)
   end
 
   def finalize_corrections(file, original_source, corrected_source)
     pending = corrected_source || @options[:stdin]
     written = File.binread(file) unless pending
-    return super unless scrutiny(original_source, pending || written)
+    return super if scrutiny(original_source, pending || written).empty?
     @options[:stdin] &&= original_source
     super(file, original_source, written && original_source)
   end
 
   def scrutiny(original, corrected)
-    RuboCop::Kata::Correction.new(original, corrected).flaw if @options[:safe_autocorrect] && corrected
+    @options[:safe_autocorrect] && corrected ? RuboCop::Kata::Correction.new(original, corrected).flaws : []
   end
 
   def kept(file, flaw, offenses)
@@ -43,3 +43,5 @@ module RuboCop::Kata::Safeguard
     [processed, inspect_file(processed, team).first]
   end
 end
+
+RuboCop::Runner.prepend(RuboCop::Kata::Safeguard)

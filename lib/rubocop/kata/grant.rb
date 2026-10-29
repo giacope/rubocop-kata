@@ -35,18 +35,18 @@ class RuboCop::Kata::Grant
 
   def delegated
     prefix = options["prefix"]
-    stem = prefix&.slice == "true" ? spelled(options["to"]).to_s.delete_prefix("@") : spelled(prefix)
-    words.map { stem.to_s.empty? ? it : "#{stem}_#{it}" }
+    stem = prefix&.slice == "true" ? spelled(options["to"]).join.delete_prefix("@") : spelled(prefix).join
+    words.map { stem.empty? ? it : "#{stem}_#{it}" }
   end
 
-  def words = arguments.filter_map { spelled(it) }
+  def words = arguments.flat_map { spelled(it) }
 
   def options
     pairs = arguments.select { it.respond_to?(:elements) }.flat_map(&:elements).select { it.respond_to?(:key) }
-    pairs.to_h { [spelled(it.key), it.value] }
+    pairs.flat_map { |pair| spelled(pair.key).map { [it, pair.value] } }.to_h
   end
 
-  def spelled(node) = node.respond_to?(:unescaped) ? node.unescaped : nil
+  def spelled(node) = node.respond_to?(:unescaped) ? [node.unescaped] : []
 
   def arguments = Array(@call.arguments&.arguments)
 end

@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 class Assay::Snippets
-  CONFIG = "plugins:\n  - rubocop-kata\n\nAllCops:\n  TargetRubyVersion: 3.4\n  SuggestExtensions: false\n"
   PATH = "lib/sample.rb"
   MODES = { "safe" => "-a", "all" => "-A" }.freeze
   EXTRA = 99
@@ -24,7 +23,7 @@ class Assay::Snippets
   def verdicts
     found = sweep("detect", cases, [])
     fixed = corrections
-    cases.map { Assay::Verdict.new(it, found.fetch(it["id"], []), fixed[it["id"]]).to_h }
+    cases.map { Assay::Verdict.new(it, found.fetch(it["id"], []), fixed.fetch(it["id"], [])).to_h }
   end
 
   def corrections
@@ -41,23 +40,22 @@ class Assay::Snippets
 
   def read(label, item)
     path = File.join(@work, label, item["id"], item.fetch("path", PATH))
-    File.file?(path) ? File.read(path) : nil
+    File.file?(path) ? [File.read(path)] : []
   end
 
   def sweep(label, group, extra)
-    root = grow(label, group)
+    root = File.join(@work, label)
+    grow(root, group)
     rooted, plain = group.partition { it["path"] }
     rooted.map { examine(File.join(root, it["id"]), [it.fetch("path")], extra, it["id"]) }
       .reduce(examine(root, plain.map { File.join(it["id"], PATH) }, extra, nil), :merge)
   end
 
-  def grow(label, group)
-    root = File.join(@work, label)
+  def grow(root, group)
     FileUtils.rm_rf(root)
     FileUtils.mkdir_p(root)
-    File.write(File.join(root, ".rubocop.yml"), CONFIG)
+    @bundle.configure(root)
     group.each { plant(root, it) }
-    root
   end
 
   def examine(dir, files, extra, owner)
@@ -71,11 +69,11 @@ class Assay::Snippets
     home = File.join(root, item["id"])
     path = File.join(home, item.fetch("path", PATH))
     FileUtils.mkdir_p(File.dirname(path))
-    File.write(File.join(home, ".rubocop.yml"), setting(item))
+    @bundle.configure(home, setting(item))
     File.write(path, item.fetch("source"))
   end
 
-  def setting(item) = [CONFIG, (STRICT if item["strict"]), (format(ENABLE, item.fetch("cop")) if item["enable"])].join
+  def setting(item) = [(STRICT if item["strict"]), (format(ENABLE, item.fetch("cop")) if item["enable"])].join
 
   def offenses(path)
     JSON.parse(File.read(path)).fetch("files").group_by { it["path"].split("/").first }

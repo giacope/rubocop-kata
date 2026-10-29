@@ -12,11 +12,9 @@ class RuboCop::Kata::Plugin < LintRoller::Plugin
 
   def supported?(context) = context.engine == :rubocop
 
-  def rules(_context, here: Dir.pwd)
-    LintRoller::Rules.new(
-      type: :path,
-      config_format: :rubocop,
-      value: Pathname.new(RuboCop::Kata::Profile.new(RuboCop::Kata::ProjectRoot.new(here).path, @config).path)
-    )
+  def rules(
+    _context, here: Dir.pwd, profile: RuboCop::Kata::Profile.new(RuboCop::Kata::ProjectRoot.new(here).path, @config)
+  )
+    LintRoller::Rules.new(type: :path, config_format: :rubocop, value: Pathname.new(profile.path))
   end
 end

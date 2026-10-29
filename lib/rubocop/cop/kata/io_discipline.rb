@@ -42,14 +42,14 @@ class RuboCop::Cop::Kata::IoDiscipline < RuboCop::Cop::Base
   private
 
   def message(node, method)
-    held = stream(node)
-    return format(MSG, held, method) if held
+    held = streams(node)
+    return format(MSG, held.first, method) unless held.empty?
     format(SEAM_MSG, method, method == :warn ? "$stderr" : "$stdout")
   end
 
-  def stream(node)
-    scope = node.each_ancestor(:class, :module).first
-    scope ? scope.each_descendant(:ivasgn).map { it.children.first }.find { STREAMS.include?(it) } : nil
+  def streams(node)
+    scopes = node.each_ancestor(:class, :module).first(1)
+    scopes.flat_map { it.each_descendant(:ivasgn).map { it.children.first } }.select { STREAMS.include?(it) }
   end
 
   def effects? = cop_config["CheckEffects"]
@@ -58,7 +58,7 @@ class RuboCop::Cop::Kata::IoDiscipline < RuboCop::Cop::Base
 
   def exempt?(node, method)
     return true if element?(node) || seam?(node) || quiet?(method)
-    RuboCop::Kata::Recipient.new(node, processed_source.ast, project).answers?
+    RuboCop::Kata::Recipient.new(node, processed_source.ast, inheritance).answers?
   end
 
   def element?(node) = ELEMENTS.include?(node.method_name) && (!node.arguments? || !node.block_node.nil?)
@@ -72,8 +72,9 @@ class RuboCop::Cop::Kata::IoDiscipline < RuboCop::Cop::Base
   def effect(node)
     names = labels(node)
     return if names.empty? || listed?("AllowedMethods", names.first) || seam?(node)
-    noun = names.lazy.filter_map { kind(it) }.first
-    reach(node, names.first, noun, noun == COMMAND ? node.arguments : places(node)) if noun
+    names.lazy.flat_map { kinds(it) }.first(1).each do |noun|
+      reach(node, names.first, noun, noun == COMMAND ? node.arguments : places(node))
+    end
   end
 
   def places(node)
@@ -93,7 +94,7 @@ class RuboCop::Cop::Kata::IoDiscipline < RuboCop::Cop::Base
     receiver.const_type? && !own?(receiver) ? ["#{receiver.const_name}.#{name}", receiver.const_name] : []
   end
 
-  def kind(name) = cop_config.fetch("Effects", {}).find { |_, names| Array(names).include?(name) }&.first
+  def kinds(name) = cop_config.fetch("Effects", {}).select { |_, names| Array(names).include?(name) }.keys.first(1)
 
   def injected?(target)
     target.each_node.any? do |part|

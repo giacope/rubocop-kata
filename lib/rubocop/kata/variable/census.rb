@@ -8,9 +8,9 @@ class RuboCop::Kata::Variable::Census
   STATEMENT_PARENTS = %i[begin kwbegin def defs block numblock].freeze
   PARAMETERS = %i[arg optarg restarg kwarg kwoptarg kwrestarg blockarg shadowarg].freeze
 
-  def initialize(body, parameters)
+  def initialize(body, arguments)
     @body = body
-    @parameters = parameters
+    @arguments = arguments
   end
 
   def assigns = nodes.select { it.lvasgn_type? && statement?(it) }.group_by { it.children.first }
@@ -19,7 +19,7 @@ class RuboCop::Kata::Variable::Census
 
   def tainted
     shorthand = nodes.select(&:shorthand_asgn?).map(&:assignment_node).select(&:lvasgn_type?)
-    [*shorthand, *@parameters, *nodes.select { PARAMETERS.include?(it.type) }].map(&:name)
+    [*shorthand, *@arguments.each_node(*PARAMETERS), *nodes.select { PARAMETERS.include?(it.type) }].map(&:name)
   end
 
   private

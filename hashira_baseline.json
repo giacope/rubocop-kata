@@ -1,0 +1,14 @@
+{
+  "accepted": [
+    {
+      "kind": "stateful_mixin",
+      "package": "RuboCop::Kata::Safeguard",
+      "reason": "prepended into RuboCop::Runner, the one way into -a: Runner has no hook and no public reader for the options it runs with"
+    },
+    {
+      "kind": "nil_check",
+      "package": "RuboCop::Kata::Variable::Gap#crossed?",
+      "reason": "hashira false positive: a predicate answered from a memo whose default block computes it is never nil, and NoRedundantVariable#audit tests the predicate in a condition, not for nil; remove this entry once hashira reads a Hash.new-block memo as never nil"
+    }
+  ]
+}

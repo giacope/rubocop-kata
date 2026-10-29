@@ -20,12 +20,12 @@ class RuboCop::Kata::Variable::Ledger
   def singles
     reads = @census.reads
     tainted = @census.tainted
-    @census.assigns.filter_map { |name, found| single(found, reads.fetch(name, [])) unless tainted.include?(name) }
+    @census.assigns.flat_map { |name, found| tainted.include?(name) ? [] : single(found, reads.fetch(name, [])) }
   end
 
   def single(found, once)
     assign = found.first
     read = once.first
-    [assign, read] if found.size == 1 && once.size == 1 && precedes?(assign, read)
+    found.size == 1 && once.size == 1 && precedes?(assign, read) ? [[assign, read]] : []
   end
 end

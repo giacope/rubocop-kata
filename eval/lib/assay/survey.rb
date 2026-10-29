@@ -7,7 +7,7 @@ class Assay::Survey
   FOLDS = %w[kata without_method_call raw].freeze
   SAFETY = ["Corpus", "Mode", "Unparsable", "Comments kept", "YARD kept", "Encoding kept", "Test failures"].freeze
   KINDS = [nil, "yard", "encoding"].freeze
-  ALLOWLIST = File.join(Assay::ROOT, "..", "data", "autocorrect.txt")
+  ALLOWLIST = File.expand_path("../../../data/autocorrect.txt", __dir__)
 
   def to_a = [corpora, safety, allowlist, lengths, *movement, *drift]
 

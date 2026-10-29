@@ -348,6 +348,19 @@ RSpec.describe(RuboCop::Cop::Kata::NoTypeCheck, :config) do
     RUBY
   end
 
+  # `private :hidden` makes that one method private; the definitions after it stay public.
+  it "flags a probe of a method defined after a visibility call that names its methods" do
+    expect_offense(<<~RUBY)
+      class Repair
+        def hidden = nil
+        private :hidden
+        def mend = nil
+      end
+      def fix(part) = part.respond_to?(:mend)
+                           ^^^^^^^^^^^ `respond_to?` asks an object what it is; tell it what to do, and let polymorphism choose.
+    RUBY
+  end
+
   it "flags a probe of a module function or a class method the project defines" do
     expect_offense(<<~RUBY)
       module Tools

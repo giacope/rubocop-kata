@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-RSpec.describe(RuboCop::Kata::ForeignText) do
+RSpec.describe(RuboCop::Kata::Elegant::MonotonicIndents) do
   include TabledCop
 
-  let(:cop) { RuboCop::Cop::Elegant::MonotonicIndents.new(RuboCop::Config.new) }
+  let(:cop) { described_class.new(RuboCop::Config.new) }
 
   # opal's corelib writes JavaScript inside `%x{}`; a shell script reads the same.
   it "leaves the lines of an x-string to the language they are written in, and judges the code around it" do
@@ -34,5 +34,15 @@ RSpec.describe(RuboCop::Kata::ForeignText) do
 
   it "reads a file of comments alone, which has no tree" do
     expect(offenses("# empty\n")).to(be_empty)
+  end
+
+  context "with rubocop-elegant's own class" do
+    let(:cop) { RuboCop::Cop::Elegant::MonotonicIndents.new(RuboCop::Config.new) }
+
+    it "reads as it ships, while RuboCop runs kata's class under its name", :aggregate_failures do
+      source = "def run\n  %x{\n    if [ -d dir ]; then\n          tar -czf backup.tgz dir\n    fi\n  }\nend\n"
+      expect(offenses(source).map(&:line)).to(eq([4]))
+      expect(RuboCop::Cop::Registry.global.cops.select { it.cop_name == cop.cop_name }).to(eq([described_class]))
+    end
   end
 end

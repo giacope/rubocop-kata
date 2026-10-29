@@ -41,14 +41,14 @@ class RuboCop::Cop::Kata::NoBooleanFlag < RuboCop::Cop::Base
   end
 
   def kept?(callee, index)
-    name = positional(callee, index)&.name
-    uses = callee.each_node(:lvar).select { it.children.first == name }
+    names = positional(callee, index).map(&:name)
+    uses = callee.each_node(:lvar).select { names.include?(it.children.first) }
     uses.any? { store?(it) } && uses.none? { tested?(it) }
   end
 
   def positional(callee, index)
     parameters = callee.arguments.first(index + 1)
-    parameters.last if parameters.size > index && parameters.all? { it.type?(:arg, :optarg) }
+    parameters.size > index && parameters.all? { it.type?(:arg, :optarg) } ? parameters.last(1) : []
   end
 
   def tested?(use) = use.parent.conditional? || use.parent.operator_keyword?

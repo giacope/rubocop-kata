@@ -15,7 +15,7 @@ class RuboCop::Kata::Literals
 
   def unmatched(other)
     left = other.map(&:first).tally
-    find { |value, _| (left[value] = left.fetch(value, 0) - 1).negative? }&.last
+    lazy.select { |value, _| (left[value] = left.fetch(value, 0) - 1).negative? }.first(1).map(&:last)
   end
 
   private

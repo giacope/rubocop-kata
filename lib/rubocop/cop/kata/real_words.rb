@@ -11,7 +11,6 @@ class RuboCop::Cop::Kata::RealWords < RuboCop::Cop::Base
   CLIPPING_MSG = "%s is an abbreviation of %s; spell the word out."
   PLACEHOLDER_MSG = "%s is a placeholder; name what it holds."
   PLACEHOLDER = "placeholder"
-  RESTRICT_ON_SEND = RuboCop::Cop::Kata::Minting::MINTERS
   SIGIL = /\A(@@|@|\$)/
   DERIVATIONS = [
     [/s\z/, ""], [/es\z/, ""], [/ies\z/, "y"],
@@ -28,6 +27,9 @@ class RuboCop::Cop::Kata::RealWords < RuboCop::Cop::Base
   CALLBACK = /\Aon_([a-z][a-z0-9_]*)\z/
   PREFIXES = %w[un re non sub].freeze
   NAMED = %i[ivasgn cvasgn gvasgn arg optarg kwarg kwoptarg restarg kwrestarg blockarg].freeze
+  DICTIONARY = RuboCop::Kata::Dictionary.new
+  SENSES = RuboCop::Kata::Senses.new
+  private_constant :DICTIONARY, :SENSES
 
   def on_def(node)
     name = node.method_name
@@ -52,7 +54,7 @@ class RuboCop::Cop::Kata::RealWords < RuboCop::Cop::Base
   def message(name, stem, segment)
     label = stem == segment ? "`#{name}`" : "`#{segment}` (in `#{name}`)"
     return format(MSG, label) unless banned?(segment)
-    expansion = bases(segment).filter_map { RuboCop::Kata::Dictionary::CLIPPINGS[it] }.first
+    expansion = DICTIONARY.expansions(bases(segment)).first
     return format(PLACEHOLDER_MSG, label) if expansion == PLACEHOLDER
     return format(ABBREVIATION_MSG, label) unless expansion
     format(CLIPPING_MSG, label, expansion.split(", ").map { "`#{it}`" }.join(" or "))
@@ -61,8 +63,7 @@ class RuboCop::Cop::Kata::RealWords < RuboCop::Cop::Base
   def word?(segment)
     base = segment.sub(/\d+\z/, "")
     return true if base.length < 2 || listed?("Terms", segment) || listed?("Vocabulary", segment)
-    entries = RuboCop::Kata::Dictionary::ENTRIES
-    known = entries.include?(segment) || forms(base).any? { entries.include?(it) } || inflected?(base)
+    known = DICTIONARY.entry?(segment) || forms(base).any? { DICTIONARY.entry?(it) } || inflected?(base)
     known && !banned?(segment)
   end
 
@@ -78,17 +79,17 @@ class RuboCop::Cop::Kata::RealWords < RuboCop::Cop::Base
   end
 
   def coined?(root)
-    known = listed?("Terms", root) || listed?("Vocabulary", root) || RuboCop::Kata::Dictionary::ENTRIES.include?(root)
+    known = listed?("Terms", root) || listed?("Vocabulary", root) || DICTIONARY.entry?(root)
     known && !banned?(root) && !conjugated?(root) && !phrasal?(root)
   end
 
   def conjugated?(root)
-    english = RuboCop::Kata::Dictionary::ENGLISH
-    english.include?(root) && %W[#{root}ing #{root.chomp("e")}ing #{root}#{root[-1]}ing].any? { english.include?(it) }
+    forms = %W[#{root}ing #{root.chomp("e")}ing #{root}#{root[-1]}ing]
+    DICTIONARY.english?(root) && forms.any? { DICTIONARY.english?(it) }
   end
 
   def phrasal?(root)
-    PARTICLES.any? { root.end_with?(it) && RuboCop::Kata::Dictionary::VERBS.include?(root.delete_suffix(it)) }
+    PARTICLES.any? { root.end_with?(it) && SENSES.verb?(root.delete_suffix(it)) }
   end
 
   def forms(base)
@@ -101,11 +102,11 @@ class RuboCop::Cop::Kata::RealWords < RuboCop::Cop::Base
 
   def banned?(segment) = bases(segment).any? { listed?("BannedWords", it) || clipping?(it) }
 
-  def clipping?(segment) = RuboCop::Kata::Dictionary::CLIPPINGS.key?(segment)
+  def clipping?(segment) = DICTIONARY.clipping?(segment)
 
   def bases(segment)
     plain = segment.sub(/\d+\z/, "")
-    return [plain] if RuboCop::Kata::Dictionary::ENTRIES.include?(plain) && !clipping?(plain)
+    return [plain] if DICTIONARY.entry?(plain) && !clipping?(plain)
     [plain, plain.sub(/e?s\z/, ""), plain.delete_suffix("s")].uniq
   end
 end

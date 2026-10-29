@@ -19,22 +19,21 @@ class RuboCop::Cop::Kata::FailFast < RuboCop::Cop::Base
 
   def on_resbody(node)
     return if escapes?(node.body) || cleanup?(node) || expected?(node)
-    message = verdict(node)
-    add_offense(node.loc.keyword, message:) if message
+    verdicts(node).each { add_offense(node.loc.keyword, message: it) }
   end
 
   private
 
-  def verdict(node)
+  def verdicts(node)
     body = node.body
     lines = body&.begin_type? ? body.children : [body]
-    return LOG_MSG if lines.all? { log?(it) }
-    value = answer(lines.last)
-    return swallow(node, value) if lines[0...-1].all? { log?(it) } && default?(value)
-    MODIFIER_MSG if rescue_modifier?(node)
+    return [LOG_MSG] if lines.all? { log?(it) }
+    values = answers(lines.last)
+    return swallow(node, values) if lines[0...-1].all? { log?(it) } && default?(values)
+    rescue_modifier?(node) ? [MODIFIER_MSG] : []
   end
 
-  def swallow(node, value) = answer?(node, value) ? nil : format(MSG, value&.source || "nil")
+  def swallow(node, values) = answer?(node, values) ? [] : [format(MSG, values.map(&:source).fetch(0, "nil"))]
 
   def escapes?(body) = body&.each_node&.any? { it.retry_type? || (it.send_type? && raising?(it)) }
 
@@ -54,15 +53,15 @@ class RuboCop::Cop::Kata::FailFast < RuboCop::Cop::Base
 
   def classes(node) = node.exceptions.map { it.source.delete_prefix("::") }
 
-  def answer(last) = EXITS.include?(last&.type) ? last.children.first : last
+  def answers(last) = EXITS.include?(last&.type) ? last.children.first(1) : [last].compact
 
   def log?(line) = line&.call_type? && LEVELS.include?(line.method_name) && line.arguments?
 
-  def default?(value) = value.nil? || value.basic_literal? || (EMPTY.include?(value.type) && value.children.empty?)
+  def default?(values) = values.all? { it.basic_literal? || (EMPTY.include?(it.type) && it.children.empty?) }
 
-  def answer?(node, value)
+  def answer?(node, values)
     name = node.each_ancestor(:def, :defs).first&.method_name
-    COMPARISONS.include?(name) || (value&.boolean_type? && question?(name, classes(node)))
+    COMPARISONS.include?(name) || (values.any?(&:boolean_type?) && question?(name, classes(node)))
   end
 
   def question?(name, names)

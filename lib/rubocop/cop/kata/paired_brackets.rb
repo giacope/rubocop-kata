@@ -97,7 +97,7 @@ class RuboCop::Cop::Kata::PairedBrackets < RuboCop::Cop::Base
     rest.empty? || rest.start_with?("#")
   end
 
-  def leading(token) = processed_source.lines[token.line - 1][/\A[ \t]*/]
+  def leading(token) = processed_source.lines[token.line - 1].chars.take_while { [" ", "\t"].include?(it) }.join
 
   def register(token, &) = add_offense(token.pos, message: format(MSG, token.text), &)
 end

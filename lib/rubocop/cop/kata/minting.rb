@@ -3,7 +3,9 @@
 module RuboCop::Cop::Kata::Minting
   extend RuboCop::AST::NodePattern::Macros
 
-  MINTERS = %i[attr attr_reader attr_writer attr_accessor define_method define_singleton_method alias_method].freeze
+  RESTRICT_ON_SEND = %i[
+    attr attr_reader attr_writer attr_accessor define_method define_singleton_method alias_method
+  ].freeze
   SINGLE = %i[define_method define_singleton_method alias_method].freeze
 
   def_node_matcher :local?, "(send {nil? self} ...)"

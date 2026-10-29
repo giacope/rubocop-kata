@@ -6,6 +6,12 @@ module RuboCop
   module Kata
     module Variable
     end
+
+    module Elegant
+    end
+
+    module ThreadSafety
+    end
   end
 
   module Cop
@@ -15,6 +21,8 @@ module RuboCop
 end
 
 require_relative "rubocop/kata/identifier"
+require_relative "rubocop/kata/dictionary"
+require_relative "rubocop/kata/senses"
 require_relative "rubocop/kata/waiver"
 require_relative "rubocop/kata/waivers"
 require_relative "rubocop/kata/public_api"
@@ -28,8 +36,8 @@ require_relative "rubocop/cop/kata/memoization"
 require_relative "rubocop/cop/kata/contents"
 require_relative "rubocop/cop/kata/answer"
 require_relative "rubocop/cop/kata/lending"
-require_relative "rubocop/cop/kata/raising"
 require_relative "rubocop/cop/kata/pedigree"
+require_relative "rubocop/cop/kata/raising"
 require_relative "rubocop/cop/kata/ancestry"
 require_relative "rubocop/cop/kata/assembly"
 require_relative "rubocop/cop/kata/lifetime"
@@ -85,7 +93,6 @@ require_relative "rubocop/cop/kata/prose_placement"
 require_relative "rubocop/cop/kata/real_words"
 require_relative "rubocop/cop/kata/scoped_resource"
 require_relative "rubocop/kata/agency"
-require_relative "rubocop/kata/dictionary"
 require_relative "rubocop/kata/spelling"
 require_relative "rubocop/kata/annotation"
 require_relative "rubocop/kata/nesting"
@@ -95,10 +102,15 @@ require_relative "rubocop/kata/messages"
 require_relative "rubocop/kata/openings"
 require_relative "rubocop/kata/kinship"
 require_relative "rubocop/kata/grant"
+require_relative "rubocop/kata/closure"
+require_relative "rubocop/kata/kin"
 require_relative "rubocop/kata/lineage"
+require_relative "rubocop/kata/inheritance"
 require_relative "rubocop/kata/recipient"
 require_relative "rubocop/kata/protocols"
+require_relative "rubocop/kata/sources"
 require_relative "rubocop/kata/inventory"
+require_relative "rubocop/kata/repertoire"
 require_relative "rubocop/kata/variable/boundary"
 require_relative "rubocop/kata/variable/census"
 require_relative "rubocop/kata/variable/gap"
@@ -107,21 +119,23 @@ require_relative "rubocop/kata/variable/label"
 require_relative "rubocop/kata/variable/ledger"
 require_relative "rubocop/kata/project_root"
 require_relative "rubocop/kata/origin"
+require_relative "rubocop/kata/folder"
 require_relative "rubocop/kata/survey"
+require_relative "rubocop/kata/manifest"
+require_relative "rubocop/kata/codebase"
+require_relative "rubocop/kata/lexicon"
 require_relative "rubocop/kata/profile"
 require_relative "rubocop/kata/plugin"
 require_relative "rubocop/kata/foreign_setting"
-require_relative "rubocop/kata/foreign_text"
+require_relative "rubocop/kata/elegant/monotonic_indents"
 require_relative "rubocop/kata/adjacent_literals"
 require_relative "rubocop/kata/outer_constant"
 require_relative "rubocop/kata/attribute_copy"
-require_relative "rubocop/kata/nil_answer"
-require_relative "rubocop/kata/mixin_state"
+require_relative "rubocop/kata/elegant/no_nil_return"
+require_relative "rubocop/kata/thread_safety/class_instance_variable"
 require_relative "rubocop/kata/keyword_splat"
 require_relative "rubocop/kata/success_token"
 require_relative "rubocop/kata/literals"
 require_relative "rubocop/kata/correction"
 require_relative "rubocop/kata/safeguard"
 require_relative "rubocop/kata/version"
-
-RuboCop::Runner.prepend(RuboCop::Kata::Safeguard)

@@ -6,13 +6,13 @@ module RuboCop::Cop::Kata::Affiliation
   private
 
   def posed(node)
-    return unless cop_config["CheckContracts"] && !record?(node)
-    role = role(node.identifier.short_name.to_s)
-    role if role && !affiliated?(node, role)
+    return [] unless cop_config["CheckContracts"] && !record?(node)
+    roles(node.identifier.short_name.to_s).reject { affiliated?(node, it) }
   end
 
-  def role(name)
-    list("ContractSuffixes").find { name.end_with?(it) && name != it && RuboCop::Kata::Agency::SUFFIX.match?(it) }
+  def roles(name)
+    list("ContractSuffixes").select { name.end_with?(it) && name != it && RuboCop::Kata::Agency.new(it).suffixed? }
+      .first(1)
   end
 
   def affiliated?(node, role)
