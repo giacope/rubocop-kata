@@ -36,7 +36,7 @@ class RuboCop::Cop::Kata::NoClassMethodLogic < RuboCop::Cop::Base
 
   def literal?(body) = LITERALS.include?(body&.type) && body.each_node(:send, :lvar, :ivar).none?
 
-  def shared?(node) = project.owners("self.#{node.method_name}").size > 1
+  def shared?(node) = inheritance.owners("self.#{node.method_name}").size > 1
 
   def constructor?(name) = name.start_with?("from_") || allowed?(name)
 

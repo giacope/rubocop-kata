@@ -107,7 +107,7 @@ module RuboCop::Cop::Kata::Passage
 
   def defined_by?(receiver, name)
     owner = owners(receiver).first
-    name == :new ? project.instance?(owner, "initialize") : project.singleton?(owner, name.to_s)
+    name == :new ? inheritance.instance?(owner, "initialize") : inheritance.singleton?(owner, name.to_s)
   end
 
   def uses(assignment)

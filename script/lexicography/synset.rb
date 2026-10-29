@@ -12,7 +12,7 @@ class Lexicography::Synset
 
   def lexical? = AGENTIVE.include?(fields[1])
 
-  def words = (0...count).map { fields[4 + (2 * it)].downcase }
+  def [](slot) = words[slot]
 
   def derived(word)
     position = words.index(word)
@@ -24,6 +24,8 @@ class Lexicography::Synset
   def glossed?(verb) = (forms(verb) - words).any? { gloss.match?(/\b#{Regexp.escape(it)}\b/i) }
 
   private
+
+  def words = (0...count).map { fields[4 + (2 * it)].downcase }
 
   def fields = @_fields ||= @line.split(" | ", 2).first.split
 

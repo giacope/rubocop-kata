@@ -12,7 +12,7 @@ module RuboCop::Cop::Kata::Affiliation
   end
 
   def role(name)
-    list("ContractSuffixes").find { name.end_with?(it) && name != it && RuboCop::Kata::Agency::SUFFIX.match?(it) }
+    list("ContractSuffixes").find { name.end_with?(it) && name != it && RuboCop::Kata::Agency.new(it).suffixed? }
   end
 
   def affiliated?(node, role)

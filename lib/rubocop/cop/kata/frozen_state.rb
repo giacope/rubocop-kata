@@ -113,12 +113,8 @@ class RuboCop::Cop::Kata::FrozenState < RuboCop::Cop::Base
   end
 
   def builders(methods)
-    found = CONSTRUCTORS
-    loop do
-      called = methods.select { found.include?(it.method_name) }.flat_map { helpers(it) }
-      return found if (called - found).empty?
-      found |= called
-    end
+    step = ->(found) { methods.select { found.include?(it.method_name) }.flat_map { helpers(it) } }
+    RuboCop::Kata::Closure.new(CONSTRUCTORS, &step).to_a
   end
 
   def helpers(method) = method.each_descendant(:send).select { it.receiver.nil? }.map(&:method_name)

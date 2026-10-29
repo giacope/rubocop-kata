@@ -84,7 +84,7 @@ class RuboCop::Cop::Kata::NoTypeCheck < RuboCop::Cop::Base
 
   def message?(name, hidden)
     return false if PROTOCOL.match?(name) || RuboCop::Kata::Protocols.new(list("Protocols")).include?(name)
-    [*local_owners(name, hidden), *inventory.owners(name, hidden:)].any? { it && !foreign?(it) }
+    [*local_owners(name, hidden), *repertoire.owners(name, hidden:)].any? { it && !foreign?(it) }
   end
 
   def local_owners(name, hidden)

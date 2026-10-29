@@ -58,7 +58,7 @@ class RuboCop::Cop::Kata::IoDiscipline < RuboCop::Cop::Base
 
   def exempt?(node, method)
     return true if element?(node) || seam?(node) || quiet?(method)
-    RuboCop::Kata::Recipient.new(node, processed_source.ast, project).answers?
+    RuboCop::Kata::Recipient.new(node, processed_source.ast, inheritance).answers?
   end
 
   def element?(node) = ELEMENTS.include?(node.method_name) && (!node.arguments? || !node.block_node.nil?)

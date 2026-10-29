@@ -30,7 +30,7 @@ class Lexicography::Wordnet
   end
 
   def linked(sense, word)
-    sense.derived(word).map { |offset, slot| Lexicography::Synset.new(verbal.fetch(offset)).words[slot] }
+    sense.derived(word).map { |offset, slot| Lexicography::Synset.new(verbal.fetch(offset))[slot] }
   end
 
   def senses(word) = index("noun").fetch(word).map { Lexicography::Synset.new(nominal.fetch(it)) }

@@ -1,7 +1,14 @@
 # frozen_string_literal: true
 
 RSpec.describe(RuboCop::Kata::Kinship) do
+  let(:recorded) do
+    %w[warn debug note self.fatal rows_size shelf_name count print p level level= self.root self.load build]
+  end
+  let(:unrecorded) { %w[delegate def_delegators attr_accessor root load clear total depth size self.size] }
+
   def records(source) = described_class.parse(source).hooks
+
+  def kin(source, name) = described_class.parse(source).records.fetch(name)
 
   it "names each module a load hook mixes into the framework's class" do
     source = <<~RUBY
@@ -80,9 +87,9 @@ RSpec.describe(RuboCop::Kata::Kinship) do
         end
       end
     RUBY
-    found = described_class.parse(source).records
-    expected = %w[warn debug note self.fatal rows_size shelf_name count print p level level= self.root self.load build]
-    held = [found.fetch("Abstract")[:methods].keys.compact, found.dig("Abstract::Row", :methods).keys.compact]
-    expect([*held, found.dig("#<Class:Abstract>", :parents)]).to(eq([expected, %w[size], [["Logging", []]]]))
+    abstract = kin(source, "Abstract")
+    held = [*recorded, *unrecorded].select { abstract.defines?(it) }
+    expect([*held, kin(source, "Abstract::Row").defines?("size"), kin(source, "#<Class:Abstract>").parents({})])
+      .to(eq([*recorded, true, ["Logging"]]))
   end
 end

@@ -2,9 +2,7 @@
 
 class Assay::Corpus
   LENGTHS = { "kata" => nil, "without_method_call" => %w[array hash heredoc], "raw" => [] }.freeze
-  SHIMS = File.join(Assay::ROOT, "support", "shims")
-
-  attr_reader :bundle
+  SHIMS = File.expand_path("../../support/shims", __dir__)
 
   def initialize(spec, bundle, work, shell)
     @spec = spec
@@ -42,7 +40,7 @@ class Assay::Corpus
     { "safe" => repair("safe", "-a"), "all" => repair("all", "-A") }
   end
 
-  def repair(label, flag) = Assay::Repair.new(self, export(label), flag).to_h
+  def repair(label, flag) = Assay::Repair.new(self, @bundle, export(label), flag).to_h
 
   def sweep(dir)
     @bundle.rubocop("--format", "json", "--out", "report.json", "--cache", "false", *paths, dir: dir)
@@ -84,7 +82,7 @@ class Assay::Corpus
   def export(label)
     dir = File.join(@work, label)
     unpack(dir)
-    File.write(File.join(dir, ".rubocop.yml"), Assay::Snippets::CONFIG) if @spec.fetch("config") == "bare"
+    @bundle.configure(dir) if @spec.fetch("config") == "bare"
     dir
   end
 

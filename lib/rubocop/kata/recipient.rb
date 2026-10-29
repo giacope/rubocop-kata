@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
 class RuboCop::Kata::Recipient
-  def initialize(call, root, lineage)
+  def initialize(call, root, inheritance)
     @call = call
     @root = root
-    @lineage = lineage
+    @inheritance = inheritance
   end
 
   def answers?
@@ -24,7 +24,7 @@ class RuboCop::Kata::Recipient
     return false unless scope
     name = RuboCop::Kata::Nesting.new(scope).qualified
     method = @call.method_name.to_s
-    singleton ? @lineage.singleton?(name, method) : @lineage.instance?(name, method)
+    singleton ? @inheritance.singleton?(name, method) : @inheritance.instance?(name, method)
   end
 
   def place(method)

@@ -10,7 +10,6 @@ require "yaml"
 require "zlib"
 
 module Assay
-  ROOT = File.expand_path("..", __dir__)
 end
 
 class Assay::Failure < StandardError

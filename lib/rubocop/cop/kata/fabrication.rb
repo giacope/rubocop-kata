@@ -87,5 +87,5 @@ module RuboCop::Cop::Kata::Fabrication
     !answers?(RuboCop::Kata::Nesting.new(scope).qualified, noun, static?(node))
   end
 
-  def answers?(owner, noun, static) = static ? project.singleton?(owner, noun) : project.instance?(owner, noun)
+  def answers?(owner, noun, static) = static ? inheritance.singleton?(owner, noun) : inheritance.instance?(owner, noun)
 end

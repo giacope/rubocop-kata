@@ -14,15 +14,16 @@ class Assay::Session
     ["--only LIST", Array], ["--jobs N", Integer], ["--elegant VERSION", String],
     ["--reveal"], ["--compare"], ["--gate"], ["--draw"]
   ].freeze
-  NAMES = File.join(Assay::ROOT, "names.yml")
-  CORPORA = File.join(Assay::ROOT, "corpora.yml")
-  SHEET = File.join(Assay::ROOT, "results", "human", "names.yml")
+  ROOT = File.expand_path("../..", __dir__)
+  NAMES = File.join(ROOT, "names.yml")
+  CORPORA = File.join(ROOT, "corpora.yml")
+  SHEET = File.join(ROOT, "results", "human", "names.yml")
   PATHS = %w[kata out work corpora list labels].freeze
   BUILDERS = {
     "settings" => ->(bundle, home, _) { Assay::Settings.new(bundle, home) },
-    "cases" => ->(bundle, home, _) { Assay::Snippets.new(bundle, home, Dir[File.join(Assay::ROOT, "cases", "*.yml")]) },
+    "cases" => ->(bundle, home, _) { Assay::Snippets.new(bundle, home, Dir[File.join(ROOT, "cases", "*.yml")]) },
     "names" => ->(bundle, home, options) { Assay::Lexicon.new(bundle, home, NAMES, reveal: options[:reveal]) },
-    "cli" => ->(bundle, home, _) { Assay::Console.new(bundle, home, File.join(Assay::ROOT, "cli.yml")) },
+    "cli" => ->(bundle, home, options) { Assay::Console.new(bundle, home, File.join(ROOT, "cli.yml"), options[:kata]) },
     "human" => ->(bundle, home, options) { Assay::Agreement.new(bundle, home, options[:labels] || SHEET) }
   }.freeze
 
@@ -98,12 +99,12 @@ class Assay::Session
 
   def specs = @_specs ||= YAML.safe_load_file(options[:list] || CORPORA).map { it.merge("cache" => cache) }
 
-  def cache = options[:corpora] || File.join(Assay::ROOT, "..", "tmp", "eval", "corpora")
+  def cache = options[:corpora] || File.join(ROOT, "..", "tmp", "eval", "corpora")
 
   def shell = Assay::Shell.new(@env.slice(*KEPT))
 
   def write(data)
-    out = options[:out] || File.join(Assay::ROOT, "results", "latest.json")
+    out = options[:out] || File.join(ROOT, "results", "latest.json")
     FileUtils.mkdir_p(File.dirname(out))
     File.write(out, "#{JSON.pretty_generate(data)}\n")
     File.write(out.sub(/\.json\z/, ".md"), Assay::Comparison.new(nil, data).markdown)

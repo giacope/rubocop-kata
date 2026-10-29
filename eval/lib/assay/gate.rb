@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class Assay::Gate
-  LIMITS = File.join(Assay::ROOT, "gate.yml")
+  LIMITS = File.expand_path("../../gate.yml", __dir__)
 
   def initialize(data)
     @data = data

@@ -9,6 +9,7 @@ class RuboCop::Kata::Entries
     "files enable by name; enable each by name (`Kata/GoodMethodName:` with `Enabled: true`), or drop the key."
   KEY = %r{\A([A-Z]\w*/\w+):}
   DEFAULTED = /\A\s*DisabledByDefault:\s*true\b/
+  SHIPPED = File.expand_path("../../../config/default.yml", __dir__)
 
   def initialize(root, config, renames)
     @root = root
@@ -44,7 +45,7 @@ class RuboCop::Kata::Entries
   def live?(key, own) = @config.cop_enabled?(key) || own.dig(key, "Enabled") == false
 
   def kata
-    shipped = YAML.load_file(RuboCop::Kata::Profile::BASE, aliases: true)
+    shipped = YAML.load_file(SHIPPED, aliases: true)
     shipped.filter_map { |name, setting| name if name.start_with?("Kata/") && setting["Enabled"] == true }
   end
 

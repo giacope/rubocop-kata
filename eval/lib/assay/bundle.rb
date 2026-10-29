@@ -7,10 +7,9 @@ class Assay::Bundle
     gem "rubocop-kata", path: %s
     gem "rubocop-elegant", %s
   RUBY
+  CONFIG = "plugins:\n  - rubocop-kata\n\nAllCops:\n  TargetRubyVersion: 3.4\n  SuggestExtensions: false\n"
   PROBE = 'require "rubocop"; require "json"; ' \
     "puts JSON.dump(%w[rubocop rubocop-elegant rubocop-kata].to_h { [it, Gem.loaded_specs[it]&.version.to_s] })"
-
-  attr_reader :kata
 
   def initialize(kata, work, shell, elegant:)
     @kata = kata
@@ -31,7 +30,7 @@ class Assay::Bundle
 
   def ruby(*, dir:, env: {}) = shell.run("bundle", "exec", "ruby", *, dir: dir, env: env)
 
-  def shell = @shell.with(scope)
+  def configure(dir, extra = "") = File.write(File.join(dir, ".rubocop.yml"), CONFIG + extra)
 
   def to_h
     {
@@ -42,6 +41,8 @@ class Assay::Bundle
   end
 
   private
+
+  def shell = @shell.with(scope)
 
   def scope = { "BUNDLE_GEMFILE" => gemfile }
 

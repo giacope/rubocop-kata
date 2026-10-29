@@ -12,7 +12,6 @@ class RuboCop::Cop::Kata::GoodMethodName < RuboCop::Cop::Base
   CHAIN_MSG = "`%s` chains actions with `%s`; each action wants its own method."
   JOINTS = %w[and or then].freeze
   SUITE = /Test(Case)?\z/
-  RESTRICT_ON_SEND = RuboCop::Cop::Kata::Minting::MINTERS
 
   def on_def(node)
     klass = node.each_ancestor(:class).first

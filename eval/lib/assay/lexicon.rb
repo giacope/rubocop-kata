@@ -32,6 +32,8 @@ class Assay::Lexicon
     flags(report)
   end
 
+  def labelled = data.slice(*LABELS).flat_map { |label, names| names.map { [it, label] } }.to_h
+
   private
 
   def splits(flagged) = SPLITS.to_h { |split| [split, measure(split, flagged)] }
@@ -57,7 +59,7 @@ class Assay::Lexicon
   def plant(variant, extra)
     home = File.join(@work, variant, "lib")
     FileUtils.mkdir_p(home)
-    File.write(File.join(@work, variant, ".rubocop.yml"), Assay::Snippets::CONFIG + extra)
+    @bundle.configure(File.join(@work, variant), extra)
     File.write(File.join(home, "names.rb"), "module Dataset\n#{names.map { "  class #{it}\n  end\n" }.join}end\n")
   end
 

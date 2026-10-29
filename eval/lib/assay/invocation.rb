@@ -1,10 +1,11 @@
 # frozen_string_literal: true
 
 class Assay::Invocation
-  def initialize(bundle, home, item)
+  def initialize(bundle, home, item, kata)
     @bundle = bundle
     @home = home
     @item = item
+    @kata = kata
   end
 
   def to_h
@@ -20,7 +21,7 @@ class Assay::Invocation
 
   def launch
     plant
-    executable = File.join(@bundle.kata, "exe", "rubocop-kata")
+    executable = File.join(@kata, "exe", "rubocop-kata")
     @bundle.ruby(executable, @item.fetch("command"), dir: @home, env: @item.fetch("env", {}))
   end
 

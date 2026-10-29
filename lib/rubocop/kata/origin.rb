@@ -11,11 +11,21 @@ class RuboCop::Kata::Origin
     )|
     (?<![\w@])@generated\b|(?-i:DO\s+NOT\s+(?:EDIT|MODIFY))\b
   /ix
+  SIGIL = /^#\s*typed:\s*\w/
+  HEADER = 40
 
-  def initialize(path, header)
+  def initialize(path)
     @path = path
-    @header = header
   end
 
-  def generated? = GRAMMARS.any? { File.file?(@path.sub(/\.rb\z/, ".#{it}")) } || @header.any? { MARKER.match?(it) }
+  def generated? = GRAMMARS.any? { File.file?(@path.sub(/\.rb\z/, ".#{it}")) } || header.any? { MARKER.match?(it) }
+
+  def typed? = SIGIL.match?(header.join)
+
+  private
+
+  def header
+    @_header ||= File.foreach(@path, encoding: Encoding::UTF_8).lazy.map(&:scrub).first(HEADER)
+      .take_while { it.strip.empty? || it.lstrip.start_with?("#") }
+  end
 end

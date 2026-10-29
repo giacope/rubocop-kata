@@ -5,6 +5,8 @@ module RuboCop::Cop::Kata::AgentNoun
   DOER_HINT = "#{DOER_MSG} Try `%s`.".freeze
   SEGMENT = /[A-Z]+\d*(?=[A-Z][a-z]|\z)|[A-Z][a-z0-9]*/
   DERIVATIONS = [[/ator\z/, "ation"], [/ector\z/, "ection"], [/isor\z/, "ision"], [/i[zs]er\z/, "is"]].freeze
+  DICTIONARY = RuboCop::Kata::Dictionary.new
+  private_constant :DICTIONARY
 
   private
 
@@ -27,7 +29,7 @@ module RuboCop::Cop::Kata::AgentNoun
 
   def proposal(name) = (name if known?(name))
 
-  def known?(name) = RuboCop::Kata::Dictionary::ENTRIES.include?(segments(name).last.to_s.downcase)
+  def known?(name) = DICTIONARY.entry?(segments(name).last.to_s.downcase)
 
   def segments(name) = name.scan(Regexp.union(*brands, SEGMENT))
 

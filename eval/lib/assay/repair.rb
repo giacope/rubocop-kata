@@ -4,15 +4,16 @@ class Assay::Repair
   FAILURE = /error occurred|infinite loop/i
   REPORT = "fix.json"
 
-  def initialize(corpus, dir, flag)
+  def initialize(corpus, bundle, dir, flag)
     @corpus = corpus
+    @bundle = bundle
     @dir = dir
     @flag = flag
   end
 
   def to_h
     before = census.to_h
-    outcome = @corpus.bundle.rubocop(
+    outcome = @bundle.rubocop(
       @flag, "--format", "json", "--out", REPORT, "--cache", "false", *@corpus.paths, dir: @dir
     )
     tally.merge(

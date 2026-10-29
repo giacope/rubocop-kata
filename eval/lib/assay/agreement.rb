@@ -1,6 +1,9 @@
 # frozen_string_literal: true
 
 class Assay::Agreement
+  LABELS = %w[doer thing ambiguous].freeze
+  NAMES = File.expand_path("../../names.yml", __dir__)
+
   def initialize(bundle, work, source)
     @bundle = bundle
     @work = work
@@ -20,7 +23,7 @@ class Assay::Agreement
 
   def kappa(agreed)
     size = rows.size.to_f
-    chance = Assay::Lexicon::LABELS.sum { |label| tally(1, label) * tally(2, label) } / (size**2)
+    chance = LABELS.sum { |label| tally(1, label) * tally(2, label) } / (size**2)
     rows.empty? || chance == 1 ? 0.0 : (((agreed / size) - chance) / (1 - chance)).round(4)
   end
 
@@ -31,22 +34,21 @@ class Assay::Agreement
     score.to_h.slice("precision", "recall", "fp", "fn", "ambiguous_flagged").merge(score.errors)
   end
 
-  def flagged = @_flagged ||= Assay::Lexicon.new(@bundle, @work, Assay::Session::NAMES, reveal: false).sweep["raw"]
+  def flagged = @_flagged ||= lexicon.sweep["raw"]
 
   def rows = @_rows ||= sheet.compact.map { |name, human| [name, check(name, human), labels.fetch(name)] }
 
   def check(name, human)
     raise(Assay::Failure, "#{@source}: #{name} is not in eval/names.yml") unless labels.key?(name)
-    return human if Assay::Lexicon::LABELS.include?(human)
+    return human if LABELS.include?(human)
     raise(Assay::Failure, "#{@source}: #{name} is labelled #{human.inspect}, not doer, thing or ambiguous")
   end
 
   def sheet = @_sheet ||= YAML.safe_load_file(@source) || {}
 
-  def labels
-    @_labels ||= YAML.safe_load_file(Assay::Session::NAMES).slice(*Assay::Lexicon::LABELS)
-      .flat_map { |label, names| names.map { [it, label] } }.to_h
-  end
+  def labels = @_labels ||= lexicon.labelled
+
+  def lexicon = Assay::Lexicon.new(@bundle, @work, NAMES, reveal: false)
 
   def ratio(part, whole) = whole.zero? ? 0.0 : (part.to_f / whole).round(4)
 end

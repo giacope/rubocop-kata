@@ -3,6 +3,7 @@
 module RuboCop::Cop::Kata::Raising
   include RuboCop::Cop::Kata::Roster
   include RuboCop::Cop::Kata::Lending
+  include RuboCop::Cop::Kata::Pedigree
 
   private
 
@@ -39,9 +40,7 @@ module RuboCop::Cop::Kata::Raising
   end
 
   def definitions(name)
-    others = inventory.defining(name, processed_source.file_path.to_s)
+    others = sources.defining(name, processed_source.file_path.to_s)
     [*processed_source.ast.each_node(:def, :defs).select { it.method_name.to_s == name }, *others]
   end
-
-  def inventory = RuboCop::Kata::Inventory.of(config.base_dir_for_path_parameters, list("OwnedPaths"))
 end
