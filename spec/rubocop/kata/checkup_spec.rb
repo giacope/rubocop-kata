@@ -177,7 +177,13 @@ RSpec.describe(RuboCop::Kata::Checkup) do
   end
 
   it "says which file it could not read, and why" do
-    allow(RuboCop::ProcessedSource).to(receive(:from_file).and_raise(Errno::EACCES, "sample.rb\nmore"))
+    allow(RuboCop::ProcessedSource).to(
+      receive(:from_file).and_wrap_original do |read, path, *rest, **options|
+        raise(Errno::EACCES, "sample.rb\nmore") if File.basename(path) == "sample.rb"
+
+        read.call(path, *rest, **options)
+      end
+    )
     project("") do |root|
       expect(report(root).first).to(include("sample.rb: not checked, Errno::EACCES: Permission denied - sample.rb.\n"))
     end
