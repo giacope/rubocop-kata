@@ -1,6 +1,10 @@
 plugins:
   - rubocop-kata
 
+# Kata lints itself with its whole profile, the strict one included.
+inherit_gem:
+  rubocop-kata: config/strict.yml
+
 AllCops:
   TargetRubyVersion: 3.4
   Exclude:
@@ -19,3 +23,23 @@ Kata/GoodClassName:
     - RuboCop::Cop::Elegant::MonotonicIndents
     - RuboCop::Cop::Elegant::NoNilReturn
     - RuboCop::Cop::ThreadSafety::ClassInstanceVariable
+
+# These files fix RuboCop's own classes, which RuboCop offers no other way to
+# change: a plugin can only configure a bundled cop, a builtin cop is known by
+# where its class lives (its documentation URL) and by its class (the cops
+# whose corrections it must not join in one pass), so kata cannot ship its own
+# class under a builtin cop's name as it does for Elegant/NoNilReturn,
+# Elegant/MonotonicIndents and ThreadSafety/ClassInstanceVariable, and -a has
+# no hook but RuboCop::Runner. Each stays a prepend until a RuboCop release
+# carries the fix.
+Kata/NoMonkeyPatch:
+  inherit_mode:
+    merge:
+      - Exclude
+  Exclude:
+    - "lib/rubocop/kata/adjacent_literals.rb"
+    - "lib/rubocop/kata/attribute_copy.rb"
+    - "lib/rubocop/kata/foreign_setting.rb"
+    - "lib/rubocop/kata/keyword_splat.rb"
+    - "lib/rubocop/kata/outer_constant.rb"
+    - "lib/rubocop/kata/safeguard.rb"

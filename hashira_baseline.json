@@ -1,0 +1,9 @@
+{
+  "accepted": [
+    {
+      "kind": "stateful_mixin",
+      "package": "RuboCop::Kata::Safeguard",
+      "reason": "prepended into RuboCop::Runner, the one way into -a: Runner has no hook and no public reader for the options it runs with"
+    }
+  ]
+}
