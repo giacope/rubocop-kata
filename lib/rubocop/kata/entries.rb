@@ -20,11 +20,13 @@ class RuboCop::Kata::Entries
   def dead = defaulted + inert
 
   def inert
-    keys.filter_map { |path, line, key, own| format(INERT, path, line, key) unless @renames.to(key) || live?(key, own) }
+    keys.filter_map do |path, line, key, own|
+      format(INERT, path, line, key) unless @renames.renamed?(key) || live?(key, own)
+    end
   end
 
   def moved
-    @_moved ||= keys.filter_map { |path, line, key| @renames.to(key)&.then { format(MOVED, path, line, key, it) } }
+    @_moved ||= keys.select { @renames.renamed?(it[2]) }.map { |path, line, key| moving(path, line, key) }
   end
 
   def defaulted
@@ -33,6 +35,8 @@ class RuboCop::Kata::Entries
   end
 
   private
+
+  def moving(path, line, key) = format(MOVED, path, line, key, @renames.to(key))
 
   def keys
     @_keys ||=

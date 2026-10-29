@@ -13,21 +13,20 @@ module RuboCop::Cop::Kata::AgentNoun
   def doer?(name) = RuboCop::Kata::Agency.new(segments(name).last.to_s.downcase).doer?
 
   def doer(name, kind)
-    hint = suggestion(name)
-    hint ? format(DOER_HINT, name, kind, hint) : format(DOER_MSG, name, kind)
+    hints = suggestions(name)
+    hints.empty? ? format(DOER_MSG, name, kind) : format(DOER_HINT, name, kind, hints.first)
   end
 
-  def suggestion(name)
+  def suggestions(name)
     head, tail = split(name)
-    DERIVATIONS.filter_map { |pattern, noun| proposal(head + tail.sub(pattern, noun)) if pattern.match?(tail) }.first
+    derived = DERIVATIONS.filter_map { |pattern, noun| head + tail.sub(pattern, noun) if pattern.match?(tail) }
+    derived.select { known?(it) }
   end
 
   def split(name)
     segments = segments(name)
     [segments[0..-2].join, segments.last.to_s]
   end
-
-  def proposal(name) = (name if known?(name))
 
   def known?(name) = DICTIONARY.entry?(segments(name).last.to_s.downcase)
 

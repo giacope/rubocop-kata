@@ -23,7 +23,7 @@ class Assay::Snippets
   def verdicts
     found = sweep("detect", cases, [])
     fixed = corrections
-    cases.map { Assay::Verdict.new(it, found.fetch(it["id"], []), fixed[it["id"]]).to_h }
+    cases.map { Assay::Verdict.new(it, found.fetch(it["id"], []), fixed.fetch(it["id"], [])).to_h }
   end
 
   def corrections
@@ -40,7 +40,7 @@ class Assay::Snippets
 
   def read(label, item)
     path = File.join(@work, label, item["id"], item.fetch("path", PATH))
-    File.file?(path) ? File.read(path) : nil
+    File.file?(path) ? [File.read(path)] : []
   end
 
   def sweep(label, group, extra)

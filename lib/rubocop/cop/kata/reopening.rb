@@ -12,7 +12,9 @@ module RuboCop::Cop::Kata::Reopening
     found.nil? || chosen(openings, name).equal?(found)
   end
 
-  def rank(node, name) = processed_source.ast.each_node(:class, :module).select { qualified(it) == name }.index(node)
+  def rank(node, name)
+    processed_source.ast.each_node(:class, :module).select { qualified(it) == name }.take_while { it != node }.size
+  end
 
   def here?(path) = File.expand_path(path, base) == File.expand_path(processed_source.file_path.to_s, base)
 

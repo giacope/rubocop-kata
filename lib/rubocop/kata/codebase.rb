@@ -32,14 +32,14 @@ class RuboCop::Kata::Codebase
   def root(gemspec)
     gem = File.basename(gemspec, ".gemspec")
     lib = File.join(@root, File.dirname(gemspec), "lib")
-    names = required(lib, gem) || shipped(lib)
-    names ? names.join("::") : camelized(gem)
+    names = required(lib, gem).then { it.empty? ? shipped(lib) : it }
+    names.empty? ? camelized(gem) : names.join("::")
   end
 
   def required(lib, gem)
     spelled = [gem.tr("-", "/"), *entered(lib, gem)].map { spelled(it) }
     names, = spelled.find(&:last) || spelled.max_by { it.first.size }
-    names unless names.empty?
+    names
   end
 
   def entered(lib, gem)
@@ -50,7 +50,7 @@ class RuboCop::Kata::Codebase
 
   def shipped(lib)
     paths = Dir.glob("**/*.rb", base: lib).sort_by { [it.count("/"), it] }
-    paths.lazy.map { spelled(it.delete_suffix(".rb")) }.find(&:last)&.first
+    paths.lazy.map { spelled(it.delete_suffix(".rb")) }.select(&:last).first(1).flat_map(&:first)
   end
 
   def spelled(path)

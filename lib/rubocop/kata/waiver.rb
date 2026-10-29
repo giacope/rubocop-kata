@@ -23,7 +23,7 @@ class RuboCop::Kata::Waiver
 
   private
 
-  def mode = @comment.text[HEADER, 1]
+  def mode = @comment.text[HEADER, 1].to_s
 
   def body = @comment.text.sub(HEADER, "")
 end

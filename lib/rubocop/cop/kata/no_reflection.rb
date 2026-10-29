@@ -60,14 +60,14 @@ class RuboCop::Cop::Kata::NoReflection < RuboCop::Cop::Base
   def module?(receiver, node) = asked(receiver, node).any? { MODULES.include?(it.method_name) }
 
   def asked(receiver, node)
-    name = label(receiver)
+    names = labels(receiver)
     scope = node.each_ancestor(:class, :module).first || processed_source.ast
-    scope.each_node(:send, :csend).select { name && label(it.receiver) == name }
+    scope.each_node(:send, :csend).select { labels(it.receiver).intersect?(names) }
   end
 
-  def label(receiver)
-    return receiver.children.first.to_s.delete_prefix("@") if receiver&.type?(:ivar, :lvar)
-    receiver.method_name.to_s if receiver&.send_type? && receiver.receiver.nil? && !receiver.arguments?
+  def labels(receiver)
+    return [receiver.children.first.to_s.delete_prefix("@")] if receiver&.type?(:ivar, :lvar)
+    receiver&.send_type? && receiver.receiver.nil? && !receiver.arguments? ? [receiver.method_name.to_s] : []
   end
 
   def lookup(node)

@@ -27,31 +27,34 @@ class RuboCop::Cop::Kata::NoMock < RuboCop::Cop::Base
   PATTERN
 
   def on_send(node)
-    found = kind(node)
-    add_offense(node, message: format(MSG, label(node), found)) if found
+    kinds(node).each { add_offense(node, message: format(MSG, label(node), it)) }
   end
 
   private
 
-  def kind(node)
-    return BUILT if minitest_mock?(node)
+  def kinds(node)
+    return [BUILT] if minitest_mock?(node)
     return sent(node) if node.receiver
     BUILDERS.include?(node.method_name) ? built(node) : matched(node)
   end
 
   def built(node)
     name = node.method_name
-    BUILT unless answered?(name) || processed_source.ast.each_node(:send).any? { let(it) == name }
+    answered?(name) || processed_source.ast.each_node(:send).any? { let(it) == name } ? [] : [BUILT]
   end
 
   def matched(node)
     runner = node.each_ancestor(:send).find { expectation(it) } if MATCHERS.include?(node.method_name)
-    expectation(runner) { |target, matcher| TARGETS.fetch(target) if matcher.each_node(:send).any? { it.equal?(node) } }
+    found =
+      expectation(runner) do |target, matcher|
+        TARGETS.fetch(target) if matcher.each_node(:send).any? { it.equal?(node) }
+      end
+    found ? [found] : []
   end
 
   def sent(node)
     name = node.method_name
-    SENT.fetch(name) if SENT.key?(name) && node.arguments? && !answered?(name)
+    SENT.key?(name) && node.arguments? && !answered?(name) ? [SENT.fetch(name)] : []
   end
 
   def label(node) = minitest_mock?(node) ? node.receiver.source : node.method_name.to_s

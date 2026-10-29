@@ -5,7 +5,9 @@ class RuboCop::Kata::Renames
     @rules = rules
   end
 
-  def to(name) = table[name]
+  def renamed?(name) = table.key?(name)
+
+  def to(name) = table.fetch(name)
 
   private
 

@@ -15,15 +15,17 @@ module RuboCop::Cop::Kata::Contents
     filled?(scope, held.children.first) || scope.each_descendant(:send).any? { used?(it, held) }
   end
 
-  def filled?(scope, name) = scope.each_descendant(:ivasgn).any? { it.children.first == name && built?(assigned(it)) }
+  def filled?(scope, name)
+    scope.each_descendant(:ivasgn).any? { |held| held.children.first == name && assigned(held).any? { built?(it) } }
+  end
 
   def used?(call, held) = call.receiver == held && USES.include?(call.method_name)
 
-  def assigned(node) = node.parent&.type?(:or_asgn, :op_asgn) ? node.parent.children.last : node.expression
+  def assigned(node) = node.parent&.type?(:or_asgn, :op_asgn) ? [node.parent.children.last] : [node.expression].compact
 
   def built?(value)
-    return true if value&.type?(:array, :hash, :str, :dstr)
-    return false unless value&.send_type?
+    return true if value.type?(:array, :hash, :str, :dstr)
+    return false unless value.send_type?
     COPIES.include?(value.method_name) || (value.method?(:new) && COLLECTIONS.include?(value.receiver&.const_name))
   end
 end

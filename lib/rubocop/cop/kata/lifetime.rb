@@ -17,23 +17,23 @@ module RuboCop::Cop::Kata::Lifetime
 
   def kept(built, method)
     holder = built.parent
-    store = held(holder)
-    return store.children.first if store
-    stored(holder, method) if holder.lvasgn_type?
+    stores = held(holder)
+    return stores.map { it.children.first } unless stores.empty?
+    holder.lvasgn_type? ? stored(holder, method) : []
   end
 
   def outlives?(call, method)
     built = built(call)
-    return true if kept(built, method)
-    outer = maker(built, built.parent, method)
-    outer ? outlives?(outer, method) : false
+    return true unless kept(built, method).empty?
+    maker(built, built.parent, method).any? { outlives?(it, method) }
   end
 
   def maker(built, holder, method)
     outer = holder
     outer = outer.parent while outer.type?(:pair, :hash)
-    return outer if maker?(outer) && given(outer).any? { it.equal?(built) }
-    method.each_node(*CALLS).find { |call| maker?(call) && handing?(call, holder) } if holder.lvasgn_type?
+    return [outer] if maker?(outer) && given(outer).any? { it.equal?(built) }
+    return [] unless holder.lvasgn_type?
+    method.each_node(*CALLS).lazy.select { |call| maker?(call) && handing?(call, holder) }.first(1)
   end
 
   def talked?(node, built, method)
@@ -55,13 +55,10 @@ module RuboCop::Cop::Kata::Lifetime
 
   def held(holder)
     store = holder.or_asgn_type? ? holder.children.first : holder
-    store if STORES.include?(store.type)
+    STORES.include?(store.type) ? [store] : []
   end
 
-  def stored(holder, method)
-    use = uses(holder, method).find { held(it.parent) }
-    held(use.parent).children.first if use
-  end
+  def stored(holder, method) = uses(holder, method).lazy.flat_map { held(it.parent) }.first(1).map { it.children.first }
 
   def handing?(call, holder)
     after?(call, holder) && given(call).any? { local?(it, holder.name) }

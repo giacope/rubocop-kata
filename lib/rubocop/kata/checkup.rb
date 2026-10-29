@@ -62,7 +62,7 @@ class RuboCop::Kata::Checkup
   end
 
   def stale(path, directive)
-    moved, gone = directive.cop_names.reject { active?(it, path) }.partition { renames.to(it) }
+    moved, gone = directive.cop_names.reject { active?(it, path) }.partition { renames.renamed?(it) }
     renamed = moved.map { format(RENAMED, path, directive.line_number, it, renames.to(it)) }
     gone.empty? ? renamed : [*renamed, format(DEAD, path, directive.line_number, gone.join("`, `"))]
   end

@@ -6,18 +6,17 @@ class RuboCop::Kata::Correction
     @corrected = corrected
   end
 
-  def flaw
+  def flaws
     before = Prism.parse(@original)
-    return unless before.success?
+    return [] unless before.success?
     after = Prism.parse(@corrected)
-    return "made it unparsable" unless after.success?
-    line = change(literals(before), literals(after))
-    "changed the literal on line #{line}" if line
+    return ["made it unparsable"] unless after.success?
+    changes(literals(before), literals(after)).map { "changed the literal on line #{it}" }
   end
 
   private
 
-  def change(before, after) = before.unmatched(after) || after.unmatched(before)
+  def changes(before, after) = before.unmatched(after).then { it.empty? ? after.unmatched(before) : it }
 
   def literals(parsed) = RuboCop::Kata::Literals.new(parsed.value)
 end

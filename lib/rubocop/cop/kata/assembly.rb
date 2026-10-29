@@ -11,9 +11,9 @@ module RuboCop::Cop::Kata::Assembly
 
   private
 
-  def scope(method) = method.each_ancestor(:class, :module).first
-
-  def home(method) = scope(method)&.then { RuboCop::Kata::Nesting.new(it).qualified }.to_s
+  def home(method)
+    method.each_ancestor(:class, :module).first(1).map { RuboCop::Kata::Nesting.new(it).qualified }.join
+  end
 
   def seam(method)
     home = home(method)

@@ -91,13 +91,13 @@ class RuboCop::Kata::Kinship
   def hooked(node, hook)
     nested = node.compact_child_nodes
     return nested.flat_map { hooked(it, hook) } unless node.is_a?(Prism::CallNode)
-    hook = loaded(node) || hook
+    hook = loaded(node).fetch(0, hook)
     [*mixins(node, hook), *nested.flat_map { hooked(it, hook) }]
   end
 
   def loaded(call)
-    name = call.arguments&.arguments&.first if call.name == :on_load && call.block
-    name&.slice&.[](HOOK, 1)
+    return [] unless call.name == :on_load && call.block
+    call.arguments&.arguments&.first(1).to_a.filter_map { it.slice[HOOK, 1] }
   end
 
   def mixins(call, hook)

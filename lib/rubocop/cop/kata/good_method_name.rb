@@ -31,7 +31,7 @@ class RuboCop::Cop::Kata::GoodMethodName < RuboCop::Cop::Base
     return if !text.match?(/\A[a-z_]/) || foreign?(text)
     stem = text.sub(/[?!=]\z/, "").sub(/\A_+/, "")
     words = core(stem.split("_"))
-    joint = words[1...-1].to_a.find { JOINTS.include?(it) }
-    judge(range, name, stem) { format(CHAIN_MSG, name, joint) if joint }
+    joints = words[1...-1].to_a.select { JOINTS.include?(it) }.first(1)
+    judge(range, name, stem, joints.map { format(CHAIN_MSG, name, it) })
   end
 end

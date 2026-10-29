@@ -18,11 +18,11 @@ class RuboCop::Cop::Kata::BuilderNoun < RuboCop::Cop::Base
 
   def check(node)
     name = node.method_name.to_s
-    banned = prefix(name)
-    verb = banned || crafted(node, name)
-    return unless verb && builder?(node, name)
-    noun = name.delete_prefix("#{verb}_")
-    add_offense(node.loc.name, message: proposal(name, noun, phrased: !banned && phrase?(noun)))
+    banned = prefixed(name, "BannedPrefixes")
+    verbs = banned.empty? ? crafted(node, name) : banned
+    return if verbs.empty? || !builder?(node, name)
+    noun = name.delete_prefix("#{verbs.first}_")
+    add_offense(node.loc.name, message: proposal(name, noun, phrased: banned.empty? && phrase?(noun)))
   end
 
   def proposal(name, noun, phrased:)
@@ -34,8 +34,6 @@ class RuboCop::Cop::Kata::BuilderNoun < RuboCop::Cop::Base
     return false if name.end_with?("?") || allowed?(name) || inherited?(node) || foreign?(name)
     !(override?(node) || command?(node) || step?(node))
   end
-
-  def prefix(name) = list("BannedPrefixes").find { name.start_with?("#{it}_") }
 
   def command?(node) = node.each_descendant(:send, :csend).any? { list("Commands").intersect?(spelled(it)) }
 

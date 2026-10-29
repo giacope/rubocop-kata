@@ -70,7 +70,7 @@ class Assay::Corpus
     @bundle.rubocop(
       "--only", "Metrics/MethodLength", "--format", "json", "--out", out, "--cache", "false", *option, *paths, dir: dir
     )
-    JSON.parse(File.read(File.join(dir, out))).dig("summary", "offense_count")
+    JSON.parse(File.read(File.join(dir, out))).fetch("summary").fetch("offense_count")
   end
 
   def variant(dir, label, folded)

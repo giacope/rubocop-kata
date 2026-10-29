@@ -16,10 +16,11 @@ module RuboCop::Cop::Kata::Fabrication
   private
 
   def crafted(node, name)
-    return unless cop_config["CheckEveryBuilder"] && !name.end_with?("!", "=")
-    verb = list("BuilderPrefixes").find { name.start_with?("#{it}_") }
-    verb if verb && built?(node, name.delete_prefix("#{verb}_"))
+    return [] unless cop_config["CheckEveryBuilder"] && !name.end_with?("!", "=")
+    prefixed(name, "BuilderPrefixes").select { built?(node, name.delete_prefix("#{it}_")) }
   end
+
+  def prefixed(name, key) = list(key).select { name.start_with?("#{it}_") }.first(1)
 
   def built?(node, noun) = !COMPOUND.match?(noun) && !named?(node) && fabricates?(node) && free?(node, noun)
 

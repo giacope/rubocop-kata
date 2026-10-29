@@ -28,8 +28,7 @@ class RuboCop::Cop::Kata::NoTypeCheck < RuboCop::Cop::Base
   PATTERN
 
   def on_send(node)
-    label = probe(node)
-    report(node, node.loc.selector, label) if label
+    probes(node).each { report(node, node.loc.selector, it) }
   end
 
   def on_case(node)
@@ -60,10 +59,10 @@ class RuboCop::Cop::Kata::NoTypeCheck < RuboCop::Cop::Base
     !holder.nil? && matcher?(holder)
   end
 
-  def probe(node)
+  def probes(node)
     name = node.method_name
     return equality(node) if EQUALITIES.include?(name)
-    name if probed?(node, name)
+    probed?(node, name) ? [name] : []
   end
 
   def probed?(node, name)
@@ -77,9 +76,13 @@ class RuboCop::Cop::Kata::NoTypeCheck < RuboCop::Cop::Base
 
   def equality(node)
     sides = [node.receiver, node.first_argument]
-    return "class #{node.method_name}" if sides.any? { class_of?(it) } && sides.any? { own?(it) }
-    named = sides.find { it&.str_type? }
-    "class.name #{node.method_name}" if named && sides.any? { class_name?(it) } && own_name?(named.value, named)
+    return ["class #{node.method_name}"] if sides.any? { class_of?(it) } && sides.any? { own?(it) }
+    named(sides).map { "class.name #{node.method_name}" }
+  end
+
+  def named(sides)
+    texts = sides.select { it&.str_type? }.first(1)
+    texts.select { |text| sides.any? { class_name?(it) } && own_name?(text.value, text) }
   end
 
   def message?(name, hidden)

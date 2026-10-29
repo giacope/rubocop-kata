@@ -16,11 +16,11 @@ class RuboCop::Cop::Kata::GoodClassName < RuboCop::Cop::Base
 
   private
 
-  def subject_of(node) = posed(node) ? node.identifier.short_name.to_s : super
+  def subject_of(node) = posed(node).empty? ? super : node.identifier.short_name.to_s
 
-  def complaint(name, node)
-    role = posed(node)
-    role ? format(POSED_MSG, name, role) : super
+  def complaints(name, node)
+    roles = posed(node)
+    roles.empty? ? super : [format(POSED_MSG, name, roles.first)]
   end
 
   def wrapper?(node)

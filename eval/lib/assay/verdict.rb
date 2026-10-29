@@ -3,10 +3,10 @@
 require "prism"
 
 class Assay::Verdict
-  def initialize(item, offenses, text)
+  def initialize(item, offenses, texts)
     @item = item
     @offenses = offenses
-    @text = text
+    @texts = texts
   end
 
   def to_h
@@ -17,7 +17,7 @@ class Assay::Verdict
     )
   end
 
-  def faults = [expectation, *worded, *survival].compact
+  def faults = [*expectation, *worded, *survival]
 
   private
 
@@ -25,8 +25,9 @@ class Assay::Verdict
 
   def expectation
     case @item["expect"]
-    when "offense" then "expected an offense, found none" if mine.empty?
-    when "clean" then "expected no offense, found #{mine.size}" unless mine.empty?
+    when "offense" then mine.empty? ? ["expected an offense, found none"] : []
+    when "clean" then mine.empty? ? [] : ["expected no offense, found #{mine.size}"]
+    else []
     end
   end
 
@@ -37,21 +38,23 @@ class Assay::Verdict
 
   def survival
     return [] unless @item["correct"]
-    return ["the corrected file is missing"] if @text.nil?
-    [*lost, *shape, *broken]
+    return ["the corrected file is missing"] if @texts.empty?
+    text = @texts.first
+    [*lost(text), *shape(text), *broken(text)]
   end
 
-  def broken
-    "the corrected file does not parse" if Prism.parse(@item.fetch("source")).success? && !Prism.parse(@text).success?
+  def broken(text)
+    broke = Prism.parse(@item.fetch("source")).success? && !Prism.parse(text).success?
+    broke ? ["the corrected file does not parse"] : []
   end
 
-  def lost
-    lines = @text.lines.map(&:chomp)
+  def lost(text)
+    lines = text.lines.map(&:chomp)
     @item.fetch("keeps", []).reject { lines.include?(it) }.map { "correction removed #{it.inspect}" }
   end
 
-  def shape
+  def shape(text)
     expected = @item["becomes"]
-    "correction produced #{@text.inspect}" if expected && expected != @text
+    expected && expected != text ? ["correction produced #{text.inspect}"] : []
   end
 end

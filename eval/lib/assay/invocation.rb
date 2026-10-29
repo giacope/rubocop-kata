@@ -47,7 +47,7 @@ class Assay::Invocation
   end
 
   def exited(allowed, actual)
-    "exit status #{actual}, expected #{allowed}" if allowed && !allowed.include?(actual)
+    allowed && !allowed.include?(actual) ? ["exit status #{actual}, expected #{allowed}"] : []
   end
 
   def missing(patterns, text, label) = patterns.reject { text.match?(Regexp.new(it)) }.map { "#{label} /#{it}/" }

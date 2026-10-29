@@ -16,14 +16,11 @@ class Assay::Gate
 
   def breaches = @_breaches ||= [*%w[cases cli].flat_map { cases(it) }, *names]
 
-  def cases(section) = @data.dig(section, "results").to_a.filter_map { verdict(it) }
+  def cases(section) = @data.dig(section, "results").to_a.flat_map { verdict(it) }
 
   def verdict(row)
-    if row["known"]
-      "#{row["id"]} passes now; drop its `known` mark" if row["passed"]
-    else
-      "#{row["id"]}: #{row["faults"].join("; ")}" unless row["passed"]
-    end
+    return row["passed"] ? ["#{row["id"]} passes now; drop its `known` mark"] : [] if row["known"]
+    row["passed"] ? [] : ["#{row["id"]}: #{row["faults"].join("; ")}"]
   end
 
   def names

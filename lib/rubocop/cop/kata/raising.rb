@@ -18,13 +18,13 @@ module RuboCop::Cop::Kata::Raising
     return true if listed?("RaisingMethods", name)
     return false if seen.include?(name)
     found = definitions(name)
-    found.any? && found.all? { alarm(it, it.body)&.then { |callee| alarm?(callee, [*seen, name]) } }
+    found.any? && found.all? { alarms(it, it.body).any? { |callee| alarm?(callee, [*seen, name]) } }
   end
 
-  def alarm(method, body)
+  def alarms(method, body)
     *before, last = body&.begin_type? ? body.children : [body]
-    return unless last && before.all? { check?(it, method) }
-    fence?(last) ? alarm(method, last.if_branch) : called(last)
+    return [] unless last && before.all? { check?(it, method) }
+    fence?(last) ? alarms(method, last.if_branch) : called(last)
   end
 
   def check?(node, method) = node.lvasgn_type? || escape?(node) || local?(node, method)
@@ -35,9 +35,7 @@ module RuboCop::Cop::Kata::Raising
 
   def fence?(node) = node.if_type? && node.else_branch.nil?
 
-  def called(node)
-    node.method_name.to_s if node.send_type? && node.receiver.nil?
-  end
+  def called(node) = node.send_type? && node.receiver.nil? ? [node.method_name.to_s] : []
 
   def definitions(name)
     others = sources.defining(name, processed_source.file_path.to_s)

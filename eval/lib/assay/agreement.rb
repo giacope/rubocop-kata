@@ -34,7 +34,7 @@ class Assay::Agreement
     score.to_h.slice("precision", "recall", "fp", "fn", "ambiguous_flagged").merge(score.errors)
   end
 
-  def flagged = @_flagged ||= lexicon.sweep["raw"]
+  def flagged = @_flagged ||= lexicon.sweep.fetch("raw", [])
 
   def rows = @_rows ||= sheet.compact.map { |name, human| [name, check(name, human), labels.fetch(name)] }
 
