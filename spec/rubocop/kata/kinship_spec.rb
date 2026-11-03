@@ -4,7 +4,9 @@ RSpec.describe(RuboCop::Kata::Kinship) do
   let(:recorded) do
     %w[warn debug note self.fatal rows_size shelf_name count print p level level= self.root self.load build]
   end
-  let(:unrecorded) { %w[delegate def_delegators attr_accessor root load clear total depth size self.size] }
+  let(:unrecorded) do
+    %w[delegate def_delegators attr_accessor root self.root= load clear self.clear total depth size self.size]
+  end
 
   def records(source) = described_class.parse(source).hooks
 
