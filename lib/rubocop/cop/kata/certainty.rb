@@ -5,9 +5,11 @@ module RuboCop::Cop::Kata::Certainty
 
   SURE = %i[str dstr sym dsym int float rational complex array hash regexp true false irange erange].freeze
   CERTAIN = %i[
-    + - * / % ** -@ == != < > <= >= ! abs ceil clamp count filter_map flat_map floor format join keys length map
-    merge new reject round select size sort sort_by split strip sum to_a to_f to_h to_i to_r to_s to_sym values
+    + - * / % ** -@ == != < > <= >= ! abs ceil clamp compare_by_identity count filter_map flat_map floor format join
+    keys length map merge new reject round select size sort sort_by split strip sum to_a to_f to_h to_i to_r to_s
+    to_sym values
   ].freeze
+  CARRIED = %i[each_with_object].freeze
 
   private
 
@@ -31,8 +33,12 @@ module RuboCop::Cop::Kata::Certainty
 
   def answering?(node)
     call = node.any_block_type? ? node.send_node : node
-    call.send_type? && (CERTAIN.include?(call.method_name) || call.predicate_method?)
+    return false unless call.send_type?
+    return carried?(call) if CARRIED.include?(call.method_name)
+    CERTAIN.include?(call.method_name) || call.predicate_method?
   end
+
+  def carried?(call) = call.arguments.one? && certain?(call.first_argument)
 
   def reached(call)
     holder = call.receiver

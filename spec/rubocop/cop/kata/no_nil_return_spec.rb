@@ -604,6 +604,37 @@ RSpec.describe(RuboCop::Cop::Kata::NoNilReturn, :config) do
     RUBY
   end
 
+  # kimera's Scribe::Scopes#index (fp/kimera-2): each_with_object answers its memo, here a hash.
+  it "allows the project's own lookup that answers each_with_object's hash memo" do
+    expect_no_offenses(<<~RUBY)
+      class Scopes
+        def index = @nodes.zip(@list).each_with_object({}.compare_by_identity) { |(node, scope), map| map[node] = scope }
+        def first = @nodes.each_with_object([]) { |node, found| found << node }
+      end
+
+      class Form
+        def scopes = @_scopes ||= Scopes.new(@nodes).index
+        def head = Scopes.new(@nodes).first
+      end
+    RUBY
+  end
+
+  it "still flags the project's own lookup whose each_with_object memo may be nil" do
+    expect_offense(<<~RUBY)
+      class Scopes
+        def index = @nodes.each_with_object(@seed) { |node, map| map[node] = node }
+        def first = @nodes.each_with_object(nil) { |node, _| node }
+      end
+
+      class Form
+        def scopes = Scopes.new(@nodes).index
+                     ^^^^^^^^^^^^^^^^^^^^^^^^ `scopes` passes on the nil `index` can return; return a null object, or fail fast.
+        def head = Scopes.new(@nodes).first
+                   ^^^^^^^^^^^^^^^^^^^^^^^^ `head` passes on the nil `first` can return; return a null object, or fail fast.
+      end
+    RUBY
+  end
+
   # timecop's Destination#instant (fp/twin-timecop-1): the value is returned only when it is a Time.
   it "allows a lookup returned under a type guard that rules nil out" do
     expect_no_offenses(<<~RUBY)
