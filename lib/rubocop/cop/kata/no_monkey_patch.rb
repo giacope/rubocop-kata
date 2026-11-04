@@ -45,8 +45,10 @@ class RuboCop::Cop::Kata::NoMonkeyPatch < RuboCop::Cop::Base
 
   def fork_hook?(node, target)
     return false unless target == "Process" && node.method?(:prepend) && node.receiver.send_type? && node.arguments?
-    node.arguments.all? { it.const_type? && RuboCop::Kata::ForkHook.new(candidates(it), processed_source, sources).hook? }
+    node.arguments.all? { it.const_type? && hook?(it) }
   end
+
+  def hook?(name) = RuboCop::Kata::ForkHook.new(candidates(name), processed_source, sources).hook?
 
   def hook(name) = name&.sym_type? && name.value
 
