@@ -53,8 +53,9 @@
     `Fiber[KEY]` slot every write of which in the file is dynamic scope
     (saved into a local, set, yielded through and restored from that local
     in an `ensure`, `I18n.with_locale`'s idiom, written as
-    `Thread.current[KEY] = ...` or `Fiber[KEY] = ...`) passes at its reads
-    and writes. A slot written unscoped anywhere in the file is reported as
+    `Thread.current[KEY] = ...` or `Fiber[KEY] = ...`, or through a local
+    bound to `Thread.current` alone, as hashira's `repeated_call` asks) passes
+    at its reads and writes. A slot written unscoped anywhere in the file is reported as
     before.
   - `Kata/NoGetter`: a `Struct.new` or `Data.define` whose block makes every
     member's reader private or protected (`private(*members)`, `private

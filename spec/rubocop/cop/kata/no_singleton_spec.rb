@@ -207,6 +207,67 @@ RSpec.describe(RuboCop::Cop::Kata::NoSingleton, :config) do
     RUBY
   end
 
+  it "allows the scope to name the thread once, as a local bound to Thread.current alone" do
+    expect_no_offenses(<<~RUBY)
+      class Overrides
+        def skipped?(name) = Thread.current[:skipping].include?(name)
+
+        def skipping(names)
+          thread = Thread.current
+          previous = thread[:skipping]
+          thread[:skipping] = names
+          yield
+        ensure
+          thread[:skipping] = previous
+        end
+
+        def spawned(work)
+          thread = Thread.new(&work)
+          thread.join
+        end
+      end
+    RUBY
+  end
+
+  it "still flags a scope that restores the slot from a local saved off another one" do
+    expect_offense(<<~RUBY)
+      class Overrides
+        def skipped?(name) = Thread.current[:skipping].include?(name)
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^ `Thread.current[:skipping]` is global state keyed by the thread; pass the value to what needs it.
+
+        def skipping(names)
+          previous = Thread.current[:held]
+                     ^^^^^^^^^^^^^^^^^^^^^ `Thread.current[:held]` is global state keyed by the thread; pass the value to what needs it.
+          Thread.current[:skipping] = names
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `Thread.current[:skipping]` is global state keyed by the thread; pass the value to what needs it.
+          yield
+        ensure
+          Thread.current[:skipping] = previous
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `Thread.current[:skipping]` is global state keyed by the thread; pass the value to what needs it.
+        end
+      end
+    RUBY
+  end
+
+  it "still flags a slot written through a local bound to anything but Thread.current" do
+    expect_offense(<<~RUBY)
+      class Overrides
+        def skipped?(name) = Thread.current[:skipping].include?(name)
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^ `Thread.current[:skipping]` is global state keyed by the thread; pass the value to what needs it.
+
+        def skipping(names, other)
+          thread = Thread.current
+          thread = other if other
+          previous = thread[:skipping]
+          thread[:skipping] = names
+          yield
+        ensure
+          thread[:skipping] = previous
+        end
+      end
+    RUBY
+  end
+
   it "still flags a slot written unscoped anywhere in the file, or not written in it" do
     expect_offense(<<~RUBY)
       class Overrides
