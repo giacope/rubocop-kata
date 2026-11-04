@@ -19,8 +19,10 @@ class RuboCop::Cop::Kata::NoPublicConstant < RuboCop::Cop::Base
 
   def value?(node)
     name = node.short_name.to_s
-    VALUE.match?(name) && name.size > 1 && !allowed?(name) && !scoping?(node)
+    VALUE.match?(name) && name.size > 1 && !allowed?(name) && !scoping?(node) && !seam?(node)
   end
+
+  def seam?(node) = node.parent&.type?(:optarg, :kwoptarg)
 
   def scoping?(node) = node.parent&.const_type? && node.parent.namespace.equal?(node)
 

@@ -26,6 +26,42 @@ RSpec.describe(RuboCop::Cop::Kata::NoPublicConstant, :config) do
     RUBY
   end
 
+  # kimera's Probe: `def initialize(runtime = Kimera::RUNTIME)`, the seam a collaborator is injected through.
+  it "allows a constant that is the whole default of a parameter, the seam" do
+    expect_no_offenses(<<~RUBY)
+      module Shop
+        RUNTIME = Object.new
+
+        class Probe
+          def initialize(runtime = Shop::RUNTIME, clock: ::Shop::RUNTIME)
+            @runtime = runtime
+            @clock = clock
+          end
+
+          def measure(id, runtime = Shop::RUNTIME) = runtime.measure(id)
+        end
+      end
+    RUBY
+  end
+
+  it "still flags the constant read in the body or inside a larger default" do
+    message = "`Shop::RUNTIME` is another object's public constant, shared state; ask `Shop` what it means, #{advice}"
+    expect_offense(<<~RUBY, message:)
+      module Shop
+        RUNTIME = Object.new
+
+        class Probe
+          def initialize(runtime = Shop::RUNTIME.fetch(:x), limit: Shop::RUNTIME + 1)
+                                   ^^^^^^^^^^^^^ %{message}
+                                                                   ^^^^^^^^^^^^^ %{message}
+            @runtime = runtime || Shop::RUNTIME
+                                  ^^^^^^^^^^^^^ %{message}
+          end
+        end
+      end
+    RUBY
+  end
+
   it "allows a class's own constants, namespaces, classes, other libraries' constants and AllowedNames" do
     expect_no_offenses(<<~RUBY)
       module Shop
