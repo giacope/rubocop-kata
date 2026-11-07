@@ -49,13 +49,11 @@ RSpec.describe(RuboCop::Kata::Profile) do
     end
   end
 
-  # camaleon-cms: an engine keeps no config/application.rb at its root.
   def excluded(setting)
     text = "module Shop\n  class Application < Rails::Application\n    #{setting}\n  end\nend\n"
     project(["config/application.rb", text]) { described_class.new(it, {}).overlay["Kata/ClassInModule"] }
   end
 
-  # content-tagger and support: `config.autoload_lib`, which `rails new` writes since 7.1, makes lib/ a Zeitwerk root.
   it "takes lib/ for a Zeitwerk root where the application autoloads it" do
     loading = [
       "config.autoload_lib(ignore: %w[assets tasks])", "config.eager_load_paths << Rails.root.join(\"lib\")",
@@ -90,7 +88,6 @@ RSpec.describe(RuboCop::Kata::Profile) do
   end
 
   # kimera: rubocop-rspec spells `RSpecAdapter` as r_spec_adapter, since its
-  # `RSpec: rspec` transform matches whole constant names only.
   it "spells a project constant that embeds RSpec or RuboCop the way the brand is spelled" do
     library = "module Shelf\n  class RSpecAdapter\n  end\n\n  class RuboCopRunner\n  end\nend\n"
     found = transforms(["shelf.gemspec", ""], ["lib/shelf.rb", "#{library}class RuboCop::Cop\nend\n"])
@@ -116,7 +113,6 @@ RSpec.describe(RuboCop::Kata::Profile) do
     expect(vocabulary).to(eq(%w[crm]))
   end
 
-  # rubocop-kata's cops answer on_lvasgn; kimera's guards build `s(:false)`.
   it "speaks the parser's node types for a gem that depends on the parser" do
     gemspec = "Gem::Specification.new { it.add_dependency(\"rubocop-ast\", \">= 1\") }\n"
     found = spoken(["shelf.gemspec", gemspec])
@@ -125,14 +121,12 @@ RSpec.describe(RuboCop::Kata::Profile) do
       .to(match([include("lvasgn", "dstr", "kwoptarg"), true, { "Enabled" => false }]))
   end
 
-  # rubocop and opal: `*args` and `str` are clippings there as anywhere else.
   it "keeps the clippings and the parts of a node type out of the parser's words" do
     gemspec = "Gem::Specification.new { it.add_dependency(\"parser\") }\n"
     words = spoken(["shelf.gemspec", gemspec]).dig("Kata/RealWords", "Vocabulary")
     expect(words).not_to(include("str", "args", "op", "asgn"))
   end
 
-  # alonetone's `@pagy`, kamal's `sshkit`: a dependency's name is a technology's.
   it "takes the names of the project's dependencies for words, but not a clipping" do
     lock = "GEM\n  specs:\n    pagy (9.0)\n    govuk_design_system_formbuilder (5.0)\n"
     gemspec = "Gem::Specification.new { it.add_development_dependency(\"keyring\") }\n"
@@ -140,7 +134,6 @@ RSpec.describe(RuboCop::Kata::Profile) do
     expect(spoken(*files).dig("Kata/RealWords", "Vocabulary")).to(eq(%w[sshkit pagy govuk formbuilder keyring]))
   end
 
-  # zeitwerk: `Zeitwerk::Cref` makes `cref` one of its words.
   it "takes the project's own constant names for words" do
     library = "module Zeitwerk\n  class Cref\n  end\n\n  class RSpecArgs\n  end\nend\n"
     expect(spoken(["lib/zeitwerk/cref.rb", library]).dig("Kata/RealWords", "Vocabulary")).to(eq(%w[cref]))
@@ -155,8 +148,6 @@ RSpec.describe(RuboCop::Kata::Profile) do
     end
   end
 
-  # refinerycms-core defines `Refinery::Core`, test-prof `TestProf`, http `HTTP`: a root is the namespace the gem
-  # defines, through its require path or what its entry file requires, spelled as the code spells it.
   it "takes a gem's root from the namespace it defines, not from its camelized name" do
     files = [
       ["refinerycms.gemspec", ""], ["lib/refinerycms.rb", "require 'refinery/all'\n"], ["lib/refinery/all.rb", ""],
@@ -173,7 +164,6 @@ RSpec.describe(RuboCop::Kata::Profile) do
     end
   end
 
-  # shoulda-matchers, paper_trail: a library built on ActiveRecord probes its API.
   it "reads Rails' protocols for a library that depends on ActiveRecord, ActiveModel or ActiveSupport" do
     built = ["shelf.gemspec", "Gem::Specification.new { it.add_dependency(\"activerecord\") }\n"]
     found = [built, ["shelf.gemspec", ""]].map { |file| project(file) { described_class.new(it, {}).overlay } }
@@ -186,7 +176,6 @@ RSpec.describe(RuboCop::Kata::Profile) do
     expect(spoken(["shelf.gemspec", gemspec])).to(eq({}))
   end
 
-  # kimera waits on its child processes from threads; a Rails app leaves threads to its server.
   it "leaves threads to a library, and to the server in a Rails app" do
     found = [["shelf.gemspec", ""], ["config/application.rb", ""]].map { threads(it) }
     expect(found).to(eq([false, true]))
@@ -198,15 +187,12 @@ RSpec.describe(RuboCop::Kata::Profile) do
     end
   end
 
-  # rspec: each gem of the monorepo keeps its gemspec one level down.
   it "takes a monorepo of gems for packaged code" do
     project(["rspec-core/rspec-core.gemspec", ""], ["Gemfile", ""]) do |root|
       expect(described_class.new(root, {}).overlay).not_to(have_key("Packaging"))
     end
   end
 
-  # Run from app/models, the plugin saw no config/application.rb and no
-  # gemspec in the directory it was started from.
   it "reads the project from its root when started in a subdirectory" do
     project(["config/application.rb", ""], ["Gemfile", ""], ["app/models/user.rb", ""]) do |root|
       found = RuboCop::Kata::ProjectRoot.new(File.join(root, "app", "models")).path
@@ -225,7 +211,6 @@ RSpec.describe(RuboCop::Kata::Profile) do
     end
   end
 
-  # mail and reek keep no lockfile: rspec is in the gemspec or the Gemfile.
   it "reads RSpec from a gemspec, a Gemfile or the spec files" do
     gemspec = ["shelf.gemspec", "Gem::Specification.new { it.add_development_dependency(\"rspec\") }\n"]
     gemfile = ["Gemfile", "gem 'rubocop-rspec'\ngem 'rspec', '~> 3'\n"]
@@ -247,7 +232,6 @@ RSpec.describe(RuboCop::Kata::Profile) do
     expect(found).to(eq([true, true, false]))
   end
 
-  # devise: `class Engine < ::Rails::Engine` lives in lib/devise/rails.rb; refinerycms's in core/lib/refinery/….
   it "takes an engine defined in any library file for Rails, an engine gem's in the monorepo too" do
     engine = "module Shelf\n  class Engine < ::Rails::Engine\n  end\nend\n"
     places = [["lib/shelf/rails.rb", engine], ["core/lib/shelf/core/engine.rb", engine]]
@@ -255,7 +239,6 @@ RSpec.describe(RuboCop::Kata::Profile) do
     expect(found.map { it["inherit_from"] }).to(all(include(rails)))
   end
 
-  # mail's Ragel parsers; rubygems' generated licence list.
   it "keeps generated files out, by their grammar or their header" do
     files = [
       ["shelf.gemspec", ""], ["lib/shelf/parser.rb", "module Shelf\nend\n"], ["lib/shelf/parser.rl", ""],
@@ -272,9 +255,6 @@ RSpec.describe(RuboCop::Kata::Profile) do
 
   def skipped(root) = described_class.new(root, {}).overlay.dig("AllCops", "Exclude")
 
-  # One list for hashira and rubocop-kata (G7): what a file's leading comments say when a tool wrote it.
-  # stripe-ruby opens 1,249 files with "File generated from our OpenAPI spec", nokogiri its jars file with
-  # "this is a generated file". hashira's spec/hashira/project_spec.rb asserts the same headers.
   def generated_headers
     [
       "# File generated from our OpenAPI spec\n", "# This file was generated by Racc\n",
@@ -309,7 +289,6 @@ RSpec.describe(RuboCop::Kata::Profile) do
     expect(excluded.sort).to(eq(files.first(generated_headers.size).map(&:first).sort))
   end
 
-  # opal's lib/opal/fragment.rb: "These are generated by nodes" documents the class.
   it "reads the marker in the comment block a file opens with, not in the documentation below it" do
     prose = "# frozen_string_literal: true\n\nmodule Shelf\n  # These are generated by nodes.\n  Fragment = 1\nend\n"
     late = "require \"shelf\"\n# DO NOT EDIT\n"
@@ -318,7 +297,6 @@ RSpec.describe(RuboCop::Kata::Profile) do
     end
   end
 
-  # dependabot-core: run from bundler/, which holds its own gemspec.
   it "anchors the project at the .rubocop.yml that loads the plugin" do
     setting = "plugins:\n  - rubocop-kata\n"
     project([".rubocop.yml", setting], ["Gemfile", ""], ["bundler/shelf.gemspec", ""]) do |root|
@@ -330,8 +308,6 @@ RSpec.describe(RuboCop::Kata::Profile) do
     expect(YAML.load_file(base, aliases: true).dig("AllCops", "Exclude")).to(include("**/vendor/**/*"))
   end
 
-  # simple_form's lib/generators/simple_form/templates/config/initializers/simple_form.rb, refinerycms's ERB
-  # `.rake` templates: files a generator copies into another project, which hashira and kimera skip too.
   it "keeps a generator's templates out, an engine's included, and nothing beside them" do
     paths = %w[
       lib/generators/shelf/templates/config/initializers/shelf.rb core/lib/generators/shelf/install/templates/a.rb
@@ -420,14 +396,12 @@ RSpec.describe(RuboCop::Kata::Profile) do
       .to(eq([cops, true, %w[bin/**/* db/**/*]]))
   end
 
-  # register-trainee-teachers: Pundit calls `permitted_attributes_for_<action>`.
   it "lets a Rails app name the attribute lists Pundit asks a policy for" do
     patterns = YAML.load_file(rails).dig("Kata/GoodMethodName", "AllowedPatterns").map { Regexp.new(it) }
     names = %w[permitted_attributes_for_create permitted_attributes_for_update permitted_attributes]
     expect(names.map { |name| patterns.any? { name.match?(it) } }).to(eq([true, true, false]))
   end
 
-  # content-tagger's `Taxonomy.table_name_prefix`, support's `fields_for :time_constraint`, statesman's commit hook.
   it "leaves the names Rails calls by name to Rails, and still judges the words a project chose" do
     source = <<~RUBY
       module Taxonomy
@@ -455,8 +429,6 @@ RSpec.describe(RuboCop::Kata::Profile) do
     expect(found).to(eq([[9, "Kata/GoodMethodName"]]))
   end
 
-  # friendly_id (its gemspec depends on activerecord): `FriendlyId.table_name_prefix` names the slugs table, and
-  # `relation_delegate_class` is ActiveRecord's own method; manuals-publisher's view adapters answer `model_name`.
   it "leaves the names ActiveRecord and ActiveModel send to a library built on them, without the app's setting" do
     source = <<~RUBY
       module Slugs
@@ -544,7 +516,6 @@ RSpec.describe(RuboCop::Kata::Profile) do
       expect(moved & allowed).to(be_empty)
     end
 
-    # Opal's corelib reads Ruby locals from backtick JavaScript, which RuboCop cannot see.
     it "holds back every correction that renames, anonymises or forwards a parameter" do
       moved = %w[Lint/UnusedMethodArgument Lint/UnusedBlockArgument Style/ArgumentsForwarding Naming/BlockForwarding]
       expect(moved - withheld).to(be_empty)

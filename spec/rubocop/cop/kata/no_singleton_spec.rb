@@ -58,7 +58,6 @@ RSpec.describe(RuboCop::Cop::Kata::NoSingleton, :config) do
     RUBY
   end
 
-  # beis's `@all ||= Codelist.new(…).map { … }`, npq's `YAML.load(ERB.new(…).result)`: the cache holds the result.
   it "reads what the cache holds, not each object built on the way to it" do
     expect_offense(<<~RUBY)
       class Registry
@@ -106,7 +105,6 @@ RSpec.describe(RuboCop::Cop::Kata::NoSingleton, :config) do
     RUBY
   end
 
-  # The V1 conformance case P17: `Current.account` read from a model, through CurrentAttributes.
   it "flags a class that keeps request state in ActiveSupport::CurrentAttributes" do
     expect_offense(<<~RUBY)
       module Shop
@@ -135,7 +133,6 @@ RSpec.describe(RuboCop::Cop::Kata::NoSingleton, :config) do
     RUBY
   end
 
-  # searchkick, timecop, counter_culture, bullet keep their switches in the thread.
   it "flags state kept in the thread, the fiber or the request store" do
     expect_offense(<<~RUBY)
       class Lottery
@@ -170,8 +167,6 @@ RSpec.describe(RuboCop::Cop::Kata::NoSingleton, :config) do
     RUBY
   end
 
-  # kimera's ConcernOverrides, I18n.with_locale: a slot set around a yield into code the method does not own and
-  # restored in an ensure is dynamic scope, the one way to pass a value through a call the method doesn't own.
   it "allows a thread or fiber slot every write of which saves, sets, yields and restores it in an ensure" do
     expect_no_offenses(<<~RUBY)
       class Overrides
@@ -389,8 +384,6 @@ RSpec.describe(RuboCop::Cop::Kata::NoSingleton, :config) do
     RUBY
   end
 
-  # ahoy, mailboxer, delayed_job: settings kept in class variables behind accessors; turbo-rails keeps
-  # its request id per thread (R6B5-K3).
   it "flags a class-level setting every caller shares, or every thread" do
     expect_offense(<<~RUBY)
       module Ahoy

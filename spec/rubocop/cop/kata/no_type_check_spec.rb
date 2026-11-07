@@ -50,7 +50,6 @@ RSpec.describe(RuboCop::Cop::Kata::NoTypeCheck, :config) do
     RUBY
   end
 
-  # Kimera's `Shift::Doubt =\n  Class.new(Suspect) do` went unflagged.
   it "counts a constant the file assigns a new class, module, Struct or Data to as the project's own" do
     expect_offense(<<~RUBY)
       Point = Struct.new(:x)
@@ -132,7 +131,6 @@ RSpec.describe(RuboCop::Cop::Kata::NoTypeCheck, :config) do
     RUBY
   end
 
-  # dry-monads' `matcher :be_none do match { |actual| actual.is_a?(None) } end`: RSpec hands the block any object.
   it "allows a matcher's match block, whose contract is to check what it was handed" do
     expect_no_offenses(<<~RUBY)
       class Tuple; end
@@ -163,7 +161,6 @@ RSpec.describe(RuboCop::Cop::Kata::NoTypeCheck, :config) do
     RUBY
   end
 
-  # dry-monads' SuperDiff extension: SuperDiff asks each registered tree class `applies_to?` about any value.
   it "allows a class-level hook that classes under a foreign superclass answer, and flags an instance method" do
     expect_offense(<<~RUBY)
       class Tuple; end
@@ -329,8 +326,6 @@ RSpec.describe(RuboCop::Cop::Kata::NoTypeCheck, :config) do
     end
   end
 
-  # In the rubocop gem, `node.respond_to?(:setter_method?)` asks rubocop-ast's
-  # Node, where the cop's own `setter_method?(node)` is a private helper.
   it "leaves a probe of a method the project defines only privately, or outside any class" do
     expect_no_offenses(<<~RUBY)
       def outline = nil
@@ -348,7 +343,6 @@ RSpec.describe(RuboCop::Cop::Kata::NoTypeCheck, :config) do
     RUBY
   end
 
-  # `private :hidden` makes that one method private; the definitions after it stay public.
   it "flags a probe of a method defined after a visibility call that names its methods" do
     expect_offense(<<~RUBY)
       class Repair
@@ -410,7 +404,6 @@ RSpec.describe(RuboCop::Cop::Kata::NoTypeCheck, :config) do
     RUBY
   end
 
-  # pundit: `::RSpec.respond_to?(:current_example)` guards its own polyfill of that method.
   it "leaves a probe of a foreign constant, even for a method the project defines" do
     expect_offense(<<~RUBY)
       module Matchers
@@ -422,8 +415,6 @@ RSpec.describe(RuboCop::Cop::Kata::NoTypeCheck, :config) do
     RUBY
   end
 
-  # action_policy: `"".respond_to?(:safe_constantize)` asks whether ActiveSupport extended String; the project's
-  # own `safe_constantize` lives in `refine String do`, which no object answers respond_to? for.
   it "leaves a probe of a literal, a core object, and of a method only a refinement defines" do
     expect_offense(<<~RUBY)
       module Ext

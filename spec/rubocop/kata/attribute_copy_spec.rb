@@ -5,7 +5,6 @@ RSpec.describe(RuboCop::Kata::AttributeCopy) do
 
   let(:cop) { RuboCop::Cop::Lint::SelfAssignment.new(RuboCop::Config.new) }
 
-  # mechanize's `cookie.expires = cookie.expires`: http-cookie's reader computes the expiry, its writer pins it.
   it "leaves an attribute copied through a writer it cannot see, or one the class defines" do
     source = <<~RUBY
       def freeze_expiry(cookie)

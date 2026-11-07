@@ -9,7 +9,6 @@ RSpec.describe(RuboCop::Cop::Kata::NoMonkeyPatch, :config) do
 
   def patch(label, target) = "`#{label}` patches `#{target}` #{format(advice, target)}"
 
-  # V1 P43: `String.include(Shop::Slugs)` and `Integer.class_eval do def cents ... end end` passed.
   it "reports a core class changed from outside by a mixin or an evaluated body" do
     expect_offense(<<~RUBY)
       Integer.class_eval do
@@ -90,7 +89,6 @@ RSpec.describe(RuboCop::Cop::Kata::NoMonkeyPatch, :config) do
     RUBY
   end
 
-  # strong_migrations prepends into ActiveRecord::Migration inside the hook ActiveRecord::Base loads by.
   it "reports a class an on_load hook does not name, patched inside that hook" do
     expect_offense(<<~RUBY)
       ActiveSupport.on_load(:active_record) do
@@ -119,8 +117,6 @@ RSpec.describe(RuboCop::Cop::Kata::NoMonkeyPatch, :config) do
     RUBY
   end
 
-  # kimera's Runtime: Ruby documents Process._fork as the hook a library overrides by prepending to
-  # Process.singleton_class.
   it "passes Ruby's fork hook: a module the file defines with only _fork, prepended to Process.singleton_class" do
     expect_no_offenses(<<~RUBY)
       module Shop
@@ -210,7 +206,6 @@ RSpec.describe(RuboCop::Cop::Kata::NoMonkeyPatch, :config) do
 
     let(:setting) { { "Kata/NoMonkeyPatch" => cop_config.merge("OwnedPaths" => ["lib/**/*.rb"]) } }
 
-    # dry-monads includes its printers into its own `Maybe::Some`, inside its own namespace.
     it "leaves a class the project owns to the project" do
       files = {
         "lib/shop/order.rb" => "module Shop\n  class Order\n  end\nend\n",

@@ -39,7 +39,6 @@ RSpec.describe(RuboCop::Kata::Plugin) do
     effective { |config| expect(tuned.select { config.for_cop(it)["Enabled"] == false }).to(be_empty) }
   end
 
-  # refinerycms: each engine of the monorepo holds its own app/ (core/app/controllers/application_controller.rb).
   it "reads an engine's <gem>/app like app/ wherever a default names app/", :aggregate_failures do
     lists = shipped.values.grep(Hash).flat_map { it.values_at("OwnedPaths", "Exclude").compact }
     paths = [*lists, RuboCop::Cop::Kata::Reopening::OWNED, RuboCop::Cop::Kata::Contract::OWNED]
@@ -117,13 +116,11 @@ RSpec.describe(RuboCop::Kata::Plugin) do
     RuboCop::Cop::Commissioner.new(cops, [], raise_error: true).investigate(parsed).offenses.map(&:cop_name)
   end
 
-  # searchkick: `-a` took a clean `if (\n a ||\n b\n)` to `if a ||\n   b`, a step of three, which nothing then fixed.
   it "lets a multi-line condition continue two columns in, the step every layout cop it runs accepts" do
     condition = "def pick(a, b)\n  if a.present? ||\n    b.present?\n    a\n  end\nend\n"
     expect(layout("# frozen_string_literal: true\n\n#{condition}")).to(be_empty)
   end
 
-  # refinerycms: an engine's own Zeitwerk root, core/app/controllers/application_controller.rb.
   it "leaves a top-level class in a Zeitwerk root to Rails, an engine's included, and nowhere else" do
     paths = %w[
       app/models/account.rb app/models/concerns/archivable.rb app/jobs/sweep_job.rb
@@ -136,8 +133,6 @@ RSpec.describe(RuboCop::Kata::Plugin) do
       .to(eq([false, false, false, false, false, true, true, true]))
   end
 
-  # doorkeeper, pagy, rake and twelve more corpus projects set an AllCops Exclude of their own. RuboCop
-  # anchors a plugin's paths where it first loads it, so the run gets a process of its own.
   it "keeps skipping vendored copies and the schema when the project excludes paths of its own" do
     own = "plugins:\n  - rubocop-kata\nAllCops:\n  Exclude:\n    - \"tmp/**/*\"\n"
     files = { ".rubocop.yml" => own, "Gemfile" => "", "lib/shelf.rb" => "", "lib/shelf/vendor/tsort/sorter.rb" => "" }
@@ -145,7 +140,6 @@ RSpec.describe(RuboCop::Kata::Plugin) do
     expect(listed).to(eq(%w[Gemfile lib/shelf.rb]))
   end
 
-  # config/strict.yml: the strict Elegant Objects profile a project inherits on top of the plugin.
   it "switches on exactly the rules it ships off, and the cops they replace off, under the strict profile" do
     plain = settings("")
     strict = settings("inherit_gem:\n  rubocop-kata: config/strict.yml\n")
@@ -153,7 +147,6 @@ RSpec.describe(RuboCop::Kata::Plugin) do
     expect(changed.reject { |_, values| values.empty? }).to(eq(strict_profile))
   end
 
-  # A project whose plugins sit in a parent file: RuboCop checks an inherited file's cops before that parent's plugins.
   it "runs the strict profile where the project's plugins sit in another inherited file" do
     expect(linted(parented, "--only", "Kata/FailFast")).to(include("1 file inspected, 1 offense detected"))
   end
@@ -228,7 +221,6 @@ RSpec.describe(RuboCop::Kata::Plugin) do
     settings.select { |name, setting| name.include?("/") && setting.is_a?(Hash) && setting["Enabled"] == false }.keys
   end
 
-  # Why each cop RuboCop ships on and rubocop-elegant switches off stays off in kata.
   def kept_off
     {
       "Layout/EmptyLineAfterGuardClause" => "Kata/NoEmptyLinesInMethods forbids the blank line it asks for",

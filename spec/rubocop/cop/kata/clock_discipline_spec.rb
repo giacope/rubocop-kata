@@ -36,7 +36,6 @@ RSpec.describe(RuboCop::Cop::Kata::ClockDiscipline, :config) do
     RUBY
   end
 
-  # R6B5-K2: a call through `&.` is the same call.
   it "reads a clock or a draw through safe navigation" do
     expect_offense(<<~RUBY)
       def stamp
@@ -111,7 +110,6 @@ RSpec.describe(RuboCop::Cop::Kata::ClockDiscipline, :config) do
     RUBY
   end
 
-  # The V1 conformance case P34: an invoice numbered with SecureRandom.
   it "flags ambient randomness" do
     expect_offense(<<~RUBY)
       def number
@@ -163,7 +161,6 @@ RSpec.describe(RuboCop::Cop::Kata::ClockDiscipline, :config) do
     RUBY
   end
 
-  # ffaker's RandomUtils#rand reads its own seeded FFaker::Random.
   it "leaves a rand the file defines, and a draw one of its modules answers" do
     expect_no_offenses(<<~RUBY)
       module FFaker
@@ -180,7 +177,6 @@ RSpec.describe(RuboCop::Cop::Kata::ClockDiscipline, :config) do
     RUBY
   end
 
-  # kimera's eval Shell#finish (fp/kimera-1): `peak = Peak.new(pid)` then `peak.sample`, Peak's own method.
   it "leaves a draw's name sent to an instance of a class the project defines with that method" do
     expect_no_offenses(<<~RUBY)
       class Peak

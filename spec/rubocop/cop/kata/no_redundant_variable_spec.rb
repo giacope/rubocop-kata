@@ -286,9 +286,6 @@ RSpec.describe(RuboCop::Cop::Kata::NoRedundantVariable) do
     expect([offenses(at_limit).size, offenses(past_limit).size]).to(eq([1, 0]))
   end
 
-  # apply-for-teacher-training and steep: an `if`/`else` and a `fetch` with a
-  # block were inlined into an argument list. A value that spans several lines
-  # is a step with a name (D5), whatever the name says.
   it "keeps a local whose value spans several lines, a heredoc's included" do
     sources = [
       "def foo\n  x = items.fetch(:key) do\n    1\n  end\n  render(x)\nend",
@@ -299,7 +296,6 @@ RSpec.describe(RuboCop::Cop::Kata::NoRedundantVariable) do
     expect(sources.flat_map { offenses(it) }).to(be_empty)
   end
 
-  # A regexp is the least readable literal there is: its name says what it matches.
   it "keeps a local that names a regexp" do
     expect(offenses("def foo(text)\n  digits = /\\A\\d+\\z/\n  text.match?(digits)\nend")).to(be_empty)
   end

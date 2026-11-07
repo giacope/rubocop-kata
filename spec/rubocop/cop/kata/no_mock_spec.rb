@@ -10,7 +10,6 @@ RSpec.describe(RuboCop::Cop::Kata::NoMock, :config) do
 
   def mock(label, kind) = "`#{label}` #{kind}, #{advice}"
 
-  # V1 P13: only `double` was flagged, by RSpec/VerifiedDoubles, whose advice is another mock.
   it "reports RSpec's doubles, stubs, expectations and spies" do
     expect_offense(<<~RUBY)
       it "greets in the afternoon" do
@@ -69,7 +68,6 @@ RSpec.describe(RuboCop::Cop::Kata::NoMock, :config) do
     RUBY
   end
 
-  # sshkit: `@output = stub()` builds an empty mocha stub.
   it "reports a bare stub or mock built with no arguments, unless the spec names one so" do
     expect_offense(<<~RUBY, "test/unit/test_color.rb")
       output = stub()
@@ -96,7 +94,6 @@ RSpec.describe(RuboCop::Cop::Kata::NoMock, :config) do
     RUBY
   end
 
-  # dry-monads' do_for_spec defines its own `double`.
   it "leaves a mock builder the spec defines for itself" do
     expect_no_offenses(<<~RUBY, "spec/shop/order_spec.rb")
       def mock(name) = Shop::FakeClock.new(name)
@@ -111,7 +108,6 @@ RSpec.describe(RuboCop::Cop::Kata::NoMock, :config) do
 
     let(:setting) { { "Kata/NoMock" => cop_config.merge("OwnedPaths" => ["lib/**/*.rb"]) } }
 
-    # excon's tests exercise Excon.stub, which excon itself ships.
     it "leaves the library under test to its own words" do
       files = {
         "lib/excon.rb" => "module Excon\n  def self.stub(request, response) = [request, response]\nend\n",

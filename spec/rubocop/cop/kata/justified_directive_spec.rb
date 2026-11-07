@@ -25,7 +25,6 @@ RSpec.describe(RuboCop::Cop::Kata::JustifiedDirective, :config) do
     RUBY
   end
 
-  # kimera's runtime: Style/DirectiveScope steers a one-statement disable to `disable-next`.
   it "flags the next-statement forms and a signed push or next that disables" do
     expect_offense(<<~RUBY)
       # rubocop:disable-next Kata/FrozenState, Kata/NoSetter

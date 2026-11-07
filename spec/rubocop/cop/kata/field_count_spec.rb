@@ -68,7 +68,6 @@ RSpec.describe(RuboCop::Cop::Kata::FieldCount, :config) do
     RUBY
   end
 
-  # mechanize's Page: eight `@x ||= ...` caches whose only plain assignment is `@x = nil` in `reset`.
   it "counts a memoized cache that a reset clears as a cache, not a field" do
     expect_no_offenses(<<~RUBY)
       class Page

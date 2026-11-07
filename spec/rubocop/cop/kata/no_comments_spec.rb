@@ -30,7 +30,6 @@ RSpec.describe(RuboCop::Cop::Kata::NoComments, :config) do
     RUBY
   end
 
-  # rails: 51,198 offenses, one per line of each block.
   it "flags a multi-line block once, and removes every line of it" do
     expect_offense(<<~RUBY)
       # First line.
@@ -168,7 +167,6 @@ RSpec.describe(RuboCop::Cop::Kata::NoComments, :config) do
     RUBY
   end
 
-  # kimera's BaselineScreen: `-A` kept "# kimera cannot say it covers…" and deleted the rest of its block.
   it "flags prose that merely starts with a tool's name" do
     expect_offense(<<~RUBY)
       # A failing test has no coverage, so
@@ -337,8 +335,6 @@ RSpec.describe(RuboCop::Cop::Kata::NoComments, :config) do
       RUBY
     end
 
-    # rails: RDoc and Markdown above public methods were priced as prose,
-    # because only YARD tags marked a block as documentation.
     it "keeps a block of any markup directly above a public class, module or method" do
       expect_no_offenses(<<~RUBY)
         # Holds the lines of one invoice.

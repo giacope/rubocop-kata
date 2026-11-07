@@ -59,7 +59,6 @@ RSpec.describe(RuboCop::Cop::Kata::CommandQuery, :config) do
     RUBY
   end
 
-  # mechanize's `visited?` and `resolve`, ahoy's `group_prop(*props)`, collections-publisher's `I18n.t!`.
   it "reads a change to a copy or a splat as the method's own, and a bang whose value is used as a query" do
     expect_no_offenses(<<~RUBY)
       def visited?(uri, link, *props, **options)
@@ -123,7 +122,6 @@ RSpec.describe(RuboCop::Cop::Kata::CommandQuery, :config) do
     RUBY
   end
 
-  # hashie's `_assert_property_exists!(property)`, which calls `_fail_no_property_error!`, which raises.
   it "allows a call to a method of the project that only raises, directly or through another" do
     expect_no_offenses(<<~RUBY)
       class Record
@@ -159,8 +157,6 @@ RSpec.describe(RuboCop::Cop::Kata::CommandQuery, :config) do
     RUBY
   end
 
-  # state_machines: `OptionsValidator.assert_valid_keys!` returns early or raises ArgumentError, and changes nothing;
-  # Branch#match calls it on the module, validate_and_return on itself (R6B6-K6). One example per shape.
   context "with a call to a method that only raises" do
     def expect_guard(call, definition)
       expect_no_offenses("def match(query)\n  #{call}\n  @states & query\nend\n#{definition}")
@@ -343,7 +339,6 @@ RSpec.describe(RuboCop::Cop::Kata::CommandQuery, :config) do
       expect([offenses(translation), offenses(other).map(&:line)]).to(eq([[], [3, 4]]))
     end
 
-    # -a rewrites a file after the project was read: the inspected file's methods are the ones it now holds.
     it "reads the inspected file's methods as it stands, not as the project read it" do
       dash = "class Dash\n  def known?(key)\n    touch!(key)\n    true\n  end\n\n  " \
         "def touch!(key) = raise(KeyError, key)\nend\n"
@@ -440,7 +435,6 @@ RSpec.describe(RuboCop::Cop::Kata::CommandQuery, :config) do
       RUBY
     end
 
-    # R6B5-K2: an answer through `&.` is still an answer, and so is a memo's guard.
     it "reads an answer through safe navigation" do
       expect_offense(<<~RUBY)
         def total

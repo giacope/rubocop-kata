@@ -54,7 +54,6 @@ RSpec.describe(RuboCop::Cop::Kata::NoOutputArgument, :config) do
     RUBY
   end
 
-  # hashie's `Clash#encode_with(coder)`: Psych hands the coder in to be filled.
   it "allows the serialization hooks Psych and Marshal hand an argument to fill" do
     expect_no_offenses(<<~RUBY)
       class Options

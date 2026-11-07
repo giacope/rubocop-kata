@@ -432,7 +432,6 @@ RSpec.describe(RuboCop::Cop::Kata::FrozenState, :config) do
     end
   end
 
-  # doorkeeper's `module ClassMethods`, roda's RequestClassMethods, rom's ClassInterface.
   it "leaves class-side state to ThreadSafety where it reports it, and says it is class state elsewhere" do
     expect_offense(<<~RUBY)
       module Naming
@@ -482,7 +481,6 @@ RSpec.describe(RuboCop::Cop::Kata::FrozenState, :config) do
       { "Kata/NoOutputArgument" => shipped.slice("MutatingMethods") }
     end
 
-    # The V1 conformance case P32: telling an injected store to insert is a command, not a change of state.
     it "passes a command a collaborator shares a name with a collection's mutator" do
       expect_no_offenses(<<~RUBY)
         class Archive

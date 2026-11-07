@@ -49,8 +49,6 @@ RSpec.describe(RuboCop::Cop::Kata::RealWords, :config) do
     RUBY
   end
 
-  # once-campfire: svg, png and jpeg were words, gif and webp were not, and
-  # neither was the browser it sniffs for.
   it "knows the media formats, browsers and initialisms a web app names" do
     expect_no_offenses(<<~RUBY)
       def firefox? = gif_frames + webp_size + mp4_track + webm_track + avif_size + heic_size
@@ -131,7 +129,6 @@ RSpec.describe(RuboCop::Cop::Kata::RealWords, :config) do
       RUBY
     end
 
-    # mechanize's test servlets: WEBrick's AbstractServlet#service calls `do_#{request_method}`.
     it "allows the servlet methods WEBrick calls by the request's method" do
       expect_no_offenses(<<~RUBY)
         class VerbServlet < WEBrick::HTTPServlet::AbstractServlet
@@ -337,8 +334,6 @@ RSpec.describe(RuboCop::Cop::Kata::RealWords, :config) do
     RUBY
   end
 
-  # vita-min, whitehall and alaveteli: British and Commonwealth codebases spell
-  # organisation, offence and colour the way their authors do.
   it "knows British and Commonwealth spellings and their derivations" do
     expect_no_offenses(<<~RUBY)
       organisation = offence = colour = behaviour = neighbour = 1
@@ -347,7 +342,6 @@ RSpec.describe(RuboCop::Cop::Kata::RealWords, :config) do
     RUBY
   end
 
-  # search-api's `judgements`, the DfE apps' enrolments, govuk_publishing_components' `aria-describedby` and `srcset`.
   it "knows the en-GB forms and HTML attribute names the GOV.UK apps spell" do
     expect_no_offenses(<<~RUBY)
       judgements = enrolment = enrolled = enrol = enquiry = forecasted = 1
@@ -398,7 +392,6 @@ RSpec.describe(RuboCop::Cop::Kata::RealWords, :config) do
     RUBY
   end
 
-  # searchkick's `boost_by_recency`, pay's `proration_behavior` (Stripe's field): nouns no word list spelled.
   it "knows recency and proration, the nouns of recent and prorate" do
     expect_no_offenses(<<~RUBY)
       def boost_by_recency(recency) = @recency = recency
@@ -421,7 +414,6 @@ RSpec.describe(RuboCop::Cop::Kata::RealWords, :config) do
       RUBY
     end
 
-    # zeitwerk: `autoloaded`, `crefs`; rubocop: `autocorrected`; opal: `swapcased`.
     it "inflects every word it accepts, where no dictionary spells the forms" do
       expect_no_offenses(<<~RUBY)
         autoloaded = autoloading = autocorrected = swapcased = swapcasing = decrypted = favorited = paywalled = 1
@@ -429,8 +421,6 @@ RSpec.describe(RuboCop::Cop::Kata::RealWords, :config) do
       RUBY
     end
 
-    # helpy `submited`, opal `embeded`, homeland `readed`/`logined`, faker `splitted`.
-    # The dictionary spells `making` and `splitting`; `checkout` and `layoff` inflect as a phrase.
     it "still reads every misspelt form as a typo" do
       typos = %w[maked checkouted addoned dropdowned takeovered layoffed arged]
       expect(offenses(typos.map { "#{it} = 1" }.join("\n")).map { it.message[/`(\w+)`/, 1] }).to(eq(typos))
@@ -448,7 +438,6 @@ RSpec.describe(RuboCop::Cop::Kata::RealWords, :config) do
       RUBY
     end
 
-    # rubocop's cops answer `on_str` and `on_op_asgn`, which RuboCop calls by the node's type.
     it "leaves a node callback to the parser's spelling, and bans the clipping elsewhere" do
       expect_offense(<<~RUBY)
         def on_str(node) = node

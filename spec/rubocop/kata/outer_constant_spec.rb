@@ -5,7 +5,6 @@ RSpec.describe(RuboCop::Kata::OuterConstant) do
 
   let(:cop) { RuboCop::Cop::Lint::SelfAssignment.new(RuboCop::Config.new) }
 
-  # dry-monads' `Lazy = Lazy` inside `class Lazy; module Mixin`: Mixin::Lazy names the outer Dry::Monads::Lazy.
   it "reads an unqualified constant copied into a nested namespace as the outer one, not a self-assignment" do
     nested = "module Demo\n  class Lazy\n    module Mixin\n      Lazy = Lazy\n    end\n  end\nend\n"
     singleton = "class Demo\n  class << self\n    Unit = Unit\n  end\nend\n"

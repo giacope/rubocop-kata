@@ -11,8 +11,6 @@ RSpec.describe(RuboCop::Cop::Kata::GoodClassName, :config) do
     RUBY
   end
 
-  # CocoaPods: `Installer` was flagged in each of the 54 files that reopen it
-  # only to nest a class inside.
   it "judges a class where it is defined, not in each file that reopens it as a namespace" do
     expect_offense(<<~RUBY)
       class Installer
@@ -518,7 +516,6 @@ RSpec.describe(RuboCop::Cop::Kata::GoodClassName, :config) do
     end
   end
 
-  # kimera's RSpecSuite: rubocop-rspec's transform spells `RSpec` as one word.
   context "with brands spelled as one word" do
     let(:other_cops) do
       transform = { "RSpec" => "rspec", "RuboCop" => "rubocop", "SuiteRSpecTable" => "suite_rspec_table" }
@@ -570,7 +567,6 @@ RSpec.describe(RuboCop::Cop::Kata::GoodClassName, :config) do
         "and none does here; name the class for the thing it is, not the work it does."
     end
 
-    # V1 P01: `InvoiceGenerator` passed because `Generator` is a contract suffix.
     it "reads an agent-word suffix as a doer where no superclass or mixin takes part in its contract" do
       expect_offense(<<~RUBY)
         class InvoiceGenerator
@@ -663,7 +659,6 @@ RSpec.describe(RuboCop::Cop::Kata::GoodClassName, :config) do
     context "with a controller whose superclass is a library's" do
       let(:source) { "class Admin::PlacesController < InheritedResources::Base\nend\n" }
 
-      # places-manager: `Admin::PlacesController < InheritedResources::Base`, a controller the router resolves.
       it "finds the contract in the folder the framework loads the class from" do
         path = "app/controllers/admin/places_controller.rb"
         expect(project_offenses({ path => source }, path)).to(be_empty)

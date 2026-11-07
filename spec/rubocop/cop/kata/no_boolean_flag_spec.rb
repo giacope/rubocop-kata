@@ -27,7 +27,6 @@ RSpec.describe(RuboCop::Cop::Kata::NoBooleanFlag, :config) do
     RUBY
   end
 
-  # paper_trail, rodauth, sinatra: the callee stores or binds the boolean, it does not branch on it.
   it "allows a boolean stored under the name before it, bound after a placeholder, or expected" do
     expect_no_offenses(<<~RUBY)
       comment.update_attribute(:is_spam, false)
@@ -54,7 +53,6 @@ RSpec.describe(RuboCop::Cop::Kata::NoBooleanFlag, :config) do
     RUBY
   end
 
-  # ahoy's `set_cookie("ahoy_track", true, nil, false)`: `value` is stored in the cookie, `use_domain` is a flag.
   it "allows a boolean the method it calls in the same file stores, and flags one it branches on" do
     expect_offense(<<~RUBY)
       class Tracker
@@ -156,7 +154,6 @@ RSpec.describe(RuboCop::Cop::Kata::NoBooleanFlag, :config) do
   context "with the shipped allowed calls" do
     let(:cop_config) { {} }
 
-    # ferrum's `pending.try_set(true)`: a Concurrent::IVar resolves to the boolean it stores.
     it "allows RSpec's matchers, queries and stored settings" do
       expect_no_offenses(<<~RUBY)
         expect(subject.enabled?(:beta)).to eq(true)
@@ -168,7 +165,6 @@ RSpec.describe(RuboCop::Cop::Kata::NoBooleanFlag, :config) do
       RUBY
     end
 
-    # typeprof's `splat_flags.index(true)`, errbit's `confirm_err_actions.eql? false`: a value searched for or compared.
     it "allows a boolean searched for or compared" do
       expect_no_offenses(<<~RUBY)
         flags.index(true) || flags.rindex(false) || flags.count(true)
@@ -177,7 +173,6 @@ RSpec.describe(RuboCop::Cop::Kata::NoBooleanFlag, :config) do
       RUBY
     end
 
-    # statesman's `connection.quote(type_cast(true))`: the boolean is the SQL value rendered, not a switch.
     it "allows a boolean converted or rendered as a value" do
       expect_no_offenses(<<~RUBY)
         connection.quote(type_cast(true))

@@ -5,7 +5,6 @@ RSpec.describe(RuboCop::Kata::ThreadSafety::ClassInstanceVariable) do
 
   let(:cop) { described_class.new(RuboCop::Config.new) }
 
-  # bullet prepends a `Module.new` to ActiveRecord's JoinDependency from `def self.enable`.
   it "reads a field of a module built and mixed into a class as the field of its objects" do
     source = <<~RUBY
       module Patches
