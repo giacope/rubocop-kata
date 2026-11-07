@@ -71,7 +71,7 @@ jobs:
           path: tmp/kimera/coverage.json
           key: kimera-coverage-${{ github.event.pull_request.base.sha }}
           restore-keys: kimera-coverage-
-      - run: bundle exec kimera ci --since-scope impact
+      - run: bundle exec kimera ci
       - if: failure()
         uses: actions/upload-artifact@v4
         with:
