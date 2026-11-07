@@ -253,8 +253,10 @@ Kata/NoComments:
     consecutive full-line comments is one offense.
     `AllowedPatterns` adds the directives of tools it does not know. Removing
     a comment loses what it said, so the correction is unsafe: `rubocop -A`
-    applies it, `rubocop -a` does not. `config/` is excluded: its comments
-    are the framework's generated guidance.
+    applies it, `rubocop -a` does not. Specs and tests are code like any
+    other, so they are read too. `config/`, `config.ru`, gemspecs, Gemfiles and
+    Jbuilder views are excluded: their comments are the framework's generated
+    guidance.
   Enabled: true
   VersionAdded: "0.1"
   VersionChanged: "0.11"
@@ -263,8 +265,6 @@ Kata/NoComments:
   AllowCitations: true
   AllowedPatterns: []
   Exclude:
-    - "spec/**/*"
-    - "test/**/*"
     - "config/**/*"
     - "config.ru"
     - "*.gemspec"

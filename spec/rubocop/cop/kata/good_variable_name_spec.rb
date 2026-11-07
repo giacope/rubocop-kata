@@ -191,7 +191,6 @@ RSpec.describe(RuboCop::Cop::Kata::GoodVariableName, :config) do
     RUBY
   end
 
-  # pundit's `@_pundit_policy_scoped`, solid_queue's `solid_queue_job`: code mixed into host classes.
   context "with the project's root constants" do
     let(:cop_config) do
       defaults.merge("Terms" => [], "AllowedNames" => [], "Roots" => %w[Pundit SolidQueue RubyEventStore])
@@ -207,7 +206,6 @@ RSpec.describe(RuboCop::Cop::Kata::GoodVariableName, :config) do
     end
   end
 
-  # test-prof's `TestProf`, omniauth's `OmniAuth`, kata's `RuboCop::Kata`: a root as the code spells it.
   context "with roots spelled in CamelCase or as a brand" do
     let(:cop_config) do
       defaults.merge("Terms" => [], "AllowedNames" => [], "Roots" => %w[TestProf OmniAuth RuboCop::Kata])

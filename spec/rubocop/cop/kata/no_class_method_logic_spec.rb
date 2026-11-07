@@ -176,7 +176,6 @@ RSpec.describe(RuboCop::Cop::Kata::NoClassMethodLogic, :config) do
     RUBY
   end
 
-  # cancancan: `AbstractAdapter.for_class?(_member_class) = false`, which each adapter overrides with logic.
   it "asks for a constant only for a method that takes nothing and no subclass redefines" do
     expect_offense(<<~RUBY)
       class Adapter
@@ -197,8 +196,6 @@ RSpec.describe(RuboCop::Cop::Kata::NoClassMethodLogic, :config) do
     RUBY
   end
 
-  # acts-as-taggable-on: `extend ActsAsTaggableOn::Taggable` gives every model `taggable?` (false), and
-  # `taggable_on` overrides it with `def self.taggable? = true` in `class_eval` on the class it tags (R6B6-K4).
   it "leaves a class-level override of the default a module the class extends answers" do
     expect_no_offenses(<<~RUBY)
       module Taggable
@@ -249,7 +246,6 @@ RSpec.describe(RuboCop::Cop::Kata::NoClassMethodLogic, :config) do
     RUBY
   end
 
-  # ffaker's `module ArrayUtils; extend RandomUtils; def self.rand(array)`: a module of functions, not a class.
   it "still asks for a constant where no extended module answers the name, or a module overrides one" do
     expect_offense(<<~RUBY)
       module Taggable
@@ -289,8 +285,6 @@ RSpec.describe(RuboCop::Cop::Kata::NoClassMethodLogic, :config) do
     RUBY
   end
 
-  # support: twenty `Support::Requests::*Request` classes answer `self.label`, which a section sends to the class it
-  # holds; a constant read through `klass::LABEL` would replace that message with shared state.
   context "with the project's other classes" do
     include ProjectFiles
 
@@ -312,7 +306,6 @@ RSpec.describe(RuboCop::Cop::Kata::NoClassMethodLogic, :config) do
     end
   end
 
-  # dry-monads: SuperDiff asks each registered tree class `applies_to?`; `Maybe.to_proc` serves `map(&Maybe)`.
   context "with a foreign framework's hooks" do
     include ProjectFiles
 

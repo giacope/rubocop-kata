@@ -21,7 +21,6 @@ RSpec.describe(RuboCop::Cop::Kata::FailFast, :config) do
       "or let it raise."
   end
 
-  # The V1 conformance case P25: rates read from a source that may fail.
   it "flags a rescue that answers a default, logged or not" do
     expect_offense(<<~RUBY, empty: swallow("nil"), hash: swallow("{}"), zero: swallow("0"))
       class Rates
@@ -78,7 +77,6 @@ RSpec.describe(RuboCop::Cop::Kata::FailFast, :config) do
     RUBY
   end
 
-  # R6B5-K2: a log line through `&.` is the same log line.
   it "reads a log line written through safe navigation" do
     expect_offense(<<~RUBY, logged: logged, hash: swallow("{}"))
       def rates
@@ -240,8 +238,6 @@ RSpec.describe(RuboCop::Cop::Kata::FailFast, :config) do
     RUBY
   end
 
-  # kimera's ChildProcess#signal and IsolatedWatchdog#kill (fp/kimera-4): the pid or group was the caller's own child,
-  # reaped already; EPERM says it now belongs to a process the caller may not signal, so nothing of its own is left.
   it "passes a kill that finds the process gone, as ESRCH or as EPERM" do
     expect_no_offenses(<<~RUBY)
       def stop
@@ -290,7 +286,6 @@ RSpec.describe(RuboCop::Cop::Kata::FailFast, :config) do
     RUBY
   end
 
-  # kimera's IsolatedVerdict#evaluate (fp/kimera-3): `error` is the class's own method, building the :error verdict.
   it "passes a call to the class's own method named like a log level" do
     expect_no_offenses(<<~'RUBY')
       class Verdict
@@ -399,7 +394,6 @@ RSpec.describe(RuboCop::Cop::Kata::FailFast, :config) do
     RUBY
   end
 
-  # R6B5-K4: excon's `reset` and its connect loop; no error is in flight there.
   it "flags a release that swallows where no error is in flight" do
     expect_offense(<<~RUBY, message: swallow("nil"))
       def reset = @socket.close rescue nil

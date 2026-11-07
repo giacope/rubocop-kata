@@ -13,7 +13,6 @@ RSpec.describe(RuboCop::Kata::AdjacentLiterals) do
     expect(offenses(source).map(&:line)).to(eq([1, 3, 5, 7]))
   end
 
-  # `GREETING = 'Hello, ' \ "world"` became `"Hello, " + "world"`, a new unfrozen String.
   it "never joins adjacent string literals across their line break, and joins every other line it would" do
     joined = "a = 'b' \\\n  \"c\"\nd = \"e\" \\\n  \"f\"\ng(1, 2)\nh('i' \"j\", 3)\nk(4, # four\n  5)\n"
     expect(autocorrect(source)).to(eq(joined))

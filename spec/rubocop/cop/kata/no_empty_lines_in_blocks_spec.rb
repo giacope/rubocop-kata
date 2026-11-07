@@ -135,7 +135,6 @@ RSpec.describe(RuboCop::Cop::Kata::NoEmptyLinesInBlocks, :config) do
     RUBY
   end
 
-  # middleman, apply-for-qts: 2,903 blank lines were reported twice, once by each blank-line cop.
   it "leaves a blank line in a block inside a method to Kata/NoEmptyLinesInMethods" do
     expect_no_offenses(<<~RUBY)
       def expire(items)

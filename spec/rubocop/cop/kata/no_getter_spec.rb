@@ -42,7 +42,6 @@ RSpec.describe(RuboCop::Cop::Kata::NoGetter, :config) do
     RUBY
   end
 
-  # kimera's Cursor: `private(*members)` in the block keeps every reader the object's own.
   it "allows a Struct or Data whose block makes every member's reader private or protected" do
     expect_no_offenses(<<~RUBY)
       module Shop

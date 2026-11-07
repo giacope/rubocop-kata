@@ -53,7 +53,6 @@ RSpec.describe(RuboCop::Kata::Kinship) do
     expect(records(source)).to(be_empty)
   end
 
-  # sshkit's `def_delegators :output, :log, :warn, ...`: a class answers what it delegates, aliases and reads (R6B6-K3).
   it "records the methods a class body delegates, aliases or reads, a singleton class's on the class side" do
     source = <<~RUBY
       class Abstract

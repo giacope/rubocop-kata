@@ -199,7 +199,6 @@ RSpec.describe(RuboCop::Cop::Kata::GoodMethodName, :config) do
   context "with the shipped defaults" do
     let(:cop_config) { defaults }
 
-    # mechanize's test servlets: WEBrick's AbstractServlet#service calls `do_#{request_method}`.
     it "exempts the servlet methods WEBrick calls by the request's method" do
       expect_no_offenses(<<~RUBY)
         class VerbServlet < WEBrick::HTTPServlet::AbstractServlet
@@ -403,8 +402,6 @@ RSpec.describe(RuboCop::Cop::Kata::GoodMethodName, :config) do
       expect(offenses(source).map(&:line)).to(eq([4]))
     end
 
-    # kimera's runtime_spec: the stand-in answers the message lib/ sends to a
-    # Rails controller.
     it "leaves a stand-in for a message the project sends but never defines to the caller's name" do
       source = "controller = Class.new { def self.clear_action_methods! = 1 }\n" \
         "define_method(:clear_action_methods!) { 1 }\ndef assemble_monthly_report = 1\n"
@@ -412,7 +409,6 @@ RSpec.describe(RuboCop::Cop::Kata::GoodMethodName, :config) do
     end
   end
 
-  # kimera's TestExit and unparser emitters: the ancestor chose the name.
   it "leaves a method that calls super to its ancestor's name" do
     expect_no_offenses(<<~RUBY)
       module Example

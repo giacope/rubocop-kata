@@ -26,7 +26,6 @@ RSpec.describe(RuboCop::Cop::Kata::EnvDiscipline, :config) do
     RUBY
   end
 
-  # eval/run in rubocop-kata; hashira's eval/probe/peak.rb, loaded with -r.
   it "takes code outside every class, module and method for a script's boot layer" do
     expect_no_offenses(<<~RUBY)
       exit(Session.new(ARGV, env: ENV.to_h).run)
@@ -75,7 +74,6 @@ RSpec.describe(RuboCop::Cop::Kata::EnvDiscipline, :config) do
       RUBY
     end
 
-    # The V1 conformance case P35: a mailbox reading credentials and configuration in its methods.
     it "flags the application's configuration read in a method" do
       expect_offense(<<~RUBY)
         class Mailbox
@@ -91,7 +89,6 @@ RSpec.describe(RuboCop::Cop::Kata::EnvDiscipline, :config) do
       RUBY
     end
 
-    # R6B5-K2: a call through `&.` is the same call.
     it "reads the configuration through safe navigation" do
       expect_offense(<<~RUBY)
         class Mailbox

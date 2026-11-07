@@ -152,7 +152,6 @@ RSpec.describe(RuboCop::Cop::Kata::NoHashAsObject, :config) do
     let(:answered) { "keys a method answers together are an object without a name; answer an object that knows them." }
     let(:read) { "a hash used as an object without a name; take an object that answers them." }
 
-    # V1 P37: a 3-key payment built in one class and read by key in another passed (MaxKeys 4, reads not followed).
     it "follows a hash a method answers, and the parameter that reads it by key" do
       expect_offense(<<~RUBY)
         class Checkout
@@ -293,7 +292,6 @@ RSpec.describe(RuboCop::Cop::Kata::NoHashAsObject, :config) do
       RUBY
     end
 
-    # searchkick's Faraday middleware reads `env[:url]` and `env[:request]`; its models answer `search_data`.
     it "leaves a public method a library's superclass calls, but not one the project's own ancestor defines" do
       expect_offense(<<~RUBY)
         class Middleware < Faraday::Middleware
@@ -317,7 +315,6 @@ RSpec.describe(RuboCop::Cop::Kata::NoHashAsObject, :config) do
       RUBY
     end
 
-    # faraday's middleware hooks (fp/twin-faraday-6): the env is the project's Struct, read through its `[]`.
     it "leaves a parameter read only by the members of a Struct the project defines" do
       expect_no_offenses(<<~RUBY)
         module Http

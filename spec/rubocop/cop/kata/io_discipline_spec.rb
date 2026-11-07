@@ -35,7 +35,6 @@ RSpec.describe(RuboCop::Cop::Kata::IoDiscipline, :config) do
     RUBY
   end
 
-  # pundit.rb: a module-level `warn` has no stream to write through yet.
   it "names the seam to add where nothing is injected" do
     expect_offense(<<~RUBY)
       def report = puts
@@ -70,7 +69,6 @@ RSpec.describe(RuboCop::Cop::Kata::IoDiscipline, :config) do
     RUBY
   end
 
-  # The V1 conformance case P33: an audit record that writes a log file, the Rails log and a webhook.
   it "flags a file, network or shell call whose target is written into the code" do
     expect_offense(<<~RUBY, path: fixed("File.write", "path"), url: fixed("Net::HTTP.post", "URL"))
       class Audit
@@ -112,7 +110,6 @@ RSpec.describe(RuboCop::Cop::Kata::IoDiscipline, :config) do
     RUBY
   end
 
-  # ruby-openai's Client#conn (fp/twin-ruby-openai-1): the connection has no URL; each request names the field's.
   it "passes a client built with no URL, which reaches nothing until a request names one" do
     expect_no_offenses(<<~RUBY)
       class Feed
@@ -188,7 +185,6 @@ RSpec.describe(RuboCop::Cop::Kata::IoDiscipline, :config) do
     RUBY
   end
 
-  # rubocop-kata's own Kit reads its skill through a constant anchored on __dir__.
   it "passes a path anchored on the source file, directly or through a constant" do
     expect_no_offenses(<<~RUBY)
       class Kit
@@ -216,7 +212,6 @@ RSpec.describe(RuboCop::Cop::Kata::IoDiscipline, :config) do
     RUBY
   end
 
-  # rubocop-kata's Survey globs under the root it was given; its Entries read Profile::BASE.
   it "passes a glob under an injected base, and a constant another file defines" do
     expect_no_offenses(<<~RUBY)
       class Survey
@@ -228,7 +223,6 @@ RSpec.describe(RuboCop::Cop::Kata::IoDiscipline, :config) do
     RUBY
   end
 
-  # kimera's worker fleet: its own private `spawn` starts a worker.
   it "passes a command name the file defines, or one called without arguments" do
     expect_no_offenses(<<~RUBY)
       class Fleet
@@ -276,7 +270,6 @@ RSpec.describe(RuboCop::Cop::Kata::IoDiscipline, :config) do
     RUBY
   end
 
-  # Kata/ClockDiscipline reads `now || Time.now` the same way: the default is the seam, the fallback is not.
   it "passes a global as a parameter default, not as the fallback for one" do
     expect_offense(<<~RUBY, message: global("$stderr", "io"))
       class Audit
@@ -290,7 +283,6 @@ RSpec.describe(RuboCop::Cop::Kata::IoDiscipline, :config) do
     RUBY
   end
 
-  # kimera's StandardStreams, Minitest's capture_io: a redirect saves the global it replaces and restores it.
   it "passes a global stream read by a method that restores it in an ensure, a redirect" do
     expect_no_offenses(<<~RUBY)
       class Streams
@@ -374,7 +366,6 @@ RSpec.describe(RuboCop::Cop::Kata::IoDiscipline, :config) do
     RUBY
   end
 
-  # hashie's railtie, ahoy's engine: a framework's boot hooks wire the globals in.
   it "takes a framework's boot hooks for the boot layer" do
     expect_no_offenses(<<~RUBY)
       class Railtie < Rails::Railtie
@@ -387,7 +378,6 @@ RSpec.describe(RuboCop::Cop::Kata::IoDiscipline, :config) do
     RUBY
   end
 
-  # rubycritic's Cli::Options builds its own Options::File, not Ruby's.
   it "leaves a constant the project defines in the nesting, and reads ::File as Ruby's" do
     expect_offense(<<~RUBY, message: fixed("File.read", "path"))
       module Cli
@@ -412,7 +402,6 @@ RSpec.describe(RuboCop::Cop::Kata::IoDiscipline, :config) do
     RUBY
   end
 
-  # R6B5-K5: excon's PrettyPrinter.pp recursing into itself, rubycritic's Application#print.
   it "leaves a bare call to a method of that name the class defines on the same side" do
     expect_no_offenses(<<~RUBY)
       class Printer
@@ -474,7 +463,6 @@ RSpec.describe(RuboCop::Cop::Kata::IoDiscipline, :config) do
     RUBY
   end
 
-  # sshkit: Abstract's `def_delegators :output, :log, :warn, ...` sends a bare `warn` to the configured formatter.
   it "leaves a bare call to a name the class, an ancestor or a mixin delegates, aliases or reads" do
     expect_no_offenses(<<~RUBY)
       class Abstract
@@ -572,7 +560,6 @@ RSpec.describe(RuboCop::Cop::Kata::IoDiscipline, :config) do
     RUBY
   end
 
-  # beis's lib/scripts/import_forecasts.rb: Kata/EnvDiscipline and Kata/ClockDiscipline call it the boot layer too.
   it "takes code outside every class, module and method for a script's boot layer" do
     expect_no_offenses(<<~RUBY)
       warn "Could not find fund" unless ENV.key?("FUND")
@@ -583,7 +570,6 @@ RSpec.describe(RuboCop::Cop::Kata::IoDiscipline, :config) do
     RUBY
   end
 
-  # rubycritic: `Options::File` lives in its own file under lib/.
   context "with the project's files" do
     include ProjectFiles
 
@@ -597,7 +583,6 @@ RSpec.describe(RuboCop::Cop::Kata::IoDiscipline, :config) do
       expect(project_offenses(files, "lib/cli/options.rb")).to(be_empty)
     end
 
-    # sshkit's backends/skipper.rb: `class Skipper < Abstract`, whose def_delegators sits in abstract.rb (R6B6-K3).
     it "leaves a bare call that a superclass in another file delegates" do
       files = {
         "lib/demo/abstract.rb" => "module Demo\n  class Abstract\n    def_delegators :@output, :warn\n  end\nend\n",

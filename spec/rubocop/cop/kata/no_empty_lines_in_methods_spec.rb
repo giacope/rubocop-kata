@@ -98,8 +98,6 @@ RSpec.describe(RuboCop::Cop::Kata::NoEmptyLinesInMethods, :config) do
     RUBY
   end
 
-  # Deleting the blank line a backslash continues into makes `foo bar` of two
-  # statements; one inside =begin is the comment's text.
   it "reports, but never deletes, a blank line a backslash continues into or one inside an =begin comment" do
     expect_offense(<<~'RUBY')
       def pick

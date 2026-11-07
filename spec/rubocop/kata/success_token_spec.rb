@@ -12,7 +12,6 @@ RSpec.describe(RuboCop::Kata::SuccessToken) do
 
   def messages(source) = offenses(source).map { [it.line, it.message.delete_prefix("Naming/PredicateMethod: ")] }
 
-  # ferrum's `def clear; @headers = {}; true; end`: `clear?` would be a query that changes state.
   it "tells a command that answers a boolean to return nothing, not to take a `?`" do
     source = "def clear\n  @headers = {}\n  true\nend\ndef activate\n  command(:activate)\n  true\nend\n" \
       "def load(path)\n  rows = read(path)\n  rows.each { add(it) }\n  true\nend\n" \
@@ -28,7 +27,6 @@ RSpec.describe(RuboCop::Kata::SuccessToken) do
     expect(messages(source).select { |_, text| text.include?(command) }.map(&:first)).to(eq([1, 9, 15, 22]))
   end
 
-  # savon's `equals_except_any`, state_machines' `check_state`: guards, a search loop and a cache compute the answer.
   it "keeps RuboCop's advice for a method whose statements only compute its answer" do
     source = "def ready\n  total = @items.size\n  total += 1\n  return false unless total.positive?\n  " \
       "return true if total > 9\n  true\nend\ndef enabled = true\ndef busy\n  @jobs.any?\nend\n" \

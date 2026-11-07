@@ -53,7 +53,6 @@ RSpec.describe(RuboCop::Kata::Checkup) do
     end
   end
 
-  # CocoaPods: a renamed cop read as "not enabled here", which hid the fix.
   it "names the cop a directive's renamed cop became" do
     source = "# frozen_string_literal: true\n\n# rubocop:disable Lint/StringConversionInInterpolation, Kata/Nothing\n"
     expected = [
@@ -155,7 +154,6 @@ RSpec.describe(RuboCop::Kata::Checkup) do
     ) { |root| expect(report(root).first).to(eq("clean\n")) }
   end
 
-  # kimera's runtime: the directive Style/DirectiveScope asks for is a waiver too.
   it "lists a disable-next waiver with its reason" do
     source = "# frozen_string_literal: true\n\n# rubocop:disable-next Kata/FrozenState -- the switch mutants read\n" \
       "class Runtime\nend\n"
@@ -213,8 +211,6 @@ RSpec.describe(RuboCop::Kata::Checkup) do
     end
   end
 
-  # cancancan: RuboCop applies `Naming/PredicateName:` to `Naming/PredicatePrefix`, with a warning.
-  # RuboCop releases before the rename still know the cop by its old name, so the entry is live there.
   it "says to rename an entry for a cop RuboCop renamed and still applies, instead of calling it dead" do
     project("Naming/PredicateName:\n  Exclude:\n    - sample.rb\n") do |root|
       renamed = [
@@ -226,7 +222,6 @@ RSpec.describe(RuboCop::Kata::Checkup) do
     end
   end
 
-  # solid_cache, caxlsx, resque, ransack: RuboCop then runs only the cops a project's own files name.
   it "says when DisabledByDefault leaves kata's cops off, and how to turn them on" do
     project("AllCops:\n  DisabledByDefault: true\n\nKata/RealWords:\n  Enabled: true\n") do |root|
       expect(report(root)).to(eq([switched_off, 1]))

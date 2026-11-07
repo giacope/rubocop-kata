@@ -14,7 +14,6 @@ RSpec.describe(RuboCop::Cop::Kata::BuilderNoun, :config) do
     RUBY
   end
 
-  # rubycritic's private `generate_for(rating)`, called bare: `for(rating)` would open a for loop (R6B6-K7).
   it "proposes no name that is a keyword or does not parse as a call where the method is called" do
     expect_offense(<<~RUBY)
       def get_for(rating)
@@ -67,12 +66,10 @@ RSpec.describe(RuboCop::Cop::Kata::BuilderNoun, :config) do
     RUBY
   end
 
-  # padrino-gen, flipper's generators: a step that writes a file returns no built object.
   context "with commands" do
     let(:ruby_version) { 3.4 }
     let(:cop_config) { { "BannedPrefixes" => %w[generate], "Commands" => %w[File.write FileUtils invoke] } }
 
-    # aasm's `invoke … unless model_exists?`, madmin's `route` in both branches of an `if`.
     it "leaves a method that issues a command anywhere in its body to its verb" do
       expect_offense(<<~RUBY)
         def generate_initializer = File.write("config/shelf.rb", "Shelf.start")
@@ -94,7 +91,6 @@ RSpec.describe(RuboCop::Cop::Kata::BuilderNoun, :config) do
     end
   end
 
-  # resque's `generate_failure_ids?`, simple_form's `generate_label_for_attribute?`: a question returns a boolean.
   it "leaves a predicate alone, since it builds nothing" do
     expect_no_offenses(<<~RUBY)
       def get_failure_ids?(options)
@@ -103,7 +99,6 @@ RSpec.describe(RuboCop::Cop::Kata::BuilderNoun, :config) do
     RUBY
   end
 
-  # madmin's generators: Rails runs each public method of a generator in turn, a step whatever it returns.
   context "with a generator" do
     let(:ruby_version) { 3.4 }
     let(:cop_config) do
@@ -159,12 +154,10 @@ RSpec.describe(RuboCop::Cop::Kata::BuilderNoun, :config) do
 
     after { FileUtils.rm_rf(root) }
 
-    # kimera's schemata_spec mirrors ActiveSupport's private get_callbacks.
     it "leaves a stand-in for a message the project sends but never defines to the caller's name" do
       expect(offenses("def get_callbacks(name) = name\ndef get_name = 1\n").map(&:line)).to(eq([2]))
     end
 
-    # flipper: each adapter implements Flipper::Adapter#get_all.
     it "reports a name once, where the protocol chose it, not in each implementation" do
       source = "class Memory\n  include Adapter\n  def get_all = {}\n  def get_one = 1\nend\n"
       expect(offenses(source).map(&:line)).to(eq([4]))
@@ -177,7 +170,6 @@ RSpec.describe(RuboCop::Cop::Kata::BuilderNoun, :config) do
       RuboCop::ConfigLoader.default_configuration.for_cop("Kata/BuilderNoun").merge("CheckEveryBuilder" => true)
     end
 
-    # V1 P06: `build_summary` passed, since only get/calculate/compute/retrieve/generate were banned.
     it "names every builder for what it returns, whatever verb of making or getting it starts with" do
       expect_offense(<<~RUBY)
         class Order
@@ -267,7 +259,6 @@ RSpec.describe(RuboCop::Cop::Kata::BuilderNoun, :config) do
       RUBY
     end
 
-    # places-manager's `before_validation :create_first_data_set`; rack-mini-profiler's alias chain on Plucky::Query.
     it "leaves a callback the framework runs, and a method an alias chain keeps the library's name for" do
       expect_no_offenses(<<~RUBY)
         class Service < ApplicationRecord

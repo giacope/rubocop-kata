@@ -60,7 +60,6 @@ RSpec.describe(RuboCop::Cop::Kata::ClassInModule) do
     end
   end
 
-  # roda, pagy, thor and money reopen the gem's own top-level class in every plugin file.
   context "with the project's files" do
     include ProjectFiles
 

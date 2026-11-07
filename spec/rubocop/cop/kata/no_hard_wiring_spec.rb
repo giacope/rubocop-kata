@@ -129,7 +129,6 @@ RSpec.describe(RuboCop::Cop::Kata::NoHardWiring, :config) do
     RUBY
   end
 
-  # R6B5-K2: a constructor called through `&.` is the same constructor.
   it "reads a constructor called through safe navigation as the one it is handed to" do
     expect_offense(<<~RUBY, seam: seam)
       class Gateway
@@ -175,7 +174,6 @@ RSpec.describe(RuboCop::Cop::Kata::NoHardWiring, :config) do
     RUBY
   end
 
-  # transition's entries built per row and saved or collected; support's `Paths` record saved and read back.
   it "allows an object built from the method's own inputs and dropped or returned, whatever the method does to it" do
     expect_no_offenses(<<~RUBY)
       module Shop
@@ -225,7 +223,6 @@ RSpec.describe(RuboCop::Cop::Kata::NoHardWiring, :config) do
     RUBY
   end
 
-  # unparser's `Buffer`: built empty, filled through the writer it is handed to (or by the method), read back.
   it "allows an empty object the call fills and reads back" do
     expect_no_offenses(<<~RUBY)
       class Buffer
@@ -300,7 +297,6 @@ RSpec.describe(RuboCop::Cop::Kata::NoHardWiring, :config) do
     RUBY
   end
 
-  # searchkick's `Results.new(nil, nil, nil).respond_to?(...)` in `respond_to_missing?`.
   it "allows a prototype asked what its class answers" do
     expect_no_offenses(<<~RUBY)
       class Results
@@ -357,7 +353,6 @@ RSpec.describe(RuboCop::Cop::Kata::NoHardWiring, :config) do
     RUBY
   end
 
-  # content-tagger: a tree node built, filled and returned; a parameter rebound to the wrapper built from it.
   it "allows the object a method builds and returns, filled on the way, and a local rebound to its wrapper" do
     expect_no_offenses(<<~RUBY)
       class Gateway
@@ -409,7 +404,6 @@ RSpec.describe(RuboCop::Cop::Kata::NoHardWiring, :config) do
     RUBY
   end
 
-  # mechanize: a form, its uploads, an auth challenge, a test response and a cookie jar, built per call and handed on.
   it "allows a value the method builds per call, fills and hands on" do
     expect_no_offenses(<<~RUBY)
       class Form
@@ -471,7 +465,6 @@ RSpec.describe(RuboCop::Cop::Kata::NoHardWiring, :config) do
     RUBY
   end
 
-  # mechanize's `click`: the message goes to the page the name held before; the new blank page is only handed on.
   it "reads a message sent before the local is rebound as the earlier value's" do
     expect_no_offenses(<<~RUBY)
       class Page
@@ -522,8 +515,6 @@ RSpec.describe(RuboCop::Cop::Kata::NoHardWiring, :config) do
     RUBY
   end
 
-  # hashira's Sites#each and Clones (fp/hashira-3), savon's SerializedInput#content (fp/twin-savon-1), alba's
-  # InstanceMethods#as_json (fp/twin-alba-4): a type applied to the method's inputs makes the input's value.
   it "allows an object built from a class or module applied to the method's own inputs" do
     expect_no_offenses(<<~RUBY)
       module Demo
@@ -586,8 +577,6 @@ RSpec.describe(RuboCop::Cop::Kata::NoHardWiring, :config) do
     RUBY
   end
 
-  # alba's ClassMethods#layout (fp/twin-alba-1) and faraday's MiddlewareRegistry (fp/twin-faraday-3): the methods of a
-  # module a class extends are its class methods, where objects are wired.
   it "allows a module a class extends, whose methods are class methods" do
     expect_no_offenses(<<~RUBY)
       module Shelf
@@ -748,7 +737,6 @@ RSpec.describe(RuboCop::Cop::Kata::NoHardWiring, :config) do
     RUBY
   end
 
-  # hashira's `Options = Data.define(...) do def pipeline ... end` inside `module Hashira::CLI`.
   it "keeps the constructor seam for a class a module's block defines" do
     expect_offense(<<~RUBY, seam: seam)
       class Notices
@@ -763,7 +751,6 @@ RSpec.describe(RuboCop::Cop::Kata::NoHardWiring, :config) do
     RUBY
   end
 
-  # collections-publisher's Tag and LinkReport: ActiveRecord allocates a loaded record past `initialize`.
   it "gives a model its framework builds the seam it has, a method parameter" do
     expect_offense(<<~RUBY, built: built("Tag", "tagged_documents"), report: built("LinkReport", "links"))
       class TaggedDocuments
@@ -798,7 +785,6 @@ RSpec.describe(RuboCop::Cop::Kata::NoHardWiring, :config) do
     RUBY
   end
 
-  # mechanize's Minitest test case and ahoy's controller mixin: composition roots a framework builds.
   it "allows the test classes and the modules a load hook mixes into a framework's root class" do
     cop_config.delete("RootSuperclasses")
     expect_no_offenses(<<~RUBY)

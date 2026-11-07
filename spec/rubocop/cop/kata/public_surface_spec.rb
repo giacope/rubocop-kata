@@ -49,7 +49,6 @@ RSpec.describe(RuboCop::Cop::Kata::PublicSurface, :config) do
     RUBY
   end
 
-  # hashie's `Clash`: Psych and Marshal call `encode_with`, `init_with`, `marshal_dump`, `marshal_load`, `_dump`.
   context "with the shipped Protocols" do
     let(:cop_config) { { "Max" => 4 } }
 

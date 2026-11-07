@@ -26,7 +26,6 @@ RSpec.describe(RuboCop::Cop::Kata::NoPublicConstant, :config) do
     RUBY
   end
 
-  # kimera's Probe: `def initialize(runtime = Kimera::RUNTIME)`, the seam a collaborator is injected through.
   it "allows a constant that is the whole default of a parameter, the seam" do
     expect_no_offenses(<<~RUBY)
       module Shop
@@ -89,9 +88,6 @@ RSpec.describe(RuboCop::Cop::Kata::NoPublicConstant, :config) do
     RUBY
   end
 
-  # support's Support::GDS: a module that only namespaces classes is not a value.
-  # hashira's Coupling::Definition (fp/hashira-1): a `Data.define` block is the class body of the constant it is
-  # assigned to, so `Definition#engine?` reads its own constant.
   it "allows a class built by Data.define, Struct.new or Class.new reading its own constant" do
     expect_no_offenses(<<~RUBY)
       module Demo
@@ -162,7 +158,6 @@ RSpec.describe(RuboCop::Cop::Kata::NoPublicConstant, :config) do
     RUBY
   end
 
-  # mechanize: `Net::NTLM::Message` names rubyntlm's module through a `Net` the project reopens.
   it "allows an acronym constant that is the namespace of another constant" do
     expect_no_offenses(<<~RUBY)
       module Net

@@ -11,7 +11,6 @@ RSpec.describe(RuboCop::Kata::KeywordSplat) do
 
   def processed(source) = RuboCop::ProcessedSource.new(source, 3.4).tap { it.config = config }
 
-  # turbo-rails: `-a` broke a call before its double splat and no cop indented the new line.
   it "indents a double splat in a braceless last hash, among its pairs" do
     fixed = "broadcast(\n  *streamables,\n  **extract(rendering),\n  target: self,\n  **more\n)\n"
     expect([offenses(source).map(&:line), autocorrect(source)]).to(eq([[3, 5], fixed]))

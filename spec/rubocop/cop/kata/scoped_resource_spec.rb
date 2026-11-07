@@ -8,7 +8,6 @@ RSpec.describe(RuboCop::Cop::Kata::ScopedResource, :config) do
       "it. Hold it for a block (`synchronize { ... }`, `File.open(path) { ... }`) or release it in `ensure`."
   end
 
-  # The V1 conformance case P27: an archive that takes a lock by hand.
   it "flags a lock taken and released by hand" do
     expect_offense(<<~RUBY, lock: held("@lock.lock", "@lock.unlock"), pool: held("pool.checkout", "pool.checkin"))
       class Archive
@@ -65,7 +64,6 @@ RSpec.describe(RuboCop::Cop::Kata::ScopedResource, :config) do
     RUBY
   end
 
-  # R6B5-K2: a call through `&.` is the same call.
   it "reads a handle opened through safe navigation as opened" do
     expect_offense(<<~RUBY, message: held("@dialer&.open(@host)", "socket.close"))
       class Client

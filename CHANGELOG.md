@@ -727,6 +727,12 @@
   the mutant` was taken for a kimera directive, so `-A` kept that line and
   deleted the rest of its block. `# standard library…`, `# typed arrays…` and
   `# rubocop runs…` are prose too.
+- `Kata/NoComments` reads specs and tests: `spec/**` and `test/**` are no
+  longer excluded, so a comment there is prose like any other. `config/`,
+  `config.ru`, gemspecs, Gemfiles and Jbuilder views stay excluded, as the
+  framework's generated guidance. On the 52-project corpus this adds 2,932
+  offenses (5,042 comment lines) in 51 projects; `rubocop -A` deletes them,
+  `rubocop -a` does not. Kata's own specs and Gemfile carry no prose comment.
 - From a fifth field test on fifty more codebases (stripe-ruby, refinerycms,
   nokogiri, test-prof, aasm, cancancan, the GOV.UK and DfE apps and others),
   in check mode:

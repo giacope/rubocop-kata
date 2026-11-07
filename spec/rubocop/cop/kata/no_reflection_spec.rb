@@ -25,7 +25,6 @@ RSpec.describe(RuboCop::Cop::Kata::NoReflection, :config) do
     RUBY
   end
 
-  # ahoy's `controller.send(Ahoy.user_method)`, mechanize's `servlet.send "do_#{req.method}"`: Style/Send's sites.
   it "flags a computed name sent past another object's interface with send" do
     expect_offense(<<~RUBY)
       class Store
@@ -37,7 +36,6 @@ RSpec.describe(RuboCop::Cop::Kata::NoReflection, :config) do
     RUBY
   end
 
-  # unparser's memoizer restores a method's visibility through `@descendant.__send__(@original_visibility, name)`.
   it "does not advise public_send for a computed name sent to a class the code treats as one" do
     expect_offense(<<~RUBY)
       class Memo
@@ -64,7 +62,6 @@ RSpec.describe(RuboCop::Cop::Kata::NoReflection, :config) do
     RUBY
   end
 
-  # ahoy's `controller.send(Ahoy.user_method) if controller.respond_to?(Ahoy.user_method, true)`.
   it "does not advise public_send for a computed name the code checks among the private methods" do
     expect_offense(<<~RUBY)
       class Store
@@ -81,7 +78,6 @@ RSpec.describe(RuboCop::Cop::Kata::NoReflection, :config) do
     RUBY
   end
 
-  # strong_migrations' `WrappedConnection#send`, which Rails' schema dumper calls with private names.
   it "leaves the forward of the send an object overrides" do
     expect_no_offenses(<<~RUBY)
       class Wrapped

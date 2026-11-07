@@ -29,7 +29,6 @@ RSpec.describe(RuboCop::Cop::Kata::ConstructorDiscipline, :config) do
     RUBY
   end
 
-  # rubytoolbox's `self.project = project`: assigning through the class's own writer, which Kata/NoSetter reports.
   it "reads an assignment through the object's own writer as assignment" do
     expect_offense(<<~RUBY)
       def initialize(project, checks)
@@ -101,7 +100,6 @@ RSpec.describe(RuboCop::Cop::Kata::ConstructorDiscipline, :config) do
     RUBY
   end
 
-  # opal's CLIOptions#initialize: two hundred `on` calls are one decision.
   it "reports a constructor once, counting each call it would move" do
     expect_offense(<<~RUBY)
       def initialize(record)

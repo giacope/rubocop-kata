@@ -6,7 +6,6 @@ RSpec.describe(RuboCop::Kata::Elegant::NoNilReturn) do
   let(:shipped) { RuboCop::ConfigLoader.default_configuration.for_cop("Elegant/NoNilReturn") }
   let(:cop) { described_class.new(RuboCop::Config.new("Elegant/NoNilReturn" => shipped)) }
 
-  # strong_migrations strips an error's cause before Rails prints it: `def e.cause; nil; end`.
   it "leaves an override of a core method whose contract answers nil" do
     source = "def error.cause\n  nil\nend\n\nclass Version\n  def <=>(other)\n    return nil unless other\n    " \
       "0\n  end\nend\n"

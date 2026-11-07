@@ -31,7 +31,6 @@ RSpec.describe(RuboCop::Kata::Correction) do
     expect(flaw("a = \"x \" \\\n  \"y\"\n", "a = \"x\" \\\n  \" y\"\n")).to(be_nil)
   end
 
-  # Adjacent literals are one frozen String; `+` builds a new, unfrozen one.
   it "reads a + or any other call between string literals as a call, not as the string adjacent literals join" do
     original = "a = 'b' \\\n  \"c\"\n"
     expect([flaw(original, "a = 'b' + \"c\"\n"), flaw(original, "a = \"b\".concat(\"c\")\n")])

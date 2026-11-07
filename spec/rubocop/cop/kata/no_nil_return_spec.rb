@@ -160,7 +160,6 @@ RSpec.describe(RuboCop::Cop::Kata::NoNilReturn, :config) do
     RUBY
   end
 
-  # rubycritic: `[mod.cost, COST_LIMIT].min` answers one of its elements, and a nil cost raises (R6B6-K5).
   it "allows the min or max of an array literal that holds a value that is never nil" do
     expect_no_offenses(<<~RUBY)
       class Score
@@ -255,7 +254,6 @@ RSpec.describe(RuboCop::Cop::Kata::NoNilReturn, :config) do
     RUBY
   end
 
-  # strong_migrations' `def e.cause; nil; end`: the end of the cause chain every reader stops on.
   context "with the shipped AllowedMethods" do
     let(:cop_config) { {} }
 
@@ -313,8 +311,6 @@ RSpec.describe(RuboCop::Cop::Kata::NoNilReturn, :config) do
     RUBY
   end
 
-  # hashira's Shelves#drawn (fp/hashira-2): `Dir[pattern]` is `Dir.glob`, an Array, empty when nothing matches;
-  # kata's PairedBrackets#leading (fp/rubocop-kata-1): a pattern that matches the empty string matches every string.
   it "allows a `[]` that always answers: a core class's builder, and a pattern every string matches" do
     expect_no_offenses(<<~'RUBY')
       class Shelf
@@ -351,7 +347,6 @@ RSpec.describe(RuboCop::Cop::Kata::NoNilReturn, :config) do
     RUBY
   end
 
-  # hashira's Kinship#words (fp/hashira-4): the memo builds a hash whose default proc answers every key.
   it "allows a hash with a default that a memo or a field builds" do
     expect_no_offenses(<<~RUBY)
       class Words
@@ -411,7 +406,6 @@ RSpec.describe(RuboCop::Cop::Kata::NoNilReturn, :config) do
     RUBY
   end
 
-  # kimera's Patience#limit (fp/kimera-5): `clamp` answers a number or raises, so the max answers one, never nil.
   it "allows the min or max of an array literal that holds a number a call computes" do
     expect_no_offenses(<<~RUBY)
       class Patience
@@ -435,8 +429,6 @@ RSpec.describe(RuboCop::Cop::Kata::NoNilReturn, :config) do
     RUBY
   end
 
-  # blueprinter's ViewCollection#[] and kimera's Pens#index (fp/twin-blueprinter-2, fp/kimera-2): the project's own
-  # method answers, and its body never answers nil.
   it "allows a lookup's name that reaches the project's own method, which never answers nil" do
     expect_no_offenses(<<~RUBY)
       class Shelf
@@ -604,7 +596,6 @@ RSpec.describe(RuboCop::Cop::Kata::NoNilReturn, :config) do
     RUBY
   end
 
-  # kimera's Scribe::Scopes#index (fp/kimera-2): each_with_object answers its memo, here a hash.
   it "allows the project's own lookup that answers each_with_object's hash memo" do
     expect_no_offenses(<<~RUBY)
       class Scopes
@@ -635,7 +626,6 @@ RSpec.describe(RuboCop::Cop::Kata::NoNilReturn, :config) do
     RUBY
   end
 
-  # timecop's Destination#instant (fp/twin-timecop-1): the value is returned only when it is a Time.
   it "allows a lookup returned under a type guard that rules nil out" do
     expect_no_offenses(<<~RUBY)
       class Pick

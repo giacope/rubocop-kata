@@ -196,21 +196,16 @@ RSpec.describe(RuboCop::Kata::Plugin) do
     end
   end
 
-  # searchkick: `-a` left `].compact.join("_")` three columns in, under a `[` eight columns in.
   it "puts a closing bracket a merged pass drifted back at the indent of its opener's line" do
     correct("-a", "index.rb" => index) { |fixed, _| expect(fixed.fetch("index.rb")).to(include("\n        ].compact")) }
   end
 
-  # turbo-rails: `-a` left a double-splat argument it broke onto a line of its own at column 0, and
-  # Elegant/MonotonicIndents then reported the line after it, which -a could not correct (R6B5-KA1).
   it "indents a double-splat argument it moves to a line of its own, and the check accepts what it wrote" do
     correct("-a", "streams.rb" => streams) do |fixed, _, lib|
       expect([fixed.fetch("streams.rb").scan(/^ {8}\*\*/).size, checked(lib)]).to(eq([2, []]))
     end
   end
 
-  # sshkit: -a closed the blank lines around each `module Formatter` reopening, and Kata/GoodModuleName judged
-  # every reopening it moved, from the lines the project held before -a wrote the files (R6B6-K2).
   it "reports after -a what a fresh check of the corrected files reports" do
     Dir.mktmpdir("kata-autocorrect") do |root|
       remaining = reported(plant(root, formatters), "-a")
@@ -290,7 +285,6 @@ RSpec.describe(RuboCop::Kata::Plugin) do
       end
     end
 
-    # `rubocop -a && git diff --exit-code` passed on a file -a had kept.
     it "reports a kept file's offenses as uncorrected, and exits as a plain run on it would" do
       guarded(%w[-a --format json lib], sql) do |_, _, output, status|
         found = JSON.parse(output).dig("files", 0, "offenses").map { it.values_at("cop_name", "corrected") }
@@ -310,7 +304,6 @@ RSpec.describe(RuboCop::Kata::Plugin) do
       guarded(%w[lib], sql) { |_, _, output| expect(output).to(include("2 offenses autocorrectable")) }
     end
 
-    # The language server's "fix all" asks for every correction, as -A does.
     it "leaves a runner told its corrections need not be safe to write what it corrects" do
       expect(ran({ autocorrect: true, safe_autocorrect: false }, sql)).to(include("SELECT *\n"))
     end
@@ -334,7 +327,6 @@ RSpec.describe(RuboCop::Kata::Plugin) do
       end
     end
 
-    # A plugin may add a Ruby extractor (Runner.ruby_extractors); RuboCop then writes each pass to the file itself.
     context "when another Ruby extractor is registered" do
       around do |example|
         extractor = ->(_) {}
