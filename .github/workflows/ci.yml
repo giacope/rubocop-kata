@@ -66,6 +66,11 @@ jobs:
         with:
           ruby-version: "3.4"
           bundler-cache: true
+      - uses: actions/cache/restore@v4
+        with:
+          path: tmp/kimera/coverage.json
+          key: kimera-coverage-${{ github.event.pull_request.base.sha }}
+          restore-keys: kimera-coverage-
       - run: bundle exec kimera ci
       - if: failure()
         uses: actions/upload-artifact@v4
@@ -84,7 +89,12 @@ jobs:
         with:
           ruby-version: "3.4"
           bundler-cache: true
-      - run: bundle exec kimera run --judge-isolated-only
+      - run: bundle exec kimera run --judge-isolated-only --reuse-coverage
+      - if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: tmp/kimera/coverage.json
+          key: kimera-coverage-${{ github.sha }}
       - if: always()
         uses: actions/upload-artifact@v4
         with:
