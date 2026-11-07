@@ -42,6 +42,50 @@ RSpec.describe(RuboCop::Cop::Kata::NoGetter, :config) do
     RUBY
   end
 
+  # kimera's Cursor: `private(*members)` in the block keeps every reader the object's own.
+  it "allows a Struct or Data whose block makes every member's reader private or protected" do
+    expect_no_offenses(<<~RUBY)
+      module Shop
+        Cursor =
+          Data.define(:position, :inside_def) do
+            private(*members)
+
+            def enter(node) = with(position: position + 1)
+          end
+        Pair = Struct.new(:left, "right", keyword_init: true) do
+          protected :left
+          private :right
+        end
+        Span = Struct.new(:from, :to) { private :from, :to }
+      end
+    RUBY
+  end
+
+  it "names the members a bag's block leaves public, and reads only its bare hiding calls" do
+    bag = "a data bag; write a class whose methods do the work with its fields."
+    expect_offense(<<~RUBY)
+      module Shop
+        Cursor = Data.define(:position, :inside_def, :depth) do
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `Data.define` mints a getter for `inside_def`, `depth`, #{bag}
+          private :position
+          private
+          def helper = 1
+        end
+        Pair = Struct.new(:left, :right, keyword_init: true) do
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `Struct.new` mints a getter for every field, #{bag}
+          self.private(*members)
+          public(*members)
+          private(*fields)
+          private(*self.members)
+          private def other = 1
+          attr_writer :other
+        end
+        Span = Struct.new(:from, :to) { protected(:from) }
+               ^^^^^^^^^^^^^^^^^^^^^^ `Struct.new` mints a getter for `to`, #{bag}
+      end
+    RUBY
+  end
+
   it "allows private and protected readers, in every spelling" do
     expect_no_offenses(<<~RUBY)
       class Account

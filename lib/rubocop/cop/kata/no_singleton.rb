@@ -33,7 +33,7 @@ class RuboCop::Cop::Kata::NoSingleton < RuboCop::Cop::Base
     return add_offense(node, message: MIXIN) if singleton?(node)
     return unless globals?
     return add_offense(node, message: setting(node)) if setting?(node)
-    add_offense(node, message: state(node)) if shared?(node) && !seam?(node)
+    add_offense(node, message: state(node)) if shared?(node) && !seam?(node) && !scoped?(node)
   end
 
   def on_class(node)
@@ -66,6 +66,8 @@ class RuboCop::Cop::Kata::NoSingleton < RuboCop::Cop::Base
   def setting?(node) = node.receiver.nil? && SETTINGS.key?(node.method_name) && !seam?(node)
 
   def shared?(node) = keyed?(node) || (ambient?(node.receiver) && ACCESS.include?(node.method_name))
+
+  def scoped?(node) = RuboCop::Kata::ThreadSlot.new(node, processed_source.ast).scoped?
 
   def check(node)
     holder = node.parent

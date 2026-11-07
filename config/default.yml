@@ -647,7 +647,8 @@ Kata/IoDiscipline:
     (config/strict.yml) it reads the hidden I/O beyond the terminal too: bare
     `print` and `printf`; a global stream or service (`$stdout.puts`,
     `Rails.logger`, `Rails.cache`; `Globals`), which is never injected, and
-    asks to be; and a file, network or shell call (`Effects`, by what it
+    asks to be, unless a method that restores it in an `ensure` reads it (a
+    redirect, Minitest's `capture_io`); and a file, network or shell call (`Effects`, by what it
     reaches: a path, a URL, a command; a constant alone stands for each of its
     methods) whose target is written into the code
     (`File.write("log/audit.log", …)`, `Net::HTTP.post(URI("https://…"))`, ``
@@ -1217,7 +1218,9 @@ Kata/NoPublicConstant:
     assigned to a constant is that class's body), and `AllowedNames` holds the constants a packaging tool reads
     (`VERSION`). A class, module or error is not a value, and neither is a
     constant that namespaces another (`Net::NTLM::Message`, however its
-    acronym is spelled). Off by default: config/strict.yml turns it on.
+    acronym is spelled). A constant that is the whole default of a parameter
+    (`def initialize(runtime = Kimera::RUNTIME)`) is the seam a collaborator
+    is injected through. Off by default: config/strict.yml turns it on.
   Enabled: false
   VersionAdded: "0.11"
   OwnedPaths:
@@ -1389,7 +1392,8 @@ Kata/NoGetter:
     to do with its fields, or have it print itself to a medium it is given
     (Elegant Objects' printers instead of getters). `Struct.new` and
     `Data.define` mint a getter for every field: a data bag. A private or
-    protected reader is the object's own. Off by default: config/strict.yml
+    protected reader is the object's own, also a member's made private in
+    the bag's block (`private(*members)`). Off by default: config/strict.yml
     turns it on.
   Enabled: false
   VersionAdded: "0.11"
@@ -2178,7 +2182,9 @@ Kata/NoSingleton:
     (config/strict.yml) the framework's globals are singletons too: a subclass
     of `ActiveSupport::CurrentAttributes` (`Current.account` read from a
     model), state kept in the thread, the fiber or the request store
-    (`Thread.current[:user]`, `Fiber[:state]`, `RequestStore.store[:user]`),
+    (`Thread.current[:user]`, `Fiber[:state]`, `RequestStore.store[:user]`;
+    a thread or fiber slot every write of which in the file saves, sets,
+    yields and restores it in an `ensure` is dynamic scope, and passes),
     and a class-level setting behind an accessor (`cattr_accessor`,
     `mattr_accessor`, their writers and thread variants; a reader is a
     constant). Code outside every class, module and method is a script's boot
@@ -2635,7 +2641,9 @@ Kata/NoMonkeyPatch:
     `ActiveSupport.on_load` hook names, its own extension point
     (`extend Slugs` inside `on_load(:active_record)`,
     `ActionController::Base.extend` inside `on_load(:action_controller_base)`;
-    another class patched inside a hook is still reported), and a refinement
+    another class patched inside a hook is still reported), Ruby's fork hook
+    (`Process.singleton_class.prepend` of a module kata sees defining nothing
+    but `_fork`), and a refinement
     (`refine String do ... end`) pass. Use
     a refinement or a decorator object. Off by default: config/strict.yml
     turns it on.

@@ -290,6 +290,90 @@ RSpec.describe(RuboCop::Cop::Kata::IoDiscipline, :config) do
     RUBY
   end
 
+  # kimera's StandardStreams, Minitest's capture_io: a redirect saves the global it replaces and restores it.
+  it "passes a global stream read by a method that restores it in an ensure, a redirect" do
+    expect_no_offenses(<<~RUBY)
+      class Streams
+        def quietly
+          swap = [$stdout, $stderr]
+          $stdout = @output
+          $stderr = @errors
+          yield
+        ensure
+          $stdout, $stderr = swap
+        end
+
+        def holding_errors
+          original = $stderr
+          $stderr = @errors
+          yield.tap { original.write(@errors.string) }
+        ensure
+          $stderr = original
+        end
+
+        def self.muted
+          begin
+            held = $stdout
+            $stdout = File::NULL
+            yield
+          ensure
+            $stdout = held
+          end
+        end
+      end
+    RUBY
+  end
+
+  it "still flags a global stream a method writes through, reassigns without restoring, or restores another of" do
+    out = global("$stdout", "io")
+    error = global("$stderr", "io")
+    expect_offense(<<~RUBY, out:, error:)
+      class Streams
+        def record
+          $stdout.puts "x"
+          ^^^^^^^ %{out}
+        end
+
+        def swap
+          held = $stdout
+                 ^^^^^^^ %{out}
+          $stdout = @output
+          yield
+          $stdout = held
+        end
+
+        def other
+          held = $stdout
+                 ^^^^^^^ %{out}
+          $stderr = @errors
+          yield
+        ensure
+          $stderr = held
+        end
+
+        def body
+          $stdout = @output
+          yield
+        ensure
+          $stderr.puts "done"
+          ^^^^^^^ %{error}
+        end
+      end
+
+      class Later
+        def quietly
+          $stdout = @output
+          yield
+        ensure
+          $stdout = @saved
+        end
+
+        def record = $stdout.puts("x")
+                     ^^^^^^^ %{out}
+      end
+    RUBY
+  end
+
   # hashie's railtie, ahoy's engine: a framework's boot hooks wire the globals in.
   it "takes a framework's boot hooks for the boot layer" do
     expect_no_offenses(<<~RUBY)

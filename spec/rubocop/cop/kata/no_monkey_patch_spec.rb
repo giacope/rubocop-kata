@@ -119,6 +119,92 @@ RSpec.describe(RuboCop::Cop::Kata::NoMonkeyPatch, :config) do
     RUBY
   end
 
+  # kimera's Runtime: Ruby documents Process._fork as the hook a library overrides by prepending to
+  # Process.singleton_class.
+  it "passes Ruby's fork hook: a module the file defines with only _fork, prepended to Process.singleton_class" do
+    expect_no_offenses(<<~RUBY)
+      module Shop
+        class Runtime
+          module Forks
+            def _fork
+              super.tap { |pid| reset if pid.zero? }
+            end
+          end
+
+          Spawns = Module.new do
+            def _fork = super
+          end
+        end
+      end
+      Process.singleton_class.prepend(Shop::Runtime::Forks) unless Process.singleton_class < Shop::Runtime::Forks
+      ::Process.singleton_class.prepend(Shop::Runtime::Spawns, Shop::Runtime::Forks)
+      module Shop
+        class Runtime
+          Process.singleton_class.prepend(Forks)
+        end
+      end
+    RUBY
+  end
+
+  it "still reports a prepend onto Process of a module with other methods, one it cannot see, or no hook" do
+    label = "Process.singleton_class.prepend"
+    expect_offense(<<~RUBY)
+      module Spawning
+        def _fork = super
+
+        def spawn(*) = super
+      end
+      module Hooked
+        include Spawning
+
+        def _fork = super
+      end
+      Empty = Module.new
+      Blank = Module.new {}
+      module Shop
+        module Spawning
+        end
+      end
+      Hooks = Class.new do
+        def _fork = super
+      end
+      module Hooks
+      end
+      module Twice
+        def _fork = super
+
+        def _fork = super
+      end
+      Process.singleton_class.prepend(Spawning)
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ #{patch(label, "Process")}
+      Process.singleton_class.prepend(Hooked)
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ #{patch(label, "Process")}
+      Process.singleton_class.prepend(Unseen)
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ #{patch(label, "Process")}
+      Process.singleton_class.prepend(Empty)
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ #{patch(label, "Process")}
+      Process.singleton_class.prepend(Blank)
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ #{patch(label, "Process")}
+      Process.singleton_class.prepend(Hooks)
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ #{patch(label, "Process")}
+      Process.singleton_class.prepend(Twice)
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ #{patch(label, "Process")}
+      Process.singleton_class.prepend(Forks.hook)
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ #{patch(label, "Process")}
+      Process.singleton_class.prepend
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ #{patch(label, "Process")}
+      Process.singleton_class.include(Forks)
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ #{patch("Process.singleton_class.include", "Process")}
+      Process.prepend(Forks)
+      ^^^^^^^^^^^^^^^^^^^^^^ #{patch("Process.prepend", "Process")}
+      Kernel.singleton_class.prepend(Forks)
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ #{patch("Kernel.singleton_class.prepend", "Kernel")}
+      module Forks
+        def _fork = super
+      end
+    RUBY
+  end
+
   context "with the project's own classes" do
     include ProjectFiles
 
@@ -138,6 +224,19 @@ RSpec.describe(RuboCop::Cop::Kata::NoMonkeyPatch, :config) do
         RUBY
       }
       expect(project_offenses(files, "lib/shop/audit.rb").map(&:line)).to(eq([6]))
+    end
+
+    it "reads a fork hook the project defines in another file by what it defines there" do
+      files = {
+        "lib/shop/forks.rb" => "module Shop\n  module Forks\n    def _fork = super\n  end\nend\n",
+        "lib/shop/spawns.rb" => "module Shop\n  module Spawns\n    def _fork = super\n    def spawn = 1\n  end\nend\n",
+        "lib/shop/loose.rb" => "def _fork = super\n",
+        "lib/shop/boot.rb" => <<~RUBY
+          Process.singleton_class.prepend(Shop::Forks)
+          Process.singleton_class.prepend(Shop::Spawns)
+        RUBY
+      }
+      expect(project_offenses(files, "lib/shop/boot.rb").map(&:line)).to(eq([2]))
     end
   end
 end

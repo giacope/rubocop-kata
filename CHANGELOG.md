@@ -38,6 +38,33 @@
     that are members of one of the project's Structs (`env[:body]` with
     `Env = Struct.new(:body, :request_headers)`) is that named object,
     read through its `[]`.
+  - `Kata/IoDiscipline` (`CheckEffects`): a global stream read by a method
+    that restores it in an `ensure` (`swap = [$stdout, $stderr]` ...
+    `ensure $stdout, $stderr = swap`) is a redirect, like Minitest's
+    `capture_io`: saving and restoring the global it replaces is the
+    redirect itself. Writing through `$stdout`, or reassigning it without
+    restoring it in an `ensure`, is still reported.
+  - `Kata/NoMonkeyPatch`: `Process.singleton_class.prepend(Forks)` of a
+    module the file or the project defines (by `module` or `Module.new`)
+    with no statement but `def _fork` is Ruby's documented fork hook. A
+    module with another method or a mixin, or one kata cannot see, is still
+    a patch.
+  - `Kata/NoSingleton` (`CheckGlobals`): a `Thread.current[KEY]` or
+    `Fiber[KEY]` slot every write of which in the file is dynamic scope
+    (saved into a local, set, yielded through and restored from that local
+    in an `ensure`, `I18n.with_locale`'s idiom, written as
+    `Thread.current[KEY] = ...` or `Fiber[KEY] = ...`, or through a local
+    bound to `Thread.current` alone, as hashira's `repeated_call` asks) passes
+    at its reads and writes. A slot written unscoped anywhere in the file is reported as
+    before.
+  - `Kata/NoGetter`: a `Struct.new` or `Data.define` whose block makes every
+    member's reader private or protected (`private(*members)`, `private
+    :a, :b`) mints no public getter; one that hides some is reported naming
+    the members whose readers stay public.
+  - `Kata/NoPublicConstant`: a constant that is the whole default of a
+    parameter (`def initialize(runtime = Kimera::RUNTIME)`, `clock:
+    Clock::SYSTEM`) is the seam a collaborator is injected through; read in
+    the body or inside a larger default it is still reported.
 - Kata lints itself with its strict profile and hashira's strict set, and CI
   enforces both. Behaviour is unchanged; the one difference a caller can
   see: `Elegant/NoNilReturn`, `Elegant/MonotonicIndents` and

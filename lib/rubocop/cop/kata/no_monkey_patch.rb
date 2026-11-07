@@ -18,7 +18,7 @@ class RuboCop::Cop::Kata::NoMonkeyPatch < RuboCop::Cop::Base
   def on_send(node)
     target = patched(node.receiver)
     verb = verb(node)
-    return unless target && verb && changes?(node, verb)
+    return unless target && verb && changes?(node, verb) && !fork_hook?(node, target)
     add_offense(node, message: format(MSG, label(node, verb), target, target))
   end
 
@@ -42,6 +42,13 @@ class RuboCop::Cop::Kata::NoMonkeyPatch < RuboCop::Cop::Base
     names = hooks(probe.const_name)
     probe.each_ancestor(:any_block).any? { it.method?(:on_load) && names.include?(hook(it.send_node.first_argument)) }
   end
+
+  def fork_hook?(node, target)
+    return false unless target == "Process" && node.method?(:prepend) && node.receiver.send_type? && node.arguments?
+    node.arguments.all? { it.const_type? && hook?(it) }
+  end
+
+  def hook?(name) = RuboCop::Kata::ForkHook.new(candidates(name), processed_source, sources).hook?
 
   def hook(name) = name&.sym_type? && name.value
 

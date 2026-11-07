@@ -29,7 +29,7 @@ class RuboCop::Cop::Kata::IoDiscipline < RuboCop::Cop::Base
     effect(node)
   end
 
-  def on_gvar(node) = effects? && global(node, node.source)
+  def on_gvar(node) = effects? && !redirect?(node) && global(node, node.source)
 
   def on_const(node) = effects? && global(node, node.const_name)
 
@@ -67,6 +67,14 @@ class RuboCop::Cop::Kata::IoDiscipline < RuboCop::Cop::Base
     held = node.send_type? ? node.method_name : :io
     add_offense(node, message: format(GLOBAL_MSG, node.source, held, node.source))
   end
+
+  def redirect?(node)
+    name = node.children.first
+    scopes = node.each_ancestor(:def, :defs).first(1)
+    scopes.any? { |scope| scope.each_descendant(:ensure).any? { restores?(it.children.last, name) } }
+  end
+
+  def restores?(branch, name) = branch&.each_node(:gvasgn)&.any? { it.children.first == name }
 
   def effect(node)
     names = labels(node)

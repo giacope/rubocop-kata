@@ -170,6 +170,225 @@ RSpec.describe(RuboCop::Cop::Kata::NoSingleton, :config) do
     RUBY
   end
 
+  # kimera's ConcernOverrides, I18n.with_locale: a slot set around a yield into code the method does not own and
+  # restored in an ensure is dynamic scope, the one way to pass a value through a call the method doesn't own.
+  it "allows a thread or fiber slot every write of which saves, sets, yields and restores it in an ensure" do
+    expect_no_offenses(<<~RUBY)
+      class Overrides
+        SLOT = :overrides
+
+        class Skipping
+          def include?(name)
+            held, names = Thread.current[SLOT]
+            held.equal?(@klass) && names.include?(name)
+          end
+        end
+
+        def skipping(names)
+          previous = Thread.current[SLOT]
+          Thread.current[SLOT] = [@klass, names]
+          yield
+        ensure
+          Thread.current[SLOT] = previous
+        end
+
+        def locale = Fiber[:locale]
+
+        def with_locale(locale)
+          begin
+            was = Fiber[:locale]
+            Fiber[:locale] = locale
+            yield
+          ensure
+            Fiber[:locale] = was
+          end
+        end
+      end
+    RUBY
+  end
+
+  it "allows the scope to name the thread once, as a local bound to Thread.current alone" do
+    expect_no_offenses(<<~RUBY)
+      class Overrides
+        def skipped?(name) = Thread.current[:skipping].include?(name)
+
+        def skipping(names)
+          thread = Thread.current
+          previous = thread[:skipping]
+          thread[:skipping] = names
+          yield
+        ensure
+          thread[:skipping] = previous
+        end
+
+        def spawned(work)
+          thread = Thread.new(&work)
+          thread.join
+        end
+      end
+    RUBY
+  end
+
+  it "still flags a scope that restores the slot from a local saved off another one" do
+    expect_offense(<<~RUBY)
+      class Overrides
+        def skipped?(name) = Thread.current[:skipping].include?(name)
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^ `Thread.current[:skipping]` is global state keyed by the thread; pass the value to what needs it.
+
+        def skipping(names)
+          previous = Thread.current[:held]
+                     ^^^^^^^^^^^^^^^^^^^^^ `Thread.current[:held]` is global state keyed by the thread; pass the value to what needs it.
+          Thread.current[:skipping] = names
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `Thread.current[:skipping]` is global state keyed by the thread; pass the value to what needs it.
+          yield
+        ensure
+          Thread.current[:skipping] = previous
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `Thread.current[:skipping]` is global state keyed by the thread; pass the value to what needs it.
+        end
+      end
+    RUBY
+  end
+
+  it "still flags a slot written through a local bound to anything but Thread.current" do
+    expect_offense(<<~RUBY)
+      class Overrides
+        def skipped?(name) = Thread.current[:skipping].include?(name)
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^ `Thread.current[:skipping]` is global state keyed by the thread; pass the value to what needs it.
+
+        def skipping(names, other)
+          thread = Thread.current
+          thread = other if other
+          previous = thread[:skipping]
+          thread[:skipping] = names
+          yield
+        ensure
+          thread[:skipping] = previous
+        end
+      end
+    RUBY
+  end
+
+  it "still flags a slot written unscoped anywhere in the file, or not written in it" do
+    expect_offense(<<~RUBY)
+      class Overrides
+        def user = Thread.current[:user]
+                   ^^^^^^^^^^^^^^^^^^^^^ `Thread.current[:user]` is global state keyed by the thread; pass the value to what needs it.
+
+        def as(user)
+          previous = Thread.current[:user]
+                     ^^^^^^^^^^^^^^^^^^^^^ `Thread.current[:user]` is global state keyed by the thread; pass the value to what needs it.
+          Thread.current[:user] = user
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `Thread.current[:user]` is global state keyed by the thread; pass the value to what needs it.
+          yield
+        ensure
+          Thread.current[:user] = previous
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `Thread.current[:user]` is global state keyed by the thread; pass the value to what needs it.
+        end
+
+        def login(user)
+          Thread.current[:user] = user
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `Thread.current[:user]` is global state keyed by the thread; pass the value to what needs it.
+        end
+
+        def account = Thread.current[:account]
+                      ^^^^^^^^^^^^^^^^^^^^^^^^ `Thread.current[:account]` is global state keyed by the thread; pass the value to what needs it.
+
+        def tenant = Fiber[:tenant]
+                     ^^^^^^^^^^^^^^ `Fiber[:tenant]` is global state keyed by the fiber; pass the value to what needs it.
+
+        def as_tenant(tenant)
+          Fiber[:tenant] = tenant
+          ^^^^^^^^^^^^^^^^^^^^^^^ `Fiber[:tenant]` is global state keyed by the fiber; pass the value to what needs it.
+          yield
+        ensure
+          Fiber.current.storage.clear
+          Thread.current.delete(:tenant)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `Thread.current.delete` is global state keyed by the thread; pass the value to what needs it.
+        end
+      end
+    RUBY
+  end
+
+  it "still flags a slot whose scope saves, sets, yields or restores nothing" do
+    message = "`Thread.current[:%s]` is global state keyed by the thread; pass the value to what needs it."
+    keys = %w[a b c d z].to_h { [it.to_sym, format(message, it)] }
+    expect_offense(<<~RUBY, **keys)
+      class Slots
+        def no_yield(value)
+          was = Thread.current[:a]
+                ^^^^^^^^^^^^^^^^^^ %{a}
+          Thread.current[:a] = value
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^ %{a}
+          work
+        ensure
+          Thread.current[:a] = was
+          ^^^^^^^^^^^^^^^^^^^^^^^^ %{a}
+        end
+
+        def no_restore(value)
+          was = Thread.current[:b]
+                ^^^^^^^^^^^^^^^^^^ %{b}
+          Thread.current[:b] = value
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^ %{b}
+          yield
+        ensure
+          Thread.current[:b] = nil
+          ^^^^^^^^^^^^^^^^^^^^^^^^ %{b}
+          Thread.current[:z] = was
+          ^^^^^^^^^^^^^^^^^^^^^^^^ %{z}
+        end
+
+        def no_set(value)
+          was = Thread.current[:c]
+                ^^^^^^^^^^^^^^^^^^ %{c}
+          Thread.current[:z] = value
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^ %{z}
+          yield
+        ensure
+          Thread.current[:c] = was
+          ^^^^^^^^^^^^^^^^^^^^^^^^ %{c}
+        end
+
+        def no_body
+        ensure
+          Thread.current[:d] = nil
+          ^^^^^^^^^^^^^^^^^^^^^^^^ %{d}
+        end
+      end
+    RUBY
+  end
+
+  it "still flags a scope's slot read through another spelling or kept in the request store" do
+    expect_offense(<<~RUBY)
+      class Slots
+        def held = Thread.current.fetch(:slot)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^ `Thread.current.fetch` is global state keyed by the thread; pass the value to what needs it.
+
+        def store = RequestStore.store[:slot]
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^ `RequestStore.store[:slot]` is global state keyed by the thread; pass the value to what needs it.
+
+        def scoped(value)
+          was = Thread.current[:slot]
+          Thread.current[:slot] = value
+          yield
+        ensure
+          Thread.current[:slot] = was
+        end
+
+        def requested(value)
+          was = RequestStore.store[:slot]
+                ^^^^^^^^^^^^^^^^^^^^^^^^^ `RequestStore.store[:slot]` is global state keyed by the thread; pass the value to what needs it.
+          RequestStore.store[:slot] = value
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `RequestStore.store[:slot]` is global state keyed by the thread; pass the value to what needs it.
+          yield
+        ensure
+          RequestStore.store[:slot] = was
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `RequestStore.store[:slot]` is global state keyed by the thread; pass the value to what needs it.
+        end
+      end
+    RUBY
+  end
+
   # ahoy, mailboxer, delayed_job: settings kept in class variables behind accessors; turbo-rails keeps
   # its request id per thread (R6B5-K3).
   it "flags a class-level setting every caller shares, or every thread" do
